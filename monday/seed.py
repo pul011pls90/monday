@@ -18,6 +18,7 @@ from fractions import Fraction
 from flask import current_app
 
 from .extensions import db
+from .models import today as local_today  # noqa: E402
 from .models import utcnow
 from .models import (Assignment, Attempt, AttemptAnswer, Question, Skill, StudentProfile, StudentRecord, User,
                      Work, new_invite_code)
@@ -391,7 +392,7 @@ def _wrong_answer(item, rng):
 
 def seed_demo():
     rng = random.Random(2026)
-    today = date.today()
+    today = local_today()
 
     # ---- users
     admin = User(email="admin@monday.kg", name="Темирлан Манашов", role="admin")
@@ -701,7 +702,7 @@ def seed_demo():
 
     # attendance for the last five weeks of lessons (kept apart from knowledge)
     from .models import Attendance
-    today = date.today()
+    today = local_today()
     for rec in StudentRecord.query.filter_by(teacher_id=teachers["aibek"].id).all():
         for back in range(1, 36):
             d = today - timedelta(days=back)

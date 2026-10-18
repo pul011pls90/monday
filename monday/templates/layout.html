@@ -18,12 +18,14 @@
       ] %}
       {% if current_user.can_review %}{% set items = items + [('review.queue', 'check', _('Модерация'), ['review.queue'])] %}{% endif %}
       {% if current_user.is_admin %}{% set items = items + [('admin.index', 'shield', _('Админ'), ['admin.index'])] %}{% endif %}
+      {% set primary = ['teacher.dashboard', 'teacher.students', 'teacher.works', 'teacher.review', 'teacher.bank'] %}
     {% elif current_user.is_assistant %}
       <a class="rail__logo" href="{{ url_for('assistant.home') }}" aria-label="Monday">M</a>
       {% set items = [
         ('assistant.home', 'plus', _('Загрузка'), ['assistant.home', 'assistant.import_preview', 'assistant.import_save']),
         ('assistant.mine', 'questions', _('Мои вопросы'), ['assistant.mine', 'teacher.question_new', 'teacher.question_edit']),
       ] %}
+      {% set primary = ['assistant.home', 'assistant.mine'] %}
     {% else %}
       <a class="rail__logo" href="{{ url_for('student.home') }}" aria-label="Monday">M</a>
       {% set items = [
@@ -37,18 +39,41 @@
         ('student.formulas', 'list', _('Формулы'), ['student.formulas']),
         ('student.monday', 'calendar', _('Тест'), ['student.monday']),
       ] %}
+      {% set primary = ['student.home', 'student.skills', 'student.sessions', 'bank.index', 'student.homework'] %}
     {% endif %}
     {% for endpoint, ic, label, active in items %}
-      <a class="rail__item{{ ' is-active' if ep in active }}" href="{{ url_for(endpoint) }}"{{ ' aria-current=page' if ep in active }}>
+      <a class="rail__item{{ ' is-active' if ep in active }}{{ ' rail__item--extra' if endpoint not in primary }}" href="{{ url_for(endpoint) }}"{{ ' aria-current=page' if ep in active }}>
         {{ ui.icon(ic, 22) }}<span>{{ label }}</span>
       </a>
     {% endfor %}
     <div class="spacer"></div>
   </nav>
 
+  {# Phones: the bottom bar keeps five main sections; the rest live in this side menu (☰ in the top bar). #}
+  {% set extras = items|rejectattr(0, 'in', primary)|list %}
+  {% set ns = namespace(extra_active=false) %}
+  {% for x in extras %}{% if ep in x[3] %}{% set ns.extra_active = true %}{% endif %}{% endfor %}
+  {% if extras %}
+  <div class="nav-drawer" id="nav-drawer" data-nav-drawer hidden>
+    <div class="nav-drawer__backdrop" data-nav-close></div>
+    <aside class="nav-drawer__panel" role="dialog" aria-modal="true" aria-label="{{ _('Ещё разделы') }}">
+      <div class="nav-drawer__head">
+        <span class="nav-drawer__logo">Monday</span>
+        <button class="icon-btn" type="button" data-nav-close aria-label="{{ _('Закрыть') }}">{{ ui.icon('x') }}</button>
+      </div>
+      <nav class="nav-drawer__list" aria-label="{{ _('Ещё разделы') }}">
+        {% for endpoint, ic, label, active in extras %}
+          <a class="nav-drawer__item{{ ' is-active' if ep in active }}" href="{{ url_for(endpoint) }}"{{ ' aria-current=page' if ep in active }}>{{ ui.icon(ic, 22) }}<span>{{ label }}</span></a>
+        {% endfor %}
+      </nav>
+    </aside>
+  </div>
+  {% endif %}
+
   <div class="main">
-    {% block topbar %}
+    {% block topbar scoped %}
     <header class="topbar">
+      {% if extras %}<button class="icon-btn nav-burger{{ ' has-active' if ns.extra_active }}" type="button" data-nav-open aria-controls="nav-drawer" aria-expanded="false" aria-label="{{ _('Меню') }}">{{ ui.icon('menu') }}</button>{% endif %}
       <div class="topbar__context">{% block context %}{% if current_user.profile and current_user.profile.exam %}{{ current_user.profile.exam|exam_label }} · {{ _("математика") }}{% elif current_user.is_teacher %}{{ _("Кабинет учителя") }}{% elif current_user.is_assistant %}{{ _("Кабинет ассистента") }}{% endif %}{% endblock %}</div>
       <div class="topbar__tools">
         {% block topbar_extra %}{% endblock %}

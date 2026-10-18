@@ -472,3 +472,32 @@
     if (s.form.requestSubmit) s.form.requestSubmit(); else s.form.submit();
   });
 })();
+
+/* Phone side menu (☰): opens from the left with the sections that don't fit in the bottom bar. */
+(function () {
+  "use strict";
+  const drawer = document.querySelector("[data-nav-drawer]");
+  const opener = document.querySelector("[data-nav-open]");
+  if (!drawer || !opener) return;
+  let lastFocus = null;
+  const open = () => {
+    lastFocus = document.activeElement;
+    drawer.hidden = false;
+    requestAnimationFrame(() => drawer.classList.add("is-open"));
+    document.body.classList.add("nav-open");
+    opener.setAttribute("aria-expanded", "true");
+    const first = drawer.querySelector(".nav-drawer__item");
+    if (first) first.focus({ preventScroll: true });
+  };
+  const close = () => {
+    drawer.classList.remove("is-open");
+    document.body.classList.remove("nav-open");
+    opener.setAttribute("aria-expanded", "false");
+    setTimeout(() => { drawer.hidden = true; }, 220);
+    if (lastFocus) lastFocus.focus({ preventScroll: true });
+  };
+  opener.addEventListener("click", open);
+  drawer.addEventListener("click", (e) => { if (e.target.closest("[data-nav-close]")) close(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !drawer.hidden) close(); });
+  window.addEventListener("resize", () => { if (window.innerWidth > 760 && !drawer.hidden) close(); });
+})();

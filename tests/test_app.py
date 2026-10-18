@@ -679,7 +679,7 @@ def test_teacher_today_bank_and_attendance():
     r = t.post(f"/teacher/assignments/{a_id}/due", data={"day": "2030-01-07"}, headers={"X-Requested-With": "fetch"})
     assert r.json["due"].startswith("2030-01-07")
     with APP.app_context():
-        assert Attendance.query.filter_by(record_id=rec_id, day=_date.today()).first().status == "late"
+        assert Attendance.query.filter_by(record_id=rec_id, day=__import__("monday.models", fromlist=["today"]).today()).first().status == "late"
     ok(t, f"/teacher/students/{rec_id}", contains=["Посещаемость", "Итог", "Журнал ошибок"])
     # bank: filter, then add two questions into a new homework
     ok(t, "/teacher/bank?exam=ORT", contains=["Банк вопросов", "Корзина"])
@@ -734,7 +734,7 @@ def test_questions_of_the_day():
     ok(s, "/home", contains=["Вопросы дня", "выбрал"])
     ok(s, "/daily/", contains=["Вопросы дня", "Ответить", "Вопросы дня — готово"])
     with APP.app_context():
-        pick = DailyPick.query.filter(DailyPick.teacher_id.isnot(None), DailyPick.day == _date.today()).first()
+        pick = DailyPick.query.filter(DailyPick.teacher_id.isnot(None), DailyPick.day == __import__("monday.models", fromlist=["today"]).today()).first()
         pid, correct = pick.id, pick.question.correct
     r = s.post(f"/daily/{pid}/answer", data={"given": correct})
     assert r.json["ok"] is True and r.json["rate"]["total"] == 1 and r.json["streak"] == 1
@@ -751,7 +751,7 @@ def test_questions_of_the_day():
     r = t.post("/teacher/bank/add", data={"qid": [qid], "work": "daily-tomorrow", "exam": "ORT"})
     assert r.status_code == 302
     with APP.app_context():
-        assert DailyPick.query.filter_by(day=_date.today() + __import__("datetime").timedelta(days=1)).count() == 1
+        assert DailyPick.query.filter_by(day=__import__("monday.models", fromlist=["today"]).today() + __import__("datetime").timedelta(days=1)).count() == 1
     # a student without a teacher gets Monday's question
     other = login(client(), "student27@monday.kg", "student123")
     ok(other, "/home", contains="Monday подобрал")
