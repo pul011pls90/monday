@@ -15,7 +15,7 @@
   const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 
   let W = 0, H = 0, dpr = 1, ox = 0, oy = 0, rx = 200, ry = 70, textBoxes = [];
-  const S = 12, MAXR = 3.1, LENS = 90;
+  const S = 12, MAXR = 3.1, LENS = 90, FADE = 56;
   const pointer = { x: 0, y: 0, cx: 0, cy: 0, presence: 0, inside: false };
 
   if (orbit && window.renderMathInElement) {
@@ -64,9 +64,15 @@
         // strongest around the orbit, quiet under the text so it stays readable
         const gx = (x - ox) / (rx * 1.9), gy = (y - oy) / (H * 0.9);
         let f = Math.exp(-(gx * gx + gy * gy)) * (0.6 + 0.25 * Math.sin(x * 0.02 + y * 0.015 - t * 1.1));
+        // quieter under the text, fading out softly around it (a hard cut showed as a visible rectangle)
+        // (oval zones with a wide soft edge — no straight lines anywhere)
+        let quiet = 1;
         for (const b of textBoxes) {
-          if (x > b[0] - 16 && x < b[2] + 16 && y > b[1] - 16 && y < b[3] + 16) { f *= 0.25; break; }
+          const ex = (x - (b[0] + b[2]) / 2) / ((b[2] - b[0]) / 2 + FADE);
+          const ey = (y - (b[1] + b[3]) / 2) / ((b[3] - b[1]) / 2 + FADE);
+          quiet = Math.min(quiet, 0.2 + 0.8 * smooth(0.75, 1.35, Math.hypot(ex, ey)));
         }
+        f *= quiet;
         let hl = 0;
         if (pointer.presence > 0.01) {
           const dx = x - pointer.cx, dy = y - pointer.cy;
