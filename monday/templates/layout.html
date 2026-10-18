@@ -58,7 +58,7 @@
     <div class="nav-drawer__backdrop" data-nav-close></div>
     <aside class="nav-drawer__panel" role="dialog" aria-modal="true" aria-label="{{ _('Ещё разделы') }}">
       <div class="nav-drawer__head">
-        <span class="nav-drawer__logo">Monday</span>
+        <span class="nav-drawer__logo" aria-label="Monday">{% for ch in "MONDAY" %}<span>{{ ch }}</span>{% endfor %}</span>
         <button class="icon-btn" type="button" data-nav-close aria-label="{{ _('Закрыть') }}">{{ ui.icon('x') }}</button>
       </div>
       <nav class="nav-drawer__list" aria-label="{{ _('Ещё разделы') }}">

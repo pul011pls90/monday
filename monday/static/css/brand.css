@@ -946,8 +946,15 @@ kbd { font: 700 10px var(--font); padding: 1px 5px; border-radius: 4px; border: 
   .nav-drawer.is-open .nav-drawer__backdrop { opacity: 1; }
   .nav-drawer.is-open .nav-drawer__panel { transform: none; }
   .nav-drawer__head { display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 14px; margin-bottom: 8px; border-bottom: 1px solid var(--line); }
-  .nav-drawer__logo { font-family: var(--font-display); font-weight: 800; font-size: 20px;
-    background: var(--grad-deep); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  /* same wordmark as the welcome page: capitals, one shade of blue per letter */
+  .nav-drawer__logo { font: 800 22px/1 var(--font-display); letter-spacing: -.02em; }
+  .nav-drawer__logo span:nth-child(1) { color: #7FA3F3; }
+  .nav-drawer__logo span:nth-child(2) { color: #4275E9; }
+  .nav-drawer__logo span:nth-child(3) { color: #2B60E5; }
+  .nav-drawer__logo span:nth-child(4) { color: #2456D9; }
+  .nav-drawer__logo span:nth-child(5) { color: #153893; }
+  .nav-drawer__logo span:nth-child(6) { color: #020B29; }
+  [data-theme="dark"] .nav-drawer__logo span:nth-child(6) { color: #BBCFF4; }
   .nav-drawer__list { display: flex; flex-direction: column; gap: 4px; }
   .nav-drawer__item { display: flex; align-items: center; gap: 14px; min-height: 52px; padding: 0 14px; border-radius: 14px;
     font-weight: 600; font-size: 16px; color: var(--text); text-decoration: none; }
