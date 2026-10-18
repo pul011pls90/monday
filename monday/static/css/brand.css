@@ -966,3 +966,78 @@ kbd { font: 700 10px var(--font); padding: 1px 5px; border-radius: 4px; border: 
 @media (prefers-reduced-motion: reduce) {
   .nav-drawer__panel, .nav-drawer__backdrop { transition: none; }
 }
+
+/* ==========================================================================
+   Test screens on phones (upright and sideways): one-row header, icon tools,
+   one-row footer, readable maths. Desktop is unchanged.
+   ========================================================================== */
+.cnt-short { display: none; }
+/* maths inside answers: fractions were tiny next to the big answer boxes */
+.option__box .katex { font-size: 1.35em; }
+.q-text .katex { font-size: 1.15em; }
+.q-text .katex, .option__box .katex { white-space: nowrap; }   /* keep short formulas on one line */
+
+@media (max-width: 760px), (orientation: landscape) and (max-height: 520px) {
+  /* header: a single row — close, title (shortened), progress, timer, theme */
+  .session-bar { flex-wrap: nowrap; gap: 10px; min-height: 52px; padding: 6px 12px; }
+  .session-bar__left { gap: 10px !important; min-width: 0; flex: 1 1 auto; flex-wrap: nowrap !important; }
+  .session-bar__label { flex-wrap: nowrap !important; }
+  .session-bar__right { flex-wrap: nowrap !important; }
+  .session-bar:has(.steps) .session-bar__counter { display: none; }   /* the dots already show progress */
+  .session-bar__label { min-width: 0; font-size: 15px; }
+  .session-bar__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .session-bar__right { flex: none; gap: 6px !important; }
+  .session-bar__avatar { display: none; }
+  .session-bar .icon-btn { width: 40px; height: 40px; }
+  .session-bar .steps { flex: 0 1 96px; min-width: 56px; }
+  .session-bar .timer { font-size: 16px; }
+
+  /* tool row: icons only, one line */
+  .test-tools { top: 52px; padding: 6px 12px; gap: 6px; flex-wrap: nowrap; }
+  .bank-tools { display: flex; justify-content: space-between; }
+  .bank-tools .row { gap: 6px !important; flex-wrap: nowrap; }
+  .bank-tools .btn { padding: 0 10px; min-height: 38px; }
+  .btn-label { display: none; }
+  .bank-timer { padding: 4px 10px; font-size: 15px; border-radius: 10px; }
+  .bank-meta__pop { left: 0; right: auto; max-width: calc(100vw - 24px); }
+
+  /* question header: icons were hidden together with the labels — keep the icons */
+  .q-head__btn span { display: revert; }
+  .q-head__btn > span:not(.ic) { display: none; }
+  .q-head__btn { padding: 10px 12px; }
+  .q-head__num { min-width: 42px; font-size: 16px; }
+
+  /* footer: one row — ← · 1 / 17 ▾ · Проверить · → */
+  .test-foot { flex-wrap: nowrap; gap: 8px; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); }
+  .test-foot .btn { min-height: 46px; }
+  .bank-foot > .btn:first-child { width: 46px; padding: 0; justify-content: center; flex: none; }
+  .bank-foot__mid { flex: 1 1 auto; min-width: 0; }
+  .bank-foot__progress { display: none; }
+  .cnt-long { display: none; }
+  .cnt-short { display: inline; }
+  .test-foot__counter { padding: 0 12px; white-space: nowrap; }
+  .bank-foot__actions { gap: 8px !important; flex: none; flex-wrap: nowrap; }
+  .bank-foot__actions .btn--primary { padding: 0 16px; }
+  .bank-foot__actions .btn--secondary { width: 46px; padding: 0; justify-content: center; }
+  .bank-foot__actions .btn--secondary:not([data-next-link]) { width: auto; padding: 0 14px; }
+  .test-page { padding-bottom: 96px; }
+  .q-grid-pop { position: fixed; left: 12px; right: 12px; width: auto; bottom: calc(72px + env(safe-area-inset-bottom)); transform: none; max-height: 50vh; overflow: auto; }
+}
+
+/* sideways phones: very little height — let the tool row scroll away and keep the header slim */
+@media (orientation: landscape) and (max-height: 520px) {
+  .session-bar { min-height: 46px; padding: 4px 16px; }
+  .test-tools { position: static; }
+  .test-page { padding-top: 10px; }
+  .q-head { margin-bottom: 4px; }
+  .q-head__btn { padding: 6px 10px; }
+  .test-tools { padding: 4px 16px; }
+  .test-tools .btn, .bank-timer { min-height: 34px; }
+  /* plenty of width, little height: answers in two columns */
+  .q-layout--single .options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .option__box { min-height: 48px; padding: 6px 12px; }
+  .test-foot { padding-top: 6px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
+  .test-foot .btn { min-height: 42px; }
+  .test-page { padding-bottom: 76px; }
+}
+.ort-q__text .katex, .ort-q__options .katex { font-size: 1.15em; }

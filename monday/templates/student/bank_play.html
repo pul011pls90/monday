@@ -12,9 +12,9 @@
 {# ------------------------------------------------------------ tools: explanation, details, timer, formulas, calculator #}
 <div class="test-tools bank-tools" data-calc-top>
   <div class="row" style="gap:8px">
-    <button type="button" class="btn btn--secondary btn--sm" data-explain-open {{ 'disabled' if not (state and state.attempts) }}>{{ ui.icon('bulb', 16) }}{{ _("Объяснение") }}</button>
+    <button type="button" class="btn btn--secondary btn--sm" data-explain-open {{ 'disabled' if not (state and state.attempts) }}>{{ ui.icon('bulb', 16) }}<span class="btn-label">{{ _("Объяснение") }}</span></button>
     <div class="bank-meta">
-      <button type="button" class="btn btn--secondary btn--sm" data-meta-toggle aria-expanded="false">{{ ui.icon('info', 16) }}{{ _("Детали") }}</button>
+      <button type="button" class="btn btn--secondary btn--sm" data-meta-toggle aria-expanded="false">{{ ui.icon('info', 16) }}<span class="btn-label">{{ _("Детали") }}</span></button>
       <div class="bank-meta__pop" data-meta-pop hidden>
         <dl class="kv small">
           {% if node %}<dt>{{ _("Тема") }}</dt><dd>{{ node.topic }}</dd>
@@ -31,8 +31,8 @@
   </div>
   <span class="bank-timer" aria-label="{{ _('Время на этом вопросе') }}">{{ ui.icon('timer', 18) }}<span class="num" data-qtimer>00:00</span></span>
   <div class="row" style="gap:8px">
-    <button type="button" class="btn btn--secondary btn--sm" data-drawer-open="ref">{{ ui.icon('journal', 16) }}{{ _("Формулы") }}</button>
-    {% if calculator %}<button type="button" class="btn btn--secondary btn--sm" data-calc-open aria-pressed="false">{{ ui.icon('calculator', 16) }}{{ _("Калькулятор") }}</button>{% endif %}
+    <button type="button" class="btn btn--secondary btn--sm" data-drawer-open="ref">{{ ui.icon('journal', 16) }}<span class="btn-label">{{ _("Формулы") }}</span></button>
+    {% if calculator %}<button type="button" class="btn btn--secondary btn--sm" data-calc-open aria-pressed="false">{{ ui.icon('calculator', 16) }}<span class="btn-label">{{ _("Калькулятор") }}</span></button>{% endif %}
   </div>
 </div>
 
@@ -68,11 +68,11 @@
 </main>
 
 <div class="test-foot bank-foot" data-calc-bottom>
-  {% if i > 0 %}<a class="btn btn--secondary" href="{{ url_for('bank.play', attempt_id=att.id, i=i-1) }}" data-prev-link>{{ ui.icon('arrow-left', 18) }}{{ _("Назад") }}</a>
-  {% else %}<span class="btn btn--secondary" aria-disabled="true" style="opacity:.45">{{ ui.icon('arrow-left', 18) }}{{ _("Назад") }}</span>{% endif %}
+  {% if i > 0 %}<a class="btn btn--secondary" href="{{ url_for('bank.play', attempt_id=att.id, i=i-1) }}" data-prev-link aria-label="{{ _('Назад') }}">{{ ui.icon('arrow-left', 18) }}<span class="btn-label">{{ _("Назад") }}</span></a>
+  {% else %}<span class="btn btn--secondary" aria-disabled="true" style="opacity:.45">{{ ui.icon('arrow-left', 18) }}<span class="btn-label">{{ _("Назад") }}</span></span>{% endif %}
   <div class="test-foot__mid bank-foot__mid">
     <span class="bank-foot__progress small">{{ ui.icon('check', 14) }}{{ _("Проверено в сессии:") }} <b class="num" data-checked>{{ checked }}</b> {{ _("из") }} {{ n }}</span>
-    <button type="button" class="btn btn--ghost test-foot__counter" data-grid-toggle aria-expanded="false">{{ _("Вопрос %(k)s из %(n)s", k=i + 1, n=n) }} ▾</button>
+    <button type="button" class="btn btn--ghost test-foot__counter" data-grid-toggle aria-expanded="false"><span class="cnt-long">{{ _("Вопрос %(k)s из %(n)s", k=i + 1, n=n) }}</span><span class="cnt-short num">{{ i + 1 }} / {{ n }}</span> ▾</button>
     <div class="q-grid-pop" data-grid-pop hidden>
       <div class="q-grid">
         {% for g in grid %}<a href="{{ url_for('bank.play', attempt_id=att.id, i=g.n - 1) }}" class="{{ g.state }}{{ ' is-marked' if g.marked }}{{ ' is-current' if g.n == i + 1 }}">{{ g.n }}</a>{% endfor %}
@@ -80,9 +80,9 @@
       <div class="q-grid__legend small muted"><span><i class="lg is-ok"></i>{{ _("верно") }}</span><span><i class="lg is-bad"></i>{{ _("неверно") }}</span><span><i class="lg"></i>{{ _("не решён") }}</span><span><i class="lg is-marked"></i>{{ _("на проверку") }}</span></div>
     </div>
   </div>
-  <div class="row" style="gap:10px">
+  <div class="row bank-foot__actions" style="gap:10px">
     <button type="submit" form="bank-form" class="btn btn--primary" data-check-btn>{{ ui.icon('check', 18) }}{{ _("Проверить") }}</button>
-    {% if i + 1 < n %}<a class="btn btn--secondary" href="{{ url_for('bank.play', attempt_id=att.id, i=i+1) }}" data-next-link>{{ _("Далее") }}{{ ui.icon('arrow-right', 18) }}</a>
+    {% if i + 1 < n %}<a class="btn btn--secondary" href="{{ url_for('bank.play', attempt_id=att.id, i=i+1) }}" data-next-link aria-label="{{ _('Далее') }}"><span class="btn-label">{{ _("Далее") }}</span>{{ ui.icon('arrow-right', 18) }}</a>
     {% else %}<a class="btn btn--secondary" href="{{ url_for('bank.index', exam=exam) }}">{{ _("Завершить") }}</a>{% endif %}
   </div>
 </div>

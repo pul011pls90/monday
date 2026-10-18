@@ -2,25 +2,25 @@
    Expects: close_url, label, dot_color (optional), steps (list of 'is-done'|'is-wrong'|'is-current'|''),
    counter (optional text), timer_seconds (optional int) #}
 <header class="session-bar">
-  <div class="row" style="gap:16px">
+  <div class="row session-bar__left" style="gap:16px">
     <a class="icon-btn" href="{{ close_url }}" aria-label="{{ _('Выйти') }}"
        {% if timer_seconds is not none %}data-exit-confirm data-exit-title="{{ _('Выйти из теста?') }}"
        data-exit-text="{{ _('Ответы уже сохранены — сможешь продолжить с того же места. Таймер при этом не останавливается.') }}"
        data-exit-stay="{{ _('Остаться') }}" data-exit-go="{{ _('Выйти') }}"{% endif %}>{{ ui.icon('x', 18) }}</a>
-    <div class="row" style="gap:8px;font-weight:700">{% if dot_color %}<span class="dot bg-{{ dot_color }}"></span>{% endif %}{{ label }}</div>
+    <div class="row session-bar__label" style="gap:8px;font-weight:700">{% if dot_color %}<span class="dot bg-{{ dot_color }}"></span>{% endif %}<span class="session-bar__text">{{ label }}</span></div>
   </div>
   {% if steps %}
   <div class="steps" aria-label="{{ _('Прогресс') }}">
     {% for s in steps %}<span class="{{ s }}"></span>{% endfor %}
   </div>
   {% endif %}
-  <div class="row" style="gap:8px">
-    {% if counter %}<span class="small" style="font-weight:700">{{ counter }}</span>{% endif %}
+  <div class="row session-bar__right" style="gap:8px">
+    {% if counter %}<span class="small session-bar__counter" style="font-weight:700">{{ counter }}</span>{% endif %}
     {% if timer_seconds is not none %}<span class="timer" data-timer="{{ timer_seconds }}" data-form="test-form" aria-live="off">--:--</span>{% endif %}
     <form method="post" action="{{ url_for('auth.toggle_theme') }}" data-theme-toggle>
       {{ ui.csrf() }}<input type="hidden" name="next" value="{{ request.full_path }}">
       <button class="icon-btn" type="submit" aria-label="{{ _('Сменить тему') }}"><span data-theme-icon="light">{{ ui.icon('moon') }}</span><span data-theme-icon="dark">{{ ui.icon('sun') }}</span></button>
     </form>
-    <a href="{{ url_for('student.profile') if not current_user.is_teacher else url_for('teacher.account') }}" aria-label="{{ _('Аккаунт') }}" style="text-decoration:none">{{ ui.avatar(current_user, text=current_user.initials[:1]) }}</a>
+    <a href="{{ url_for('student.profile') if not current_user.is_teacher else url_for('teacher.account') }}" aria-label="{{ _('Аккаунт') }}" class="session-bar__avatar" style="text-decoration:none">{{ ui.avatar(current_user, text=current_user.initials[:1]) }}</a>
   </div>
 </header>
