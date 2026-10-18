@@ -678,9 +678,6 @@ details.disclosure[open] summary { margin-bottom: 10px; }
 
 /* Phone turned sideways: figure left, question and answers right (as designed). */
 @media (orientation: landscape) and (max-height: 520px) {
-  .rail { display: none; }
-  .main { padding-bottom: 0; }
-  .topbar { display: none; }
   .q-layout--split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
   .q-layout--split .q-main { position: static; }
   .q-layout--split .options { gap: 8px; }

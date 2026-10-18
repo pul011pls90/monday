@@ -3,11 +3,11 @@
 {% block content %}
 {% set p = current_user.profile %}
 <section class="hero" style="flex-direction:column;align-items:stretch;gap:28px">
-  <div class="row row--between">
+  <div class="row row--between" style="flex-wrap:wrap;gap:8px">
     <span class="eyebrow">{{ _("Ритуал недели · трек %(exam)s", exam=p.exam|exam_label) }}</span>
     <span class="tag" style="background:var(--accent-strong)">{{ _("Неделя %(n)s", n=week_number) }}</span>
   </div>
-  <h1 class="display" style="font-size:64px;line-height:1">{{ _("Тест") }}<br>{{ _("понедельника") }}</h1>
+  <h1 class="display" style="font-size:clamp(26px, 7.4vw, 64px);line-height:1.05">{{ _("Тест") }}<br>{{ _("понедельника") }}</h1>
   <div class="row row--between" style="align-items:flex-end;gap:24px">
     <div class="row" style="gap:32px;align-items:flex-end">
       <div><div class="stat-value num" style="font-size:40px">{% if countdown %}{{ _("%(d)s д %(h)s ч", d=countdown[0], h=countdown[1]) }}{% else %}{{ _("Сейчас") }}{% endif %}</div><div class="hero-muted small">{{ _("до старта · пн, 19:00") }}</div></div>

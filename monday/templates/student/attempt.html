@@ -16,14 +16,14 @@
 {# ------------------------------------------------------------ tools: formulas, calculator, progress #}
 <div class="test-tools" data-calc-top>
   <div class="row" style="gap:8px">
-    <button type="button" class="btn btn--secondary btn--sm" data-drawer-open="ref">{{ ui.icon('journal', 16) }}{{ _("Формулы") }}</button>
-    {% if layout.calculator %}<button type="button" class="btn btn--secondary btn--sm" data-calc-open aria-pressed="false">{{ ui.icon('chart', 16) }}{{ _("Калькулятор") }}</button>{% endif %}
+    <button type="button" class="btn btn--secondary btn--sm" data-drawer-open="ref" aria-label="{{ _('Формулы') }}">{{ ui.icon('journal', 16) }}<span class="btn-label">{{ _("Формулы") }}</span></button>
+    {% if layout.calculator %}<button type="button" class="btn btn--secondary btn--sm" data-calc-open aria-pressed="false" aria-label="{{ _('Калькулятор') }}">{{ ui.icon('chart', 16) }}<span class="btn-label">{{ _("Калькулятор") }}</span></button>{% endif %}
     {% if att.mode == 'homework' %}<span class="tag tag--soft">{{ _("Домашнее задание") }}</span>{% elif att.mode == 'monday' %}<span class="tag">{{ _("Тест понедельника") }}</span>{% endif %}
-    <span class="tag tag--line">{{ TEST_FORMATS[layout.format].label }}</span>
+    <span class="tag tag--line test-tools__format">{{ TEST_FORMATS[layout.format].label }}</span>
   </div>
-  <div class="row small" style="gap:14px">
+  <div class="row small test-tools__status" style="gap:14px">
     <span class="save-state muted" data-save-state data-saving="{{ _('Сохраняем…') }}" data-saved="{{ _('Ответы сохранены') }}" data-failed="{{ _('Нет связи — ответы сохранятся при сдаче') }}" aria-live="polite"></span>
-    <span style="font-weight:700">{{ _("Отвечено:") }} <span data-answered class="num">0 / {{ mod.end - mod.start }}</span></span>
+    <span class="test-tools__answered" style="font-weight:700"><span class="btn-label">{{ _("Отвечено:") }} </span>{{ ui.icon('check', 14) }}<span data-answered class="num">0 / {{ mod.end - mod.start }}</span></span>
   </div>
 </div>
 

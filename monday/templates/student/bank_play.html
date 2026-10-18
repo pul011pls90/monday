@@ -12,9 +12,9 @@
 {# ------------------------------------------------------------ tools: explanation, details, timer, formulas, calculator #}
 <div class="test-tools bank-tools" data-calc-top>
   <div class="row" style="gap:8px">
-    <button type="button" class="btn btn--secondary btn--sm" data-explain-open {{ 'disabled' if not (state and state.attempts) }}>{{ ui.icon('bulb', 16) }}<span class="btn-label">{{ _("Объяснение") }}</span></button>
+    <button type="button" class="btn btn--secondary btn--sm" data-explain-open aria-label="{{ _('Объяснение') }}" {{ 'disabled' if not (state and state.attempts) }}>{{ ui.icon('bulb', 16) }}<span class="btn-label">{{ _("Объяснение") }}</span></button>
     <div class="bank-meta">
-      <button type="button" class="btn btn--secondary btn--sm" data-meta-toggle aria-expanded="false">{{ ui.icon('info', 16) }}<span class="btn-label">{{ _("Детали") }}</span></button>
+      <button type="button" class="btn btn--secondary btn--sm" data-meta-toggle aria-expanded="false" aria-label="{{ _('Детали') }}">{{ ui.icon('info', 16) }}<span class="btn-label">{{ _("Детали") }}</span></button>
       <div class="bank-meta__pop" data-meta-pop hidden>
         <dl class="kv small">
           {% if node %}<dt>{{ _("Тема") }}</dt><dd>{{ node.topic }}</dd>
@@ -31,8 +31,8 @@
   </div>
   <span class="bank-timer" aria-label="{{ _('Время на этом вопросе') }}">{{ ui.icon('timer', 18) }}<span class="num" data-qtimer>00:00</span></span>
   <div class="row" style="gap:8px">
-    <button type="button" class="btn btn--secondary btn--sm" data-drawer-open="ref">{{ ui.icon('journal', 16) }}<span class="btn-label">{{ _("Формулы") }}</span></button>
-    {% if calculator %}<button type="button" class="btn btn--secondary btn--sm" data-calc-open aria-pressed="false">{{ ui.icon('calculator', 16) }}<span class="btn-label">{{ _("Калькулятор") }}</span></button>{% endif %}
+    <button type="button" class="btn btn--secondary btn--sm" data-drawer-open="ref" aria-label="{{ _('Формулы') }}">{{ ui.icon('journal', 16) }}<span class="btn-label">{{ _("Формулы") }}</span></button>
+    {% if calculator %}<button type="button" class="btn btn--secondary btn--sm" data-calc-open aria-pressed="false" aria-label="{{ _('Калькулятор') }}">{{ ui.icon('calculator', 16) }}<span class="btn-label">{{ _("Калькулятор") }}</span></button>{% endif %}
   </div>
 </div>
 
