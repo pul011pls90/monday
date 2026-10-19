@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Проверка") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text"><h1>{{ _("Проверка домашних заданий") }}</h1><p>{{ _("Сданные работы, комментарии и статусы по каждому ученику.") }}</p></div>
+  <a class="btn btn--primary" href="{{ url_for('teacher.assign') }}">{{ ui.icon('send', 18) }}{{ _("Выдать задание") }}</a>
+</div>
+<div class="chips">
+  <a class="chip{{ ' is-active' if show == 'submitted' }}" href="{{ url_for('teacher.review', show='submitted') }}">{{ _("Ждут проверки") }} <span class="chip__count">{{ counts.submitted }}</span></a>
+  <a class="chip{{ ' is-active' if show == 'open' }}" href="{{ url_for('teacher.review', show='open') }}">{{ _("Не сданы") }} <span class="chip__count">{{ counts.open }}</span></a>
+  <a class="chip{{ ' is-active' if show == 'checked' }}" href="{{ url_for('teacher.review', show='checked') }}">{{ _("Проверены") }} <span class="chip__count">{{ counts.checked }}</span></a>
+</div>
+{% if rows %}
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>{{ _("Ученик") }}</th><th>{{ _("Работа") }}</th><th>{{ _("Срок") }}</th><th>{{ _("Статус") }}</th><th>{{ _("Результат") }}</th><th></th></tr></thead>
+  <tbody>{% for row in rows %}{% set a = row.a %}
+    <tr>
+      <td class="t-strong">{{ a.record.name }}</td>
+      <td>{{ a.work.title }}</td>
+      <td class="muted nowrap">{{ a.due_at|dt if a.due_at else '—' }}</td>
+      <td>{{ ui.state(row.state, HOMEWORK_STATES[row.state]) }}</td>
+      <td class="num">{{ (row.last.score ~ ' / ' ~ row.last.total) if row.last else '—' }}</td>
+      <td style="text-align:right"><a href="{{ url_for('teacher.review_detail', assignment_id=a.id) }}">{{ _("Проверить") if row.state == 'submitted' else _("Открыть") }}</a></td>
+    </tr>
+  {% endfor %}</tbody>
+</table></div>
+{% else %}
+<div class="empty"><h3>{{ _("Здесь пусто") }}</h3><p>{{ _("Нет работ с таким статусом.") }}</p></div>
+{% endif %}
+{% endblock %}

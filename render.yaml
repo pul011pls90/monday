@@ -1,0 +1,15 @@
+# Render.com blueprint: New → Blueprint → pick this repository.
+services:
+  - type: web
+    name: monday
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && pybabel compile -d translations
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: MONDAY_SECRET_KEY
+        generateValue: true
+      - key: MONDAY_DEBUG
+        value: "0"

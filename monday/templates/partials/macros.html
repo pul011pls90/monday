@@ -1,0 +1,248 @@
+{# Shared UI pieces. Import with: {% import "partials/macros.html" as ui with context %} #}
+
+{% macro icon(name, size=20) -%}
+<span class="ic" style="--ic: {{ size }}px">{% include "icons/" ~ name ~ ".svg" %}</span>
+{%- endmacro %}
+
+{% macro flashes() -%}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flashes" role="status">
+    {% for category, message in messages %}
+      <div class="flash flash--{{ category if category in ('success', 'error', 'info') else 'info' }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+{%- endmacro %}
+
+{# A person's round picture: their photo if uploaded, otherwise initials. #}
+{% macro avatar(user, cls='', text=None) -%}
+{%- if user and user.avatar_path -%}
+<span class="avatar has-img {{ cls }}"><img src="{{ url_for('uploaded_file', filename=user.avatar_path) }}" alt=""></span>
+{%- else -%}
+<span class="avatar {{ cls }}">{{ text if text is not none else (user.initials if user else '?') }}</span>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro state(key, label) -%}
+<span class="state state--{{ key }}">{{ label }}</span>
+{%- endmacro %}
+
+{% macro exam_tag(code) -%}
+<span class="tag tag--exam-{{ code }}">{{ code|exam_label }}</span>
+{%- endmacro %}
+
+{% macro mode_card(key, mode, recommended=false, form=true) -%}
+{% if mode.ready and form %}
+<form method="post" action="{{ url_for('student.start_session', mode=key) }}" class="stack" style="gap:0">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="mode-card mode--{{ mode.color }}{{ ' is-recommended' if recommended }}">
+{% else %}
+<div class="mode-card mode--{{ mode.color }} is-soon">
+{% endif %}
+    <span class="mode-card__dot bg-{{ mode.color }}"></span>
+    {% if recommended %}<span class="tag">{{ _("Советуем") }}</span>{% elif not mode.ready %}<span class="tag" style="background:transparent;color:#5E5E5E;padding:0">{{ _("Скоро") }}</span>{% endif %}
+    <span class="mode-card__name">{{ mode.name }}</span>
+    <span class="mode-card__desc">{{ mode.time }} · {{ mode.desc }}</span>
+{% if mode.ready and form %}
+  </button>
+</form>
+{% else %}
+</div>
+{% endif %}
+{%- endmacro %}
+
+{% macro work_card(w, action_url, action_label, badge=None) -%}
+{% set v = w.current_version %}
+<article class="card work-card">
+  <div class="row row--between">
+    {{ exam_tag(w.exam) }}
+    {% if badge %}<span class="small" style="font-weight:700;color:var(--accent)">{{ badge }}</span>
+    {% else %}<span class="small muted" style="font-weight:600">{{ WORK_CATEGORIES.get(w.category, '') }}</span>{% endif %}
+  </div>
+  <h3 class="work-card__title">{{ w.title }}</h3>
+  <div class="author">{{ avatar(w.author, 'avatar--sm') }}{{ w.author.name }}</div>
+  {% if w.description %}<p class="work-card__desc">{{ w.description }}</p>{% endif %}
+  <div class="work-card__meta">
+    <span class="meta-item">{{ icon('clock', 16) }}{{ (v.time_limit_min if v else w.time_limit_min)|minutes }}</span>
+    {% set n = v.question_count if v else 0 %}
+    <span class="meta-item">{{ icon('list', 16) }}{{ n }} {{ n|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}</span>
+  </div>
+  <a class="btn btn--primary btn--block" href="{{ action_url }}">{{ action_label }}</a>
+</article>
+{%- endmacro %}
+
+{# What a free-input answer may look like — shown under the input box. #}
+{% macro input_hint(item) -%}
+{% set f = item.input_formats or ['whole', 'fraction', 'decimal'] %}
+{% set kinds = [] %}
+{% if 'whole' in f %}{% set _d = kinds.append(_("целое число (12)")) %}{% endif %}
+{% if 'fraction' in f %}{% set _d = kinds.append(_("дробь (3/4)")) %}{% endif %}
+{% if 'decimal' in f %}{% set _d = kinds.append(_("десятичное число (0,75)")) %}{% endif %}
+<span class="field__hint">{{ _("Можно ввести: %(kinds)s.", kinds=kinds|join(', ')) }}{% if item.precision == 1 %} {{ _("Округлите до десятых.") }}{% elif item.precision == 2 %} {{ _("Округлите до сотых.") }}{% endif %}</span>
+{%- endmacro %}
+
+{# Render the answer controls for a question snapshot (dict) inside a form. #}
+{% macro option_inputs(item, name, selected=None, reveal=False, disabled=False, letters=None) -%}
+{% set L = letters or LETTERS %}
+{% if item.answer_type == 'number' %}
+  <div class="field answer-input">
+    <label for="{{ name }}">{{ _("Ваш ответ") }}</label>
+    <input class="input input--mono" id="{{ name }}" name="{{ name }}" inputmode="text" autocomplete="off" spellcheck="false"
+           value="{{ selected or '' }}" {{ 'disabled' if disabled }}>
+    {% if not reveal %}{{ input_hint(item) }}{% endif %}
+  </div>
+  {% if reveal %}<p class="small">{{ _("Верный ответ:") }} <b>{{ item.correct }}</b></p>{% endif %}
+{% else %}
+  {# SAT-style: one full-width row per option, circled letter, strike button for "eliminate" #}
+  <div class="options" role="radiogroup">
+    {% for opt in item.options %}
+      {% set i = loop.index0|string %}
+      {% set is_sel = selected is not none and selected|string == i %}
+      {% set state = '' %}
+      {% if reveal and item.correct == i %}{% set state = 'is-correct' %}{% elif reveal and is_sel %}{% set state = 'is-wrong' %}{% endif %}
+      <div class="option-row" data-option-row-key="{{ name }}:{{ i }}">
+        <label class="option">
+          <input type="radio" name="{{ name }}" value="{{ i }}" {{ 'checked' if is_sel }} {{ 'disabled' if disabled }}>
+          <span class="option__box {{ state }}">
+            <span class="option__letter">{{ L[loop.index0] }}</span>
+            <span class="option__text math">{{ opt }}</span>
+            {% if state == 'is-correct' %}<span class="option__note">{{ _("Верно") }}</span>
+            {% elif state == 'is-wrong' %}<span class="option__note">{{ _("Ваш ответ") }}</span>{% endif %}
+          </span>
+        </label>
+        {% if not disabled %}<button type="button" class="option__strike" data-strike aria-pressed="false" aria-label="{{ _('Зачеркнуть вариант %(l)s', l=L[loop.index0]) }}"><span>{{ L[loop.index0] }}</span></button>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+{%- endmacro %}
+
+{# Reading material blocks (passage, columns, heading) for a question snapshot. #}
+{% macro material(item) -%}
+{% for b in (item.material or []) %}
+  {% if b.type == 'heading' %}<h3 class="q-mat-heading math">{{ b.text }}</h3>
+  {% elif b.type == 'passage' %}
+    <div class="q-passage">
+      {% if b.title %}<div class="q-passage__title math">{{ b.title }}</div>{% endif %}
+      <div class="q-passage__text math">{{ b.text }}</div>
+    </div>
+  {% elif b.type == 'columns' %}
+    <div class="q-columns">
+      <div class="q-columns__col"><div class="q-columns__title">{{ b.left_title or _("Колонка А") }}</div><div class="q-columns__body math">{{ b.left }}</div></div>
+      <div class="q-columns__col"><div class="q-columns__title">{{ b.right_title or _("Колонка Б") }}</div><div class="q-columns__body math">{{ b.right }}</div></div>
+    </div>
+  {% endif %}
+{% endfor %}
+{%- endmacro %}
+
+{# The one question layout used everywhere.
+   With material (picture, passage, columns): material on the left, question + answers on the right.
+   Without: one centred column — question on top, answers underneath. #}
+{% macro question_body(item, name, selected=None, reveal=False, disabled=False, number=None, letters=None) -%}
+{% set has_material = item.image_path or item.material %}
+<div class="q-layout {{ 'q-layout--split' if has_material else 'q-layout--single' }}">
+  {% if has_material %}
+  <div class="q-material">
+    {{ figure(item) }}
+    {{ material(item) }}
+  </div>
+  {% endif %}
+  <div class="q-main">
+    {% if number or (item.weight or 1) > 1 %}
+    <div class="row row--between q-main__meta">
+      {% if number %}<span class="q-num">{{ _("Вопрос %(n)s", n=number) }}</span>{% else %}<span></span>{% endif %}
+      {% if (item.weight or 1) > 1 %}<span class="tag tag--line tag--xs">{{ item.weight }} {{ item.weight|plural_ru(_("балл"), _("балла"), _("баллов")) }}</span>{% endif %}
+    </div>
+    {% endif %}
+    {% if item._translated %}
+    <a class="q-lang" href="{{ url_for('content_i18n.toggle_original', next=request.full_path) }}">{{ icon('globe', 14) }}{{ _("Показать перевод") if item._original_shown else _("Показать оригинал") }}</a>
+    {% endif %}
+    {% if item.text %}<div class="q-text math">{{ item.text }}</div>{% endif %}
+    {{ option_inputs(item, name, selected=selected, reveal=reveal, disabled=disabled, letters=letters) }}
+  </div>
+</div>
+{%- endmacro %}
+
+{% macro answer_text(item, value) -%}
+{%- if value in (None, '') -%}<span class="muted">{{ _("нет ответа") }}</span>
+{%- elif item.answer_type == 'number' -%}<span class="num">{{ value }}</span>
+{%- elif value|string in (range(item.options|length)|map('string')|list) -%}{{ LETTERS[value|int] }}) <span class="math">{{ item.options[value|int] }}</span>
+{%- else -%}<span class="muted">{{ _("нет ответа") }}</span>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro correct_text(item) -%}
+{%- if item.answer_type == 'number' -%}{{ item.correct }}
+{%- else -%}{{ LETTERS[item.correct|int] }}) <span class="math">{{ item.options[item.correct|int] }}</span>{%- endif -%}
+{%- endmacro %}
+
+{% macro figure(item) -%}
+{% if item.image_path %}
+<figure class="q-figure">
+  <div class="q-figure__frame">
+    <img src="{{ url_for('uploaded_file', filename=item.image_path) }}" alt="{{ _('Рисунок к задаче') }}" data-lightbox>
+  </div>
+  <figcaption class="small muted">{{ _("Нажмите на рисунок, чтобы увеличить") }}</figcaption>
+</figure>
+{% endif %}
+{%- endmacro %}
+
+{% macro progress(value) -%}
+<div class="bar" role="progressbar" aria-valuenow="{{ value }}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{ value }}%"></span></div>
+{%- endmacro %}
+
+{# File picker in Monday style: our own button + the chosen file name (app.js keeps the name current). #}
+{% macro file_input(name, id, accept="image/png,image/jpeg,image/webp") -%}
+<label class="file-pick" for="{{ id }}">
+  <input class="sr-only" id="{{ id }}" type="file" name="{{ name }}" accept="{{ accept }}" data-file-pick>
+  <span class="file-pick__btn">{{ icon('image', 16) }}{{ _("Выбрать файл") }}</span>
+  <span class="file-pick__name" data-file-name data-empty="{{ _('Файл не выбран') }}">{{ _("Файл не выбран") }}</span>
+</label>
+{%- endmacro %}
+
+{% macro csrf() -%}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{%- endmacro %}
+
+
+{# Ring of 48 dots filled by `frac` (0..1) with a value in the centre — used on Home and result pages. #}
+{% macro dot_ring(value, frac, label='', title='') -%}
+{% set f = frac if frac < 1 else 1 %}{% set f = f if f > 0 else 0 %}
+{% set filled = (f * 48)|round|int %}
+<div class="home-ring"{% if title %} title="{{ title }}"{% endif %}>
+  <svg viewBox="0 0 180 180" aria-hidden="true">
+    {% for k in range(48) %}
+      {% set ang = (k / 48) * 6.2832 - 1.5708 %}
+      <circle cx="{{ (90 + 76 * ang|cos)|round(2) }}" cy="{{ (90 + 76 * ang|sin)|round(2) }}" r="{{ 4.2 if k < filled else 2.4 }}"
+              fill="{{ '#FFFFFF' if k < filled else 'rgba(255,255,255,.28)' }}" {% if k < filled %}opacity="{{ (0.55 + 0.45 * k / 48)|round(2) }}"{% endif %}/>
+    {% endfor %}
+  </svg>
+  <div class="home-ring__center">
+    <span class="home-ring__value num{{ ' is-long' if (value|string)|length > 3 }}">{{ value }}</span>
+    {% if label %}<span class="home-ring__label">{{ label }}</span>{% endif %}
+  </div>
+</div>
+{%- endmacro %}
+
+{# The five session modes as time cards in shades of the brand blue, each with a fact of the day. #}
+{% macro time_cards(facts) -%}
+<div class="time-cards">
+  {% for key, m in MODES.items() %}
+    {% set n = loop.index %}
+    {% if m.ready %}<form method="post" action="{{ url_for('student.start_session', mode=key) }}" class="time-card-wrap">{{ csrf() }}<button type="submit" class="time-card shade-{{ n }}">
+    {% else %}<div class="time-card-wrap"><div class="time-card shade-{{ n }} is-soon">{% endif %}
+        <span class="time-card__dots" aria-hidden="true">{% for _k in range(n * 3) %}<i></i>{% endfor %}</span>
+        <span class="time-card__time">~{{ m.approx }} {{ _("мин") }}</span>
+        <span class="time-card__name">{{ m.name }}{% if not m.ready %} · {{ _("скоро") }}{% endif %}</span>
+        <span class="time-card__desc">{{ m.desc }}</span>
+        {% if facts %}<span class="time-card__fact"><b>{{ _("Факт дня") }}</b>{{ facts[loop.index0] }}</span>{% endif %}
+    {% if m.ready %}</button></form>{% else %}</div></div>{% endif %}
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{# Small blue dot for a session mode (replaces the old pastel mode colours in lists). #}
+{% macro mode_dot(key) -%}
+{% set n = (MODES.keys()|list).index(key) + 1 if key in MODES else 3 %}
+<span class="mode-dot shade-{{ n }}"></span>
+{%- endmacro %}

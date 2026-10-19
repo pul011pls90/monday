@@ -1,0 +1,25 @@
+{# Profile header shared by the student profile and the teacher account: photo + name. #}
+<section class="card profile-head">
+  <form method="post" action="{{ url_for('auth.set_avatar') }}" enctype="multipart/form-data" class="profile-head__photo" data-avatar-form>
+    {{ ui.csrf() }}<input type="hidden" name="next" value="{{ request.path }}">
+    <label class="profile-head__pick" title="{{ _('Изменить фото') }}">
+      {{ ui.avatar(current_user, 'avatar--xl') }}
+      <span class="profile-head__overlay">{{ ui.icon('camera', 20) }}<span>{{ _("Фото") }}</span></span>
+      <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" class="sr-only" data-avatar-input>
+    </label>
+    <noscript><button class="btn btn--secondary btn--sm" type="submit">{{ _("Загрузить") }}</button></noscript>
+  </form>
+  <div class="stack-sm profile-head__text">
+    <h1>{{ current_user.name }}</h1>
+    <span class="muted">{{ current_user.email }}{% if subtitle %} · {{ subtitle }}{% endif %}</span>
+    <div class="row" style="gap:8px;margin-top:6px">
+      <a class="btn btn--secondary btn--sm" href="#name">{{ ui.icon('edit', 16) }}{{ _("Изменить имя") }}</a>
+      {% if current_user.avatar_path %}
+      <form method="post" action="{{ url_for('auth.set_avatar') }}">
+        {{ ui.csrf() }}<input type="hidden" name="next" value="{{ request.path }}"><input type="hidden" name="remove" value="1">
+        <button class="btn btn--ghost btn--sm" type="submit">{{ _("Удалить фото") }}</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</section>

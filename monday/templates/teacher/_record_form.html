@@ -1,0 +1,24 @@
+{# Student-row fields, shared by "add" and "edit". Expects `r` (StudentRecord or None) and `prefix`. #}
+{% set r = r or {} %}
+<div class="grid grid-3">
+  <div class="field"><label for="{{ prefix }}name">{{ _("Имя и фамилия") }}</label><input class="input" id="{{ prefix }}name" name="name" required value="{{ r.name or '' }}"></div>
+  <div class="field"><label for="{{ prefix }}grade">{{ _("Класс") }}</label><input class="input" id="{{ prefix }}grade" name="grade" value="{{ r.grade or '' }}" placeholder="11"></div>
+  <div class="field"><label for="{{ prefix }}time">{{ _("Время урока") }}</label><input class="input input--mono" id="{{ prefix }}time" name="lesson_time" type="time" value="{{ r.lesson_time or '' }}"></div>
+  <div class="field span-2">
+    <span class="label">{{ _("Дни уроков") }}</span>
+    <div class="chips">
+      {% for d in WEEKDAYS %}
+        <label class="check-chip"><input type="checkbox" name="lesson_days" value="{{ loop.index0 }}" {{ 'checked' if loop.index0 in (r.lesson_days or []) }}><span>{{ d }}</span></label>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="field"><label for="{{ prefix }}exam">{{ _("Экзамен") }}</label>
+    <select class="select" id="{{ prefix }}exam" name="exam"><option value="">—</option>{% for code, e in EXAMS.items() %}<option value="{{ code }}" {{ 'selected' if r.exam == code }}>{{ e.label }}</option>{% endfor %}</select></div>
+  <div class="field"><label for="{{ prefix }}goal">{{ _("Целевой балл") }}</label><input class="input" id="{{ prefix }}goal" name="goal_score" type="number" min="0" value="{{ r.goal_score or '' }}" placeholder="190"></div>
+  <div class="field"><label for="{{ prefix }}goal_text">{{ _("Цель текстом") }} <span class="muted" style="font-weight:400">{{ _("— необязательно") }}</span></label><input class="input" id="{{ prefix }}goal_text" name="goal_text" value="{{ r.goal_text or '' }}" placeholder="{{ _('Например: SAT Math 700+') }}"></div>
+  {% if not r.student_user_id %}
+  <div class="field"><label for="{{ prefix }}manual">{{ _("Прогресс, %%") }}</label><input class="input" id="{{ prefix }}manual" name="manual_progress" type="number" min="0" max="100" value="{{ r.manual_progress or 0 }}">
+    <span class="field__hint">{{ _("Вручную, пока ученик не подключил аккаунт.") }}</span></div>
+  {% endif %}
+  <div class="field span-all"><label for="{{ prefix }}notes">{{ _("Заметки") }}</label><textarea class="textarea" id="{{ prefix }}notes" name="notes" rows="2">{{ r.notes or '' }}</textarea></div>
+</div>

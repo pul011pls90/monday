@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ _("Ожидает подтверждения") }}{% endblock %}
+{% block body %}
+<main class="page page--narrow" style="margin:0 auto;min-height:100vh;justify-content:center">
+  <div class="display" style="font-size:26px">MONDAY</div>
+  <div class="card">
+    <h1 style="font-size:30px">{{ _("Заявка учителя отправлена") }}</h1>
+    <p class="text-2">{{ _("Администратор проверит её и откроет доступ к кабинету учителя. Обычно это занимает до одного дня.") }}</p>
+    <form method="post" action="{{ url_for('auth.logout') }}">{{ ui.csrf() }}<button class="btn btn--secondary" type="submit">{{ _("Выйти") }}</button></form>
+  </div>
+</main>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Итоги сессии") }}{% endblock %}
+{% block page_class %}page--narrow{% endblock %}
+{% block content %}
+<section class="hero" style="align-items:center">
+  {% set n = att.answers|length %}
+  {{ ui.dot_ring(att.score ~ '/' ~ n, (att.score / n) if n else 0, _("верно")) }}
+  <div class="stack-sm">
+    <div class="eyebrow">{{ mode.name if mode else '' }} · {{ _("сессия завершена") }}</div>
+    <div class="hero__unit">{% if n and att.score == n %}{{ _("Чисто. Ни одной ошибки.") }}{% elif n and att.score * 2 >= n %}{{ _("Неплохо. Ошибки уже в журнале.") }}{% else %}{{ _("Это и есть тренировка — ошибки ждут в журнале.") }}{% endif %}</div>
+    <div class="hero-muted">{{ att.duration_sec|duration }}</div>
+  </div>
+</section>
+<div class="list">
+  {% for a in att.answers %}
+    {% set item = a.question.snapshot() if a.question else None %}
+    <div class="list__row" style="grid-template-columns: 32px minmax(0,1fr) auto">
+      <span class="ic" style="color:{{ 'var(--ok)' if a.is_correct else 'var(--bad)' }}">{% include 'icons/' ~ ('check' if a.is_correct else 'x') ~ '.svg' %}</span>
+      <div class="stack-sm" style="gap:2px">
+        <span class="math">{{ item.text if item and item.text else _("Задача с рисунком") }}</span>
+        <span class="small muted">{{ a.skill.name if a.skill }}</span>
+      </div>
+      {% if not a.is_correct %}<span class="tag tag--bad">{{ MISTAKE_REASONS.get(a.mistake_reason, _("в журнале")) }}</span>{% endif %}
+    </div>
+  {% endfor %}
+</div>
+<div class="row">
+  <form method="post" action="{{ url_for('student.start_session', mode=mode_key) }}">{{ ui.csrf() }}<button class="btn btn--primary" type="submit">{{ _("Ещё одна сессия") }}</button></form>
+  <a class="btn btn--secondary" href="{{ url_for('student.journal') }}">{{ _("Разобрать ошибки") }}</a>
+  <a class="btn btn--ghost" href="{{ url_for('student.home') }}">{{ _("На главную") }}</a>
+</div>
+{% endblock %}

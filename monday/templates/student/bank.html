@@ -1,0 +1,127 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Банк вопросов") }}{% endblock %}
+{% block content %}
+{% set chip_labels = {
+  'd': [('1', _('Лёгкий')), ('2', _('Средний')), ('3', _('Сложный'))],
+  'st': [('correct', _('Верно')), ('incorrect', _('Неверно')), ('none', _('Без ответа'))],
+  'mk': [('yes', _('Да')), ('no', _('Нет'))],
+  't': [('choice', _('Варианты')), ('number', _('Ввод ответа'))],
+} %}
+{% set groups = [('d', 'bars', _('Сложность')), ('st', 'status', _('Статус ответа')), ('mk', 'bookmark', _('Отмечено для проверки')), ('t', 'filter', _('Тип ответа'))] %}
+
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Банк вопросов") }}</h1>
+    <p>{{ _("Собери свою сессию: выбери фильтры, отметь темы галочками и нажми «Начать сессию». Кнопка ▶ сразу запускает одну тему.") }}</p>
+  </div>
+  <form method="get" class="bank-exam">
+    {% for k, vals in f.items() %}{% for v in vals %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}{% endfor %}
+    <label class="sr-only" for="bank-exam">{{ _("Экзамен") }}</label>
+    <select class="select" id="bank-exam" name="exam" data-autosubmit>
+      {% for code, e in EXAMS.items() %}<option value="{{ code }}" {{ 'selected' if code == exam }}>{{ e.label }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+
+<div class="bank-stats">
+  <section class="card bank-stat">
+    <div class="eyebrow">{{ _("Прогресс") }}</div>
+    <div class="bank-stat__value"><span class="num">{{ stats.percent }}</span><small>%</small></div>
+    {{ ui.progress(stats.percent) }}
+    <div class="text-2 small">{{ _("%(a)s из %(n)s решено", a=stats.answered, n=stats.total) }}</div>
+  </section>
+  <section class="card bank-stat">
+    <div class="eyebrow">{{ _("Время") }}</div>
+    <div class="bank-stat__value num">{{ stats.time }}</div>
+    <div class="text-2 small">{{ _("по вопросам с текущими фильтрами") }}</div>
+  </section>
+  <section class="card bank-stat">
+    <div class="eyebrow">{{ _("На проверку") }}</div>
+    <div class="bank-stat__value num">{{ stats.marked }}</div>
+    <div class="text-2 small">{{ _("отмечено флажком — фильтр «Отмечено: Да»") }}</div>
+  </section>
+</div>
+
+{# ------------------------------------------------------------ filters (GET, each chip applies at once) #}
+<section class="section" aria-labelledby="flt-h">
+  <div class="section__head">
+    <div class="stack-sm" style="gap:4px"><h2 id="flt-h">{{ _("Фильтры") }}</h2>
+      <p class="text-2 small">{{ _("Пустая группа — значит «все». Можно выбрать несколько вариантов.") }}</p></div>
+    {% if active %}<a class="btn btn--secondary btn--sm" href="{{ url_for('bank.index', exam=exam) }}">{{ ui.icon('reset', 16) }}{{ _("Сбросить") }}</a>{% endif %}
+  </div>
+  <form method="get" class="bank-filters" data-bank-filters>
+    <input type="hidden" name="exam" value="{{ exam or '' }}">
+    {% for key, ic, title in groups %}
+      <fieldset class="bank-filter">
+        <legend>{{ ui.icon(ic, 16) }}{{ title }}</legend>
+        <div class="bank-filter__chips">
+          {% for val, label in chip_labels[key] %}
+            <label class="bank-chip"><input type="checkbox" name="{{ key }}" value="{{ val }}" {{ 'checked' if val in f[key] }}><span>{{ label }}</span></label>
+          {% endfor %}
+        </div>
+      </fieldset>
+    {% endfor %}
+    <noscript><button class="btn btn--primary btn--sm" type="submit">{{ _("Применить") }}</button></noscript>
+  </form>
+</section>
+
+{# ------------------------------------------------------------ topics (POST start) #}
+<section class="section" aria-labelledby="tree-h">
+  <div class="section__head">
+    <div class="stack-sm" style="gap:4px"><h2 id="tree-h">{{ _("По темам") }}</h2>
+      <p class="text-2 small">{{ _("Раскрой тему, чтобы увидеть подтемы и навыки. Числа — сколько вопросов подходит под фильтры.") }}</p></div>
+  </div>
+
+  <form method="post" action="{{ url_for('bank.start') }}" class="bank-tree" data-bank-tree>
+    {{ ui.csrf() }}
+    <input type="hidden" name="exam" value="{{ exam or '' }}">
+    {% for k, vals in f.items() %}{% for v in vals %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}{% endfor %}
+
+    {% for sec in topics %}
+      <div class="bank-topic">
+        <details data-topic="{{ sec.key }}">
+          <summary>
+            <span class="bank-topic__icon">{{ ui.icon('collections', 22) }}</span>
+            <span class="bank-topic__text"><b>{{ sec.name }}</b><span class="small muted">{% if sec.en %}{{ sec.en }} · {% endif %}{{ count[sec.key] }} {{ count[sec.key]|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}</span></span>
+            <span class="bank-topic__chev">{{ ui.icon('chevron-down', 20) }}</span>
+          </summary>
+          <div class="bank-topic__body">
+            {% for g in sec.groups %}
+              <div class="bank-sub">
+                {% if g.key and total[g.key] %}
+                <div class="bank-row bank-row--sub">
+                  <label class="bank-check"><input type="checkbox" data-sub-check {{ 'disabled' if not count[g.key] }}><span></span></label>
+                  <span class="bank-row__name">{{ g.name }}</span>
+                  <span class="bank-row__count num">{{ count[g.key] }}</span>
+                  <button class="bank-play" type="submit" name="only" value="{{ g.key }}" {{ 'disabled' if not count[g.key] }} aria-label="{{ _('Начать: %(n)s', n=g.name) }}">{{ ui.icon('play', 16) }}</button>
+                </div>
+                {% endif %}
+                {% for x in g.skills if total[x.key] or not g.key %}
+                  <div class="bank-row {{ 'bank-row--node' if g.key else 'bank-row--flat' }}{{ ' is-empty' if not count[x.key] }}" {% if x.en %}title="{{ x.en }}"{% endif %}>
+                    <label class="bank-check"><input type="checkbox" name="k" value="{{ x.key }}" data-count="{{ count[x.key] }}" {{ 'disabled' if not count[x.key] }}><span></span></label>
+                    <span class="bank-row__name">{{ x.name }}{% if x.en %}<small class="muted bank-row__en">{{ x.en }}</small>{% endif %}</span>
+                    <span class="bank-row__count num">{{ count[x.key] }}</span>
+                    <button class="bank-play" type="submit" name="only" value="{{ x.key }}" {{ 'disabled' if not count[x.key] }} aria-label="{{ _('Начать: %(n)s', n=x.name) }}">{{ ui.icon('play', 16) }}</button>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endfor %}
+          </div>
+        </details>
+        <button class="bank-play bank-play--topic" type="submit" name="only" value="{{ sec.key }}" {{ 'disabled' if not count[sec.key] }} aria-label="{{ _('Начать: %(n)s', n=sec.name) }}">{{ ui.icon('play', 18) }}</button>
+      </div>
+    {% else %}
+      <div class="empty"><h3>{{ _("Пока нет вопросов") }}</h3><p>{{ _("Для этого экзамена в банке ещё нет опубликованных вопросов.") }}</p></div>
+    {% endfor %}
+
+    {% if topics %}
+    <div class="bank-start" data-bank-start>
+      <span class="bank-start__text" data-sel-text data-none="{{ _('Ничего не выбрано — сессия по всем фильтрам: %(n)s', n=stats.total) }}"
+            data-some="{{ _('Выбрано навыков: {k} · вопросов: {q}') }}">{{ _('Ничего не выбрано — сессия по всем фильтрам: %(n)s', n=stats.total) }}</span>
+      <button class="btn btn--primary" type="submit" {{ 'disabled' if not stats.total }}>{{ _("Начать сессию") }}{{ ui.icon('arrow-right', 18) }}</button>
+    </div>
+    {% endif %}
+  </form>
+</section>
+{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/bank.js') }}"></script>{% endblock %}

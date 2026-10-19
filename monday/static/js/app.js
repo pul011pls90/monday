@@ -1,0 +1,474 @@
+/* Monday — small progressive enhancements. Every page works without this file. */
+(function () {
+  "use strict";
+
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+  /* ---------- maths: render $...$ with KaTeX ---------- */
+  function renderMath(root) {
+    if (!window.renderMathInElement) return;
+    window.renderMathInElement(root || document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+      ],
+      throwOnError: false,
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option", "input"],
+      ignoredClasses: ["no-math"],
+    });
+  }
+  window.MondayRenderMath = renderMath;
+  window.addEventListener("load", () => renderMath());
+
+  /* ---------- theme toggle without reload ---------- */
+  $$("form[data-theme-toggle]").forEach((form) => {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const html = document.documentElement;
+      const next = html.dataset.theme === "dark" ? "light" : "dark";
+      html.dataset.theme = next;
+      const data = new FormData(form);
+      data.set("theme", next);
+      try {
+        await fetch(form.action, { method: "POST", body: data, headers: { "X-Requested-With": "fetch" } });
+      } catch (_) { /* preference is still applied for this page */ }
+    });
+  });
+
+  /* ---------- copy buttons ---------- */
+  $$("[data-copy]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const target = document.getElementById(btn.dataset.copy);
+      const text = target ? (target.value || target.textContent) : btn.dataset.copyText;
+      try {
+        await navigator.clipboard.writeText(text.trim());
+        const old = btn.dataset.label || btn.textContent;
+        btn.dataset.label = old;
+        btn.textContent = btn.dataset.done || "Скопировано";
+        setTimeout(() => (btn.textContent = old), 1600);
+      } catch (_) {
+        if (target && target.select) target.select();
+      }
+    });
+  });
+
+  /* ---------- confirmations for destructive actions ---------- */
+  $$("form[data-confirm]").forEach((form) => {
+    form.addEventListener("submit", (e) => {
+      if (!window.confirm(form.dataset.confirm)) e.preventDefault();
+    });
+  });
+
+  /* ---------- image lightbox (delegated, so swapped-in content works too) ---------- */
+  const lightbox = $("#lightbox");
+  if (lightbox) {
+    document.addEventListener("click", (e) => {
+      const img = e.target.closest("img[data-lightbox]");
+      if (!img) return;
+      $("img", lightbox).src = img.src;
+      lightbox.classList.add("is-open");
+    });
+    lightbox.addEventListener("click", () => lightbox.classList.remove("is-open"));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") lightbox.classList.remove("is-open");
+    });
+  }
+
+  /* ---------- test timer: counts down and submits when time is up ---------- */
+  const timer = $("[data-timer]");
+  if (timer) {
+    let left = parseInt(timer.dataset.timer, 10);
+    const form = document.getElementById(timer.dataset.form);
+    let submitted = false;
+    const tick = () => {
+      const m = Math.floor(left / 60), s = left % 60;
+      timer.textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      timer.classList.toggle("is-low", left <= 60);
+      if (left <= 0 && form && !submitted) {
+        submitted = true;
+        form.submit();
+        return;
+      }
+      left -= 1;
+    };
+    tick();
+    setInterval(tick, 1000);
+    if (form) {
+      form.addEventListener("submit", () => (submitted = true));
+      // No browser "Leave site?" prompt: answers are saved as you go. The × button asks in our own dialog.
+    }
+  }
+
+  /* ---------- leaving a test: our own calm dialog instead of the browser's ---------- */
+  $$("[data-exit-confirm]").forEach((link) => link.addEventListener("click", (e) => {
+    if (typeof HTMLDialogElement !== "function") return;
+    e.preventDefault();
+    let dlg = document.getElementById("exit-dialog");
+    if (!dlg) {
+      dlg = document.createElement("dialog");
+      dlg.id = "exit-dialog";
+      dlg.className = "exit-dialog";
+      dlg.innerHTML = `<h2></h2><p></p><div class="exit-dialog__actions"><button type="button" class="btn btn--secondary" data-stay></button><a class="btn btn--primary" data-go></a></div>`;
+      document.body.appendChild(dlg);
+      dlg.querySelector("[data-stay]").addEventListener("click", () => dlg.close());
+      dlg.addEventListener("click", (ev) => { if (ev.target === dlg) dlg.close(); });
+    }
+    dlg.querySelector("h2").textContent = link.dataset.exitTitle;
+    dlg.querySelector("p").textContent = link.dataset.exitText;
+    dlg.querySelector("[data-stay]").textContent = link.dataset.exitStay;
+    const go = dlg.querySelector("[data-go]");
+    go.textContent = link.dataset.exitGo;
+    go.href = link.href;
+    dlg.showModal();
+    dlg.querySelector("[data-stay]").focus();
+  }));
+
+  /* ---------- timed tests: answered counter + autosave of every answer ---------- */
+  const testForm = $("form[data-test]");
+  if (testForm) {
+    const counter = $("[data-answered]");
+    const saveState = $("[data-save-state]");
+    const csrf = ($("input[name=csrf_token]", testForm) || {}).value || "";
+    const update = () => {
+      const names = new Set($$("input, select", testForm).map((i) => i.name).filter((n) => /^q\d+$/.test(n)));
+      let answered = 0;
+      names.forEach((n) => {
+        const fields = $$(`[name="${n}"]`, testForm);
+        if (fields.some((f) => (f.type === "radio" ? f.checked : f.value.trim() !== ""))) answered += 1;
+      });
+      if (counter) counter.textContent = `${answered} / ${names.size}`;
+    };
+    const valueOf = (name) => {
+      const fields = $$(`[name="${name}"]`, testForm);
+      const checked = fields.find((f) => f.type === "radio" && f.checked);
+      if (checked) return checked.value;
+      const text = fields.find((f) => f.type !== "radio");
+      return text ? text.value.trim() : "";
+    };
+    const pending = new Map();
+    const save = async (name) => {
+      if (!testForm.dataset.autosave) return;
+      if (saveState) saveState.textContent = saveState.dataset.saving;
+      const body = new FormData();
+      body.set("csrf_token", csrf);
+      body.set("name", name);
+      body.set("value", valueOf(name));
+      try {
+        const res = await fetch(testForm.dataset.autosave, {
+          method: "POST", body, headers: { "X-Requested-With": "fetch", "X-CSRFToken": csrf }, credentials: "same-origin",
+        });
+        if (saveState) saveState.textContent = res.ok ? saveState.dataset.saved : saveState.dataset.failed;
+      } catch (_) {
+        if (saveState) saveState.textContent = saveState.dataset.failed;
+      }
+    };
+    const schedule = (name, delay) => {
+      clearTimeout(pending.get(name));
+      pending.set(name, setTimeout(() => save(name), delay));
+    };
+    testForm.addEventListener("input", (e) => { update(); if (/^q\d+$/.test(e.target.name || "")) schedule(e.target.name, 600); });
+    testForm.addEventListener("change", (e) => { update(); if (/^q\d+$/.test(e.target.name || "")) schedule(e.target.name, 0); });
+    testForm.addEventListener("keydown", (e) => {   // Enter in an answer box must not submit the whole test
+      if (e.key === "Enter" && e.target.matches("input[type=text], input:not([type])")) e.preventDefault();
+    });
+    update();
+  }
+
+  /* ---------- practice sessions: answer, next and reason without reloading the page ---------- */
+  document.addEventListener("submit", async (e) => {
+    const form = e.target.closest("form[data-ajax]");
+    if (!form || !window.fetch || !window.DOMParser) return;
+    e.preventDefault();
+    if (form.dataset.busy) return;
+    form.dataset.busy = "1";
+    const data = new FormData(form);
+    if (e.submitter && e.submitter.name) data.set(e.submitter.name, e.submitter.value);
+    const buttons = $$("button", form);
+    buttons.forEach((b) => (b.disabled = true));
+    try {
+      const res = await fetch(form.getAttribute("action") || window.location.href, {   // form.action is shadowed by name="action" buttons
+        method: "POST", body: data, headers: { "X-Requested-With": "fetch" }, credentials: "same-origin",
+      });
+      const target = new URL(res.url);
+      if (!res.ok || target.pathname !== window.location.pathname) {
+        window.location.assign(res.url);       // finished session → results page
+        return;
+      }
+      const doc = new DOMParser().parseFromString(await res.text(), "text/html");
+      ["[data-ajax-region]", ".session-bar"].forEach((sel) => {
+        const fresh = $(sel, doc), old = $(sel);
+        if (fresh && old) old.replaceWith(fresh);
+      });
+      document.body.className = doc.body.className;
+      document.title = doc.title;
+      const region = $("[data-ajax-region]");
+      renderMath(region);
+      const action = e.submitter ? e.submitter.value : data.get("action");
+      if (action === "next") window.scrollTo({ top: 0 });
+      const focusTarget = $(".feedback, .flash--error, .q-card input:not([disabled])", region);
+      if (focusTarget && action !== "reason") {
+        focusTarget.setAttribute("tabindex", "-1");
+        focusTarget.focus({ preventScroll: action === "next" });
+      }
+    } catch (_) {
+      form.removeAttribute("data-busy");
+      buttons.forEach((b) => (b.disabled = false));
+      form.submit();                            // no connection to JS path → normal submit
+    }
+  });
+
+  /* question form: ticking a "kind of question" chip means the teacher sets the tags themselves */
+  $$("[data-tag-chip]").forEach((cb) => cb.addEventListener("change", () => {
+    const form = cb.closest("form");
+    if (form && !form.querySelector("input[name=tags_set]")) {
+      const h = document.createElement("input"); h.type = "hidden"; h.name = "tags_set"; h.value = "1"; form.appendChild(h);
+    }
+  }));
+
+  /* work editor: picking and ordering questions lives in picker.js */
+
+  /* ---------- work editor: test format → calculator default, module / page fields ---------- */
+  const fmtSel = $("[data-format-select]");
+  if (fmtSel) {
+    const calc = $("[data-calc-box]");
+    let calcTouched = false;
+    if (calc) calc.addEventListener("change", () => (calcTouched = true));
+    const examSel = $("#exam");
+    const examToFormat = { SAT: "sat", ORT: "ort", ENT: "ent", EGE: "ege", OGE: "oge", CSCA: "csca" };
+    const syncFmt = () => {
+      const opt = fmtSel.selectedOptions[0];
+      if (calc && !calcTouched) calc.checked = opt.dataset.calc === "1";
+      $$("[data-fmt-only]").forEach((el) => {
+        el.hidden = el.dataset.fmtOnly === "modules" ? opt.dataset.modules !== "2" : opt.dataset.nav !== el.dataset.fmtOnly;
+      });
+    };
+    fmtSel.addEventListener("change", syncFmt);
+    if (examSel) examSel.addEventListener("change", () => { if (examToFormat[examSel.value]) { fmtSel.value = examToFormat[examSel.value]; syncFmt(); } });
+    syncFmt();
+  }
+
+  /* ---------- question editor: tree selects, material blocks, answer type, live preview ---------- */
+  const qeditor = $("[data-question-editor]");
+  if (qeditor) {
+    const esc = (t) => String(t == null ? "" : t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+    /* Topic → Subtopic → Node: each select shows only the children of the one before. */
+    const selTopic = $("#topic_id", qeditor), selSub = $("#subtopic_id", qeditor), selNode = $("#skill_id", qeditor);
+    /* Rebuild options instead of hiding them (Safari ignores hidden <option>). */
+    const originals = new Map();
+    const filterChildren = (select, parentId) => {
+      if (!originals.has(select)) originals.set(select, select.innerHTML);
+      const keep = select.value;
+      const tmp = document.createElement("select");
+      tmp.innerHTML = originals.get(select);
+      if (!parentId) {
+        select.innerHTML = originals.get(select);
+      } else {
+        const opts = $$("option", tmp).filter((o) => !o.dataset.parent || o.dataset.parent === parentId);
+        select.innerHTML = "";
+        opts.forEach((o) => { o.selected = false; select.appendChild(o); });
+      }
+      select.value = keep;
+      if (select.value !== keep) select.value = "";
+    };
+    const syncTree = (changed) => {
+      if (changed === selNode && selNode.value) {           // picking a node fills in its parents
+        const subId = selNode.selectedOptions[0].dataset.parent;
+        filterChildren(selSub, null);
+        selSub.value = subId;
+        const subOpt = selSub.selectedOptions[0];
+        if (subOpt) selTopic.value = subOpt.dataset.parent;
+      } else if (changed === selSub && selSub.value) {
+        selTopic.value = selSub.selectedOptions[0].dataset.parent;
+      } else if (changed === selTopic) {
+        const sub = selSub.selectedOptions[0];
+        if (!selTopic.value || (sub && sub.dataset.parent !== selTopic.value)) selSub.value = "";
+      }
+      if (changed === selSub || changed === selTopic) {
+        const node = selNode.selectedOptions[0];
+        if (node && node.dataset.parent && node.dataset.parent !== selSub.value) selNode.value = "";
+      }
+      filterChildren(selSub, selTopic.value);
+      filterChildren(selNode, selSub.value);
+    };
+    if (selTopic && selSub && selNode) {
+      [selTopic, selSub, selNode].forEach((sel) => sel.addEventListener("change", () => syncTree(sel)));
+      syncTree(selNode);
+    }
+
+    /* Answer options: show up to six. */
+    const optionAdd = $("[data-option-add]", qeditor);
+    if (optionAdd) {
+      optionAdd.addEventListener("click", () => {
+        const next = $$("[data-option-row]", qeditor).find((r) => r.hidden);
+        if (next) { next.hidden = false; $("[data-option-input]", next).focus(); }
+        optionAdd.hidden = !$$("[data-option-row]", qeditor).some((r) => r.hidden);
+      });
+      optionAdd.hidden = !$$("[data-option-row]", qeditor).some((r) => r.hidden);
+    }
+
+    /* Material blocks: add from <template>, move, remove. */
+    const matList = $("[data-mat-list]", qeditor);
+    if (matList) {
+      let nextIndex = parseInt(matList.dataset.nextIndex || "1", 10);
+      $$("[data-mat-add]", qeditor).forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const tpl = $(`template[data-mat-template="${btn.dataset.matAdd}"]`, qeditor);
+          const html = tpl.innerHTML.replace(/__i__/g, String(nextIndex++));
+          matList.insertAdjacentHTML("beforeend", html);
+          const added = matList.lastElementChild;
+          const first = $("input:not([type=hidden]), textarea", added);
+          if (first) first.focus();
+          updatePreview();
+        });
+      });
+      matList.addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+        const block = btn.closest("[data-mat-block]");
+        if (btn.hasAttribute("data-mat-remove")) block.remove();
+        if (btn.dataset.matMove === "-1" && block.previousElementSibling) matList.insertBefore(block, block.previousElementSibling);
+        if (btn.dataset.matMove === "1" && block.nextElementSibling) matList.insertBefore(block.nextElementSibling, block);
+        updatePreview();
+      });
+    }
+
+    /* Answer type */
+    const typeInputs = $$("input[name=answer_type]", qeditor);
+    const answerType = () => (typeInputs.find((i) => i.checked) || {}).value || "choice";
+    const showType = () => {
+      $$("[data-answer-type]", qeditor).forEach((el) => (el.hidden = el.dataset.answerType !== answerType()));
+      updatePreview();
+    };
+    typeInputs.forEach((i) => i.addEventListener("change", showType));
+
+    /* Picture */
+    const file = $("input[type=file][name=image]", qeditor);
+    const thumb = $("[data-image-thumb]", qeditor);
+    const body = $("[data-preview-body]");
+    let imageSrc = body ? body.dataset.img : "";
+    if (file && thumb) {
+      file.addEventListener("change", () => {
+        const f = file.files && file.files[0];
+        if (!f) return;
+        thumb.src = URL.createObjectURL(f);
+        thumb.hidden = false;
+        imageSrc = thumb.src;
+        updatePreview();
+      });
+    }
+    const removeImage = $("input[name=remove_image]", qeditor);
+
+    /* Word counter */
+    const textArea = $("[name=text]", qeditor);
+    const counter = $("[data-word-count]", qeditor);
+    const limit = parseInt(textArea.dataset.wordLimit || "150", 10);
+    const countWords = () => {
+      const n = (textArea.value.match(/\S+/g) || []).length;
+      if (counter) {
+        counter.textContent = `${n} / ${limit}`;
+        counter.classList.toggle("is-over", n > limit);
+      }
+    };
+
+    /* Live preview: same markup as the student page (macros.question_body). */
+    function materialBlocks() {
+      return $$("[data-mat-block]", qeditor).map((block) => {
+        const type = $("input[type=hidden]", block).value;
+        const val = (suffix) => { const el = $(`[name$="_${suffix}"]`, block); return el ? el.value.trim() : ""; };
+        return { type, text: val("text"), title: val("title"), left: val("left"), right: val("right"),
+                 left_title: val("left_title"), right_title: val("right_title") };
+      });
+    }
+    function updatePreview() {
+      countWords();
+      if (!body) return;
+      const d = body.dataset;
+      const blocks = materialBlocks().filter((b) => b.text || b.left || b.right);
+      const hasImage = imageSrc && !(removeImage && removeImage.checked);
+      const split = hasImage || blocks.length > 0;
+      let mat = "";
+      if (hasImage) mat += `<figure class="q-figure"><div class="q-figure__frame"><img src="${esc(imageSrc)}" alt=""></div></figure>`;
+      blocks.forEach((b) => {
+        if (b.type === "heading") mat += `<h3 class="q-mat-heading">${esc(b.text)}</h3>`;
+        if (b.type === "passage") mat += `<div class="q-passage">${b.title ? `<div class="q-passage__title">${esc(b.title)}</div>` : ""}<div class="q-passage__text">${esc(b.text)}</div></div>`;
+        if (b.type === "columns") mat += `<div class="q-columns"><div class="q-columns__col"><div class="q-columns__title">${esc(b.left_title)}</div><div class="q-columns__body">${esc(b.left)}</div></div><div class="q-columns__col"><div class="q-columns__title">${esc(b.right_title)}</div><div class="q-columns__body">${esc(b.right)}</div></div></div>`;
+      });
+      let answers = "";
+      if (answerType() === "choice") {
+        const letters = "АБВГДЕ";
+        $$("[data-option-input]", qeditor).forEach((inp, i) => {
+          if (!inp.value.trim()) return;
+          answers += `<div class="option"><span class="option__box"><span class="option__letter">${letters[i]}</span><span>${esc(inp.value)}</span></span></div>`;
+        });
+        answers = `<div class="options">${answers}</div>`;
+      } else {
+        const kinds = $$("input[name=input_formats]:checked", qeditor).map((c) => d["hint" + c.value.charAt(0).toUpperCase() + c.value.slice(1)]);
+        const p = ($("#precision", qeditor) || {}).value;
+        const round = p === "1" ? " " + d.hintP1 : p === "2" ? " " + d.hintP2 : "";
+        answers = `<div class="field answer-input"><label>${esc(d.labelAnswer)}</label><div class="input"></div>
+          <span class="field__hint">${esc(d.hintKinds)} ${esc((kinds.length ? kinds : [d.hintWhole, d.hintFraction, d.hintDecimal]).join(", "))}.${esc(round)}</span></div>`;
+      }
+      const weight = parseInt(($("#weight", qeditor) || {}).value || "1", 10);
+      const meta = weight > 1 ? `<div class="row row--between q-main__meta"><span></span><span class="tag tag--line tag--xs">${weight} ${esc(d.labelPoints)}</span></div>` : "";
+      const text = textArea.value.trim();
+      body.innerHTML = `<div class="q-layout ${split ? "q-layout--split" : "q-layout--single"}">
+        ${split ? `<div class="q-material">${mat}</div>` : ""}
+        <div class="q-main">${meta}${text ? `<div class="q-text">${esc(text)}</div>` : '<div class="q-text muted">…</div>'}${answers}</div></div>`;
+      const layoutLabel = $("[data-preview-layout]");
+      if (layoutLabel) layoutLabel.textContent = split ? d.labelSplit : d.labelSingle;
+      const diff = $("[name=difficulty]", qeditor);
+      const nodeText = selNode && selNode.selectedOptions[0] && selNode.value ? selNode.selectedOptions[0].text.replace(" ★", "") : ($("#new_node", qeditor) || {}).value || "";
+      $("[data-preview-bar]").textContent = `${nodeText || "…"} · ${diff.options[diff.selectedIndex].text}`;
+      renderMath(body);
+    }
+    qeditor.addEventListener("input", updatePreview);
+    qeditor.addEventListener("change", updatePreview);
+    window.addEventListener("load", showType);
+    showType();
+
+    $$("[data-insert]", qeditor).forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const ta = textArea;
+        const snippet = btn.dataset.insert;
+        const start = ta.selectionStart, end = ta.selectionEnd;
+        ta.value = ta.value.slice(0, start) + snippet + ta.value.slice(end);
+        ta.focus();
+        const caret = start + snippet.indexOf("□");
+        if (snippet.includes("□")) {
+          ta.value = ta.value.replace("□", "");
+          ta.setSelectionRange(caret, caret);
+        }
+        updatePreview();
+      });
+    });
+  }
+
+  /* ---------- profile photo: choosing a file uploads it straight away ---------- */
+  /* ---------- file pickers: show the chosen file name ---------- */
+  $$("[data-file-pick]").forEach((input) => input.addEventListener("change", () => {
+    const pick = input.closest(".file-pick");
+    const name = $("[data-file-name]", pick);
+    const f = input.files && input.files[0];
+    name.textContent = f ? f.name : name.dataset.empty;
+    pick.classList.toggle("has-file", !!f);
+  }));
+
+  $$("[data-avatar-input]").forEach((input) => {
+    input.addEventListener("change", () => {
+      const f = input.files && input.files[0];
+      if (!f) return;
+      const img = input.closest("label").querySelector(".avatar img");
+      if (img) img.src = URL.createObjectURL(f);
+      input.form.submit();
+    });
+  });
+
+  /* ---------- auto-submit selects (filters, mistake reasons) ---------- */
+  document.addEventListener("change", (e) => {
+    const s = e.target.closest("select[data-autosubmit]");
+    if (!s || !s.form) return;
+    if (s.form.requestSubmit) s.form.requestSubmit(); else s.form.submit();
+  });
+})();

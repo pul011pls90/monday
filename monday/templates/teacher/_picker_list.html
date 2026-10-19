@@ -1,0 +1,36 @@
+{# Questions page for the picker (rendered by picker.results). #}
+{% import "partials/macros.html" as ui with context %}
+<div class="pk-list__head small muted"><span>{{ _("Найдено: %(n)s", n=total) }}</span>{% if pages > 1 %}<span>{{ _("стр. %(p)s из %(n)s", p=page, n=pages) }}</span>{% endif %}</div>
+{% for x in items %}{% set r = rates.get(x.id) %}{% set row = rows[x.id] %}
+  <div class="pk-row" data-pk-row="{{ x.id }}">
+    <label class="bank-check pk-row__check"><input type="checkbox" class="pk-check" value="{{ x.id }}" data-label="{{ row.label }}"
+      data-topic="{{ row.topic }}" data-d="{{ row.d }}" data-min="{{ row.min }}" aria-label="{{ _('Выбрать вопрос %(n)s', n=x.id) }}"><span></span></label>
+    <button type="button" class="pk-row__main" data-pk-preview="{{ url_for('picker.preview', qid=x.id) }}" aria-expanded="false">
+      <span class="pk-row__text math">{{ x.text or _("Задача с рисунком") }}</span>
+      <span class="pk-row__meta small">
+        <span class="muted">{{ x.skill.name if x.skill }}</span>
+        <span class="pk-diff pk-diff--{{ x.difficulty or 2 }}" title="{{ DIFFICULTIES[x.difficulty or 2] }}"><i></i><i></i><i></i></span>
+        {% if x.answer_type == 'number' %}<span class="tag tag--line tag--xs">{{ _("ввод") }}</span>{% endif %}
+        {% if x.image_path or x.material %}<span class="tag tag--line tag--xs">{{ _("материал") }}</span>{% endif %}
+        {% if x.id in used_mine %}<span class="tag tag--ok tag--xs">{{ _("в моих работах") }}</span>{% endif %}
+        {% if x.author_id == current_user.id %}<span class="tag tag--soft tag--xs">{{ _("мой") }}</span>{% endif %}
+      </span>
+    </button>
+    <span class="pk-row__stats small" title="{{ _('Верно у учеников · используют работ') }}">
+      {% if r %}<span class="t-score t-score--{{ 'green' if r[0] >= 0.8 else ('yellow' if r[0] >= 0.5 else 'red') }} num">{{ (r[0] * 100)|round|int }}%</span>{% else %}<span class="muted">—</span>{% endif %}
+      <span class="muted num">×{{ used_total.get(x.id, 0) }}</span>
+    </span>
+    <div class="pk-row__preview" data-pk-preview-box hidden></div>
+  </div>
+{% else %}
+  <div class="empty"><h3>{{ _("Ничего не нашли") }}</h3><p>{{ _("Сними часть фильтров или выбери другую тему.") }}</p></div>
+{% endfor %}
+{% if pages > 1 %}
+<nav class="pager" aria-label="{{ _('Страницы') }}">
+  {% if page > 1 %}<button type="button" class="btn btn--secondary btn--sm" data-pk-page="{{ page - 1 }}" aria-label="{{ _('Назад') }}">{{ ui.icon('arrow-left', 16) }}</button>{% endif %}
+  {% for p in range(1, pages + 1) %}{% if p == 1 or p == pages or (p - page)|abs <= 2 %}
+    <button type="button" class="pager__n{{ ' is-current' if p == page }}" data-pk-page="{{ p }}">{{ p }}</button>
+  {% elif (p - page)|abs == 3 %}<span class="muted">…</span>{% endif %}{% endfor %}
+  {% if page < pages %}<button type="button" class="btn btn--secondary btn--sm" data-pk-page="{{ page + 1 }}" aria-label="{{ _('Вперёд') }}">{{ ui.icon('arrow-right', 16) }}</button>{% endif %}
+</nav>
+{% endif %}

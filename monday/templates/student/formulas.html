@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Формулы") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Формулы") }}</h1>
+    <p>{{ _("Твои листы с формулами: раздел → название → картинка → формула. Включённые листы открываются кнопкой «Формулы» в любом тесте.") }}</p>
+  </div>
+</div>
+
+<form method="post" class="card formula-new">
+  {{ ui.csrf() }}<input type="hidden" name="action" value="create">
+  <div class="row" style="gap:10px;align-items:flex-end">
+    <div class="field" style="flex:1 1 260px"><label for="sheet-title">{{ _("Новый лист") }}</label>
+      <input class="input" id="sheet-title" name="title" placeholder="{{ _('Например: CSCA формулы') }}" required minlength="2"></div>
+    <div class="field"><label for="sheet-exam">{{ _("Экзамен") }}</label>
+      <select class="select" id="sheet-exam" name="exam"><option value="">—</option>{% for code, e in EXAMS.items() %}<option value="{{ code }}">{{ e.label }}</option>{% endfor %}</select></div>
+    <button class="btn btn--primary" type="submit">{{ ui.icon('plus', 16) }}{{ _("Создать") }}</button>
+  </div>
+</form>
+
+{% for sh in sheets %}
+<section class="card sheet-card{{ ' is-off' if not sh.enabled }}" id="sheet-{{ sh.id }}">
+  <div class="card__head">
+    <div class="row" style="gap:10px">
+      <h2 style="font-size:20px">{{ sh.title }}</h2>
+      {% if sh.exam %}{{ ui.exam_tag(sh.exam) }}{% endif %}
+      <span class="small muted">{{ sh.entries|length }} {{ sh.entries|length|plural_ru(_("формула"), _("формулы"), _("формул")) }}</span>
+    </div>
+    <div class="row" style="gap:8px">
+      <form method="post">{{ ui.csrf() }}<input type="hidden" name="action" value="toggle"><input type="hidden" name="sheet_id" value="{{ sh.id }}">
+        <button class="btn btn--sm {{ 'btn--primary' if sh.enabled else 'btn--secondary' }}" type="submit">{{ _("Включён в тестах") if sh.enabled else _("Выключен") }}</button></form>
+      <form method="post" data-confirm="{{ _('Удалить лист со всеми формулами?') }}">{{ ui.csrf() }}<input type="hidden" name="action" value="delete_sheet"><input type="hidden" name="sheet_id" value="{{ sh.id }}">
+        <button class="icon-btn icon-btn--sm" type="submit" aria-label="{{ _('Удалить лист') }}">{{ ui.icon('trash', 14) }}</button></form>
+    </div>
+  </div>
+
+  {% for branch, entries in sh.entries|groupby('branch') %}
+    {% if branch %}<div class="sheet-view__branch">{{ branch }}</div>{% endif %}
+    <div class="sheet-view__grid sheet-view__grid--page">
+      {% for e in entries %}
+        <div class="sheet-entry">
+          {% if e.image_path %}<img src="{{ url_for('uploaded_file', filename=e.image_path) }}" alt="" data-lightbox>{% endif %}
+          <div class="sheet-entry__topic">{{ e.topic }}</div>
+          {% if e.formula %}<div class="sheet-entry__formula math">{{ e.formula }}</div>{% endif %}
+          <form method="post" class="sheet-entry__del">{{ ui.csrf() }}<input type="hidden" name="action" value="delete_entry"><input type="hidden" name="entry_id" value="{{ e.id }}">
+            <button type="submit" aria-label="{{ _('Удалить') }}">{{ ui.icon('x', 12) }}</button></form>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-2 small">{{ _("Пока пусто. Добавь формулу ниже.") }}</p>
+  {% endfor %}
+
+  <details class="disclosure" {{ 'open' if not sh.entries }}>
+    <summary>{{ _("Добавить формулу") }}</summary>
+    <form method="post" enctype="multipart/form-data" class="grid grid-2" style="margin-top:12px">
+      {{ ui.csrf() }}<input type="hidden" name="action" value="add_entry"><input type="hidden" name="sheet_id" value="{{ sh.id }}">
+      <div class="field"><label for="br{{ sh.id }}">{{ _("Раздел") }}</label>
+        <input class="input" id="br{{ sh.id }}" name="branch" list="branches{{ sh.id }}" placeholder="{{ _('Геометрия') }}">
+        <datalist id="branches{{ sh.id }}">{% for b in sh.entries|map(attribute='branch')|unique %}{% if b %}<option value="{{ b }}">{% endif %}{% endfor %}</datalist></div>
+      <div class="field"><label for="tp{{ sh.id }}">{{ _("Название") }}</label><input class="input" id="tp{{ sh.id }}" name="topic" required placeholder="{{ _('Площадь трапеции') }}"></div>
+      <div class="field"><label for="fm{{ sh.id }}">{{ _("Формула") }} <span class="muted" style="font-weight:400">{{ _("— между знаками") }} <code>$…$</code></span></label>
+        <input class="input input--mono" id="fm{{ sh.id }}" name="formula" placeholder="$S = \frac{a+b}{2} \cdot h$"></div>
+      <div class="field"><label for="im{{ sh.id }}">{{ _("Картинка — необязательно") }}</label>{{ ui.file_input('image', 'im' ~ sh.id) }}</div>
+      <div class="span-all"><button class="btn btn--primary" type="submit">{{ _("Добавить") }}</button></div>
+    </form>
+  </details>
+</section>
+{% else %}
+<div class="empty"><h3>{{ _("Ещё нет ни одного листа") }}</h3><p>{{ _("Создай лист — например, «Тригонометрия» или «SAT формулы» — и собирай туда то, что легко забыть.") }}</p></div>
+{% endfor %}
+{% endblock %}

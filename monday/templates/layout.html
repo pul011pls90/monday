@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% set ep = request.endpoint or '' %}
+
+{% block body %}
+<div class="app">
+  <nav class="rail" aria-label="{{ _('Основное меню') }}">
+    {% if current_user.is_teacher %}
+      <a class="rail__logo" href="{{ url_for('teacher.dashboard') }}" aria-label="Monday">M</a>
+      {% set items = [
+        ('teacher.dashboard', 'home', _('Сегодня'), ['teacher.dashboard']),
+        ('teacher.students', 'users', _('Ученики'), ['teacher.students', 'teacher.student_detail']),
+        ('teacher.works', 'works', _('Работы'), ['teacher.works', 'teacher.work_edit', 'teacher.work_new']),
+        ('teacher.tree', 'skills', _('Карта'), ['teacher.tree']),
+        ('teacher.review', 'inbox', _('Проверка'), ['teacher.review', 'teacher.review_detail', 'teacher.assign']),
+        ('teacher.bank', 'collections', _('Банк'), ['teacher.bank']),
+        ('teacher.questions', 'questions', _('Вопросы'), ['teacher.questions', 'teacher.question_new', 'teacher.question_edit', 'assistant.home', 'assistant.import_preview', 'assistant.import_save', 'assistant.mine']),
+      ] %}
+      {% if current_user.can_review %}{% set items = items + [('review.queue', 'check', _('Модерация'), ['review.queue'])] %}{% endif %}
+      {% if current_user.is_admin %}{% set items = items + [('admin.index', 'shield', _('Админ'), ['admin.index'])] %}{% endif %}
+    {% elif current_user.is_assistant %}
+      <a class="rail__logo" href="{{ url_for('assistant.home') }}" aria-label="Monday">M</a>
+      {% set items = [
+        ('assistant.home', 'plus', _('Загрузка'), ['assistant.home', 'assistant.import_preview', 'assistant.import_save']),
+        ('assistant.mine', 'questions', _('Мои вопросы'), ['assistant.mine', 'teacher.question_new', 'teacher.question_edit']),
+      ] %}
+    {% else %}
+      <a class="rail__logo" href="{{ url_for('student.home') }}" aria-label="Monday">M</a>
+      {% set items = [
+        ('student.home', 'home', _('Главная'), ['student.home']),
+        ('student.skills', 'skills', _('Навыки'), ['student.skills']),
+        ('student.sessions', 'bolt', _('Сессии'), ['student.sessions', 'student.session_play', 'student.session_done']),
+        ('bank.index', 'questions', _('Банк'), ['bank.index']),
+        ('student.collections', 'collections', _('Сборники'), ['student.collections', 'student.work_detail', 'student.attempt_run', 'student.attempt_result']),
+        ('student.homework', 'homework', _('Домашка'), ['student.homework', 'student.homework_detail']),
+        ('student.journal', 'journal', _('Журнал'), ['student.journal']),
+        ('student.formulas', 'list', _('Формулы'), ['student.formulas']),
+        ('student.monday', 'calendar', _('Тест'), ['student.monday']),
+      ] %}
+    {% endif %}
+    {% for endpoint, ic, label, active in items %}
+      <a class="rail__item{{ ' is-active' if ep in active }}" href="{{ url_for(endpoint) }}"{{ ' aria-current=page' if ep in active }}>
+        {{ ui.icon(ic, 22) }}<span>{{ label }}</span>
+      </a>
+    {% endfor %}
+    <div class="spacer"></div>
+  </nav>
+
+  <div class="main">
+    {% block topbar %}
+    <header class="topbar">
+      <div class="topbar__context">{% block context %}{% if current_user.profile and current_user.profile.exam %}{{ current_user.profile.exam|exam_label }} · {{ _("математика") }}{% elif current_user.is_teacher %}{{ _("Кабинет учителя") }}{% elif current_user.is_assistant %}{{ _("Кабинет ассистента") }}{% endif %}{% endblock %}</div>
+      <div class="topbar__tools">
+        {% block topbar_extra %}{% endblock %}
+        <form method="post" action="{{ url_for('auth.toggle_theme') }}" data-theme-toggle>
+          {{ ui.csrf() }}<input type="hidden" name="next" value="{{ request.full_path }}">
+          <button class="icon-btn" type="submit" aria-label="{{ _('Сменить тему') }}" title="{{ _('Сменить тему') }}">
+            <span data-theme-icon="light">{{ ui.icon('moon') }}</span><span data-theme-icon="dark">{{ ui.icon('sun') }}</span>
+          </button>
+        </form>
+        <a class="icon-btn" href="{{ url_for('teacher.account') if (current_user.is_teacher or current_user.is_assistant) else url_for('student.profile') + '#settings' }}" aria-label="{{ _('Настройки') }}" title="{{ _('Настройки') }}">{{ ui.icon('settings') }}</a>
+        <a href="{{ url_for('teacher.account') if (current_user.is_teacher or current_user.is_assistant) else url_for('student.profile') }}" aria-label="{{ _('Аккаунт') }}" title="{{ current_user.name }}" style="text-decoration:none">{{ ui.avatar(current_user, text=current_user.initials[:1]) }}</a>
+      </div>
+    </header>
+    {% endblock %}
+
+    {% block page %}
+    <main class="page {% block page_class %}{% endblock %}">
+      {{ ui.flashes() }}
+      {% block content %}{% endblock %}
+    </main>
+    {% endblock %}
+  </div>
+</div>
+{% endblock %}

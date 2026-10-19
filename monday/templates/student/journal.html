@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Лабораторный журнал") }}{% endblock %}
+{% block content %}
+<header class="page-head__text">
+  <h1>{{ _("Лабораторный журнал") }}</h1>
+  <p>{{ _("Каждая ошибка — запись. Разберись, почему она случилась, и закрой её.") }}</p>
+</header>
+
+<div class="grid grid-2">
+  <section class="card" aria-labelledby="why-h">
+    <div class="card__head"><h2 id="why-h" style="font-size:20px">{{ _("Почему ты теряешь баллы") }}</h2><span class="small" style="color:var(--accent);font-weight:600">{{ _("%(n)s ошибок за неделю", n=week_total) }}</span></div>
+    {% set colors = {'careless': '#2B60E5', 'gap': '#153893', 'misread': '#7FA3F3', 'time': '#BBCFF4', None: 'var(--surface-3)'} %}
+    {% if week_total %}
+      <div class="split-bar" role="img" aria-label="{% for k, label in MISTAKE_REASONS.items() %}{{ label }} {{ breakdown.get(k, 0) }}; {% endfor %}">
+        {% for k in ['careless', 'gap', 'misread', 'time', None] %}{% if breakdown.get(k) %}<span style="flex:{{ breakdown[k] }};background:{{ colors[k] }}"></span>{% endif %}{% endfor %}
+      </div>
+      <div class="grid grid-2" style="gap:10px 20px">
+        {% for k, label in MISTAKE_REASONS.items() %}
+          <div class="row" style="flex-wrap:nowrap"><span class="dot" style="border-radius:3px;background:{{ colors[k] }}"></span>{{ label }}<span class="spacer"></span><b class="num">{{ breakdown.get(k, 0) }}</b></div>
+        {% endfor %}
+        {% if breakdown.get(None) %}<div class="row muted" style="flex-wrap:nowrap"><span class="dot" style="border-radius:3px;background:var(--surface-3)"></span>{{ _("Причина не указана") }}<span class="spacer"></span><b class="num">{{ breakdown[None] }}</b></div>{% endif %}
+      </div>
+    {% else %}
+      <p class="text-2">{{ _("За последние 7 дней ошибок нет.") }}</p>
+    {% endif %}
+  </section>
+
+  <section class="card card--inverse" aria-labelledby="darwin-h">
+    <div class="row" style="font-weight:700">{{ ui.mode_dot("darwin") }}{{ MODES.darwin.name }} · ~{{ MODES.darwin.approx }} {{ _("мин") }}</div>
+    <h2 id="darwin-h" style="font-size:26px;font-weight:800">{{ _("Расследуй %(n)s открытых записей", n=open_count) }}</h2>
+    <p class="text-2">{{ _("Найди закономерность в своих ошибках и реши похожие задачи до конца.") }}</p>
+    <form method="post" action="{{ url_for('student.start_session', mode='darwin') }}" style="margin-top:auto">{{ ui.csrf() }}
+      <button class="btn" style="background:var(--bg);color:var(--text)" type="submit">{{ _("Начать расследование") }}</button>
+    </form>
+  </section>
+</div>
+
+<section class="section">
+  <div class="section__head">
+    <h2>{{ _("Записи") }}</h2>
+    <div class="chips">
+      <a class="chip{{ ' is-active' if show == 'open' }}" href="{{ url_for('student.journal', show='open') }}">{{ _("Открытые") }} <span class="chip__count">{{ open_count }}</span></a>
+      <a class="chip{{ ' is-active' if show == 'resolved' }}" href="{{ url_for('student.journal', show='resolved') }}">{{ _("Разобранные") }} <span class="chip__count">{{ resolved_count }}</span></a>
+    </div>
+  </div>
+  {% if rows %}
+  <div class="list">
+    {% for row in rows %}{% set e = row.answer %}{% set item = row.item|loc %}
+      <div class="list__row" id="e{{ e.id }}" style="grid-template-columns:minmax(0,2fr) minmax(0,1.3fr) minmax(0,1.2fr) auto">
+        <div class="stack-sm" style="gap:2px">
+          <span class="list__title">{{ e.skill.name if e.skill else _("Задача") }}</span>
+          <span class="small" style="color:var(--accent)">{{ e.answered_at|d("EEE, d MMM") }} · {{ MODES[e.attempt.mode].name if e.attempt.mode in MODES else (WORK_KINDS.get(e.attempt.mode) or e.attempt.work_version.title) }}</span>
+        </div>
+        <div class="small">
+          {% if item %}{{ _("Ответ") }} <s class="muted">{{ ui.answer_text(item, e.given) }}</s> → <b>{{ ui.correct_text(item) }}</b>{% endif %}
+        </div>
+        <form method="post" action="{{ url_for('student.journal_update', answer_id=e.id) }}">
+          {{ ui.csrf() }}<input type="hidden" name="show" value="{{ show }}">
+          <label class="sr-only" for="r{{ e.id }}">{{ _("Причина") }}</label>
+          <select class="select" id="r{{ e.id }}" name="reason" data-autosubmit style="min-height:40px;font-size:13px">
+            <option value="">{{ _("Причина?") }}</option>
+            {% for k, v in MISTAKE_REASONS.items() %}<option value="{{ k }}" {{ 'selected' if e.mistake_reason == k }}>{{ v }}</option>{% endfor %}
+          </select>
+        </form>
+        <details class="disclosure">
+          <summary>{{ _("Разобрать") if show == 'open' else _("Открыть") }}</summary>
+          <div class="stack" style="gap:10px;max-width:520px">
+            {% if item %}
+              {% if item.image_path %}<img src="{{ url_for('uploaded_file', filename=item.image_path) }}" alt="" style="max-width:240px;background:#fff;border-radius:8px" data-lightbox>{% endif %}
+              {{ ui.material(item) }}
+              {% if item.text %}<div class="math" style="font-weight:600">{{ item.text }}</div>{% endif %}
+              <div class="math text-2">{{ item.explanation }}</div>
+            {% endif %}
+            <form method="post" action="{{ url_for('student.journal_update', answer_id=e.id) }}">
+              {{ ui.csrf() }}<input type="hidden" name="show" value="{{ show }}">
+              {% if show == 'open' %}<button class="btn btn--primary btn--sm" name="resolve" value="1" type="submit">{{ ui.icon('check', 16) }}{{ _("Понял, закрыть") }}</button>
+              {% else %}<button class="btn btn--secondary btn--sm" name="resolve" value="0" type="submit">{{ _("Вернуть в открытые") }}</button>{% endif %}
+            </form>
+          </div>
+        </details>
+      </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty"><h3>{{ _("Пусто") }}</h3><p>{{ _("Открытых ошибок нет. Отличная неделя.") if show == 'open' else _("Здесь будут разобранные ошибки.") }}</p></div>
+  {% endif %}
+</section>
+{% endblock %}

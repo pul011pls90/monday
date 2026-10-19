@@ -1,0 +1,88 @@
+{% import "partials/macros.html" as ui with context %}
+{% set u = panel.user %}
+{% set back = request.full_path.replace('&fragment=1', '').replace('fragment=1&', '') %}
+<div class="person">
+  <div class="person__head">
+    {{ ui.avatar(u, 'avatar--lg') }}
+    <div class="stack-sm" style="gap:4px;min-width:0">
+      <b class="person__name">{{ u.name }}</b>
+      <span class="small muted">{{ u.email }}</span>
+      <div class="chips">
+        <span class="tag tag--soft">{{ {'student': _('ученик'), 'teacher': _('учитель'), 'assistant': _('ассистент'), 'admin': _('админ')}[u.role] }}</span>
+        {% if u.is_methodist and u.role == 'teacher' %}<span class="tag tag--line">{{ _("методист") }}</span>{% endif %}
+        {% if u.role == 'teacher' and not u.is_approved %}<span class="tag tag--warn">{{ _("ждёт подтверждения") }}</span>{% endif %}
+        {% if u.is_blocked %}<span class="tag tag--bad">{{ _("заблокирован") }}</span>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <dl class="kv small">
+    <dt>{{ _("С нами с") }}</dt><dd>{{ u.created_at|d("d MMMM y") }}</dd>
+    <dt>{{ _("Активность") }}</dt><dd>{{ panel.last|ago }}</dd>
+    {% if u.role == 'student' and u.profile %}
+      <dt>{{ _("Экзамен") }}</dt><dd>{{ u.profile.exam|exam_label if u.profile.exam else '—' }}{% if u.profile.exam_date %} · {{ u.profile.exam_date|d("d MMM y") }}{% endif %}</dd>
+      <dt>{{ _("Цель") }}</dt><dd>{{ u.profile.goal_score or '—' }}</dd>
+      <dt>{{ _("Школа") }}</dt><dd>{{ u.profile.school or '—' }}{% if u.profile.region %} · {{ u.profile.region }}{% endif %}</dd>
+      <dt>{{ _("Учителя") }}</dt><dd>{{ panel.teachers|map(attribute='name')|join(', ') or _('нет') }}</dd>
+    {% elif u.role == 'assistant' and panel.astats %}
+      <dt>{{ _("Загружено") }}</dt><dd>{{ panel.astats.total }} · {{ _("за неделю") }} {{ panel.astats.week }}</dd>
+      <dt>{{ _("Одобрено") }}</dt><dd>{{ panel.astats.approved_pct ~ '%' if panel.astats.approved_pct is not none else '—' }}</dd>
+      <dt>{{ _("Ждут проверки") }}</dt><dd>{{ panel.astats.pending }}</dd>
+      <dt>{{ _("Темы") }}</dt><dd>{{ panel.astats.topics|map('first')|join(', ') or '—' }}</dd>
+    {% elif u.role == 'teacher' %}
+      <dt>{{ _("Учеников") }}</dt><dd>{{ panel.records|length }}</dd>
+      <dt>{{ _("Работ") }}</dt><dd>{{ panel.works }}</dd>
+      <dt>{{ _("Вопросов") }}</dt><dd>{{ panel.questions }}</dd>
+    {% endif %}
+  </dl>
+
+  {% if panel.summary %}
+  <div class="person__nums">
+    <div><b class="num">{{ panel.summary.mastery_pct }}%</b><span class="small muted">{{ _("освоено") }}</span></div>
+    <div><b class="num">{{ panel.summary.predicted }}</b><span class="small muted">{{ _("прогноз") }}</span></div>
+    <div><b class="num">{{ panel.summary.mastered }}/{{ panel.summary.total }}</b><span class="small muted">{{ _("навыков") }}</span></div>
+  </div>
+  {% endif %}
+
+  {% if panel.records %}
+  <section class="stack-sm"><h3 class="eyebrow">{{ _("Ученики") }}</h3>
+    <ul class="person__list">{% for r in panel.records[:12] %}<li><span>{{ r.name }}</span><span class="small muted">{{ r.exam|exam_label if r.exam else '' }}{% if not r.student_user_id %} · {{ _("не подключён") }}{% endif %}</span></li>{% endfor %}
+      {% if panel.records|length > 12 %}<li class="small muted">{{ _("и ещё %(n)s", n=panel.records|length - 12) }}</li>{% endif %}</ul>
+  </section>
+  {% endif %}
+
+  <section class="stack-sm"><h3 class="eyebrow">{{ _("Последние результаты") }}</h3>
+    {% if panel.attempts %}
+    <ul class="person__list">{% for a in panel.attempts %}
+      <li><span>{{ a.work_version.title if a.work_version else (MODES[a.mode].name if a.mode in MODES else (_('Вопросы дня') if a.mode == 'daily' else a.mode)) }}</span>
+        <span class="small"><b class="num">{{ a.percent }}%</b> <span class="muted">· {{ a.finished_at|ago }}</span></span></li>
+    {% endfor %}</ul>
+    {% else %}<p class="small text-2">{{ _("Пока ничего не сдано.") }}</p>{% endif %}
+  </section>
+
+  {% if u.id != current_user.id %}
+  <section class="stack-sm"><h3 class="eyebrow">{{ _("Действия") }}</h3>
+    <form method="post" action="{{ url_for('admin.set_role', user_id=u.id) }}" class="row" style="gap:8px">{{ ui.csrf() }}
+      <input type="hidden" name="next" value="{{ back }}">
+      <label class="sr-only" for="pr-role">{{ _("Роль") }}</label>
+      <select class="select" id="pr-role" name="role" style="flex:1">
+        {% for r, l in [('student', _('Ученик')), ('teacher', _('Учитель')), ('assistant', _('Ассистент')), ('admin', _('Админ'))] %}<option value="{{ r }}" {{ 'selected' if u.role == r }}>{{ l }}</option>{% endfor %}
+      </select>
+      <button class="btn btn--secondary" type="submit">{{ _("Сменить роль") }}</button>
+    </form>
+    {% if u.role == 'teacher' %}
+    <form method="post" action="{{ url_for('admin.methodist', user_id=u.id) }}">{{ ui.csrf() }}
+      <input type="hidden" name="next" value="{{ back }}">
+      <button class="btn btn--secondary" name="on" value="{{ '' if u.is_methodist else '1' }}">{{ _("Снять роль методиста") if u.is_methodist else _("Назначить методистом") }}</button>
+      <p class="small muted" style="margin-top:6px">{{ _("Методист проверяет вопросы ассистентов вместе с админом.") }}</p>
+    </form>
+    {% endif %}
+    <form method="post" action="{{ url_for('admin.block', user_id=u.id) }}">{{ ui.csrf() }}
+      <input type="hidden" name="next" value="{{ back }}">
+      {% if u.is_blocked %}<button class="btn btn--secondary" name="on" value="">{{ _("Разблокировать") }}</button>
+      {% else %}<button class="btn btn--danger-line" name="on" value="1">{{ _("Заблокировать аккаунт") }}</button>
+        <p class="small muted" style="margin-top:6px">{{ _("Человек не сможет войти, данные сохранятся.") }}</p>{% endif %}
+    </form>
+  </section>
+  {% endif %}
+</div>

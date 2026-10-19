@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ _("Вход") if tab == 'login' else _("Регистрация") }}{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/welcome.css') }}">{% endblock %}
+{% block body_class %}auth-body{% endblock %}
+
+{% block body %}
+<div class="auth" data-theme="light">
+
+  {# ------------------------------------------------------------ left: spiral of maths + halftone dots #}
+  <section class="auth__stage" aria-label="Monday">
+    <canvas class="auth__dots" data-dots aria-hidden="true"></canvas>
+    <div class="auth__spiral" data-spiral aria-hidden="true"></div>
+    <div class="auth__brand">
+      <div class="auth__wordmark" data-wordmark>{% for ch in "MONDAY" %}<span>{{ ch }}</span>{% endfor %}</div>
+      <p class="auth__tagline">{{ _("Вся математика экзамена — в одном движении.") }}</p>
+      <p class="auth__hint">{{ _("Нажми на точки — они соберут слово.") }}</p>
+      <div class="auth__exams">ОРТ · ЕНТ · ЕГЭ · ОГЭ · SAT · CSCA</div>
+    </div>
+  </section>
+
+  {# ------------------------------------------------------------ right: sign-in card #}
+  <section class="auth__side">
+    <div class="auth-card">
+      <div class="auth-card__top">
+        <span class="auth-card__logo">M</span>
+        <form method="post" action="{{ url_for('auth.set_language') }}">
+          {{ ui.csrf() }}<input type="hidden" name="next" value="{{ request.full_path }}">
+          <label class="sr-only" for="lang">{{ _("Язык") }}</label>
+          <select class="auth-lang" id="lang" name="lang" data-autosubmit>
+            {% for code, label in LANGUAGES.items() %}<option value="{{ code }}" {{ 'selected' if code == CURRENT_LANG }}>{{ label }}</option>{% endfor %}
+          </select>
+        </form>
+      </div>
+
+      <div class="auth-card__head">
+        <h1>{{ _("С возвращением") if tab == 'login' else _("Создай аккаунт") }}</h1>
+        <p>{{ _("Войди, чтобы продолжить подготовку.") if tab == 'login' else _("Прогресс сохраняется — с телефона и с компьютера.") }}</p>
+      </div>
+
+      <nav class="auth-tabs" aria-label="{{ _('Вход или регистрация') }}">
+        <a href="{{ url_for('auth.login') }}" class="{{ 'is-active' if tab == 'login' }}"{{ ' aria-current=page' if tab == 'login' }}>{{ _("Вход") }}</a>
+        <a href="{{ url_for('auth.register') }}" class="{{ 'is-active' if tab == 'register' }}"{{ ' aria-current=page' if tab == 'register' }}>{{ _("Регистрация") }}</a>
+      </nav>
+
+      {{ ui.flashes() }}
+
+      {% if config.GOOGLE_CLIENT_ID %}
+      <a class="auth-google" href="{{ url_for('auth.google_login') }}">
+        <svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+        {{ _("Продолжить с Google") }}
+      </a>
+      <div class="auth-or"><span>{{ _("или по email") }}</span></div>
+      {% endif %}
+
+      {% if tab == 'login' %}
+      <form method="post" class="auth-form" novalidate>
+        {{ ui.csrf() }}
+        <div class="field">
+          <label for="email">{{ _("Email") }}</label>
+          <input class="input" id="email" name="email" type="email" autocomplete="username" required value="{{ form.get('email', '') }}" placeholder="name@mail.com">
+        </div>
+        <div class="field">
+          <label for="password">{{ _("Пароль") }}</label>
+          <div class="auth-pass">
+            <input class="input" id="password" name="password" type="password" autocomplete="current-password" required>
+            <button type="button" class="auth-pass__toggle" data-pass-toggle aria-label="{{ _('Показать пароль') }}" data-show="{{ _('Показать') }}" data-hide="{{ _('Скрыть') }}">{{ _("Показать") }}</button>
+          </div>
+        </div>
+        <div class="auth-form__row">
+          <label class="check"><input type="checkbox" name="remember" value="1" checked> {{ _("Запомнить меня") }}</label>
+          <span class="auth-hint" title="{{ _('Учитель может сбросить пароль в своём кабинете') }}">{{ _("Забыли пароль? Напишите учителю") }}</span>
+        </div>
+        <button class="btn btn--primary btn--lg btn--block" type="submit">{{ _("Войти") }}</button>
+      </form>
+      {% else %}
+      <form method="post" class="auth-form" novalidate data-register>
+        {{ ui.csrf() }}
+        <div class="auth-role" role="radiogroup" aria-label="{{ _('Тип аккаунта') }}">
+          <label><input type="radio" name="role" value="student" {{ 'checked' if form.get('role', 'student') != 'teacher' }}><span>{{ _("Ученик") }}</span></label>
+          <label><input type="radio" name="role" value="teacher" {{ 'checked' if form.get('role') == 'teacher' }}><span>{{ _("Учитель") }}</span></label>
+        </div>
+        <div class="field">
+          <label for="name">{{ _("Имя и фамилия") }}</label>
+          <input class="input" id="name" name="name" autocomplete="name" required value="{{ form.get('name', '') }}">
+        </div>
+        <div class="field">
+          <label for="email">{{ _("Email") }}</label>
+          <input class="input" id="email" name="email" type="email" autocomplete="email" required value="{{ form.get('email', '') }}" placeholder="name@mail.com">
+        </div>
+        <div class="field">
+          <label for="password">{{ _("Пароль") }}</label>
+          <div class="auth-pass">
+            <input class="input" id="password" name="password" type="password" autocomplete="new-password" minlength="8" required>
+            <button type="button" class="auth-pass__toggle" data-pass-toggle aria-label="{{ _('Показать пароль') }}" data-show="{{ _('Показать') }}" data-hide="{{ _('Скрыть') }}">{{ _("Показать") }}</button>
+          </div>
+          <span class="field__hint">{{ _("Не короче 8 символов.") }}</span>
+        </div>
+        <div class="field" data-student-only>
+          <label for="invite_code">{{ _("Код от учителя") }} <span class="muted" style="font-weight:400">{{ _("— если есть") }}</span></label>
+          <input class="input input--mono" id="invite_code" name="invite_code" placeholder="MND-XXXX" value="{{ form.get('invite_code', '') or '' }}" autocapitalize="characters">
+        </div>
+        <p class="auth-hint" data-teacher-only hidden>{{ _("Аккаунт учителя откроется после проверки администратором — обычно в течение дня.") }}</p>
+        <button class="btn btn--primary btn--lg btn--block" type="submit">{{ _("Создать аккаунт") }}</button>
+      </form>
+      {% endif %}
+
+      {% if config.DEBUG %}
+      <details class="auth-demo">
+        <summary>{{ _("Демо-аккаунты") }}</summary>
+        <div>
+          <button type="button" data-demo="student@monday.kg" data-pass="student123">{{ _("Ученик") }} · student@monday.kg</button>
+          <button type="button" data-demo="aibek@monday.kg" data-pass="teacher123">{{ _("Учитель") }} · aibek@monday.kg</button>
+          <button type="button" data-demo="admin@monday.kg" data-pass="monday2026">{{ _("Админ") }} · admin@monday.kg</button>
+        </div>
+      </details>
+      {% endif %}
+
+      <p class="auth-card__legal">{{ _("Продолжая, вы соглашаетесь с условиями использования и политикой конфиденциальности.") }}</p>
+    </div>
+  </section>
+</div>
+
+<template data-spiral-items>
+  {# Maths that travels through the spiral. Formulas render with KaTeX; shapes are inline SVG. #}
+  <span data-k="f">$\int_0^1 x\,dx$</span><span data-k="t">$\pi$</span><span data-k="c g">$x^2$</span>
+  <span data-k="f">$\log_2 8 = 3$</span><span data-k="t">$\sqrt{2}$</span><span data-k="c y">$\sin\theta$</span>
+  <span data-k="f">$\sum_{n=1}^{\infty} \frac{1}{2^n}$</span><span data-k="t">$\Delta$</span><span data-k="c o">$f(x)$</span>
+  <span data-k="f">$a^2 + b^2 = c^2$</span><span data-k="t">$\infty$</span><span data-k="c p">$e^{i\pi} + 1 = 0$</span>
+  <span data-k="t">$\frac{3}{4}$</span><span data-k="f">$y = kx + b$</span><span data-k="c r">$\angle ABC$</span>
+  <span data-k="t">$\vec{v}$</span><span data-k="f">$P(A) = \frac{m}{n}$</span><span data-k="c g">$x_{1,2}$</span>
+  <span data-k="t">$\lim$</span><span data-k="f">$n!$</span><span data-k="c y">$30\%$</span>
+  <span data-k="f">$\cos 60^\circ = \tfrac12$</span><span data-k="t">$\bar{x}$</span><span data-k="c o">$a_n = a_1 q^{n-1}$</span>
+  <span data-k="q">?</span><span data-k="t">$\mathbb{R}$</span><span data-k="f">$D = b^2 - 4ac$</span><span data-k="q">x</span>
+  <span data-k="s"><svg viewBox="0 0 48 48"><path d="M8 40 24 8l16 32z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg></span>
+  <span data-k="s"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="16" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M24 24h16" stroke="currentColor" stroke-width="2.5"/><circle cx="24" cy="24" r="2.5" fill="currentColor"/></svg></span>
+  <span data-k="s"><svg viewBox="0 0 48 48"><path d="M6 8c6 40 30 40 36 0" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M4 30h40M24 4v40" stroke="currentColor" stroke-width="1.2" opacity=".45"/></svg></span>
+  <span data-k="s"><svg viewBox="0 0 48 48"><path d="M4 24c5-14 9-14 14 0s9 14 14 0 9-14 12-8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span>
+  <span data-k="s"><svg viewBox="0 0 48 48"><path d="M10 18 24 10l14 8v16l-14 8-14-8zM10 18l14 8 14-8M24 26v16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span>
+  <span data-k="s"><svg viewBox="0 0 48 48"><path d="M8 40V8M8 40h32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M12 34 20 22l8 6 10-16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+</template>
+{% endblock %}
+
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/welcome.js') }}"></script>{% endblock %}

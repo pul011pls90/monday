@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Вопросы") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text"><h1>{{ _("Банк вопросов") }}</h1><p>{{ _("Ваши вопросы и общий банк Monday. Правка вопроса не меняет уже опубликованные работы.") }}</p></div>
+  <div class="row"><a class="btn btn--secondary" href="{{ url_for('assistant.home') }}">{{ ui.icon('copy', 18) }}{{ _("Вставить тест целиком") }}</a>
+  <a class="btn btn--primary" href="{{ url_for('teacher.question_new', node=node_id) if node_id else url_for('teacher.question_new') }}">{{ ui.icon('plus', 18) }}{{ _("Новый вопрос") }}</a></div>
+</div>
+
+<form method="get" class="stack" style="gap:12px">
+  <div class="chips">
+    <a class="chip{{ ' is-active' if mine }}" href="{{ url_for('teacher.questions', mine=1) }}">{{ _("Мои") }}</a>
+    <a class="chip{{ ' is-active' if not mine }}" href="{{ url_for('teacher.questions', mine=0) }}">{{ _("Весь банк") }}</a>
+  </div>
+  <input type="hidden" name="mine" value="{{ 1 if mine else 0 }}">
+  <div class="row">
+    <label class="search search--sm" style="flex:1 1 260px">{{ ui.icon('search', 18) }}<span class="sr-only">{{ _("Поиск") }}</span><input type="search" name="q" value="{{ q }}" placeholder="{{ _('Текст вопроса') }}"></label>
+    <label class="sr-only" for="fe">{{ _("Экзамен") }}</label>
+    <select class="select" id="fe" name="exam" data-autosubmit style="width:auto;min-height:44px"><option value="">{{ _("Все экзамены") }}</option>{% for code, e in EXAMS.items() %}<option value="{{ code }}" {{ 'selected' if exam == code }}>{{ e.label }}</option>{% endfor %}</select>
+    <label class="sr-only" for="fs">{{ _("Ветка карты") }}</label>
+    <select class="select" id="fs" name="node" data-autosubmit style="width:auto;min-height:44px;max-width:280px">
+      <option value="">{{ _("Вся карта") }}</option>
+      {% for t in tree %}
+        <optgroup label="{{ t.node.name }}">
+          <option value="{{ t.node.id }}" {{ 'selected' if node_id == t.node.id }}>{{ t.node.name }} · {{ _("вся тема") }}</option>
+          {% for s in t.subtopics %}
+            <option value="{{ s.node.id }}" {{ 'selected' if node_id == s.node.id }}>{{ s.node.name }}</option>
+            {% for n in s.nodes %}<option value="{{ n.id }}" {{ 'selected' if node_id == n.id }}>&nbsp;&nbsp;— {{ n.name }}</option>{% endfor %}
+          {% endfor %}
+        </optgroup>
+      {% endfor %}
+    </select>
+    {% if mine %}
+    <label class="sr-only" for="fst">{{ _("Статус") }}</label>
+    <select class="select" id="fst" name="status" data-autosubmit style="width:auto;min-height:44px"><option value="">{{ _("Любой статус") }}</option>{% for k, v in QUESTION_STATUSES.items() %}<option value="{{ k }}" {{ 'selected' if status == k }}>{{ v }}</option>{% endfor %}</select>
+    {% endif %}
+  </div>
+</form>
+
+<p class="small muted">{{ items|length }} {{ items|length|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}</p>
+{% if items %}
+<div class="list">
+  {% for q in items %}
+    <div class="list__row" style="grid-template-columns:minmax(0,1fr) auto auto">
+      <div class="stack-sm">
+        <span class="math" style="font-weight:600">{{ q.text or _("Задача с рисунком") }}</span>
+        <span class="small muted">#{{ q.id }} · {{ q.skill.path if q.skill }} · {{ DIFFICULTIES[q.difficulty] }}{% if (q.weight or 1) > 1 %} · {{ q.weight }} {{ _("б.") }}{% endif %}{% if q.material %} · {{ _("с текстом") }}{% endif %} · {% for e in q.exams or [] %}{{ e|exam_label }}{{ ', ' if not loop.last }}{% endfor %}{% if q.image_path %} · {{ _("с рисунком") }}{% endif %}{% if not mine %} · {{ q.author.name if q.author }}{% endif %}</span>
+      </div>
+      {{ ui.state(q.status, QUESTION_STATUSES[q.status]) }}
+      {% if q.author_id == current_user.id or current_user.is_admin %}
+      <div class="row" style="gap:6px;flex-wrap:nowrap">
+        <a class="icon-btn" style="width:36px;height:36px" href="{{ url_for('teacher.question_edit', question_id=q.id) }}" aria-label="{{ _('Редактировать') }}">{{ ui.icon('edit', 16) }}</a>
+        <form method="post" action="{{ url_for('teacher.question_delete', question_id=q.id) }}" data-confirm="{{ _('Удалить вопрос?') }}">{{ ui.csrf() }}<button class="icon-btn" style="width:36px;height:36px" aria-label="{{ _('Удалить') }}">{{ ui.icon('trash', 16) }}</button></form>
+      </div>
+      {% else %}<span></span>{% endif %}
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty"><h3>{{ _("Вопросов нет") }}</h3><p>{{ _("Создайте первый вопрос — форма займёт пару минут.") }}</p></div>
+{% endif %}
+{% endblock %}

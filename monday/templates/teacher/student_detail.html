@@ -1,0 +1,158 @@
+{% extends "layout.html" %}
+{% block title %}{{ r.name }}{% endblock %}
+{% block content %}
+<a href="{{ url_for('teacher.students') }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Все ученики") }}</a>
+<div class="page-head">
+  <div class="row" style="gap:16px">
+    {{ ui.avatar(r.student, 'avatar--lg', text=r.name[:1]) }}
+    <div class="stack-sm" style="gap:2px">
+      <h1 style="font-size:32px">{{ r.name }}</h1>
+      <span class="text-2">{{ r.grade ~ ' ' ~ _('класс') if r.grade }}{% if r.lesson_time %} · {{ _("урок в") }} {{ r.lesson_time }}{% endif %}{% if r.goal_label %} · {{ _("цель") }}: {{ r.goal_label }}{% endif %}</span>
+    </div>
+  </div>
+  <a class="btn btn--primary" href="{{ url_for('teacher.assign', record_id=r.id) }}">{{ ui.icon('send', 18) }}{{ _("Выдать задание") }}</a>
+</div>
+
+{% if not r.student_user_id %}
+<section class="card card--soft" aria-labelledby="code-h">
+  <h2 id="code-h" style="font-size:20px">{{ _("Подключите аккаунт ученика") }}</h2>
+  <p>{{ _("Отправьте ученику код или ссылку. После регистрации его результаты и прогресс появятся здесь автоматически.") }}</p>
+  <div class="grid grid-2">
+    <div class="field"><label for="code">{{ _("Код") }}</label>
+      <div class="copy-field"><input class="input input--mono" id="code" value="{{ r.invite_code }}" readonly><button class="btn btn--primary" type="button" data-copy="code" data-done="{{ _('Скопировано') }}">{{ ui.icon('copy', 18) }}{{ _("Копировать") }}</button></div></div>
+    <div class="field"><label for="joinurl">{{ _("Ссылка-приглашение") }}</label>
+      <div class="copy-field"><input class="input" id="joinurl" value="{{ join_url }}" readonly><button class="btn btn--primary" type="button" data-copy="joinurl" data-done="{{ _('Скопировано') }}">{{ ui.icon('link', 18) }}{{ _("Копировать") }}</button></div></div>
+  </div>
+  <div class="row">
+    <a class="btn btn--secondary btn--sm" target="_blank" rel="noopener" href="https://wa.me/?text={{ (_('Привет! Подключайся к моим урокам в Monday: ') ~ join_url)|urlencode }}">WhatsApp</a>
+    <a class="btn btn--secondary btn--sm" target="_blank" rel="noopener" href="https://t.me/share/url?url={{ join_url|urlencode }}&text={{ _('Подключайся к моим урокам в Monday')|urlencode }}">Telegram</a>
+    <form method="post" action="{{ url_for('teacher.student_new_code', record_id=r.id) }}" data-confirm="{{ _('Создать новый код? Старый перестанет работать.') }}">{{ ui.csrf() }}<button class="btn btn--ghost btn--sm" type="submit">{{ _("Новый код") }}</button></form>
+  </div>
+</section>
+{% endif %}
+
+{# ------------------------------------------------------------ knowledge, attendance, standing #}
+<div class="sd-top">
+  <section class="card sd-num">
+    <div class="eyebrow">{{ _("Знания") }}</div>
+    <div class="sd-num__v num">{{ progress }}<small>%</small></div>
+    {{ ui.progress(progress) }}
+    <div class="small text-2">{% if data.summary %}{{ _("освоено %(a)s из %(b)s навыков · прогноз %(p)s", a=data.summary.mastered, b=data.summary.total, p=data.summary.predicted) }}{% if r.goal_score %} · {{ _("цель") }} {{ r.goal_score }}{% endif %}{% else %}{{ _("вручную, пока аккаунт не подключён") }}{% endif %}</div>
+  </section>
+  <section class="card sd-num">
+    <div class="eyebrow">{{ _("Посещаемость") }}</div>
+    <div class="sd-num__v num">{{ att.rate if att.rate is not none else '—' }}{% if att.rate is not none %}<small>%</small>{% endif %}</div>
+    <div class="sd-att" aria-label="{{ _('Последние уроки') }}">{% for m in att.marks %}<i class="sd-att__m sd-att__m--{{ m.status }}" title="{{ m.day|d('d MMM') }} · {{ {'present': _('был'), 'late': _('опоздал'), 'absent': _('не был')}[m.status] }}"></i>{% else %}<span class="small muted">{{ _("отметок ещё нет") }}</span>{% endfor %}</div>
+    <form method="post" action="{{ url_for('teacher.attendance') }}" class="att" data-att>
+      {{ ui.csrf() }}<input type="hidden" name="record_id" value="{{ r.id }}"><input type="hidden" name="next" value="{{ request.full_path }}">
+      <span class="small muted" style="align-self:center;margin-right:4px">{{ _("Сегодня:") }}</span>
+      {% for k, label, ic in [('present', _('Был'), 'check'), ('late', _('Опоздал'), 'clock'), ('absent', _('Не был'), 'x')] %}
+        <button type="submit" name="status" value="{{ k }}" class="att__btn att__btn--{{ k }}" aria-pressed="{{ 'true' if today_mark == k else 'false' }}" title="{{ label }}">{{ ui.icon(ic, 15) }}<span>{{ label }}</span></button>
+      {% endfor %}
+    </form>
+  </section>
+  <section class="card sd-num">
+    <div class="eyebrow">{{ _("Итог") }}</div>
+    <div class="sd-num__v num">{{ standing }}<small>%</small></div>
+    <div class="small text-2">{{ _("знания %(k)s%% − штрафы %(p)s", k=progress, p=penalty) }}</div>
+    <div class="small muted">{{ _("пропуск −3 · опоздание −1 · просроченная домашка −2") }}{% if att.absent or att.late or overdue %} ({{ _("пропусков %(a)s, опозданий %(l)s, просрочено %(o)s", a=att.absent, l=att.late, o=overdue) }}){% endif %}</div>
+  </section>
+</div>
+
+{% if data.summary %}
+<div class="grid grid-2">
+  <section class="card" aria-labelledby="trend-h">
+    <div class="card__head"><h2 id="trend-h" style="font-size:20px">{{ _("Результаты тестов") }}</h2><span class="small muted">{{ _("последние %(n)s", n=data.trend|length) }}</span></div>
+    {% if data.trend|length >= 2 %}
+      {% set n = data.trend|length %}
+      <svg class="sd-trend" viewBox="0 0 600 200" role="img" aria-label="{{ _('Результаты по порядку: %(v)s', v=data.trend|map(attribute='percent')|join(', ')) }}">
+        <rect x="0" y="0" width="600" height="40" class="sd-trend__band sd-trend__band--g"/>
+        <rect x="0" y="40" width="600" height="60" class="sd-trend__band sd-trend__band--y"/>
+        <rect x="0" y="100" width="600" height="100" class="sd-trend__band sd-trend__band--r"/>
+        <polyline class="sd-trend__line" points="{% for t in data.trend %}{{ (20 + 560 * loop.index0 / (n - 1))|round(1) }},{{ (200 - 2 * t.percent)|round(1) }} {% endfor %}"/>
+        {% for t in data.trend %}<circle class="sd-trend__dot" cx="{{ (20 + 560 * loop.index0 / (n - 1))|round(1) }}" cy="{{ (200 - 2 * t.percent)|round(1) }}" r="6"><title>{{ t.date|d('d MMM') }} · {{ t.title }} · {{ t.percent }}%</title></circle>{% endfor %}
+      </svg>
+      <div class="row row--between small muted"><span>{{ data.trend[0].date|d('d MMM') }}</span><span>{{ _("зелёная зона ≥ 80%%, жёлтая 50–79%%") }}</span><span>{{ data.trend[-1].date|d('d MMM') }}</span></div>
+    {% else %}<p class="text-2">{{ _("График появится после двух сданных тестов.") }}</p>{% endif %}
+  </section>
+
+  <section class="card" aria-labelledby="map-h">
+    <div class="card__head"><h2 id="map-h" style="font-size:20px">{{ _("Навыки в точках") }}</h2><span class="small muted">{{ data.summary.mastered }} / {{ data.summary.total }}</span></div>
+    <div class="portrait">
+      {% for t in data.topics %}{% set inroute = t["items"]|rejectattr('state', 'equalto', 'outside')|list %}
+        {% if inroute %}
+        <div class="portrait__group">
+          <div class="portrait__dots">{% for i in inroute %}{% set acc = i.accuracy if i.accuracy is not none else 0 %}<span class="portrait__dot is-{{ i.state }}" style="--a: {{ acc|round(2) }}" title="{{ i.skill.name }}{% if i.accuracy is not none %} · {{ (acc * 100)|round|int }}%{% endif %}"></span>{% endfor %}</div>
+          <div class="portrait__label">{{ t.name }}</div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<div class="grid grid-2">
+  <section class="card">
+    <h2 style="font-size:20px">{{ _("Слабые навыки") }}</h2>
+    {% for w in data.summary.weak[:5] %}
+      {% set pct = (w.accuracy*100)|round|int %}
+      <div class="stack-sm"><div class="row row--between" style="font-weight:600"><span>{{ w.skill.name }}</span><span class="t-score t-score--{{ 'green' if pct >= 80 else ('yellow' if pct >= 50 else 'red') }} num">{{ pct }}%</span></div>{{ ui.progress(pct) }}</div>
+    {% else %}<p class="text-2">{{ _("Слабых мест не найдено.") }}</p>{% endfor %}
+  </section>
+  <section class="card">
+    <div class="card__head"><h2 style="font-size:20px">{{ _("Журнал ошибок") }}</h2><span class="small muted">{{ _("нерешённые") }}</span></div>
+    {% set total = data.breakdown.values()|sum %}
+    {% if total %}<div class="chips">{% for k, label in MISTAKE_REASONS.items() %}{% set n = data.breakdown.get(k, 0) %}{% if n %}<span class="tag tag--line">{{ label }} · {{ n }}</span>{% endif %}{% endfor %}</div>{% endif %}
+    {% if data.mistakes %}
+      <div class="t-list">{% for m in data.mistakes %}
+        <div class="t-list__row"><span class="t-list__grow"><b>{{ m.skill.name if m.skill else _('Без темы') }}</b><span class="small muted">{{ m.answered_at|ago }}{% if m.attempt.work_version %} · {{ m.attempt.work_version.title }}{% endif %}</span></span>
+          {% if m.mistake_reason %}<span class="tag tag--line tag--xs">{{ MISTAKE_REASONS[m.mistake_reason] }}</span>{% endif %}</div>
+      {% endfor %}</div>
+    {% else %}<p class="text-2">{{ _("Открытых ошибок нет.") }}</p>{% endif %}
+  </section>
+</div>
+<section class="section">
+  <h2>{{ _("Последние результаты") }}</h2>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>{{ _("Дата") }}</th><th>{{ _("Что") }}</th><th>{{ _("Результат") }}</th></tr></thead>
+    <tbody>{% for a in data.recent %}
+      <tr><td class="muted">{{ a.finished_at|dt }}</td>
+      <td>{{ MODES[a.mode].name if a.mode in MODES else (a.work_version.title if a.work_version else (_('Вопросы дня') if a.mode == 'daily' else a.mode)) }}</td>
+      <td class="num"><b>{{ a.score }} / {{ a.total or a.answers|length }}</b> <span class="t-score t-score--{{ 'green' if a.percent >= 80 else ('yellow' if a.percent >= 50 else 'red') }}">{{ a.percent }}%</span></td></tr>
+    {% else %}<tr><td colspan="3" class="muted">{{ _("Пока нет результатов.") }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="section__head"><h2>{{ _("Домашние задания") }}</h2><a href="{{ url_for('teacher.assign', record_id=r.id) }}">{{ _("Выдать новое") }}</a></div>
+  {% if assignments %}
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>{{ _("Работа") }}</th><th>{{ _("Срок") }}</th><th>{{ _("Статус") }}</th><th>{{ _("Результат") }}</th><th></th></tr></thead>
+    <tbody>{% for a, state, last in assignments %}
+      <tr><td class="t-strong">{{ a.work.title }}</td><td class="muted">{{ a.due_at|dt if a.due_at else '—' }}</td>
+      <td>{{ ui.state(state, HOMEWORK_STATES[state]) }}</td>
+      <td class="num">{{ (last.score ~ ' / ' ~ last.total) if last else '—' }}</td>
+      <td style="text-align:right"><a href="{{ url_for('teacher.review_detail', assignment_id=a.id) }}">{{ _("Проверить") if state == 'submitted' else _("Открыть") }}</a></td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="text-2">{{ _("Заданий ещё не было.") }}</p>{% endif %}
+</section>
+
+<form method="post" action="{{ url_for('teacher.student_edit', record_id=r.id) }}">
+  {{ ui.csrf() }}
+  <fieldset>
+    <legend>{{ _("Данные в таблице") }}</legend>
+    {% with prefix='e-' %}{% include "teacher/_record_form.html" %}{% endwith %}
+    <div><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></div>
+  </fieldset>
+</form>
+
+<div class="row">
+  {% if r.student_user_id %}
+  <form method="post" action="{{ url_for('teacher.student_unlink', record_id=r.id) }}" data-confirm="{{ _('Отвязать аккаунт ученика? Строка в таблице останется.') }}">{{ ui.csrf() }}<button class="btn btn--secondary" type="submit">{{ _("Отвязать аккаунт") }}</button></form>
+  {% endif %}
+  <form method="post" action="{{ url_for('teacher.student_delete', record_id=r.id) }}" data-confirm="{{ _('Удалить ученика из таблицы? Выданные задания тоже удалятся.') }}">{{ ui.csrf() }}<button class="btn btn--danger" type="submit">{{ ui.icon('trash', 18) }}{{ _("Удалить из таблицы") }}</button></form>
+</div>
+{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/teacher.js') }}"></script>{% endblock %}

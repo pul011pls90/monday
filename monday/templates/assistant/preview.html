@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Проверка перед загрузкой") }}{% endblock %}
+{% block content %}
+{% set probs = {'text': _('нет текста'), 'options': _('меньше 2 вариантов'), 'answer': _('нет ответа'), 'diagram': _('нужен рисунок'), 'skill': _('выберите навык')} %}
+<a href="{{ url_for('assistant.home') }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Назад к вставке") }}</a>
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Нашли вопросов: %(n)s", n=items|length) }}</h1>
+    <p>{{ _("Проверьте каждый: текст, варианты, верный ответ и навык. Красным отмечено то, что нужно поправить. Снимите галочку, чтобы пропустить вопрос.") }}</p>
+  </div>
+</div>
+{% if too_many %}<div class="flash flash--info">{{ _("Показаны первые 80 вопросов. Остальные вставьте следующей порцией.") }}</div>{% endif %}
+{% if errors %}<div class="flash flash--error"><span>{% for e in errors[:10] %}{{ e }}<br>{% endfor %}</span></div>{% endif %}
+
+<form method="post" action="{{ url_for('assistant.import_save') }}" enctype="multipart/form-data" class="imp" data-import>
+  {{ ui.csrf() }}
+  <input type="hidden" name="count" value="{{ items|length }}">
+  {% for e in exams %}<input type="hidden" name="exams" value="{{ e }}">{% endfor %}
+  <div class="imp-summary card" data-imp-summary>
+    <span><b data-imp-ok>0</b> {{ _("готовы") }} · <b data-imp-bad>0</b> {{ _("нужно поправить") }} · <b data-imp-off>0</b> {{ _("пропущено") }}</span>
+    <label class="row small" style="gap:8px"><input type="checkbox" name="partial" value="1"> {{ _("Сохранить готовые, остальные пропустить") }}</label>
+  </div>
+
+  {% for q in items %}{% set i = loop.index0 %}{% set p = 'q' ~ i ~ '-' %}
+  <article class="card imp-q{{ ' has-problem' if q.problems }}" id="imp{{ i }}" data-imp-q>
+    <div class="imp-q__head">
+      <label class="bank-check"><input type="checkbox" name="{{ p }}include" value="1" {{ 'checked' if q.get('include', true) }} data-imp-include><span></span></label>
+      <b class="imp-q__n">№{{ q.number }}</b>
+      <input type="hidden" name="{{ p }}number" value="{{ q.number }}">
+      <span class="imp-q__flags">{% for pr in q.problems %}<span class="tag {{ 'tag--warn' if pr == 'diagram' else 'tag--bad' }} tag--xs" data-flag="{{ pr }}">{{ probs[pr] }}</span>{% endfor %}
+        {% if dups.get(i) %}<span class="tag tag--warn tag--xs" title="{{ dups[i].text }}">{{ _("похоже на вопрос #%(n)s в банке", n=dups[i].id) }}</span>{% endif %}</span>
+    </div>
+    <div class="imp-q__grid">
+      <div class="imp-q__edit">
+        <div class="field"><label for="{{ p }}text">{{ _("Вопрос") }}</label>
+          <textarea class="textarea" id="{{ p }}text" name="{{ p }}text" rows="2" data-imp-text>{{ q.text }}</textarea></div>
+        <div class="segmented imp-q__type" role="radiogroup" aria-label="{{ _('Тип ответа') }}">
+          <label><input type="radio" name="{{ p }}type" value="choice" {{ 'checked' if q.answer_type != 'number' }} data-imp-type><span>{{ _("Варианты") }}</span></label>
+          <label><input type="radio" name="{{ p }}type" value="number" {{ 'checked' if q.answer_type == 'number' }} data-imp-type><span>{{ _("Ввод числа") }}</span></label>
+        </div>
+        <div class="imp-q__opts" data-imp-choice {{ 'hidden' if q.answer_type == 'number' }}>
+          {% set opts = q.options + [''] * (4 - q.options|length if q.options|length < 4 else 0) %}
+          {% for o in opts %}
+            <label class="imp-opt"><input type="radio" name="{{ p }}correct" value="{{ loop.index0 }}" {{ 'checked' if q.answer_type != 'number' and q.correct == loop.index0|string }} aria-label="{{ _('Верный') }}">
+              <span class="imp-opt__l">{{ LETTERS[loop.index0] }}</span><input class="input" name="{{ p }}opt" value="{{ o }}" data-imp-opt></label>
+          {% endfor %}
+        </div>
+        <div class="field" data-imp-number {{ 'hidden' if q.answer_type != 'number' }}><label for="{{ p }}num">{{ _("Верный ответ (число)") }}</label>
+          <input class="input input--mono" id="{{ p }}num" {% if q.answer_type == 'number' %}name="{{ p }}correct"{% endif %} value="{{ q.correct if q.answer_type == 'number' }}" data-imp-num style="max-width:220px"></div>
+        <div class="grid grid-2">
+          <div class="field"><label for="{{ p }}skill">{{ _("Навык") }}</label>
+            <select class="select" id="{{ p }}skill" name="{{ p }}skill" data-imp-skill>
+              <option value="">— {{ _("выберите") }} —</option>
+              {% for node, path in leaves %}<option value="{{ node.id }}" {{ 'selected' if q.skill_id == node.id }}>{{ path }}</option>{% endfor %}
+            </select></div>
+          <div class="field"><label for="{{ p }}difficulty">{{ _("Сложность") }}</label>
+            <select class="select" id="{{ p }}difficulty" name="{{ p }}difficulty">{% for k, v in DIFFICULTIES.items() %}<option value="{{ k }}" {{ 'selected' if q.difficulty == k }}>{{ v }}</option>{% endfor %}</select></div>
+        </div>
+        {% if q.exams %}{% for e in q.exams %}<input type="hidden" name="{{ p }}exams" value="{{ e }}">{% endfor %}{% endif %}
+        <details class="disclosure"><summary>{{ _("Объяснение и рисунок") }}</summary>
+          <div class="stack-sm" style="margin-top:10px">
+            <textarea class="textarea" name="{{ p }}explanation" rows="2" placeholder="{{ _('Пошаговое решение (необязательно)') }}">{{ q.explanation }}</textarea>
+            {{ ui.file_input(p ~ 'image', p ~ 'image') }}
+          </div>
+        </details>
+      </div>
+      <div class="imp-q__preview" aria-label="{{ _('Так увидит ученик') }}">
+        <div class="eyebrow">{{ _("Так увидит ученик") }}</div>
+        <div class="q-text math" data-imp-pv-text>{{ q.text }}</div>
+        <ol class="imp-pv-opts" data-imp-pv-opts>{% for o in q.options %}<li class="{{ 'is-right' if q.correct == loop.index0|string }}"><b>{{ LETTERS[loop.index0] }}</b> <span class="math">{{ o }}</span></li>{% endfor %}</ol>
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+
+  <div class="bank-start imp-bar">
+    <span class="small muted">{{ _("Проверьте отмеченные красным — без навыка и ответа вопрос не сохранится.") }}</span>
+    <div class="row" style="gap:8px">
+      <button class="btn btn--secondary" type="submit" name="action" value="draft">{{ _("В черновики") }}</button>
+      <button class="btn btn--primary" type="submit" name="action" value="send">{{ _("Отправить на проверку") if current_user.is_assistant else _("Опубликовать в банке") }}{{ ui.icon('arrow-right', 18) }}</button>
+    </div>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/importer.js') }}"></script>{% endblock %}

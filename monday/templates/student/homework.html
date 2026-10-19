@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Домашние задания") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Домашние задания") }}</h1>
+    <p>{{ _("Задания от твоих учителей: сроки, статус и комментарии после проверки.") }}</p>
+  </div>
+  {% if teachers %}
+  <div class="row small text-2">{{ _("Учителя:") }} {% for r in teachers %}<span class="author">{{ ui.avatar(r.teacher, 'avatar--sm') }}{{ r.teacher.name }}</span>{% endfor %}</div>
+  {% endif %}
+</div>
+
+{% if not teachers %}
+<div class="empty">
+  <h3>{{ _("Ты пока не подключён к учителю") }}</h3>
+  <p>{{ _("Попроси у учителя код вида MND-XXXX и введи его в профиле — задания появятся здесь.") }}</p>
+  <a class="btn btn--primary" href="{{ url_for('student.profile') }}#join">{{ _("Ввести код") }}</a>
+</div>
+{% else %}
+
+<section class="section" aria-labelledby="todo-h">
+  <div class="section__head"><h2 id="todo-h">{{ _("Нужно сделать") }}</h2><span class="small muted">{{ todo|length }}</span></div>
+  {% if todo %}
+  <div class="grid grid-3">
+    {% for a, state in todo %}
+      {% set v = a.work.current_version %}
+      <article class="card work-card{{ ' card--accent' if state == 'overdue' }}">
+        <div class="row row--between">{{ ui.state(state, HOMEWORK_STATES[state]) }}<span class="small muted">{{ a.work.exam|exam_label }}</span></div>
+        <h3 class="work-card__title">{{ a.work.title }}</h3>
+        <div class="author">{{ ui.avatar(a.teacher, 'avatar--sm') }}{{ a.teacher.name }}</div>
+        {% if a.message %}<p class="work-card__desc">«{{ a.message }}»</p>{% endif %}
+        <div class="work-card__meta">
+          <span class="meta-item">{{ ui.icon('calendar', 16) }}{% if a.due_at %}{{ _("до") }} {{ a.due_at|dt }}{% else %}{{ _("без срока") }}{% endif %}</span>
+          <span class="meta-item">{{ ui.icon('list', 16) }}{{ v.question_count }}</span>
+          <span class="meta-item">{{ ui.icon('clock', 16) }}{{ v.time_limit_min|minutes }}</span>
+        </div>
+        <a class="btn btn--primary btn--block" href="{{ url_for('student.homework_detail', assignment_id=a.id) }}">{{ _("Продолжить") if state == 'in_progress' else _("Открыть") }}</a>
+      </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty"><h3>{{ _("Всё сдано") }}</h3><p>{{ _("Новых заданий нет. Можно пройти сессию или сборник.") }}</p></div>
+  {% endif %}
+</section>
+
+<section class="section" aria-labelledby="done-h">
+  <div class="section__head"><h2 id="done-h">{{ _("Сданные") }}</h2><span class="small muted">{{ done|length }}</span></div>
+  {% if done %}
+  <div class="list">
+    {% for a, state in done %}
+      {% set last = a.attempts|selectattr('finished_at')|list|last %}
+      <a class="list__row" href="{{ url_for('student.homework_detail', assignment_id=a.id) }}" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto auto;text-decoration:none;color:inherit">
+        <div class="stack-sm" style="gap:2px"><span class="list__title">{{ a.work.title }}</span><span class="small muted">{{ a.teacher.name }} · {{ _("сдано") }} {{ last.finished_at|dt if last }}</span></div>
+        <span class="t-strong num">{% if last %}{{ last.score }} / {{ last.total }}{% endif %}</span>
+        {{ ui.state(state, HOMEWORK_STATES[state]) }}
+        {{ ui.icon('arrow-right', 18) }}
+      </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-2">{{ _("Здесь появятся сданные задания и комментарии учителя.") }}</p>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

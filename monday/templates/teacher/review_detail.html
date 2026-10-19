@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+{% block title %}{{ a.work.title }} · {{ a.record.name }}{% endblock %}
+{% block content %}
+<a href="{{ url_for('teacher.review') }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Все работы") }}</a>
+<div class="page-head">
+  <div class="page-head__text">
+    <h1 style="font-size:32px">{{ a.work.title }}</h1>
+    <div class="row"><a href="{{ url_for('teacher.student_detail', record_id=a.record_id) }}" class="author" style="color:inherit"><span class="avatar avatar--sm">{{ a.record.name[:1] }}</span>{{ a.record.name }}</a>{{ ui.state(state, HOMEWORK_STATES[state]) }}
+      <span class="small muted">{{ _("срок") }}: {{ a.due_at|dt if a.due_at else '—' }}</span></div>
+  </div>
+</div>
+
+{% if not last %}
+<div class="empty">
+  <h3>{{ _("Ещё не сдано") }}</h3>
+  <p>{% if not a.record.student_user_id %}{{ _("Ученик не подключил аккаунт. Код: %(c)s", c=a.record.invite_code) }}{% else %}{{ _("Результат появится здесь после сдачи.") }}{% endif %}</p>
+</div>
+{% else %}
+<div class="grid grid-3">
+  <div class="card card--tight"><div class="stat-value num">{{ last.score }} / {{ last.total }}</div><div class="stat-label">{{ _("верно") }} · {{ last.percent }}%</div></div>
+  <div class="card card--tight"><div class="stat-value num">{{ last.duration_sec|duration }}</div><div class="stat-label">{{ _("время, из %(n)s мин", n=last.work_version.time_limit_min) }}</div></div>
+  <div class="card card--tight"><div class="stat-value">v{{ last.work_version.number }}</div><div class="stat-label">{{ _("сдано") }} {{ last.finished_at|dt }}</div></div>
+</div>
+
+<div class="grid" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);align-items:start">
+  <section class="section">
+    <h2>{{ _("Ответы") }}</h2>
+    <div class="list">
+      {% for row in rows %}{% set item = row.item %}{% set ans = row.answer %}
+        <div class="list__row" style="grid-template-columns:32px minmax(0,1fr)">
+          <span class="ic" style="color:{{ 'var(--ok)' if ans.is_correct else 'var(--bad)' }}">{% include 'icons/' ~ ('check' if ans.is_correct else 'x') ~ '.svg' %}</span>
+          <div class="stack-sm">
+            <span class="math" style="font-weight:600">{{ loop.index }}. {{ item.text if item and item.text else _("Задача с рисунком") }}</span>
+            {% if item %}<span class="small">{{ _("Ответ") }}: {{ ui.answer_text(item, ans.given) }}{% if not ans.is_correct %} · {{ _("верно") }}: <b>{{ ui.correct_text(item) }}</b>{% endif %}</span>{% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+  <form method="post" class="card" style="position:sticky;top:90px">
+    {{ ui.csrf() }}
+    <h2 style="font-size:20px">{{ _("Комментарий") }}</h2>
+    <div class="field"><label for="teacher_comment" class="sr-only">{{ _("Комментарий") }}</label>
+      <textarea class="textarea" id="teacher_comment" name="teacher_comment" rows="5" placeholder="{{ _('Что получилось, на что обратить внимание') }}">{{ a.teacher_comment }}</textarea></div>
+    {% if a.checked_at %}
+      <p class="small muted">{{ _("Проверено") }} {{ a.checked_at|dt }}</p>
+      <div class="row"><button class="btn btn--primary" type="submit" name="action" value="check">{{ _("Обновить комментарий") }}</button>
+      <button class="btn btn--ghost" type="submit" name="action" value="reopen">{{ _("Снять отметку") }}</button></div>
+    {% else %}
+      <button class="btn btn--primary btn--block" type="submit" name="action" value="check">{{ ui.icon('check', 18) }}{{ _("Отметить как проверенное") }}</button>
+    {% endif %}
+  </form>
+</div>
+{% endif %}
+{% endblock %}

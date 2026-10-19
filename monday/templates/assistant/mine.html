@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Мои вопросы") }}{% endblock %}
+{% block context %}{{ _("Кабинет ассистента") if current_user.is_assistant else _("Кабинет учителя") }}{% endblock %}
+{% block content %}
+{% set tabs = [('pending', _('На проверке')), ('returned', _('Вернули')), ('draft', _('Черновики')), ('published', _('Опубликованы'))] %}
+<div class="page-head">
+  <div class="page-head__text"><h1>{{ _("Мои вопросы") }}</h1>
+    <p>{{ _("Вернувшиеся вопросы — с комментарием проверяющего. Исправьте и отправьте снова.") }}</p></div>
+  <a class="btn btn--primary" href="{{ url_for('assistant.home') }}">{{ ui.icon('plus', 18) }}{{ _("Загрузить ещё") }}</a>
+</div>
+<nav class="admin-tabs" aria-label="{{ _('Статус') }}">
+  {% for key, label in tabs %}<a href="{{ url_for('assistant.mine', tab=key) }}" class="{{ 'is-active' if tab == key }}">{{ label }}<span class="admin-tabs__n{{ ' is-hot' if key == 'returned' and counts[key] }}">{{ counts[key] }}</span></a>{% endfor %}
+</nav>
+{% if rows %}
+<div class="people">
+  {% for q in rows %}
+    <div class="people__row mine-row">
+      <a class="mine-row__main" href="{{ url_for('teacher.question_edit', question_id=q.id) }}">
+        <span class="math mine-row__text">{{ q.text or _('Задача с рисунком') }}</span>
+        <span class="small muted">{{ q.skill.path if q.skill }} · {{ DIFFICULTIES[q.difficulty or 2] }} · {{ q.updated_at|ago }}</span>
+        {% if q.review_note and q.status != 'published' %}<span class="mine-row__note small">{{ ui.icon('inbox', 14) }} {{ q.review_note }}</span>{% endif %}
+      </a>
+      <span>{{ ui.state(q.status, QUESTION_STATUSES[q.status]) }}</span>
+      <a class="btn btn--secondary btn--sm" href="{{ url_for('teacher.question_edit', question_id=q.id) }}">{{ _("Исправить") if q.review_note else _("Открыть") }}</a>
+    </div>
+  {% endfor %}
+</div>
+{% if pages > 1 %}<nav class="pager">{% for p in range(1, pages + 1) %}<a class="pager__n{{ ' is-current' if p == page }}" href="{{ url_for('assistant.mine', tab=tab, page=p) }}">{{ p }}</a>{% endfor %}</nav>{% endif %}
+{% else %}
+<div class="empty"><h3>{{ _("Здесь пусто") }}</h3><p>{{ _("Загрузите тест на странице «Загрузка».") }}</p></div>
+{% endif %}
+{% endblock %}

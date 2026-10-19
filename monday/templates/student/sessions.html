@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Сессии") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Сессии") }}</h1>
+    <p>{{ _("Пять режимов — от пяти минут в дороге до получаса на сложные задачи. Выбери по времени и настроению.") }}</p>
+  </div>
+</div>
+{{ ui.time_cards(facts) }}
+
+<h2>{{ _("Как устроены режимы") }}</h2>
+<div class="grid grid-2">
+  {% for key, m in MODES.items() %}
+  <div class="card card--tight">
+    <div class="row">{{ ui.mode_dot(key) }}<b>{{ m.name }}</b><span class="muted small">~{{ m.approx }} {{ _("мин") }}</span></div>
+    <p class="text-2 small">
+      {% if key == 'franklin' %}{{ _("Пять задач из самых слабых навыков. Каждая — по одной, сразу с проверкой и объяснением.") }}
+      {% elif key == 'feynman' %}{{ _("Решаешь задачу и объясняешь решение своими словами. Объяснения сохраняются — позже их проверит ИИ-наставник.") }}
+      {% elif key == 'tesla' %}{{ _("Интерактивные графики и фигуры: двигай точки и смотри, как меняется уравнение. В разработке.") }}
+      {% elif key == 'darwin' %}{{ _("Задачи по темам, где у тебя открытые ошибки в журнале. Ищешь закономерность — и закрываешь её.") }}
+      {% else %}{{ _("Только сложные задачи. Попробуй решить каждую двумя разными способами.") }}{% endif %}
+    </p>
+  </div>
+  {% endfor %}
+</div>
+
+<section class="section">
+  <h2>{{ _("Недавние сессии") }}</h2>
+  {% if recent %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>{{ _("Режим") }}</th><th>{{ _("Когда") }}</th><th>{{ _("Результат") }}</th><th></th></tr></thead>
+      <tbody>
+      {% for a in recent %}
+        {% set m = MODES[a.mode] %}
+        <tr>
+          <td><span class="row" style="gap:8px">{{ ui.mode_dot(a.mode) }}<b>{{ m.name }}</b></span></td>
+          <td class="muted">{{ a.started_at|dt }}</td>
+          <td class="num">{% if a.finished_at %}{{ a.score }} / {{ a.answers|length }}{% else %}<span class="state state--in_progress">{{ _("не закончена") }}</span>{% endif %}</td>
+          <td style="text-align:right">
+            <a href="{{ url_for('student.session_play', attempt_id=a.id) if not a.finished_at else url_for('student.session_done', attempt_id=a.id) }}">{{ _("Продолжить") if not a.finished_at else _("Итоги") }}</a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><h3>{{ _("Ещё ни одной сессии") }}</h3><p>{{ _("Начни с Франклина — это 5 минут.") }}</p></div>
+  {% endif %}
+</section>
+{% endblock %}

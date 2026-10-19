@@ -1,0 +1,105 @@
+{% extends "layout.html" %}
+{% block title %}{{ work.title or _("Новая работа") }}{% endblock %}
+{% block content %}
+{% set v = work.current_version %}
+<a href="{{ url_for('teacher.works', status=work.status) }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Все работы") }}</a>
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ work.title or _("Новая работа") }}</h1>
+    <div class="row">
+      {{ ui.state(work.status, WORK_STATUSES[work.status]) }}
+      <span class="tag tag--line">{{ WORK_KINDS[work.kind] }}</span>
+      {% if v %}<span class="small muted">{{ _("Опубликована версия %(n)s · %(d)s", n=v.number, d=v.published_at|dt) }}</span>{% endif %}
+    </div>
+  </div>
+</div>
+
+{% if v and work.versions|length > 1 %}
+<details class="disclosure card card--tight">
+  <summary>{{ _("История версий") }} ({{ work.versions|length }})</summary>
+  <ul class="stack-sm" style="margin:0;padding-left:18px">
+    {% for ver in work.versions|reverse %}<li><b>v{{ ver.number }}</b> · {{ ver.published_at|dt }} · {{ ver.question_count }} {{ _("вопр.") }}{% if ver.note %} — {{ ver.note }}{% endif %}</li>{% endfor %}
+  </ul>
+</details>
+{% endif %}
+
+<form method="post" action="{{ url_for('teacher.work_new', kind=work.kind) if not work.id else url_for('teacher.work_edit', work_id=work.id) }}" data-work-editor class="stack" style="gap:24px">
+  {{ ui.csrf() }}
+  <input type="hidden" name="kind" value="{{ work.kind }}">
+  <input type="hidden" id="question_order" name="question_order" value="{{ (work.draft_question_ids or [])|join(',') }}">
+
+  <fieldset>
+    <legend>{{ _("1 · Описание") }}</legend>
+    <div class="grid grid-3">
+      <div class="field span-2"><label for="title">{{ _("Название") }}</label><input class="input" id="title" name="title" required value="{{ work.title }}" placeholder="{{ _('Например: ОРТ Май 2026') }}"></div>
+      <div class="field"><label for="time_limit_min">{{ _("Время, минут") }}</label><input class="input" type="number" id="time_limit_min" name="time_limit_min" min="1" max="300" value="{{ work.time_limit_min }}"></div>
+      <div class="field span-all"><label for="description">{{ _("Краткое описание") }}</label><textarea class="textarea" id="description" name="description" rows="2">{{ work.description or '' }}</textarea></div>
+      <div class="field"><label for="exam">{{ _("Экзамен") }}</label>
+        <select class="select" id="exam" name="exam">{% for code, e in EXAMS.items() %}<option value="{{ code }}" {{ 'selected' if work.exam == code }}>{{ e.label }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="category">{{ _("Тип сборника") }}</label>
+        <select class="select" id="category" name="category">{% for key, label in WORK_CATEGORIES.items() %}<option value="{{ key }}" {{ 'selected' if work.category == key }}>{{ label }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="node_id">{{ _("Тема / подтема") }}</label>
+        <select class="select" id="node_id" name="node_id">
+          <option value="">{{ _("Полный вариант — без темы") }}</option>
+          {% for t in tree %}
+            <optgroup label="{{ t.node.name }}">
+              <option value="{{ t.node.id }}" {{ 'selected' if work.node_id == t.node.id }}>{{ t.node.name }} · {{ _("вся тема") }}</option>
+              {% for s in t.subtopics %}<option value="{{ s.node.id }}" {{ 'selected' if work.node_id == s.node.id }}>{{ s.node.name }}</option>{% endfor %}
+            </optgroup>
+          {% endfor %}
+        </select>
+        <span class="field__hint">{{ _("Так работа встанет на своё место на странице работ.") }}</span></div>
+      <div class="field"><label for="format">{{ _("Формат теста") }}</label>
+        <select class="select" id="format" name="format" data-format-select>
+          {% for key, fm in TEST_FORMATS.items() %}<option value="{{ key }}" data-calc="{{ 1 if fm.calculator else 0 }}" data-nav="{{ fm.nav }}" data-modules="{{ fm.modules }}" {{ 'selected' if work.format == key }}>{{ fm.label }}</option>{% endfor %}
+        </select>
+        <span class="field__hint">{{ _("SAT, CSCA, ЕНТ, ЕГЭ, ОГЭ — вопрос на экране и сетка номеров. ОРТ — страницы и бланк ответов.") }}</span></div>
+      <div class="field"><span class="label">{{ _("Инструменты") }}</span>
+        <label class="check" style="min-height:44px"><input type="checkbox" name="calculator" value="1" data-calc-box {{ 'checked' if work.calculator }}> {{ _("Калькулятор Desmos") }}</label></div>
+      <div class="field" data-fmt-only="modules"><label for="module_split">{{ _("Вопросов в модуле 1") }}</label>
+        <input class="input" type="number" id="module_split" name="module_split" min="1" value="{{ work.module_split or '' }}" placeholder="{{ _('половина') }}">
+        <span class="field__hint">{{ _("Время делится поровну между двумя модулями.") }}</span></div>
+      <div class="field" data-fmt-only="pages"><label for="per_page">{{ _("Вопросов на странице") }}</label>
+        <input class="input" type="number" id="per_page" name="per_page" min="1" max="10" value="{{ work.per_page or 4 }}"></div>
+      {% if work.kind == 'monday' %}
+      <div class="field"><label for="week_start">{{ _("Неделя (понедельник)") }}</label><input class="input" type="date" id="week_start" name="week_start" value="{{ work.week_start.isoformat() if work.week_start }}"></div>
+      {% endif %}
+    </div>
+  </fieldset>
+
+  <div class="pk-layout">
+    <fieldset class="pk-field">
+      <legend>{{ _("2 · Банк вопросов") }}</legend>
+      <div class="row row--between" style="gap:8px">
+        <p class="small muted" style="margin:0">{{ _("Фильтры, поиск и темы — без перезагрузки. Нажми на вопрос, чтобы увидеть его целиком с ответом.") }}</p>
+        <a class="btn btn--secondary btn--sm" href="{{ url_for('teacher.question_new') }}" target="_blank" rel="noopener">{{ ui.icon('plus', 16) }}{{ _("Новый вопрос") }}</a>
+      </div>
+      {% with exam=work.exam or 'ORT', mode='editor', exam_field='exam' %}{% include "teacher/_picker.html" %}{% endwith %}
+    </fieldset>
+
+    <fieldset class="pk-order">
+      <legend>{{ _("3 · Порядок вопросов") }} · <span data-order-count>{{ selected|length }}</span></legend>
+      <div class="order-totals" data-order-totals data-q="{{ _('вопр.') }}" data-min="{{ _('мин') }}" data-diff="{{ _('лёгких · средних · сложных') }}"></div>
+      <ol class="order-list" data-order-list>
+        {% for q in selected %}
+          <li data-id="{{ q.id }}" data-topic="{{ q.skill.topic if q.skill }}" data-d="{{ q.difficulty or 2 }}" data-min="{{ {1: 1.5, 2: 2.0, 3: 3.0}[q.difficulty or 2] }}" draggable="true"><span class="order-list__grip" aria-hidden="true">⋮⋮</span><span class="math order-list__text">{{ (q.text or _('Задача с рисунком'))|truncate(90) }}</span>
+            <span class="tools"><button type="button" data-move="-1" aria-label="{{ _('Выше') }}">↑</button><button type="button" data-move="1" aria-label="{{ _('Ниже') }}">↓</button><button type="button" data-remove aria-label="{{ _('Убрать') }}">×</button></span></li>
+        {% endfor %}
+      </ol>
+      <p class="muted small" data-order-empty {{ 'hidden' if selected }}>{{ _("Пока пусто — отметьте вопросы слева, или «5 случайных», или «Собрать по плану».") }}</p>
+      <button type="button" class="btn btn--ghost btn--sm" data-order-clear>{{ _("Очистить список") }}</button>
+      {% if v %}
+      <div class="field"><label for="version_note">{{ _("Что исправлено (для новой версии)") }}</label><input class="input" id="version_note" name="version_note" placeholder="{{ _('Например: исправлен ответ в задаче 4') }}"></div>
+      {% endif %}
+      <div class="stack" style="gap:8px">
+        <button class="btn btn--primary btn--block" type="submit" name="action" value="publish">{{ _("Опубликовать новую версию") if v else _("Опубликовать") }}</button>
+        <button class="btn btn--secondary btn--block" type="submit" name="action" value="save">{{ _("Сохранить черновик") }}</button>
+      </div>
+      {% if v %}<p class="small muted">{{ _("Ученики, уже прошедшие работу, сохранят свои результаты по версии %(n)s.", n=v.number) }}</p>{% endif %}
+      {% if work.status == 'pending' %}<p class="small"><span class="state state--pending">{{ _("на проверке у администратора") }}</span></p>
+      {% elif not current_user.is_admin and work.status != 'published' %}<p class="small muted">{{ _("Сборник от %(n)s вопросов сначала посмотрит администратор — его увидят все ученики экзамена. Домашние задания публикуются сразу.", n=BIG_TEST_QUESTIONS) }}</p>{% endif %}
+    </fieldset>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/picker.js') }}"></script>{% endblock %}

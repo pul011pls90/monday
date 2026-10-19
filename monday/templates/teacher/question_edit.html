@@ -1,0 +1,216 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Вопрос") }}{% endblock %}
+
+{% macro mat_block(i, b) -%}
+{% set t = b.type %}
+<div class="mat-block" data-mat-block>
+  <input type="hidden" name="m{{ i }}_type" value="{{ t }}">
+  <div class="mat-block__head">
+    <span>{{ {'heading': _('Заголовок'), 'passage': _('Текст для чтения'), 'columns': _('Две колонки')}[t] }}</span>
+    <span class="row" style="gap:4px">
+      <button type="button" class="icon-btn icon-btn--sm" data-mat-move="-1" aria-label="{{ _('Выше') }}">↑</button>
+      <button type="button" class="icon-btn icon-btn--sm" data-mat-move="1" aria-label="{{ _('Ниже') }}">↓</button>
+      <button type="button" class="icon-btn icon-btn--sm" data-mat-remove aria-label="{{ _('Убрать блок') }}">{{ ui.icon('x', 14) }}</button>
+    </span>
+  </div>
+  {% if t == 'heading' %}
+    <input class="input" name="m{{ i }}_text" value="{{ b.text or '' }}" placeholder="{{ _('Например: Таблица 1. Оценки класса') }}" aria-label="{{ _('Заголовок') }}">
+  {% elif t == 'passage' %}
+    <input class="input" name="m{{ i }}_title" value="{{ b.title or '' }}" placeholder="{{ _('Название текста — необязательно') }}" aria-label="{{ _('Название текста') }}">
+    <textarea class="textarea" name="m{{ i }}_text" rows="5" placeholder="{{ _('Условие, отрывок, данные задачи. Формулы — между $…$') }}" aria-label="{{ _('Текст для чтения') }}">{{ b.text or '' }}</textarea>
+  {% elif t == 'columns' %}
+    <div class="grid grid-2">
+      <input class="input" name="m{{ i }}_left_title" value="{{ b.left_title or _('Колонка А') }}" aria-label="{{ _('Заголовок левой колонки') }}">
+      <input class="input" name="m{{ i }}_right_title" value="{{ b.right_title or _('Колонка Б') }}" aria-label="{{ _('Заголовок правой колонки') }}">
+      <textarea class="textarea" name="m{{ i }}_left" rows="2" placeholder="$2^{10}$" aria-label="{{ _('Левая колонка') }}">{{ b.left or '' }}</textarea>
+      <textarea class="textarea" name="m{{ i }}_right" rows="2" placeholder="$10^3$" aria-label="{{ _('Правая колонка') }}">{{ b.right or '' }}</textarea>
+    </div>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% block content %}
+{% set node = qn.skill %}
+{% set sel_topic = node.topic_node.id if node and node.topic_node else None %}
+{% set sel_sub = node.subtopic_node.id if node and node.subtopic_node else None %}
+{% set back_url = url_for('assistant.mine') if current_user.is_assistant else (url_for('review.queue') if request.args.get('back') == 'review' else url_for('teacher.questions')) %}
+<a href="{{ back_url }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Назад") }}</a>
+{% if qn.review_note and qn.status != 'published' %}<div class="flash flash--info">{{ ui.icon('inbox', 18) }} <span><b>{{ _("Комментарий проверяющего:") }}</b> {{ qn.review_note }}</span></div>{% endif %}
+<div class="page-head__text">
+  <h1>{{ _("Новый вопрос") if not qn.id else _("Вопрос #%(id)s", id=qn.id) }}</h1>
+  <p class="no-math">{{ _("Один шаблон для банка вопросов, домашних заданий и тестов. Формулы пишутся между знаками $…$, например $\\log_2 8$.") }}</p>
+</div>
+
+<form method="post" enctype="multipart/form-data" data-question-editor>
+  {% if request.args.get('back') == 'review' %}<input type="hidden" name="back" value="review">{% endif %}
+  {{ ui.csrf() }}
+  <script type="application/json" id="tree-data">{{ tree|tojson }}</script>
+  <div class="grid" style="grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);align-items:start;gap:28px">
+    <div class="stack" style="gap:20px">
+
+      <fieldset>
+        <legend>{{ _("1 · Место в карте") }}</legend>
+        <div class="tree-pick">
+          <div class="field"><label for="topic_id">{{ _("Тема") }}</label>
+            <select class="select" id="topic_id" name="topic_id" data-tree-level="topic">
+              <option value="">—</option>
+              {% for t in tree %}<option value="{{ t.id }}" {{ 'selected' if sel_topic == t.id }}>{{ t.name }}</option>{% endfor %}
+            </select></div>
+          <div class="field"><label for="subtopic_id">{{ _("Подтема") }}</label>
+            <select class="select" id="subtopic_id" name="subtopic_id" data-tree-level="subtopic">
+              <option value="">—</option>
+              {% for t in tree %}<optgroup label="{{ t.name }}">{% for s in t.subs %}<option value="{{ s.id }}" data-parent="{{ t.id }}" {{ 'selected' if sel_sub == s.id }}>{{ s.name }}</option>{% endfor %}</optgroup>{% endfor %}
+            </select></div>
+          <div class="field"><label for="skill_id">{{ _("Навык") }}</label>
+            <select class="select" id="skill_id" name="skill_id" data-tree-level="node">
+              <option value="">—</option>
+              {% for t in tree %}{% for s in t.subs %}<optgroup label="{{ t.name }} · {{ s.name }}">{% for n in s.nodes %}<option value="{{ n.id }}" data-parent="{{ s.id }}" {{ 'selected' if qn.skill_id == n.id }}>{{ n.name }}{{ ' ★' if n.own }}</option>{% endfor %}</optgroup>{% endfor %}{% endfor %}
+            </select></div>
+        </div>
+        {% if current_user.is_assistant %}
+        <p class="small muted">{{ _("Нужной ветки нет? Напишите администратору — карту тем меняют только учителя и админ.") }}</p>
+        {% else %}
+        <details class="disclosure" {{ 'open' if request.form.get('new_node') }}>
+          <summary>{{ _("Нужной ветки нет — добавить новую") }}</summary>
+          <div class="tree-pick" style="margin-top:12px">
+            <div class="field"><label for="new_topic">{{ _("Новая тема") }}</label><input class="input" id="new_topic" name="new_topic" value="{{ request.form.get('new_topic', '') }}" placeholder="{{ _('или выберите выше') }}"></div>
+            <div class="field"><label for="new_subtopic">{{ _("Новая подтема") }}</label><input class="input" id="new_subtopic" name="new_subtopic" value="{{ request.form.get('new_subtopic', '') }}" placeholder="{{ _('или выберите выше') }}"></div>
+            <div class="field"><label for="new_node">{{ _("Новый навык") }}</label><input class="input" id="new_node" name="new_node" value="{{ request.form.get('new_node', '') }}" placeholder="{{ _('Например: Уравнения с модулем') }}"></div>
+          </div>
+          <p class="small muted" style="margin-top:8px">{{ _("Новый навык попадёт в выбранную подтему, новая подтема — в выбранную тему. Ваши ветки видите вы и ваши ученики; ★ отмечает ваши навыки.") }}</p>
+        </details>
+        {% endif %}
+        <div class="field"><span class="label">{{ _("Экзамены") }}</span>
+          <div class="chips">{% for code, e in EXAMS.items() %}<label class="check-chip"><input type="checkbox" name="exams" value="{{ code }}" {{ 'checked' if code in (qn.exams or []) }}><span>{{ e.label }}</span></label>{% endfor %}</div></div>
+        <div class="grid grid-3">
+          <div class="field"><label for="difficulty">{{ _("Сложность") }}</label>
+            <select class="select" id="difficulty" name="difficulty">{% for k, v in DIFFICULTIES.items() %}<option value="{{ k }}" {{ 'selected' if qn.difficulty == k }}>{{ v }}</option>{% endfor %}</select></div>
+          <div class="field"><label for="weight">{{ _("Баллы за вопрос") }}</label>
+            <input class="input" type="number" id="weight" name="weight" min="1" max="10" value="{{ qn.weight or 1 }}">
+            <span class="field__hint">{{ _("Важность: влияет на оценку и прогресс.") }}</span></div>
+          <div class="field"><label for="language">{{ _("Язык") }}</label>
+            <select class="select" id="language" name="language">{% for code, label in LANGUAGES.items() %}<option value="{{ code }}" {{ 'selected' if qn.language == code }}>{{ label }}</option>{% endfor %}</select></div>
+        </div>
+        <div class="field"><span class="label">{{ _("Тип задачи") }} <span class="muted" style="font-weight:400">{{ _("— для фильтров; если не отметить, Monday определит сам") }}</span></span>
+          {% if qn.id %}<input type="hidden" name="tags_set" value="1">{% endif %}
+          <div class="chips">{% for code, label in QUESTION_TAGS.items() %}<label class="check-chip"><input type="checkbox" name="tags" value="{{ code }}" {{ 'checked' if code in (qn.tags or []) }} data-tag-chip><span>{{ label }}</span></label>{% endfor %}</div></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{ _("2 · Материал слева — необязательно") }}</legend>
+        <p class="small muted">{{ _("Рисунок, текст для чтения или колонки. Если материал есть, ученик видит его слева, а вопрос и ответы — справа. Без материала вопрос стоит по центру.") }}</p>
+        <label class="dropzone" style="position:relative">
+          <input type="file" name="image" accept="image/png,image/jpeg,image/webp">
+          {{ ui.icon('image', 24) }}
+          <b>{{ _("Рисунок — чертёж, график, таблица") }}</b>
+          <span class="small">{{ _("PNG, JPG или WEBP, от 1600 px по ширине") }}</span>
+          <img data-image-thumb {% if qn.image_path %}src="{{ url_for('uploaded_file', filename=qn.image_path) }}"{% else %}hidden{% endif %} alt="">
+        </label>
+        {% if qn.image_path %}<label class="check small"><input type="checkbox" name="remove_image" value="1"> {{ _("Удалить текущий рисунок") }}</label>{% endif %}
+        <div class="mat-list" data-mat-list data-next-index="{{ (qn.material or [])|length + 1 }}">
+          {% for b in qn.material or [] %}{{ mat_block(loop.index, b) }}{% endfor %}
+        </div>
+        <div class="row" style="gap:8px">
+          <button type="button" class="btn btn--secondary btn--sm" data-mat-add="passage">{{ ui.icon('plus', 14) }}{{ _("Текст для чтения") }}</button>
+          <button type="button" class="btn btn--secondary btn--sm" data-mat-add="columns">{{ ui.icon('plus', 14) }}{{ _("Две колонки") }}</button>
+          <button type="button" class="btn btn--secondary btn--sm" data-mat-add="heading">{{ ui.icon('plus', 14) }}{{ _("Заголовок") }}</button>
+        </div>
+        <noscript><p class="small muted">{{ _("Блоки добавляются с включённым JavaScript.") }}</p></noscript>
+        {% for t in ['heading', 'passage', 'columns'] %}
+        <template data-mat-template="{{ t }}">{{ mat_block('__i__', {'type': t}) }}</template>
+        {% endfor %}
+      </fieldset>
+
+      <fieldset>
+        <legend>{{ _("3 · Вопрос") }}</legend>
+        <div class="field">
+          <label for="text">{{ _("Текст вопроса") }}</label>
+          <div style="border:1px solid var(--line-strong);border-radius:12px;overflow:hidden">
+            <div class="row" style="background:var(--accent-soft);padding:8px 10px;gap:6px">
+              {% for label, snippet in [('log', '$\\log_{□} $'), ('√', '$\\sqrt{□}$'), ('x²', '$x^{□}$'), ('a/b', '$\\frac{□}{}$'), ('sin', '$\\sin □$'), ('π', '$\\pi$'), ('°', '$^\\circ$'), ('≤', '$\\le$')] %}
+                <button type="button" class="btn btn--secondary btn--sm" style="min-height:32px;padding:0 10px" data-insert="{{ snippet }}">{{ label }}</button>
+              {% endfor %}
+            </div>
+            <textarea class="textarea" id="text" name="text" rows="4" style="border:0;border-radius:0" data-word-limit="{{ word_limit }}" placeholder="{{ _('Например: Найдите значение выражения $\\log_2 48 - \\log_2 3$') }}">{{ qn.text or '' }}</textarea>
+            <div class="word-count" data-word-count aria-live="polite">0 / {{ word_limit }}</div>
+          </div>
+          <span class="field__hint">{{ _("До %(n)s слов. Длинное условие вынесите в «Текст для чтения».", n=word_limit) }}</span>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{ _("4 · Ответ") }}</legend>
+        <div class="chips" role="radiogroup" aria-label="{{ _('Тип ответа') }}">
+          <label class="check-chip"><input type="radio" name="answer_type" value="choice" {{ 'checked' if qn.answer_type != 'number' }}><span>{{ _("Варианты ответа") }}</span></label>
+          <label class="check-chip"><input type="radio" name="answer_type" value="number" {{ 'checked' if qn.answer_type == 'number' }}><span>{{ _("Свободный ввод") }}</span></label>
+        </div>
+        <div data-answer-type="choice" class="stack" style="gap:10px">
+          {% set opts = (qn.options or []) + ['', '', '', '', '', ''] %}
+          {% set shown = [4, (qn.options or [])|length]|max %}
+          <div class="grid grid-2" style="gap:10px">
+            {% for i in range(6) %}
+              <label class="option__box" style="min-height:52px;font-size:15px;cursor:default" data-option-row {{ 'hidden' if i >= shown }}>
+                <input type="radio" name="correct_option" value="{{ i }}" {{ 'checked' if qn.answer_type != 'number' and qn.correct == i|string }} style="width:18px;height:18px;accent-color:var(--accent)" aria-label="{{ _('Верный ответ') }} {{ LETTERS[i] }}">
+                <span class="option__letter">{{ LETTERS[i] }}</span>
+                <input class="input" data-option-input name="option{{ i }}" value="{{ opts[i] }}" style="border:0;min-height:36px;padding:0 4px;background:transparent" aria-label="{{ _('Вариант') }} {{ LETTERS[i] }}">
+              </label>
+            {% endfor %}
+          </div>
+          <div class="row row--between">
+            <p class="small muted">{{ _("Отметьте кружком верный вариант. Пустые варианты не сохраняются.") }}</p>
+            <button type="button" class="btn btn--ghost btn--sm" data-option-add>{{ ui.icon('plus', 14) }}{{ _("Ещё вариант") }}</button>
+          </div>
+        </div>
+        <div data-answer-type="number" class="stack" style="gap:14px">
+          <div class="grid grid-2">
+            <div class="field"><label for="correct_number">{{ _("Верный ответ") }}</label>
+              <input class="input input--mono" id="correct_number" name="correct_number" value="{{ qn.correct if qn.answer_type == 'number' else '' }}" placeholder="3/4">
+              <span class="field__hint">{{ _("Целое (12), дробь (3/4) или десятичное (0,75).") }}</span></div>
+            <div class="field"><label for="precision">{{ _("Округление") }}</label>
+              <select class="select" id="precision" name="precision">
+                <option value="" {{ 'selected' if not qn.precision }}>{{ _("Только точный ответ") }}</option>
+                <option value="1" {{ 'selected' if qn.precision == 1 }}>{{ _("Засчитывать до десятых") }}</option>
+                <option value="2" {{ 'selected' if qn.precision == 2 }}>{{ _("Засчитывать до сотых") }}</option>
+              </select>
+              <span class="field__hint">{{ _("Например, при ответе 25/6 и «до десятых» засчитается 4,2.") }}</span></div>
+          </div>
+          <div class="field"><span class="label">{{ _("Ученик может ввести") }}</span>
+            <div class="chips">
+              {% for key, label in [('whole', _('Целое число')), ('fraction', _('Дробь')), ('decimal', _('Десятичное число'))] %}
+              <label class="check-chip"><input type="checkbox" name="input_formats" value="{{ key }}" {{ 'checked' if key in (qn.input_formats or ['whole', 'fraction', 'decimal']) }}><span>{{ label }}</span></label>
+              {% endfor %}
+            </div>
+            <span class="field__hint">{{ _("Под полем ввода ученик увидит подсказку с этими форматами.") }}</span></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{ _("5 · Объяснение и видео") }}</legend>
+        <div class="field"><label for="explanation">{{ _("Объяснение") }}</label><textarea class="textarea" id="explanation" name="explanation" rows="3">{{ qn.explanation or '' }}</textarea></div>
+        <div class="field"><label for="video_url">{{ _("Ссылка на видео (YouTube)") }}</label><input class="input" id="video_url" name="video_url" value="{{ qn.video_url or '' }}" placeholder="https://youtu.be/…"></div>
+      </fieldset>
+    </div>
+
+    <aside class="stack" style="gap:16px;position:sticky;top:90px" aria-label="{{ _('Предпросмотр') }}">
+      <div class="row row--between"><span class="eyebrow">{{ _("Так увидит ученик") }}</span><span class="small muted" data-preview-layout></span></div>
+      <div class="preview-card" data-preview>
+        <div class="preview-card__bar" data-preview-bar>…</div>
+        <div class="preview-card__body" data-preview-body
+             data-img="{{ url_for('uploaded_file', filename=qn.image_path) if qn.image_path else '' }}"
+             data-hint-kinds="{{ _('Можно ввести:') }}" data-hint-whole="{{ _('целое число (12)') }}" data-hint-fraction="{{ _('дробь (3/4)') }}" data-hint-decimal="{{ _('десятичное число (0,75)') }}"
+             data-hint-p1="{{ _('Округлите до десятых.') }}" data-hint-p2="{{ _('Округлите до сотых.') }}"
+             data-label-split="{{ _('две колонки') }}" data-label-single="{{ _('по центру') }}" data-label-answer="{{ _('Ваш ответ') }}"
+             data-label-points="{{ _('балла') }}"></div>
+      </div>
+      {% if not current_user.is_admin and qn.status != 'published' %}
+      <div class="card card--soft card--tight small">{% if current_user.is_assistant %}{{ _("Вопрос уйдёт на проверку методисту. Если что-то не так, он вернётся с комментарием.") }}{% else %}{{ _("Вопрос сразу попадает в банк. Проверку администратора проходят только большие сборники.") }}{% endif %}</div>
+      {% endif %}
+      <button class="btn btn--primary btn--lg btn--block" type="submit" name="action" value="submit">
+        {% if current_user.is_assistant %}{{ _("Отправить на проверку") }}{% elif qn.status == 'pending' and qn.author_id != current_user.id %}{{ _("Сохранить и одобрить") }}{% else %}{{ _("Сохранить") if qn.status == 'published' else _("Опубликовать") }}{% endif %}
+      </button>
+      {% if not qn.id %}<button class="btn btn--secondary btn--block" type="submit" name="then" value="another">{{ _("Сохранить и создать ещё") }}</button>{% endif %}
+      <button class="btn btn--ghost btn--block" type="submit" name="action" value="draft">{{ _("Сохранить черновик") }}</button>
+    </aside>
+  </div>
+</form>
+{% endblock %}

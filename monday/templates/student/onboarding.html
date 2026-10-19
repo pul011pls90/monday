@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ _("Выбор экзамена") }}{% endblock %}
+{% block body %}
+<main class="page" style="margin:0 auto;max-width:980px">
+  <header class="row row--between">
+    <div class="display" style="font-size:26px">MONDAY</div>
+    <div class="row">
+      <span class="small muted" style="font-weight:600">{{ _("Шаг 1 из 1") }}</span>
+      <form method="post" action="{{ url_for('auth.toggle_theme') }}" data-theme-toggle>
+        {{ ui.csrf() }}<input type="hidden" name="next" value="{{ request.full_path }}">
+        <button class="icon-btn" type="submit" aria-label="{{ _('Сменить тему') }}"><span data-theme-icon="light">{{ ui.icon('moon') }}</span><span data-theme-icon="dark">{{ ui.icon('sun') }}</span></button>
+      </form>
+    </div>
+  </header>
+  {{ ui.flashes() }}
+  <form method="post" class="stack" style="gap:32px">
+    {{ ui.csrf() }}
+    <div class="stack-sm">
+      <h1>{{ _("Какой экзамен сдаёшь?") }}</h1>
+      <p class="text-2" style="font-size:17px;max-width:560px">{{ _("Одна карта навыков — разные маршруты. Выбери экзамен, и Monday покажет только то, что на нём будет.") }}</p>
+    </div>
+    <div class="exam-grid" role="radiogroup" aria-label="{{ _('Экзамен') }}">
+      {% for code, e in EXAMS.items() %}
+      <label class="exam-option">
+        <input type="radio" name="exam" value="{{ code }}" {{ 'checked' if (profile.exam or 'ORT') == code }} required>
+        <span><b>{{ e.label }}</b><small>{{ e.country }} · {{ e.note }}</small></span>
+      </label>
+      {% endfor %}
+    </div>
+    <div class="card grid grid-3">
+      <div class="field">
+        <label for="exam_date">{{ _("Дата экзамена") }}</label>
+        <input class="input" type="date" id="exam_date" name="exam_date" value="{{ profile.exam_date.isoformat() if profile.exam_date }}">
+        <span class="field__hint">{{ _("Нужна для счёта понедельников.") }}</span>
+      </div>
+      <div class="field">
+        <label for="goal_score">{{ _("Целевой балл") }}</label>
+        <input class="input" type="number" id="goal_score" name="goal_score" min="0" max="1600" placeholder="{{ _('Например, 190') }}" value="{{ profile.goal_score or '' }}">
+      </div>
+      <div class="field">
+        <label for="language">{{ _("Язык объяснений") }}</label>
+        <select class="select" id="language" name="language">
+          {% for code, label in LANGUAGES.items() %}<option value="{{ code }}" {{ 'selected' if code == current_user.language }}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="region">{{ _("Город или область") }}</label>
+        <input class="input" id="region" name="region" value="{{ profile.region or '' }}" placeholder="{{ _('Например, Бишкек') }}">
+      </div>
+      <div class="field">
+        <label for="school">{{ _("Школа") }}</label>
+        <input class="input" id="school" name="school" value="{{ profile.school or '' }}">
+        <span class="field__hint">{{ _("Для рейтинга школ в тесте понедельника.") }}</span>
+      </div>
+      <div class="field">
+        <label for="invite_code">{{ _("Код от учителя") }}</label>
+        <input class="input input--mono" id="invite_code" name="invite_code" placeholder="MND-XXXX" autocapitalize="characters">
+        <span class="field__hint">{{ _("Необязательно. Можно ввести позже в профиле.") }}</span>
+      </div>
+    </div>
+    <div class="row row--between">
+      <p class="text-2">{{ _("Monday посчитает, сколько понедельников осталось, и соберёт план.") }}</p>
+      <button class="btn btn--primary btn--lg" type="submit">{{ _("Продолжить") }} {{ ui.icon('arrow-right', 18) }}</button>
+    </div>
+  </form>
+</main>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Карта навыков") }}{% endblock %}
+{% block topbar_extra %}
+<form class="search search--sm" method="get" action="{{ url_for('student.skills') }}" role="search" style="width:300px;max-width:40vw">
+  {{ ui.icon('search', 18) }}
+  <label class="sr-only" for="skill-q">{{ _("Поиск по навыкам") }}</label>
+  <input id="skill-q" type="search" name="q" value="{{ q }}" placeholder="{{ _('Найти навык или тему') }}">
+  <input type="hidden" name="scope" value="{{ scope }}">
+</form>
+{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Карта навыков") }}</h1>
+    <p>{{ _("Маршрут %(exam)s: %(total)s навыков · освоено %(m)s", exam=exam|exam_label, total=summary.total, m=summary.mastered) }}</p>
+  </div>
+  <div class="chips">
+    <a class="chip{{ ' is-active' if scope == 'exam' }}" href="{{ url_for('student.skills', scope='exam', q=q) }}">{{ exam|exam_label }}</a>
+    <a class="chip{{ ' is-active' if scope == 'all' }}" href="{{ url_for('student.skills', scope='all', q=q) }}">{{ _("Все навыки") }}</a>
+  </div>
+</div>
+
+<div class="row small text-2 skills-legend" style="gap:22px" aria-label="{{ _('Обозначения') }}">
+  <span class="row" style="gap:8px"><span class="dot-cell"><i class="portrait__dot is-mastered"></i></span>{{ _("Освоен") }}</span>
+  <span class="row" style="gap:8px"><span class="dot-cell"><i class="portrait__dot is-progress" style="--a:.5"></i></span>{{ _("В процессе — точка растёт с точностью") }}</span>
+  <span class="row" style="gap:8px"><span class="dot-cell"><i class="portrait__dot is-new"></i></span>{{ _("Новый") }}</span>
+  <span class="row" style="gap:8px"><span class="dot-cell"><i class="portrait__dot is-outside"></i></span>{{ _("Не входит в %(exam)s", exam=exam|exam_label) }}</span>
+</div>
+
+{% if topics %}
+<div class="grid grid-3">
+  {% for t in topics %}
+    {% set items = t["items"] %}
+    {% set mastered = items|selectattr('state', 'equalto', 'mastered')|list|length %}
+    {% set counted = items|rejectattr('state', 'equalto', 'outside')|list|length %}
+    <section class="card{{ ' card--accent' if t.node.id == highlight }}">
+      <div class="card__head"><h3>{{ t.name }}</h3><span class="small muted num">{{ mastered }} / {{ counted }}</span></div>
+      <div class="skills-strip" aria-hidden="true">{% for i in items %}{% if i.state != 'outside' %}<i class="portrait__dot is-{{ i.state }}" style="--a: {{ (i.accuracy or 0)|round(2) }}"></i>{% endif %}{% endfor %}</div>
+      {% for s in t.subtopics %}
+      <div class="tree-sub">
+        <div class="tree-sub__name">{{ s.node.name }}{% if not s.node.is_shared %} <span class="tag tag--soft tag--xs">{{ _("от учителя") }}</span>{% endif %}</div>
+        <ul class="stack" style="list-style:none;margin:0;padding:0;gap:8px">
+          {% for i in s["items"] %}
+            <li class="row" style="gap:10px;flex-wrap:nowrap;{{ 'color:var(--muted)' if i.state == 'outside' }}">
+              <span class="dot-cell" title="{{ i.state }}"><i class="portrait__dot is-{{ i.state }}" style="--a: {{ (i.accuracy or 0)|round(2) }}"></i></span>
+              <span>{{ i.skill.name }}</span>
+              {% if i.accuracy is not none and i.state != 'outside' %}<span class="spacer"></span><span class="small muted num">{{ (i.accuracy*100)|round|int }}%</span>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+      {% set target = (items|selectattr('state', 'equalto', 'progress')|list or items|selectattr('state', 'equalto', 'new')|list) %}
+      {% if target %}
+      <form method="post" action="{{ url_for('student.start_session', mode='franklin') }}" style="margin-top:auto">
+        {{ ui.csrf() }}<input type="hidden" name="skill_id" value="{{ target[0].skill.id }}">
+        <button class="btn btn--primary btn--sm" type="submit">{{ _("Тренировать · 5 мин") }}</button>
+      </form>
+      {% endif %}
+    </section>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty"><h3>{{ _("Ничего не найдено") }}</h3><p>{{ _("Попробуйте другое слово или откройте все навыки.") }}</p></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Банк вопросов") }}{% endblock %}
+{% block content %}
+<div class="page-head pk-page">
+  <div class="page-head__text">
+    <h1>{{ _("Банк вопросов") }}</h1>
+    <p>{{ _("Найди вопросы фильтрами и темами, собери их в корзину справа — и отправь в работу или в «Вопросы дня».") }}</p>
+  </div>
+  <div class="row">
+    <a class="btn btn--secondary" href="{{ url_for('teacher.questions') }}">{{ _("Мои вопросы") }}</a>
+    <a class="btn btn--secondary" href="{{ url_for('assistant.home') }}">{{ ui.icon('copy', 18) }}{{ _("Вставить тест целиком") }}</a>
+    <a class="btn btn--primary" href="{{ url_for('teacher.question_new') }}">{{ ui.icon('plus', 18) }}{{ _("Новый вопрос") }}</a>
+  </div>
+</div>
+
+<div class="pk-layout">
+  <div class="pk-field">
+    {% with mode='bank', exam_field=None %}{% include "teacher/_picker.html" %}{% endwith %}
+  </div>
+
+  <form method="post" action="{{ url_for('teacher.bank_add') }}" class="card pk-order" data-basket-form>
+    {{ ui.csrf() }}
+    <div class="card__head"><h2 style="font-size:18px">{{ _("Корзина") }} · <span data-order-count>0</span></h2></div>
+    <div class="order-totals" data-order-totals data-q="{{ _('вопр.') }}" data-min="{{ _('мин') }}" data-diff="{{ _('лёгких · средних · сложных') }}"></div>
+    <ol class="order-list" data-order-list></ol>
+    <p class="muted small" data-order-empty>{{ _("Отметь вопросы галочкой, нажми «5 случайных» или «Собрать по плану».") }}</p>
+    <div class="field">
+      <label for="tb-work">{{ _("Куда добавить") }}</label>
+      <select class="select" id="tb-work" name="work">
+        <optgroup label="{{ _('Вопросы дня (до 3 в день)') }}">
+          <option value="daily-today" {{ 'selected' if request.args.get('daily') == 'today' }}>{{ _("Вопрос дня · сегодня") }}</option>
+          <option value="daily-tomorrow" {{ 'selected' if request.args.get('daily') == 'tomorrow' }}>{{ _("Вопрос дня · завтра") }}</option>
+        </optgroup>
+        <optgroup label="{{ _('Работы') }}">
+          <option value="new" {{ 'selected' if not request.args.get('daily') }}>+ {{ _("Новая домашка") }}</option>
+          {% for w in works %}<option value="{{ w.id }}">{{ w.title or _("без названия") }} · {{ WORK_KINDS[w.kind] }}</option>{% endfor %}
+        </optgroup>
+      </select>
+    </div>
+    <input type="hidden" name="exam" value="{{ exam }}" data-basket-exam><input type="hidden" name="kind" value="homework">
+    <button class="btn btn--primary btn--block" type="submit" data-basket-submit disabled>{{ _("Добавить") }}{{ ui.icon('arrow-right', 18) }}</button>
+    <button type="button" class="btn btn--ghost btn--sm" data-order-clear>{{ _("Очистить корзину") }}</button>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/picker.js') }}"></script>{% endblock %}

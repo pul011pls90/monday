@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Загрузка вопросов") }}{% endblock %}
+{% block context %}{{ _("Кабинет ассистента") if current_user.is_assistant else _("Кабинет учителя") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Загрузка вопросов") }}</h1>
+    <p>{{ _("Вставьте тест целиком — Monday разделит его на вопросы, подберёт навык и покажет, что поправить.") }}
+      {% if current_user.is_assistant %}{{ _("После отправки вопросы проверит методист.") }}{% endif %}</p>
+  </div>
+  <a class="btn btn--secondary" href="{{ url_for('teacher.question_new') }}">{{ ui.icon('plus', 18) }}{{ _("Добавить по одному") }}</a>
+</div>
+
+<div class="admin-stats">
+  <a class="card admin-stat" href="{{ url_for('assistant.mine', tab='pending') }}"><span class="admin-stat__ic">{{ ui.icon('inbox', 22) }}</span><span><b class="num">{{ stats.pending }}</b><span>{{ _("на проверке") }}</span></span></a>
+  <a class="card admin-stat{{ ' is-hot' if stats.returned }}" href="{{ url_for('assistant.mine', tab='returned') }}"><span class="admin-stat__ic">{{ ui.icon('retry', 22) }}</span><span><b class="num">{{ stats.returned }}</b><span>{{ _("вернули с комментарием") }}</span></span></a>
+  <a class="card admin-stat" href="{{ url_for('assistant.mine', tab='published') }}"><span class="admin-stat__ic">{{ ui.icon('check', 22) }}</span><span><b class="num">{{ stats.published }}</b><span>{{ _("опубликовано") }}</span></span></a>
+  <div class="card admin-stat"><span class="admin-stat__ic">{{ ui.icon('bars', 22) }}</span><span><b class="num">{{ stats.week }}</b><span>{{ _("загружено за неделю") }}</span></span></div>
+</div>
+
+<form method="post" action="{{ url_for('assistant.import_preview') }}" class="card imp-paste">
+  {{ ui.csrf() }}
+  <div class="field"><span class="label">{{ _("Экзамены для этих вопросов") }}</span>
+    <div class="chips">{% for code, e in EXAMS.items() %}<label class="check-chip"><input type="checkbox" name="exams" value="{{ code }}" {{ 'checked' if code == 'ORT' }}><span>{{ e.label }}</span></label>{% endfor %}</div>
+    <span class="field__hint">{{ _("Если в JSON указан test_type, он важнее.") }}</span></div>
+  <div class="field">
+    <label for="raw">{{ _("Текст теста или JSON") }}</label>
+    <textarea class="textarea imp-paste__area" id="raw" name="raw" required spellcheck="false"
+      placeholder="1. Найдите значение выражения $\log_2 8 + 3$.&#10;А) 5   Б) 6   В) 7   Г) 8&#10;&#10;2. Решите уравнение $3x - 7 = 11$.&#10;Ответ: 6&#10;&#10;Ответы: 1-Б"></textarea>
+  </div>
+  <div class="row row--between">
+    <span class="small muted">{{ _("До 80 вопросов за раз. Формулы — между знаками $…$.") }}</span>
+    <button class="btn btn--primary btn--lg" type="submit">{{ _("Разобрать") }}{{ ui.icon('arrow-right', 18) }}</button>
+  </div>
+</form>
+
+<section class="card card--soft imp-help" aria-labelledby="fmt-h">
+  <h2 id="fmt-h" style="font-size:18px">{{ _("Какие форматы понимает") }}</h2>
+  <div class="imp-help__grid">
+    <div><b>{{ _("Текст") }}</b>
+      <ul class="small text-2">
+        <li>{{ _("каждый вопрос начинается с номера: «1.» или «1)»") }}</li>
+        <li>{{ _("варианты: «А) … Б) …» в одну строку или каждый с новой; можно (A), A.") }}</li>
+        <li>{{ _("ответ в конце вопроса: «Ответ: Б» или числом «Ответ: 12»") }}</li>
+        <li>{{ _("или ключ в самом конце: «Ответы: 1-Б 2-А 3-12»") }}</li>
+        <li>{{ _("вопрос без вариантов = ввод числа") }}</li>
+      </ul></div>
+    <div><b>JSON</b>
+      <pre class="imp-help__code">[{"test_type": "ORT",
+  "question_text": "…",
+  "options": ["A) …", "B) …"],
+  "correct_answer": "B",
+  "explanation": "…",
+  "topic": "Проценты",
+  "difficulty": "Medium"}]</pre></div>
+  </div>
+</section>
+{% endblock %}

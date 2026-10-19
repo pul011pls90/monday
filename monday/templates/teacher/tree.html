@@ -1,0 +1,113 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Карта способностей") }}{% endblock %}
+
+{% macro edit_box(n) -%}
+<details class="tree-edit">
+  <summary aria-label="{{ _('Изменить') }}">{{ ui.icon('edit', 14) }}</summary>
+  <div class="tree-edit__panel">
+    <form method="post" action="{{ url_for('teacher.tree_edit', node_id=n.id) }}" class="stack" style="gap:10px">
+      {{ ui.csrf() }}
+      <div class="field"><label for="nm{{ n.id }}">{{ _("Название") }}</label><input class="input" id="nm{{ n.id }}" name="name" value="{{ n.name }}" required minlength="2"></div>
+      {% if n.level == 'node' %}
+      <div class="field"><label for="wt{{ n.id }}">{{ _("Важность (1–5)") }}</label><input class="input" type="number" id="wt{{ n.id }}" name="weight" min="1" max="5" value="{{ n.weight or 1 }}"></div>
+      {% endif %}
+      <div class="chips">{% for code, e in EXAMS.items() %}<label class="check-chip check-chip--sm"><input type="checkbox" name="exams" value="{{ code }}" {{ 'checked' if code in (n.exams or []) }}><span>{{ e.label }}</span></label>{% endfor %}</div>
+      <div class="row">
+        <button class="btn btn--primary btn--sm" type="submit" name="action" value="rename">{{ _("Сохранить") }}</button>
+        {% if n.archived %}
+          <button class="btn btn--secondary btn--sm" type="submit" name="action" value="restore">{{ _("Вернуть из архива") }}</button>
+        {% else %}
+          <button class="btn btn--ghost btn--sm" type="submit" name="action" value="archive" formnovalidate>{{ _("В архив") }}</button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</details>
+{%- endmacro %}
+
+{% macro add_form(level, parent_id, placeholder, label) -%}
+<form method="post" action="{{ url_for('teacher.tree_add') }}" class="tree-add">
+  {{ ui.csrf() }}<input type="hidden" name="level" value="{{ level }}">{% if parent_id %}<input type="hidden" name="parent_id" value="{{ parent_id }}">{% endif %}
+  <label class="sr-only" for="add-{{ level }}-{{ parent_id or 0 }}">{{ label }}</label>
+  <input class="input input--sm" id="add-{{ level }}-{{ parent_id or 0 }}" name="name" placeholder="{{ placeholder }}" required minlength="2">
+  <button class="btn btn--secondary btn--sm" type="submit">{{ ui.icon('plus', 14) }}<span>{{ label }}</span></button>
+</form>
+{%- endmacro %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Карта способностей") }}</h1>
+    <p>{{ _("Тема → подтема → навык. Вопросы, домашние задания и тесты привязываются к навыку, поэтому новые ветки можно добавлять в любой момент — прогресс учеников не ломается.") }}</p>
+  </div>
+  <a class="btn btn--primary" href="{{ url_for('teacher.question_new') }}">{{ ui.icon('plus', 18) }}{{ _("Новый вопрос") }}</a>
+</div>
+
+<div class="row small text-2" style="gap:20px">
+  <span class="row" style="gap:8px"><span class="tag tag--line tag--xs">{{ _("общее") }}</span>{{ _("общее дерево Monday — правит администратор") }}</span>
+  <span class="row" style="gap:8px"><span class="tag tag--soft tag--xs">{{ _("моё") }}</span>{{ _("ваши ветки — видите вы и ваши ученики") }}</span>
+  {% if current_user.is_admin %}<a class="small" href="{{ url_for('teacher.tree', archived=0 if show_archived else 1) }}">{{ _("Скрыть архив") if show_archived else _("Показать архив") }}</a>{% endif %}
+</div>
+
+<section class="card tree-new-topic" aria-labelledby="nt-h">
+  <div class="tree-new-topic__text"><h2 id="nt-h">{{ ui.icon('plus', 18) }}{{ _("Новая тема") }}</h2>
+    <p class="small muted">{{ _("Главная ветка, например «Геометрия». Потом добавьте в неё подтемы и навыки — карточки появятся ниже.") }}</p></div>
+  {{ add_form('topic', None, _('Название темы'), _('Тема')) }}
+</section>
+
+<nav class="chips tree-jump" aria-label="{{ _('Перейти к теме') }}">{% for t in by_parent.get(None, []) if t.level == 'topic' %}<a class="tag tag--line" href="#n{{ t.id }}">{{ t.name }}</a>{% endfor %}</nav>
+
+{% for t in by_parent.get(None, []) if t.level == 'topic' %}
+<section class="section tree-topic" id="n{{ t.id }}">
+  <div class="section__head">
+    <div class="row" style="gap:10px">
+      <h2>{{ t.name }}</h2>
+      {% if not t.is_shared %}<span class="tag tag--soft tag--xs">{{ _("моё") }}</span>{% endif %}
+      {% if t.archived %}<span class="state state--archived">{{ _("архив") }}</span>{% endif %}
+      {% if can_edit(t) %}{{ edit_box(t) }}{% endif %}
+    </div>
+    <span class="small muted">{% for e in t.exams or [] %}{{ e|exam_label }}{{ ' · ' if not loop.last }}{% endfor %}</span>
+  </div>
+  <div class="grid grid-3">
+    {% for s in by_parent.get(t.id, []) %}
+    <article class="card tree-card{{ ' is-archived' if s.archived }}" id="n{{ s.id }}">
+      <div class="card__head">
+        <h3>{{ s.name }}</h3>
+        <div class="row" style="gap:6px">
+          {% if not s.is_shared %}<span class="tag tag--soft tag--xs">{{ _("моё") }}</span>{% endif %}
+          {% if can_edit(s) %}{{ edit_box(s) }}{% endif %}
+        </div>
+      </div>
+      <ul class="tree-nodes">
+        {% for n in by_parent.get(s.id, []) %}
+        <li class="tree-node{{ ' is-archived' if n.archived }}">
+          <div class="stack-sm" style="gap:2px;min-width:0">
+            <span class="tree-node__name">{{ n.name }}{% if not n.is_shared %} <span class="tag tag--soft tag--xs">{{ _("моё") }}</span>{% endif %}</span>
+            <span class="small muted">
+              {{ counts.get(n.id, 0) }} {{ counts.get(n.id, 0)|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}{% if mine.get(n.id) %} · {{ _("мои: %(n)s", n=mine[n.id]) }}{% endif %}{% if (n.weight or 1) > 1 %} · {{ _("важность %(w)s", w=n.weight) }}{% endif %}
+            </span>
+          </div>
+          <div class="row" style="gap:4px;flex-wrap:nowrap">
+            <a class="icon-btn icon-btn--sm" href="{{ url_for('teacher.question_new', node=n.id) }}" title="{{ _('Вопрос в этот навык') }}" aria-label="{{ _('Вопрос в этот навык') }}">{{ ui.icon('plus', 14) }}</a>
+            {% if can_edit(n) %}{{ edit_box(n) }}{% endif %}
+          </div>
+        </li>
+        {% else %}
+        <li class="small muted">{{ _("Пока нет навыков.") }}</li>
+        {% endfor %}
+      </ul>
+      {% if not s.archived %}{{ add_form('node', s.id, _('Новый навык'), _('Навык')) }}{% endif %}
+    </article>
+    {% endfor %}
+    {% if not t.archived %}
+    <article class="card card--dashed tree-card">
+      <h3 class="muted">{{ _("Новая подтема") }}</h3>
+      <p class="small muted">{{ _("Например: «Площади фигур» в теме «Геометрия».") }}</p>
+      {{ add_form('subtopic', t.id, _('Название подтемы'), _('Подтема')) }}
+    </article>
+    {% endif %}
+  </div>
+</section>
+{% endfor %}
+
+{% endblock %}

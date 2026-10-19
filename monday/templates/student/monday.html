@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Тест понедельника") }}{% endblock %}
+{% block content %}
+{% set p = current_user.profile %}
+<section class="hero" style="flex-direction:column;align-items:stretch;gap:28px">
+  <div class="row row--between">
+    <span class="eyebrow">{{ _("Ритуал недели · трек %(exam)s", exam=p.exam|exam_label) }}</span>
+    <span class="tag" style="background:var(--accent-strong)">{{ _("Неделя %(n)s", n=week_number) }}</span>
+  </div>
+  <h1 class="display" style="font-size:64px;line-height:1">{{ _("Тест") }}<br>{{ _("понедельника") }}</h1>
+  <div class="row row--between" style="align-items:flex-end;gap:24px">
+    <div class="row" style="gap:32px;align-items:flex-end">
+      <div><div class="stat-value num" style="font-size:40px">{% if countdown %}{{ _("%(d)s д %(h)s ч", d=countdown[0], h=countdown[1]) }}{% else %}{{ _("Сейчас") }}{% endif %}</div><div class="hero-muted small">{{ _("до старта · пн, 19:00") }}</div></div>
+      <div><div class="stat-value" style="font-size:40px">{{ upcoming.time_limit_min if upcoming else 20 }} {{ _("мин") }}</div><div class="hero-muted small">{{ _("%(n)s задач, одинаковых для всех", n=upcoming.current_version.question_count if upcoming else 10) }}</div></div>
+    </div>
+    {% if already_taken %}
+      <a class="btn btn--primary btn--lg" href="{{ url_for('student.attempt_result', attempt_id=already_taken.id) }}">{{ _("Мой результат") }}</a>
+    {% elif upcoming and window_open %}
+      <form method="post" action="{{ url_for('student.monday_start') }}">{{ ui.csrf() }}<button class="btn btn--primary btn--lg" type="submit">{{ _("Начать тест") }}</button></form>
+    {% else %}
+      <button class="btn btn--primary btn--lg" type="button" disabled>{{ _("Откроется в понедельник") }}</button>
+    {% endif %}
+  </div>
+</section>
+{% if config.MONDAY_TEST_ALWAYS_OPEN %}<p class="small muted">{{ _("Демо-режим: тест открыт в любой день. Отключается настройкой MONDAY_TEST_ALWAYS_OPEN=0.") }}</p>{% endif %}
+
+<div class="grid grid-2">
+  <section class="card card--flush" aria-labelledby="rank-h">
+    <div class="card__head" style="background:var(--accent-soft);color:var(--accent-ink);padding:18px 24px">
+      <h2 id="rank-h" style="font-size:18px">{{ _("Рейтинг прошлой недели") }}</h2>
+      <div class="chips" role="group" aria-label="{{ _('Уровень') }}">
+        {% for key, label in [('country', _('Страна')), ('region', _('Область')), ('school', _('Школа'))] %}
+          <a class="chip{{ ' is-active' if scope == key }}" style="min-height:34px;padding:0 12px;font-size:13px" href="{{ url_for('student.monday', scope=key) }}">{{ label }}</a>
+        {% endfor %}
+      </div>
+    </div>
+    <div style="padding:6px 24px 18px">
+      {% if rows %}
+      <ol class="leader">
+        {% for a in rows %}
+          <li><span class="leader__place">{{ loop.index }}</span><span class="spacer" style="flex:1;font-weight:600">{{ a.user.name.split()[0] }} · {{ a.user.profile.region if a.user.profile }}</span><b class="num">{{ a.score }} / {{ a.total }}</b></li>
+        {% endfor %}
+        {% if total > rows|length %}<li class="muted"><span class="leader__place">…</span>{{ _("ещё %(n)s участников", n=total - rows|length) }}</li>{% endif %}
+        {% if my_place %}
+          <li class="leader__me"><span class="leader__place">#{{ my_place }}</span><span style="flex:1;font-weight:700">{{ _("Ты") }} · {{ p.region or '' }}</span><b class="num">{{ my_attempt.score }} / {{ my_attempt.total }}</b></li>
+        {% endif %}
+      </ol>
+      {% else %}
+        <p class="text-2" style="padding:18px 0">{{ _("В этом рейтинге пока нет результатов.") }}</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <div class="stack" style="gap:16px">
+    <section class="card" aria-labelledby="last-h">
+      <h2 id="last-h" style="font-size:18px">{{ _("Твой прошлый тест") }}</h2>
+      {% if my_attempt %}
+      <div class="grid grid-3">
+        <div><div class="stat-value num">{{ my_attempt.score }}/{{ my_attempt.total }}</div><div class="stat-label">{{ _("верно") }}</div></div>
+        <div><div class="stat-value num">{{ (my_attempt.duration_sec // 60) if my_attempt.duration_sec else '—' }} {{ _("мин") }}</div><div class="stat-label">{{ _("из %(n)s", n=previous.time_limit_min) }}</div></div>
+        <div><div class="stat-value num" style="color:var(--accent)">#{{ my_place }}</div><div class="stat-label">{{ _("место") }}</div></div>
+      </div>
+      <a href="{{ url_for('student.attempt_result', attempt_id=my_attempt.id) }}" style="font-weight:700">{{ _("Разбор и ошибки") }} →</a>
+      {% else %}
+      <p class="text-2">{{ _("Ты не участвовал на прошлой неделе. Ближайший тест — в понедельник в 19:00.") }}</p>
+      {% endif %}
+    </section>
+
+    <section class="card card--inverse" aria-labelledby="duel-h">
+      <div class="eyebrow">{{ _("Дуэль школ") }}</div>
+      {% if duel %}
+        <h2 id="duel-h" style="font-size:20px">{{ duel.mine[0] }} vs {{ duel.rival[0] }}</h2>
+        {% set a = duel.mine[1] %}{% set b = duel.rival[1] %}
+        <div class="split-bar" role="img" aria-label="{{ _('Средний балл: %(a)s против %(b)s', a='%.1f'|format(a), b='%.1f'|format(b)) }}" style="height:10px">
+          <span style="flex:{{ a }};background:var(--accent)"></span><span style="flex:{{ b }};background:var(--muted)"></span>
+        </div>
+        <div class="row row--between small" style="font-weight:600"><span>{{ _("Средний") }} {{ '%.1f'|format(a) }}</span><span>{{ _("Средний") }} {{ '%.1f'|format(b) }}</span></div>
+      {% else %}
+        <h2 id="duel-h" style="font-size:20px">{{ _("Укажи школу в профиле") }}</h2>
+        <p>{{ _("Тогда твоя школа будет соревноваться с другими каждую неделю.") }}</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

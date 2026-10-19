@@ -1,0 +1,6 @@
+{% import "partials/macros.html" as ui with context %}
+<div class="pk-preview">
+  {{ ui.question_body(it, 'pv' ~ qn.id, reveal=true, disabled=true) }}
+  {% if it.explanation %}<div class="small text-2 math pk-preview__expl"><b>{{ _("Разбор:") }}</b> {{ it.explanation }}</div>{% endif %}
+  <div class="small muted">#{{ qn.id }} · {{ qn.skill.path if qn.skill }} · {{ qn.author.name if qn.author }}{% if qn.author_id == current_user.id %} · <a href="{{ url_for('teacher.question_edit', question_id=qn.id) }}" target="_blank" rel="noopener">{{ _("изменить") }}</a>{% endif %}</div>
+</div>

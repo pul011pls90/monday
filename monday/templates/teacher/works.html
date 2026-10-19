@@ -1,0 +1,147 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Опубликованные работы") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Работы") }}</h1>
+    <p>{{ _("Тесты, сборники и домашние задания. Исправленная работа публикуется новой версией — старые результаты учеников не меняются.") }}</p>
+  </div>
+  <div class="row">
+    <a class="btn btn--secondary" href="{{ url_for('teacher.work_new', kind='collection') }}">{{ ui.icon('plus', 18) }}{{ _("Сборник") }}</a>
+    <a class="btn btn--primary" href="{{ url_for('teacher.work_new', kind='homework') }}">{{ ui.icon('plus', 18) }}{{ _("Домашнее задание") }}</a>
+  </div>
+</div>
+
+<div class="row row--between">
+  <div class="chips" role="tablist">
+    {% for key, label in WORK_STATUSES.items() %}
+      <a class="chip{{ ' is-active' if status == key }}" href="{{ url_for('teacher.works', status=key, kind=kind, view=view) }}">{{ label }} <span class="chip__count">{{ counts[key] }}</span></a>
+    {% endfor %}
+  </div>
+  <div class="row">
+    <div class="chips">
+      <a class="chip{{ ' is-active' if not kind }}" href="{{ url_for('teacher.works', status=status, view=view) }}">{{ _("Все типы") }}</a>
+      {% for key, label in WORK_KINDS.items() %}{% if key != 'monday' or current_user.is_admin %}
+        <a class="chip{{ ' is-active' if kind == key }}" href="{{ url_for('teacher.works', status=status, kind=key, view=view) }}">{{ label }}</a>
+      {% endif %}{% endfor %}
+    </div>
+    <div class="segmented" role="group" aria-label="{{ _('Вид') }}">
+      <a class="{{ 'is-active' if view == 'tree' }}" href="{{ url_for('teacher.works', status=status, kind=kind, view='tree') }}">{{ _("По темам") }}</a>
+      <a class="{{ 'is-active' if view == 'list' }}" href="{{ url_for('teacher.works', status=status, kind=kind, view='list') }}">{{ _("Списком") }}</a>
+    </div>
+  </div>
+</div>
+
+{% macro work_row(w) -%}
+{% set v = w.current_version %}
+<li class="pub-work">
+  <a class="pub-work__title" href="{{ url_for('teacher.work_edit', work_id=w.id) }}">{{ w.title }}</a>
+  <div class="row" style="gap:4px;flex-wrap:nowrap">
+    {% if w.status == 'published' and w.kind != 'monday' %}
+      <a class="icon-btn icon-btn--sm" href="{{ url_for('teacher.assign', work_id=w.id) }}" title="{{ _('Выдать ученикам') }}" aria-label="{{ _('Выдать ученикам') }}">{{ ui.icon('send', 14) }}</a>
+    {% endif %}
+    <a class="icon-btn icon-btn--sm" href="{{ url_for('teacher.work_edit', work_id=w.id) }}" title="{{ _('Редактировать') }}" aria-label="{{ _('Редактировать') }}">{{ ui.icon('edit', 14) }}</a>
+  </div>
+  <div class="pub-work__info">
+    <span class="tag tag--line tag--xs">{{ WORK_KINDS[w.kind] }}</span>
+    {{ ui.exam_tag(w.exam) }}
+    <span>{{ 'v' ~ v.number if v else _('черновик') }}</span>
+    <span>{{ v.question_count if v else (w.draft_question_ids or [])|length }} {{ _("вопр.") }}</span>
+    <span>{{ _("выдано %(a)s, пройдено %(b)s", a=stats[w.id].assigned, b=stats[w.id].attempts) }}</span>
+    {% if w.status == 'published' and w.has_unpublished_changes %}<span class="state state--pending">{{ _("есть правки") }}</span>{% endif %}
+  </div>
+</li>
+{%- endmacro %}
+
+{% if view == 'tree' %}
+  {% if sections or full_works %}
+    {% if full_works %}
+    <section class="section pub-section">
+      <div class="section__head"><h2>{{ _("Полные варианты экзаменов") }}</h2><span class="small muted">{{ full_works|length }}</span></div>
+      <div class="grid grid-3">
+        {% for exam, ws in full_works|groupby('exam') %}
+        <article class="card pub-card">
+          <div class="card__head"><h3>{{ exam|exam_label }}</h3><span class="pub-card__meta">{{ ws|length }} {{ ws|length|plural_ru(_("работа"), _("работы"), _("работ")) }}</span></div>
+          <ul class="pub-works">{% for w in ws %}{{ work_row(w) }}{% endfor %}</ul>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+    {% for sec in sections %}
+    <section class="section pub-section">
+      <div class="section__head"><h2>{{ sec.topic.name }}</h2>
+        <a class="small" href="{{ url_for('teacher.tree', _anchor='n' ~ sec.topic.id) }}">{{ _("Открыть в карте") }}</a></div>
+      <div class="grid grid-3">
+        {% for card in sec.cards %}
+        <article class="card pub-card">
+          <div class="card__head">
+            <h3>{{ card.sub.name if card.sub else _("Вся тема") }}</h3>
+            <span class="pub-card__meta">{{ card.works|length }} {{ card.works|length|plural_ru(_("работа"), _("работы"), _("работ")) }}{% if card.questions %} · {{ card.questions }} {{ _("моих вопр.") }}{% endif %}</span>
+          </div>
+          {% if card.works %}
+            <ul class="pub-works">{% for w in card.works %}{{ work_row(w) }}{% endfor %}</ul>
+          {% else %}
+            <p class="small muted">{{ _("Работ пока нет — из ваших вопросов можно собрать домашнее задание или тест.") }}</p>
+          {% endif %}
+          <div class="pub-card__foot">
+            {% set nid = card.sub.id if card.sub else sec.topic.id %}
+            <a class="btn btn--secondary btn--sm" href="{{ url_for('teacher.work_new', kind='homework', node=nid) }}">{{ ui.icon('plus', 14) }}{{ _("ДЗ") }}</a>
+            <a class="btn btn--secondary btn--sm" href="{{ url_for('teacher.work_new', kind='collection', node=nid) }}">{{ ui.icon('plus', 14) }}{{ _("Тест") }}</a>
+            {% if card.sub %}<a class="btn btn--ghost btn--sm" href="{{ url_for('teacher.questions', node=card.sub.id) }}">{{ _("Вопросы") }}</a>{% endif %}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+  {% else %}
+    <div class="empty">
+      <h3>{{ _("Здесь появятся ваши работы, разложенные по темам") }}</h3>
+      <p>{{ _("Начните с вопроса в карте способностей или сразу соберите работу из общего банка.") }}</p>
+      <div class="row" style="justify-content:center">
+        <a class="btn btn--primary" href="{{ url_for('teacher.tree') }}">{{ _("Открыть карту") }}</a>
+        <a class="btn btn--secondary" href="{{ url_for('teacher.work_new', kind='collection') }}">{{ _("Собрать тест") }}</a>
+      </div>
+    </div>
+  {% endif %}
+{% elif items %}
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>{{ _("Название") }}</th><th>{{ _("Тип") }}</th><th>{{ _("Экзамен") }}</th><th>{{ _("Версия") }}</th><th>{{ _("Вопросов") }}</th><th>{{ _("Выдано / пройдено") }}</th><th>{{ _("Обновлено") }}</th><th></th></tr></thead>
+    <tbody>
+    {% for w in items %}{% set v = w.current_version %}
+      <tr>
+        <td><a class="t-strong" style="color:inherit" href="{{ url_for('teacher.work_edit', work_id=w.id) }}">{{ w.title }}</a>
+          {% if w.status == 'published' and w.has_unpublished_changes %}<br><span class="state state--pending" style="margin-top:4px">{{ _("есть неопубликованные правки") }}</span>{% endif %}</td>
+        <td>{{ WORK_KINDS[w.kind] }}</td>
+        <td>{{ ui.exam_tag(w.exam) }}</td>
+        <td class="num">{{ 'v' ~ v.number if v else '—' }}</td>
+        <td class="num">{{ v.question_count if v else (w.draft_question_ids or [])|length }}</td>
+        <td class="num">{{ stats[w.id].assigned }} / {{ stats[w.id].attempts }}</td>
+        <td class="muted nowrap">{{ w.updated_at|dt }}</td>
+        <td>
+          <div class="row" style="gap:6px;flex-wrap:nowrap;justify-content:flex-end">
+            <a class="icon-btn" style="width:36px;height:36px" href="{{ url_for('teacher.work_edit', work_id=w.id) }}" title="{{ _('Редактировать') }}" aria-label="{{ _('Редактировать') }}">{{ ui.icon('edit', 16) }}</a>
+            {% if w.status == 'published' and w.kind != 'monday' %}
+              <a class="icon-btn" style="width:36px;height:36px" href="{{ url_for('teacher.assign', work_id=w.id) }}" title="{{ _('Выдать ученикам') }}" aria-label="{{ _('Выдать ученикам') }}">{{ ui.icon('send', 16) }}</a>
+            {% endif %}
+            <form method="post" action="{{ url_for('teacher.work_duplicate', work_id=w.id) }}">{{ ui.csrf() }}<button class="icon-btn" style="width:36px;height:36px" title="{{ _('Копия') }}" aria-label="{{ _('Создать копию') }}">{{ ui.icon('duplicate', 16) }}</button></form>
+            {% if w.status == 'published' %}
+              <form method="post" action="{{ url_for('teacher.work_status', work_id=w.id) }}" data-confirm="{{ _('Перенести в архив? Ученики перестанут видеть работу.') }}">{{ ui.csrf() }}<input type="hidden" name="status" value="archived"><button class="icon-btn" style="width:36px;height:36px" title="{{ _('В архив') }}" aria-label="{{ _('В архив') }}">{{ ui.icon('archive', 16) }}</button></form>
+            {% elif w.status == 'archived' %}
+              <form method="post" action="{{ url_for('teacher.work_status', work_id=w.id) }}">{{ ui.csrf() }}<input type="hidden" name="status" value="published"><button class="btn btn--secondary btn--sm">{{ _("Вернуть") }}</button></form>
+            {% else %}
+              <form method="post" action="{{ url_for('teacher.work_delete', work_id=w.id) }}" data-confirm="{{ _('Удалить черновик?') }}">{{ ui.csrf() }}<button class="icon-btn" style="width:36px;height:36px" title="{{ _('Удалить') }}" aria-label="{{ _('Удалить') }}">{{ ui.icon('trash', 16) }}</button></form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty"><h3>{{ _("Здесь пусто") }}</h3><p>{{ _("Создайте сборник или домашнее задание.") }}</p></div>
+{% endif %}
+{% endblock %}

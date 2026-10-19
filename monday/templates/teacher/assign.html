@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Выдать задание") }}{% endblock %}
+{% block page_class %}page--narrow{% endblock %}
+{% block content %}
+<div class="page-head__text">
+  <h1>{{ _("Выдать задание") }}</h1>
+  <p>{{ _("Выберите работу, учеников и срок. Ученики увидят задание на странице «Домашка».") }}</p>
+</div>
+{% if not works %}
+<div class="empty"><h3>{{ _("Нет опубликованных работ") }}</h3><p>{{ _("Сначала создайте и опубликуйте домашнее задание.") }}</p><a class="btn btn--primary" href="{{ url_for('teacher.work_new', kind='homework') }}">{{ _("Создать") }}</a></div>
+{% else %}
+<form method="post" class="stack" style="gap:20px">
+  {{ ui.csrf() }}
+  <fieldset>
+    <legend>{{ _("1 · Работа") }}</legend>
+    <div class="field"><label for="work_id">{{ _("Работа") }}</label>
+      <select class="select" id="work_id" name="work_id" required>
+        {% for w in works %}<option value="{{ w.id }}" {{ 'selected' if selected_work == w.id }}>{{ w.title }} · {{ WORK_KINDS[w.kind] }} · {{ w.current_version.question_count }} {{ _("вопр.") }}</option>{% endfor %}
+      </select></div>
+    <div class="field"><label for="message">{{ _("Сообщение ученикам") }} <span class="muted" style="font-weight:400">{{ _("— необязательно") }}</span></label>
+      <textarea class="textarea" id="message" name="message" rows="2" placeholder="{{ _('Например: решения пишите в тетради, ответы — сюда') }}"></textarea></div>
+  </fieldset>
+  <fieldset>
+    <legend>{{ _("2 · Ученики") }}</legend>
+    {% if records %}
+    <div class="grid grid-2" style="gap:10px">
+      {% for r in records %}
+        <label class="check" style="padding:12px 14px;border:1px solid var(--line);border-radius:12px">
+          <input type="checkbox" name="record_ids" value="{{ r.id }}" {{ 'checked' if selected_record == r.id }}>
+          <span>{{ r.name }}{% if not r.student_user_id %} <span class="muted small" style="font-weight:400">· {{ _("не подключён") }}</span>{% endif %}</span>
+        </label>
+      {% endfor %}
+    </div>
+    {% else %}<p class="text-2">{{ _("Сначала добавьте учеников в таблицу.") }}</p>{% endif %}
+  </fieldset>
+  <fieldset>
+    <legend>{{ _("3 · Срок сдачи") }}</legend>
+    <div class="grid grid-2">
+      <div class="field"><label for="due_date">{{ _("Дата") }}</label><input class="input" type="date" id="due_date" name="due_date" value="{{ default_due }}"></div>
+      <div class="field"><label for="due_time">{{ _("Время") }}</label><input class="input" type="time" id="due_time" name="due_time" value="23:59"></div>
+    </div>
+  </fieldset>
+  <div class="row" style="justify-content:flex-end"><button class="btn btn--primary btn--lg" type="submit">{{ ui.icon('send', 18) }}{{ _("Выдать") }}</button></div>
+</form>
+{% endif %}
+{% endblock %}

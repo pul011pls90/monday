@@ -1,0 +1,219 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Админ") }}{% endblock %}
+{% block context %}{{ _("Администрирование") }}{% endblock %}
+{% block content %}
+{% set here = request.full_path %}
+{% macro qs(extra) -%}{{ url_for('admin.index', **dict(args.to_dict(), **extra)) }}{%- endmacro %}
+
+<div class="page-head">
+  <div class="page-head__text"><h1>{{ _("Администрирование") }}</h1>
+    <p>{{ _("Люди, заявки учителей, модерация вопросов и здоровье контента.") }}</p></div>
+</div>
+
+{# ------------------------------------------------------------ four numbers, each opens its list #}
+<div class="admin-stats">
+  <a class="card admin-stat" href="{{ url_for('admin.index', tab='students') }}">
+    <span class="admin-stat__ic">{{ ui.icon('users', 22) }}</span>
+    <span><b class="num">{{ counts.student }}</b><span>{{ _("учеников") }}</span></span></a>
+  <a class="card admin-stat" href="{{ url_for('admin.index', tab='teachers') }}">
+    <span class="admin-stat__ic">{{ ui.icon('works', 22) }}</span>
+    <span><b class="num">{{ counts.teacher }}</b><span>{{ _("учителей") }}</span></span></a>
+  <a class="card admin-stat{{ ' is-hot' if pending_teachers }}" href="{{ url_for('admin.index', tab='apps') }}">
+    <span class="admin-stat__ic">{{ ui.icon('inbox', 22) }}</span>
+    <span><b class="num">{{ pending_teachers|length }}</b><span>{{ _("заявок ждут") }}</span></span></a>
+  <a class="card admin-stat{{ ' is-hot' if pending_works }}" href="{{ url_for('admin.index', tab='moderation') }}">
+    <span class="admin-stat__ic">{{ ui.icon('works', 22) }}</span>
+    <span><b class="num">{{ pending_works|length }}</b><span>{{ _("тестов на проверке") }}</span></span></a>
+</div>
+
+{# ------------------------------------------------------------ tabs #}
+{% set tabs = [('overview', _('Обзор'), None, false), ('apps', _('Заявки'), pending_teachers|length, true),
+               ('moderation', _('Модерация'), pending_works|length + pending_questions, true), ('students', _('Ученики'), counts.student, false),
+               ('teachers', _('Учителя'), counts.teacher, false), ('assistants', _('Ассистенты'), counts.assistant, false),
+               ('admins', _('Админы'), counts.admin, false)] %}
+<nav class="admin-tabs" aria-label="{{ _('Разделы') }}">
+  {% for key, label, n, hot in tabs %}
+    <a href="{{ url_for('admin.index', tab=key) }}" class="{{ 'is-active' if tab == key }}" {{ 'aria-current=page' if tab == key }}>
+      {{ label }}{% if n is not none %}<span class="admin-tabs__n{{ ' is-hot' if hot and n }}">{{ n }}</span>{% endif %}</a>
+  {% endfor %}
+</nav>
+
+{% if tab == 'overview' %}
+  {# ============================================================ overview #}
+  <div class="admin-kpis">
+    <div class="card card--tight"><div class="stat-value num">{{ ov.signups_month }}</div><div class="stat-label">{{ _("регистраций за 30 дней") }}</div></div>
+    <div class="card card--tight"><div class="stat-value num">{{ ov.active_week }}</div><div class="stat-label">{{ _("активны за 7 дней") }}</div></div>
+    <div class="card card--tight"><div class="stat-value num">{{ ov.tests_week }} <small class="muted">/ {{ ov.tests_month }}</small></div><div class="stat-label">{{ _("тестов сдано: неделя / месяц") }}</div></div>
+    <div class="card card--tight"><div class="stat-value num">{{ ov.answers_week }}</div><div class="stat-label">{{ _("ответов за 7 дней") }}</div></div>
+  </div>
+
+  <div class="admin-two">
+    <section class="card" aria-labelledby="sg-h">
+      <div class="card__head"><h2 id="sg-h" style="font-size:18px">{{ _("Регистрации по дням") }}</h2><span class="small muted">{{ _("последние 30 дней") }}</span></div>
+      <div class="bars" role="img" aria-label="{{ _('Регистрации за 30 дней: всего %(n)s', n=ov.signups_month) }}">
+        {% for d in ov.series %}
+          <span class="bars__col" title="{{ d.day|d('d MMM') }} · {{ d.n }}"><i style="--h: {{ (100 * d.n / ov.peak)|round|int }}%"></i></span>
+        {% endfor %}
+      </div>
+      <div class="row row--between small muted"><span>{{ ov.series[0].day|d('d MMM') }}</span><span>{{ _("пик: %(n)s в день", n=ov.peak) }}</span><span>{{ ov.series[-1].day|d('d MMM') }}</span></div>
+    </section>
+
+    <section class="card" aria-labelledby="th-h">
+      <div class="card__head"><h2 id="th-h" style="font-size:18px">{{ _("Где мало вопросов") }}</h2>
+        <a class="small" style="font-weight:700" href="{{ url_for('teacher.tree') }}">{{ _("Карта тем") }} →</a></div>
+      <p class="small text-2">{{ _("Навыков, где для какого-то экзамена опубликовано меньше 3 вопросов: %(n)s. Число у экзамена — сколько вопросов уже есть.", n=ov.thin_total) }}</p>
+      <div class="chips">{% for ex, n in ov.thin_by_exam.most_common() %}<span class="tag tag--soft">{{ ex|exam_label }}: {{ n }} {{ n|plural_ru(_("навык"), _("навыка"), _("навыков")) }}</span>{% endfor %}</div>
+      <ul class="thin-list">
+        {% for t in ov.thin %}
+          <li><span class="thin-list__dots" aria-hidden="true" title="{{ _('меньше всего: %(n)s', n=t.least) }}">{% for i in range(3) %}<i class="{{ 'is-on' if i < t.least }}"></i>{% endfor %}</span>
+            <span class="thin-list__name">{{ t.node.name }}<span class="small muted"> · {{ t.node.topic }}</span></span>
+            <span class="thin-list__ex">{% for ex, c in t.gaps %}<span class="tag tag--line tag--xs" title="{{ _('опубликовано: %(n)s', n=c) }}">{{ ex|exam_label }} {{ c }}</span>{% endfor %}</span></li>
+        {% else %}<li class="text-2">{{ _("Везде хватает вопросов.") }}</li>{% endfor %}
+      </ul>
+    </section>
+  </div>
+
+{% elif tab == 'apps' %}
+  {# ============================================================ teacher applications #}
+  {% if pending_teachers %}
+  <div class="app-cards">
+    {% for u in pending_teachers %}
+      <article class="card app-card">
+        <div class="row" style="gap:14px">{{ ui.avatar(u, 'avatar--lg') }}
+          <div class="stack-sm" style="gap:2px;min-width:0"><b class="app-card__name">{{ u.name }}</b><span class="small muted">{{ u.email }}</span></div></div>
+        <div class="small text-2">{{ _("Заявка подана") }} {{ u.created_at|ago }}</div>
+        <form method="post" action="{{ url_for('admin.approve', user_id=u.id) }}" class="row" style="gap:8px">{{ ui.csrf() }}
+          <input type="hidden" name="next" value="{{ here }}">
+          <button class="btn btn--primary" name="decision" value="approve">{{ ui.icon('check', 16) }}{{ _("Принять") }}</button>
+          <button class="btn btn--secondary" name="decision" value="reject">{{ _("Отклонить") }}</button>
+        </form>
+      </article>
+    {% endfor %}
+  </div>
+  {% else %}
+    <div class="empty"><h3>{{ _("Новых заявок нет") }}</h3><p>{{ _("Когда учитель зарегистрируется, его заявка появится здесь.") }}</p></div>
+  {% endif %}
+
+{% elif tab == 'moderation' %}
+  {# ============================================================ big tests waiting for approval #}
+  <div class="card card--soft row row--between" style="flex-direction:row;align-items:center">
+    <span><b>{{ _("Вопросы ассистентов:") }} {{ pending_questions }}</b> <span class="small muted">{{ _("— проверяют админ и методисты") }}</span></span>
+    <a class="btn btn--primary btn--sm" href="{{ url_for('review.queue') }}">{{ _("Открыть очередь") }}{{ ui.icon('arrow-right', 16) }}</a>
+  </div>
+  <p class="text-2 small">{{ _("Учителя публикуют вопросы сразу. Сюда попадают большие сборники (от %(n)s вопросов) — их видят все ученики экзамена.", n=BIG_TEST_QUESTIONS) }}</p>
+  {% if pending_works %}
+  <div class="stack" style="gap:14px">{% for w in pending_works %}{% set v = w.current_version %}
+    <article class="card mod-card">
+      <div class="mod-card__body">
+        <div class="row" style="gap:8px">{{ ui.exam_tag(w.exam) }}<span class="tag tag--line">{{ TEST_FORMATS[w.format].label if w.format in TEST_FORMATS else w.format }}</span><span class="small muted">{{ w.author.name if w.author }} · {{ w.updated_at|ago }}</span></div>
+        <b class="mod-card__text">{{ w.title }}</b>
+        {% if w.description %}<p class="small text-2">{{ w.description }}</p>{% endif %}
+        <div class="small">{{ v.question_count if v else 0 }} {{ (v.question_count if v else 0)|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }} · {{ w.time_limit_min }} {{ _("мин") }}{% if w.calculator %} · {{ _("калькулятор") }}{% endif %}</div>
+        {% if v %}
+        <details class="mod-card__more"><summary class="small" style="font-weight:700;cursor:pointer">{{ _("Показать вопросы") }}</summary>
+          <ol class="mod-card__qs">{% for it in v.items %}<li><span class="math">{{ it.text or _('Задача с рисунком') }}</span>
+            <span class="small muted"> — {{ _("ответ:") }} {% if it.answer_type == 'choice' %}{{ LETTERS[it.correct|int] }}) <span class="math">{{ it.options[it.correct|int] }}</span>{% else %}{{ it.correct }}{% endif %}</span></li>{% endfor %}</ol>
+        </details>
+        {% endif %}
+      </div>
+      <form method="post" action="{{ url_for('admin.review_work', work_id=w.id) }}" class="stack-sm" style="gap:8px">{{ ui.csrf() }}
+        <button class="btn btn--primary btn--sm" name="decision" value="approve">{{ _("Опубликовать") }}</button>
+        <a class="btn btn--secondary btn--sm" href="{{ url_for('teacher.work_edit', work_id=w.id) }}">{{ _("Открыть") }}</a>
+        <button class="btn btn--ghost btn--sm" name="decision" value="reject">{{ _("Вернуть автору") }}</button>
+      </form>
+    </article>
+  {% endfor %}</div>
+  {% else %}
+    <div class="empty"><h3>{{ _("Очередь пуста") }}</h3><p>{{ _("Большие сборники учителей появятся здесь до публикации.") }}</p></div>
+  {% endif %}
+
+{% else %}
+  {# ============================================================ people: students / teachers / admins #}
+  <form method="get" class="people-bar" role="search">
+    <input type="hidden" name="tab" value="{{ tab }}">
+    <label class="search search--sm">{{ ui.icon('search', 18) }}<span class="sr-only">{{ _("Поиск") }}</span>
+      <input type="search" name="q" value="{{ args.get('q', '') }}" placeholder="{{ _('Имя или email') }}"></label>
+    {% if tab == 'students' %}
+      <label class="sr-only" for="f-exam">{{ _("Экзамен") }}</label>
+      <select class="select" id="f-exam" name="exam" data-autosubmit><option value="">{{ _("Все экзамены") }}</option>
+        {% for code, e in EXAMS.items() %}<option value="{{ code }}" {{ 'selected' if args.get('exam') == code }}>{{ e.label }}</option>{% endfor %}</select>
+      <label class="sr-only" for="f-teacher">{{ _("Учитель") }}</label>
+      <select class="select" id="f-teacher" name="teacher" data-autosubmit><option value="">{{ _("Любой учитель") }}</option>
+        {% for t in teachers_all %}<option value="{{ t.id }}" {{ 'selected' if args.get('teacher') == t.id|string }}>{{ t.name }}</option>{% endfor %}</select>
+    {% endif %}
+    <label class="sr-only" for="f-joined">{{ _("Дата регистрации") }}</label>
+    <select class="select" id="f-joined" name="joined" data-autosubmit>
+      <option value="">{{ _("За всё время") }}</option>
+      <option value="7" {{ 'selected' if args.get('joined') == '7' }}>{{ _("Новые за 7 дней") }}</option>
+      <option value="30" {{ 'selected' if args.get('joined') == '30' }}>{{ _("Новые за 30 дней") }}</option></select>
+    <button class="btn btn--primary btn--sm" type="submit">{{ _("Найти") }}</button>
+    <span class="people-bar__count small muted">{{ total }} {{ total|plural_ru(_("человек"), _("человека"), _("человек")) }}</span>
+  </form>
+
+  {% if users %}
+  <div class="people">
+    {% for u in users %}{% set ex = extra.get(u.id, {}) %}
+      <div class="people__row{{ ' is-blocked' if u.is_blocked }}">
+        <a class="people__who" href="{{ qs({'user': u.id}) }}" data-panel-link>
+          {{ ui.avatar(u) }}
+          <span class="people__name"><b>{{ u.name }}{% if u.id == current_user.id %} <span class="small muted">({{ _("вы") }})</span>{% endif %}</b><span class="small muted">{{ u.email }}</span></span>
+        </a>
+        <span class="people__info small">
+          {% if u.role == 'student' %}
+            {% if u.profile and u.profile.exam %}{{ ui.exam_tag(u.profile.exam) }}{% endif %}
+            <span class="muted">{{ ex.teachers|join(', ') if ex.teachers else _('без учителя') }}</span>
+          {% elif u.role == 'assistant' %}
+            <span>{{ _("за неделю %(w)s · всего %(t)s", w=ex.week, t=ex.total) }}</span>
+            {% if ex.approved_pct is not none %}<span class="t-score t-score--{{ 'green' if ex.approved_pct >= 80 else ('yellow' if ex.approved_pct >= 50 else 'red') }}">{{ ex.approved_pct }}% {{ _("одобрено") }}</span>{% endif %}
+            {% if ex.pending %}<span class="tag tag--warn tag--xs">{{ _("ждут: %(n)s", n=ex.pending) }}</span>{% endif %}
+          {% elif u.role == 'teacher' %}
+            {% if u.is_methodist %}<span class="tag tag--soft tag--xs">{{ _("методист") }}</span>{% endif %}
+            <span>{{ ex.students }} {{ ex.students|plural_ru(_("ученик"), _("ученика"), _("учеников")) }} · {{ ex.works }} {{ ex.works|plural_ru(_("работа"), _("работы"), _("работ")) }}</span>
+            {% if not u.is_approved %}<span class="tag tag--warn tag--xs">{{ _("ждёт подтверждения") }}</span>{% endif %}
+          {% endif %}
+        </span>
+        <span class="people__seen small muted" title="{{ _('Последняя активность') }}">{{ last[u.id]|ago }}</span>
+        <span class="people__state">{% if u.is_blocked %}<span class="tag tag--bad tag--xs">{{ _("заблокирован") }}</span>{% endif %}</span>
+        {% if u.id != current_user.id %}
+        <details class="menu">
+          <summary class="icon-btn icon-btn--sm" aria-label="{{ _('Действия: %(n)s', n=u.name) }}">⋯</summary>
+          <div class="menu__pop">
+            <a href="{{ qs({'user': u.id}) }}" data-panel-link>{{ _("Открыть карточку") }}</a>
+            {% for r, l in [('student', _('Сделать учеником')), ('teacher', _('Сделать учителем')), ('assistant', _('Сделать ассистентом')), ('admin', _('Сделать админом'))] if r != u.role %}
+              <form method="post" action="{{ url_for('admin.set_role', user_id=u.id) }}">{{ ui.csrf() }}<input type="hidden" name="next" value="{{ here }}">
+                <button name="role" value="{{ r }}">{{ l }}</button></form>
+            {% endfor %}
+            {% if u.role == 'teacher' %}
+            <form method="post" action="{{ url_for('admin.methodist', user_id=u.id) }}">{{ ui.csrf() }}<input type="hidden" name="next" value="{{ here }}">
+              <button name="on" value="{{ '' if u.is_methodist else '1' }}">{{ _("Снять роль методиста") if u.is_methodist else _("Назначить методистом") }}</button></form>
+            {% endif %}
+            <form method="post" action="{{ url_for('admin.block', user_id=u.id) }}">{{ ui.csrf() }}<input type="hidden" name="next" value="{{ here }}">
+              <button name="on" value="{{ '' if u.is_blocked else '1' }}" class="{{ '' if u.is_blocked else 'is-danger' }}">{{ _("Разблокировать") if u.is_blocked else _("Заблокировать") }}</button></form>
+          </div>
+        </details>
+        {% else %}<span></span>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+  {% if pages > 1 %}
+  <nav class="pager" aria-label="{{ _('Страницы') }}">
+    {% if page > 1 %}<a class="btn btn--secondary btn--sm" href="{{ qs({'page': page - 1}) }}">{{ ui.icon('arrow-left', 16) }}</a>{% endif %}
+    {% for p in range(1, pages + 1) %}{% if p == 1 or p == pages or (p - page)|abs <= 2 %}
+      <a class="pager__n{{ ' is-current' if p == page }}" href="{{ qs({'page': p}) }}">{{ p }}</a>
+    {% elif (p - page)|abs == 3 %}<span class="muted">…</span>{% endif %}{% endfor %}
+    {% if page < pages %}<a class="btn btn--secondary btn--sm" href="{{ qs({'page': page + 1}) }}">{{ ui.icon('arrow-right', 16) }}</a>{% endif %}
+  </nav>
+  {% endif %}
+  {% else %}
+    <div class="empty"><h3>{{ _("Никого не нашли") }}</h3><p>{{ _("Поменяй поиск или фильтры.") }}</p></div>
+  {% endif %}
+{% endif %}
+
+{# ------------------------------------------------------------ person card (slides in from the right) #}
+<aside class="drawer drawer--panel" data-person-panel {{ 'hidden' if not panel }} aria-label="{{ _('Карточка пользователя') }}">
+  <div class="drawer__head"><h2>{{ _("Карточка") }}</h2>
+    <a class="icon-btn icon-btn--sm" href="{{ qs({'user': ''}) }}" data-panel-close aria-label="{{ _('Закрыть') }}">{{ ui.icon('x', 16) }}</a></div>
+  <div class="drawer__body" data-panel-body>{% if panel %}{% include "admin/_panel_body.html" %}{% endif %}</div>
+</aside>
+{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/admin.js') }}"></script>{% endblock %}

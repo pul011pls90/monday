@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Проверка вопросов") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text"><h1>{{ _("Проверка вопросов") }}</h1>
+    <p>{{ _("Вопросы ассистентов ждут здесь. Клавиши: J / K — следующий / предыдущий, A — одобрить, E — изменить, R — вернуть с комментарием.") }}</p></div>
+  {% if rows %}
+  <form method="post" action="{{ url_for('review.approve_all') }}">{{ ui.csrf() }}{% for q in rows %}<input type="hidden" name="qid" value="{{ q.id }}">{% endfor %}
+    <button class="btn btn--secondary" type="submit" data-confirm="{{ _('Одобрить все %(n)s вопросов на странице?', n=rows|length) }}">{{ _("Одобрить все на странице") }}</button></form>
+  {% endif %}
+</div>
+<div class="chips">
+  <a class="chip{{ ' is-active' if not author }}" href="{{ url_for('review.queue') }}">{{ _("Все") }} <span class="chip__count">{{ total }}</span></a>
+  {% for uid, n in authors.most_common() %}<a class="chip{{ ' is-active' if author == uid }}" href="{{ url_for('review.queue', author=uid) }}">{{ people[uid].name if uid in people else '—' }} <span class="chip__count">{{ n }}</span></a>{% endfor %}
+</div>
+{% if rows %}
+<div class="stack" style="gap:14px" data-review>
+  {% for q in rows %}{% set it = q.snapshot() %}
+    <article class="card rv-card" id="q{{ q.id }}" tabindex="-1" data-rv>
+      <div class="rv-card__meta small">
+        <span>{{ people[q.author_id].name if q.author_id in people else '' }}</span>
+        <span class="muted">· {{ q.skill.path if q.skill }} · {{ DIFFICULTIES[q.difficulty or 2] }} · {{ q.exams|map('exam_label')|join(', ') }} · {{ q.created_at|ago }}</span>
+        {% if dups.get(loop.index0) %}<span class="tag tag--warn tag--xs">{{ _("похоже на #%(n)s в банке", n=dups[loop.index0].id) }}</span>{% endif %}
+      </div>
+      <div class="rv-card__body">{{ ui.question_body(it, 'rv' ~ q.id, reveal=true, disabled=true) }}
+        {% if it.explanation %}<div class="small text-2 math"><b>{{ _("Разбор:") }}</b> {{ it.explanation }}</div>{% endif %}</div>
+      <form method="post" action="{{ url_for('review.decide', qid=q.id, author=author) }}" class="rv-card__actions">
+        {{ ui.csrf() }}
+        <button class="btn btn--primary btn--sm" name="decision" value="approve" data-rv-approve>{{ ui.icon('check', 16) }}{{ _("Одобрить") }} <kbd>A</kbd></button>
+        <a class="btn btn--secondary btn--sm" href="{{ url_for('teacher.question_edit', question_id=q.id, back='review') }}" data-rv-edit>{{ ui.icon('edit', 16) }}{{ _("Изменить") }} <kbd>E</kbd></a>
+        <input class="input rv-card__note" name="note" placeholder="{{ _('Что исправить? (для возврата)') }}" data-rv-note>
+        <button class="btn btn--ghost btn--sm" name="decision" value="return">{{ _("Вернуть") }} <kbd>R</kbd></button>
+      </form>
+    </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty"><h3>{{ _("Очередь пуста") }}</h3><p>{{ _("Когда ассистенты загрузят вопросы, они появятся здесь.") }}</p></div>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/importer.js') }}"></script>{% endblock %}

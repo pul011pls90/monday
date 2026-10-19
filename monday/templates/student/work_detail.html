@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block title %}{{ work.title }}{% endblock %}
+{% block page_class %}page--narrow{% endblock %}
+{% block content %}
+{% set v = work.current_version %}
+<a href="{{ url_for('student.collections') }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Все сборники") }}</a>
+<section class="card" style="gap:20px">
+  <div class="row">{{ ui.exam_tag(work.exam) }}<span class="tag tag--line">{{ WORK_CATEGORIES[work.category] }}</span>{% if v.number > 1 %}<span class="tag tag--soft">{{ _("версия %(n)s", n=v.number) }}</span>{% endif %}</div>
+  <h1>{{ work.title }}</h1>
+  <div class="author">{{ ui.avatar(work.author, 'avatar--sm') }}{{ work.author.name }}</div>
+  {% if work.description %}<p class="text-2" style="font-size:16px">{{ work.description }}</p>{% endif %}
+  <div class="grid grid-3">
+    <div><div class="stat-value">{{ v.time_limit_min|minutes }}</div><div class="stat-label">{{ _("ограничение по времени") }}</div></div>
+    <div><div class="stat-value">{{ v.question_count }}</div><div class="stat-label">{{ v.question_count|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}</div></div>
+    <div><div class="stat-value">{{ attempts|selectattr('finished_at')|list|length }}</div><div class="stat-label">{{ _("твоих попыток") }}</div></div>
+  </div>
+  <div class="card card--soft card--tight small">{{ _("Таймер запустится сразу. Ответы можно менять до конца. Когда время выйдет, тест сдастся автоматически.") }}</div>
+  {% set open = attempts|rejectattr('finished_at')|first %}
+  {% if open %}
+    <a class="btn btn--primary btn--lg" href="{{ url_for('student.attempt_run', attempt_id=open.id) }}">{{ _("Продолжить попытку") }}</a>
+  {% else %}
+    <form method="post" action="{{ url_for('student.start_work', work_id=work.id) }}">{{ ui.csrf() }}<button class="btn btn--primary btn--lg" type="submit">{{ _("Начать тест") }}</button></form>
+  {% endif %}
+</section>
+
+{% set done = attempts|selectattr('finished_at')|list %}
+{% if done %}
+<section class="section">
+  <h2>{{ _("Твои попытки") }}</h2>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>{{ _("Дата") }}</th><th>{{ _("Результат") }}</th><th>{{ _("Время") }}</th><th></th></tr></thead>
+    <tbody>{% for a in done %}
+      <tr><td>{{ a.finished_at|dt }}</td><td class="t-strong num">{{ a.score }} / {{ a.total }} · {{ a.percent }}%</td><td class="num">{{ a.duration_sec|duration }}</td>
+      <td style="text-align:right"><a href="{{ url_for('student.attempt_result', attempt_id=a.id) }}">{{ _("Разбор") }}</a></td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+</section>
+{% endif %}
+{% endblock %}

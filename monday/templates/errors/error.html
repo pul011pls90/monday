@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ code }}{% endblock %}
+{% block body %}
+<main class="page page--narrow" style="margin:0 auto;min-height:100vh;justify-content:center;align-items:flex-start">
+  <div class="hero__number" style="color:var(--accent)">{{ code }}</div>
+  <h1 style="font-size:30px">{{ message }}</h1>
+  <a class="btn btn--primary" href="{{ url_for('auth.index') }}">{{ _("На главную") }}</a>
+</main>
+{% endblock %}

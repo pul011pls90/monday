@@ -1,0 +1,58 @@
+{# The question picker. Include with: exam (code), mode ('editor' | 'bank'), exam_field (optional id of an exam <select> to follow). #}
+{% set chip_labels = [
+  ('tag', 'status', _('Тип задачи'), [('word', _('Задача с текстом')), ('graph', _('График / таблица')), ('nocalc', _('Без калькулятора')), ('compare', _('Сравнение'))]),
+  ('d', 'bars', _('Сложность'), [('1', _('Лёгкий')), ('2', _('Средний')), ('3', _('Сложный'))]),
+  ('t', 'filter', _('Тип ответа'), [('choice', _('Варианты')), ('number', _('Ввод ответа'))]),
+  ('m', 'image', _('Материал'), [('with', _('С рисунком')), ('without', _('Только текст'))]),
+  ('src', 'users', _('Автор'), [('mine', _('Мои')), ('others', _('Учителя')), ('monday', _('Команда Monday'))]),
+  ('used', 'works', _('Использование'), [('no', _('Ещё не брал')), ('yes', _('Уже в моих работах'))]),
+] %}
+<div class="pk" data-picker data-url="{{ url_for('picker.results') }}" data-random="{{ url_for('picker.pick_random') }}" data-plan="{{ url_for('picker.plan') }}"
+     data-mode="{{ mode }}" data-exam="{{ exam }}" {% if exam_field %}data-exam-field="{{ exam_field }}"{% endif %}>
+  <div class="pk-bar">
+    {% if not exam_field %}
+      <label class="sr-only" for="pk-exam">{{ _("Экзамен") }}</label>
+      <select class="select" id="pk-exam" data-pk-exam style="width:auto">{% for code, e in EXAMS.items() %}<option value="{{ code }}" {{ 'selected' if code == exam }}>{{ e.label }}</option>{% endfor %}</select>
+    {% endif %}
+    <label class="search search--sm pk-bar__search">{{ ui.icon('search', 18) }}<span class="sr-only">{{ _("Поиск") }}</span>
+      <input type="search" data-pk-q placeholder="{{ _('Поиск по тексту вопроса') }}" autocomplete="off"></label>
+    <label class="sr-only" for="pk-sort">{{ _("Сортировка") }}</label>
+    <select class="select" id="pk-sort" data-pk-sort style="width:auto">
+      <option value="tree">{{ _("По карте тем") }}</option><option value="new">{{ _("Сначала новые") }}</option>
+      <option value="hard">{{ _("Сначала трудные") }}</option><option value="used">{{ _("Самые используемые") }}</option></select>
+    <button type="button" class="btn btn--ghost btn--sm" data-pk-reset hidden>{{ ui.icon('reset', 16) }}{{ _("Сбросить") }}</button>
+  </div>
+  <div class="bank-filters pk-filters">
+    {% for key, ic, title, opts in chip_labels %}
+      <fieldset class="bank-filter pk-filter--{{ key }}">
+        <legend>{{ ui.icon(ic, 16) }}{{ title }}</legend>
+        <div class="bank-filter__chips">
+          {% for val, label in opts %}<label class="bank-chip"><input type="checkbox" data-pk-f="{{ key }}" value="{{ val }}"><span>{{ label }}</span></label>{% endfor %}
+        </div>
+      </fieldset>
+    {% endfor %}
+  </div>
+  <div class="pk-body">
+    <nav class="pk-tree" data-pk-tree aria-label="{{ _('Темы') }}"><p class="small muted" style="padding:10px">{{ _("Загружаем…") }}</p></nav>
+    <div class="pk-main">
+      <div class="pk-quick">
+        <button type="button" class="btn btn--secondary btn--sm" data-pk-random>{{ ui.icon('plus', 16) }}<span data-pk-random-label data-all="{{ _('5 случайных из всех тем') }}" data-node="{{ _('5 случайных из отмеченных тем') }}">{{ _("5 случайных из всех тем") }}</span></button>
+        <details class="pk-plan">
+          <summary class="btn btn--secondary btn--sm">{{ ui.icon('bars', 16) }}{{ _("Собрать по плану") }}</summary>
+          <div class="pk-plan__pop">
+            <p class="small text-2">{{ _("Из каждого раздела экзамена (для SAT — из каждого домена) возьмём по N вопросов в нужной пропорции сложности. Потом любые можно заменить.") }}</p>
+            <div class="row" style="gap:10px;flex-wrap:wrap">
+              <label class="field" style="width:90px"><span class="label">{{ _("Из темы") }}</span><input class="input" type="number" min="1" max="10" value="2" data-plan-per></label>
+              <label class="field" style="width:80px"><span class="label">{{ _("Лёгких") }}</span><input class="input" type="number" min="0" max="10" value="1" data-plan-e></label>
+              <label class="field" style="width:80px"><span class="label">{{ _("Средних") }}</span><input class="input" type="number" min="0" max="10" value="2" data-plan-m></label>
+              <label class="field" style="width:80px"><span class="label">{{ _("Сложных") }}</span><input class="input" type="number" min="0" max="10" value="1" data-plan-h></label>
+            </div>
+            <button type="button" class="btn btn--primary btn--sm" data-pk-plan-go>{{ _("Подобрать") }}</button>
+          </div>
+        </details>
+        <span class="small muted" data-pk-flash aria-live="polite"></span>
+      </div>
+      <div class="pk-list" data-pk-list></div>
+    </div>
+  </div>
+</div>

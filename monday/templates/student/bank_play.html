@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ _("Банк вопросов") }} · {{ i + 1 }}{% endblock %}
+{% block body_class %}test-body bank-body{% endblock %}
+{% block body %}
+{% set node = question.skill %}
+{% with close_url=url_for('bank.index', exam=exam), label=_('Банк вопросов') ~ ((' · ' ~ node.topic) if node and node.topic else ''),
+        dot_color=None, steps=None, counter=None, timer_seconds=None %}
+  {% include "partials/session_bar.html" %}
+{% endwith %}
+
+{# ------------------------------------------------------------ tools: explanation, details, timer, formulas, calculator #}
+<div class="test-tools bank-tools" data-calc-top>
+  <div class="row" style="gap:8px">
+    <button type="button" class="btn btn--secondary btn--sm" data-explain-open {{ 'disabled' if not (state and state.attempts) }}>{{ ui.icon('bulb', 16) }}{{ _("Объяснение") }}</button>
+    <div class="bank-meta">
+      <button type="button" class="btn btn--secondary btn--sm" data-meta-toggle aria-expanded="false">{{ ui.icon('info', 16) }}{{ _("Детали") }}</button>
+      <div class="bank-meta__pop" data-meta-pop hidden>
+        <dl class="kv small">
+          {% if node %}<dt>{{ _("Тема") }}</dt><dd>{{ node.topic }}</dd>
+          <dt>{{ _("Подтема") }}</dt><dd>{{ node.subtopic }}</dd>
+          <dt>{{ _("Навык") }}</dt><dd>{{ node.name }}</dd>{% endif %}
+          <dt>{{ _("Сложность") }}</dt><dd>{{ DIFFICULTIES[question.difficulty or 2] }}</dd>
+          <dt>{{ _("Тип ответа") }}</dt><dd>{{ _("Ввод ответа") if question.answer_type == 'number' else _("Варианты") }}</dd>
+          <dt>{{ _("Автор") }}</dt><dd>{{ question.author.name if question.author else '—' }}</dd>
+          <dt>{{ _("Время на вопрос") }}</dt><dd class="num">{{ (state.seconds // 60) if state else 0 }} {{ _("мин") }}</dd>
+          <dt>ID</dt><dd class="num">{{ question.id }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <span class="bank-timer" aria-label="{{ _('Время на этом вопросе') }}">{{ ui.icon('timer', 18) }}<span class="num" data-qtimer>00:00</span></span>
+  <div class="row" style="gap:8px">
+    <button type="button" class="btn btn--secondary btn--sm" data-drawer-open="ref">{{ ui.icon('journal', 16) }}{{ _("Формулы") }}</button>
+    {% if calculator %}<button type="button" class="btn btn--secondary btn--sm" data-calc-open aria-pressed="false">{{ ui.icon('calculator', 16) }}{{ _("Калькулятор") }}</button>{% endif %}
+  </div>
+</div>
+
+<main class="page test-page bank-page calc-shift" style="margin:0 auto;max-width:1040px">
+  {{ ui.flashes() }}
+  <form id="bank-form" class="q-screen is-paged" data-bank-play data-elim-scope data-elim-host data-elim-key="q{{ question.id }}"
+        data-i="{{ i }}" data-question="{{ question.id }}" data-answer-type="{{ question.answer_type }}"
+        data-check="{{ url_for('bank.check', attempt_id=att.id) }}" data-reveal="{{ url_for('bank.reveal', attempt_id=att.id) }}"
+        data-mark-url="{{ url_for('bank.mark') }}" data-time-url="{{ url_for('bank.time_spent') }}"
+        data-correct-label="{{ _('Верно!') }}" data-wrong-label="{{ _('Неверно. Попробуй ещё раз или открой объяснение.') }}"
+        data-answer-label="{{ _('Верный ответ:') }}" data-video-label="{{ _('Видео учителя') }}"
+        data-empty-label="{{ _('Выберите или введите ответ.') }}"
+        {% if state and state.attempts and state.last_correct %}data-solved{% endif %}>
+    {{ ui.csrf() }}
+    <div class="q-head">
+      <span class="q-head__num">{{ i + 1 }}</span>
+      <button type="button" class="q-head__btn" data-bank-mark aria-pressed="{{ 'true' if state and state.marked else 'false' }}">{{ ui.icon('bookmark', 16) }}<span>{{ _("Отметить для проверки") }}</span></button>
+      {% if question.answer_type != 'number' %}<button type="button" class="q-head__btn" data-elim-toggle aria-pressed="false">{{ ui.icon('ban', 16) }}<span>{{ _("Исключить") }}</span></button>{% endif %}
+      <span class="q-head__btn q-head__btn--static" title="{{ _('Сколько раз ты проверял ответ') }}">{{ ui.icon('retry', 16) }}<span>{{ _("Попытки") }}</span><b class="q-head__badge num" data-attempts>{{ state.attempts if state else 0 }}</b></span>
+      {% if (question.weight or 1) > 1 %}<span class="tag tag--line tag--xs" style="margin-left:auto;margin-right:10px">{{ question.weight }} {{ question.weight|plural_ru(_("балл"), _("балла"), _("баллов")) }}</span>{% endif %}
+    </div>
+    <div class="q-card q-card--test q-card--flat">
+      {{ ui.question_body(item, 'given', selected=state.last_given if state and state.attempts and state.last_correct else None, letters=letters) }}
+    </div>
+    <div class="feedback" data-feedback hidden aria-live="polite"></div>
+    <section class="explain" data-explain hidden aria-labelledby="expl-h">
+      <h2 id="expl-h" class="eyebrow" style="color:var(--accent)">{{ _("Объяснение") }}</h2>
+      <p class="small" data-explain-answer></p>
+      <div class="explain__text math" data-explain-text></div>
+      <a class="row small" style="gap:8px;font-weight:600" data-explain-video hidden target="_blank" rel="noopener">{{ ui.icon('video', 18) }}{{ _("Видео учителя") }}</a>
+    </section>
+  </form>
+</main>
+
+<div class="test-foot bank-foot" data-calc-bottom>
+  {% if i > 0 %}<a class="btn btn--secondary" href="{{ url_for('bank.play', attempt_id=att.id, i=i-1) }}" data-prev-link>{{ ui.icon('arrow-left', 18) }}{{ _("Назад") }}</a>
+  {% else %}<span class="btn btn--secondary" aria-disabled="true" style="opacity:.45">{{ ui.icon('arrow-left', 18) }}{{ _("Назад") }}</span>{% endif %}
+  <div class="test-foot__mid bank-foot__mid">
+    <span class="bank-foot__progress small">{{ ui.icon('check', 14) }}{{ _("Проверено в сессии:") }} <b class="num" data-checked>{{ checked }}</b> {{ _("из") }} {{ n }}</span>
+    <button type="button" class="btn btn--ghost test-foot__counter" data-grid-toggle aria-expanded="false">{{ _("Вопрос %(k)s из %(n)s", k=i + 1, n=n) }} ▾</button>
+    <div class="q-grid-pop" data-grid-pop hidden>
+      <div class="q-grid">
+        {% for g in grid %}<a href="{{ url_for('bank.play', attempt_id=att.id, i=g.n - 1) }}" class="{{ g.state }}{{ ' is-marked' if g.marked }}{{ ' is-current' if g.n == i + 1 }}">{{ g.n }}</a>{% endfor %}
+      </div>
+      <div class="q-grid__legend small muted"><span><i class="lg is-ok"></i>{{ _("верно") }}</span><span><i class="lg is-bad"></i>{{ _("неверно") }}</span><span><i class="lg"></i>{{ _("не решён") }}</span><span><i class="lg is-marked"></i>{{ _("на проверку") }}</span></div>
+    </div>
+  </div>
+  <div class="row" style="gap:10px">
+    <button type="submit" form="bank-form" class="btn btn--primary" data-check-btn>{{ ui.icon('check', 18) }}{{ _("Проверить") }}</button>
+    {% if i + 1 < n %}<a class="btn btn--secondary" href="{{ url_for('bank.play', attempt_id=att.id, i=i+1) }}" data-next-link>{{ _("Далее") }}{{ ui.icon('arrow-right', 18) }}</a>
+    {% else %}<a class="btn btn--secondary" href="{{ url_for('bank.index', exam=exam) }}">{{ _("Завершить") }}</a>{% endif %}
+  </div>
+</div>
+
+{% include "partials/tool_panes.html" %}
+{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/test.js') }}"></script><script defer src="{{ url_for('static', filename='js/bank.js') }}"></script>{% endblock %}

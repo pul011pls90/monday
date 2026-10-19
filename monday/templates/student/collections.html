@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Сборники") }}{% endblock %}
+{% block content %}
+<header class="page-head__text">
+  <h1>{{ _("Сборники") }}</h1>
+  <p>{{ _("Пробные варианты и тематические тесты от учителей Monday.") }}</p>
+</header>
+
+<form method="get" class="stack" style="gap:14px" role="search">
+  <div class="row" style="gap:12px;flex-wrap:wrap">
+    <label class="search" style="flex:1 1 360px">
+      {{ ui.icon('search', 20) }}
+      <span class="sr-only">{{ _("Поиск сборника") }}</span>
+      <input type="search" name="q" value="{{ q }}" placeholder="{{ _('Название, экзамен, тема или автор') }}">
+    </label>
+    <label class="row" style="gap:10px;font-size:14px;font-weight:600">{{ _("Сортировка") }}
+      <select class="select" name="sort" data-autosubmit style="width:auto;min-height:52px">
+        <option value="new" {{ 'selected' if sort == 'new' }}>{{ _("Сначала новые") }}</option>
+        <option value="popular" {{ 'selected' if sort == 'popular' }}>{{ _("Популярные") }}</option>
+        <option value="short" {{ 'selected' if sort == 'short' }}>{{ _("Короткие") }}</option>
+      </select>
+    </label>
+  </div>
+  <input type="hidden" name="exam" value="{{ exam_filter }}"><input type="hidden" name="cat" value="{{ cat }}">
+  <div class="chips" role="group" aria-label="{{ _('Фильтры') }}">
+    <a class="chip{{ ' is-active' if not exam_filter }}" href="{{ url_for('student.collections', q=q, cat=cat, sort=sort) }}">{{ _("Все") }}</a>
+    {% for code, e in EXAMS.items() %}
+      <a class="chip{{ ' is-active' if exam_filter == code }}" href="{{ url_for('student.collections', exam=code, q=q, cat=cat, sort=sort) }}">{{ e.label }}</a>
+    {% endfor %}
+    <span class="chips__sep"></span>
+    {% for key, label in WORK_CATEGORIES.items() %}
+      <a class="chip{{ ' is-active' if cat == key }}" href="{{ url_for('student.collections', exam=exam_filter, q=q, cat=('' if cat == key else key), sort=sort) }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+</form>
+
+{% if recommended %}
+<section class="section" aria-labelledby="rec-h">
+  <div class="section__head">
+    <h2 id="rec-h">{{ _("Рекомендуем тебе") }}</h2>
+    <span class="small muted">{{ _("По твоему экзамену и слабым темам") }}</span>
+  </div>
+  <div class="grid grid-4">
+    {% for w in recommended %}{{ ui.work_card(w, url_for('student.work_detail', work_id=w.id), _("Начать тест"), badge=(_("Твоя слабая тема") if w.weak_match else None)) }}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="section" aria-labelledby="all-h">
+  <div class="section__head">
+    <h2 id="all-h">{{ _("Все сборники") if not (q or exam_filter or cat) else _("Результаты") }}</h2>
+    <span class="small muted">{{ works|length }} {{ works|length|plural_ru(_("сборник"), _("сборника"), _("сборников")) }}</span>
+  </div>
+  {% if works %}
+  <div class="grid grid-4">
+    {% for w in works %}{{ ui.work_card(w, url_for('student.work_detail', work_id=w.id), _("Начать тест")) }}{% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">
+    <h3>{{ _("Ничего не нашлось") }}</h3>
+    <p>{{ _("Измените запрос или сбросьте фильтры.") }}</p>
+    <a class="btn btn--secondary" href="{{ url_for('student.collections') }}">{{ _("Сбросить") }}</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,27 @@
+{# Exam view tree for the picker: tick any level (several at once), counts follow the filters, empty skills are greyed. #}
+<button type="button" class="pk-tree__item pk-tree__all{{ ' is-active' if not keys }}" data-pk-clear>{{ _("Все темы") }}<span class="num">{{ total_pool if not keys else '' }}</span></button>
+{% for sec in view %}{% set sc = tree_counts.get(sec.key, 0) %}
+  <div class="pk-tree__topic{{ ' is-open' if sec.groups|map(attribute='skills')|sum(start=[])|selectattr('key', 'in', keys)|list or sec.groups|selectattr('key', 'in', keys)|list }}" data-pk-sec="{{ sec.key }}">
+    <div class="pk-tree__head">
+      <button type="button" class="pk-tree__caret" data-pk-toggle aria-label="{{ _('Раскрыть') }}">›</button>
+      <label class="pk-tree__row pk-tree__t{{ ' is-zero' if not sc }}">
+        <input type="checkbox" data-pk-key value="{{ sec.key }}" {{ 'checked' if sec.key in keys }}>
+        <span class="pk-tree__name">{{ sec.name }}{% if sec.en %}<small>{{ sec.en }}</small>{% endif %}</span><span class="num">{{ sc }}</span>
+      </label>
+    </div>
+    <div class="pk-tree__kids">
+    {% for g in sec.groups %}
+      {% if g.key %}{% set gc = tree_counts.get(g.key, 0) %}
+        <label class="pk-tree__row pk-tree__s{{ ' is-zero' if not gc }}"><input type="checkbox" data-pk-key value="{{ g.key }}" {{ 'checked' if g.key in keys }}>
+          <span class="pk-tree__name">{{ g.name }}</span><span class="num">{{ gc }}</span></label>
+      {% endif %}
+      {% for sk in g.skills %}{% set kc = tree_counts.get(sk.key, 0) %}
+        <label class="pk-tree__row {{ 'pk-tree__n' if g.key else 'pk-tree__s' }}{{ ' is-zero' if not kc }}" {% if sk.en %}title="{{ sk.en }}"{% endif %}>
+          <input type="checkbox" data-pk-key value="{{ sk.key }}" {{ 'checked' if sk.key in keys }}>
+          <span class="pk-tree__name">{{ sk.name }}{% if sk.own %} <span class="tag tag--soft tag--xs">{{ _("моё") }}</span>{% endif %}</span><span class="num">{{ kc }}</span>
+        </label>
+      {% endfor %}
+    {% endfor %}
+    </div>
+  </div>
+{% endfor %}

@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Аккаунт") }}{% endblock %}
+{% block page_class %}page--narrow{% endblock %}
+{% block content %}
+{% with subtitle=_('администратор') if current_user.is_admin else _('учитель') %}{% include "partials/profile_head.html" %}{% endwith %}
+<div class="grid grid-4">
+  <div class="card card--tight"><div class="stat-value">{{ stats.students }}</div><div class="stat-label">{{ _("учеников в таблице") }}</div></div>
+  <div class="card card--tight"><div class="stat-value">{{ stats.linked }}</div><div class="stat-label">{{ _("подключили аккаунт") }}</div></div>
+  <div class="card card--tight"><div class="stat-value">{{ stats.questions }}</div><div class="stat-label">{{ _("вопросов в банке") }}</div></div>
+  <div class="card card--tight"><div class="stat-value">{{ stats.works }}</div><div class="stat-label">{{ _("опубликованных работ") }}</div></div>
+</div>
+{% if not current_user.is_admin %}
+<div class="card card--soft card--tight">{{ _("Одобрено вопросов: %(n)s из %(t)s. После %(t)s вопросы публикуются без проверки.", n=stats.questions, t=threshold) }}</div>
+{% endif %}
+<form method="post" class="card">
+  {{ ui.csrf() }}<input type="hidden" name="action" value="profile">
+  <h2>{{ _("Настройки") }}</h2>
+  <div class="grid grid-2">
+    <div class="field"><label for="name">{{ _("Имя и фамилия") }}</label><input class="input" id="name" name="name" value="{{ current_user.name }}"></div>
+    <div class="field"><label for="language">{{ _("Язык интерфейса") }}</label>
+      <select class="select" id="language" name="language">{% for code, label in LANGUAGES.items() %}<option value="{{ code }}" {{ 'selected' if current_user.language == code }}>{{ label }}</option>{% endfor %}</select></div>
+  </div>
+  <div><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></div>
+</form>
+<form method="post" class="card">
+  {{ ui.csrf() }}<input type="hidden" name="action" value="password">
+  <h2>{{ _("Пароль") }}</h2>
+  <div class="grid grid-2">
+    <div class="field"><label for="current">{{ _("Текущий пароль") }}</label><input class="input" type="password" id="current" name="current" autocomplete="current-password" required></div>
+    <div class="field"><label for="new">{{ _("Новый пароль") }}</label><input class="input" type="password" id="new" name="new" autocomplete="new-password" minlength="8" required></div>
+  </div>
+  <div><button class="btn btn--secondary" type="submit">{{ _("Изменить пароль") }}</button></div>
+</form>
+<form method="post" action="{{ url_for('auth.logout') }}">{{ ui.csrf() }}<button class="btn btn--danger" type="submit">{{ ui.icon('logout', 18) }}{{ _("Выйти") }}</button></form>
+{% endblock %}

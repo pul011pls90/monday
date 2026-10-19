@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Ученики") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Ученики") }}</h1>
+    <p>{{ _("Ваша таблица учеников. Подключённые аккаунты обновляют прогресс автоматически.") }}</p>
+  </div>
+  <a class="btn btn--primary" href="#add">{{ ui.icon('plus', 18) }}{{ _("Добавить ученика") }}</a>
+</div>
+
+<form method="get" class="row" role="search">
+  <label class="search search--sm" style="flex:1 1 280px;max-width:420px">{{ ui.icon('search', 18) }}<span class="sr-only">{{ _("Поиск") }}</span>
+    <input type="search" name="q" value="{{ q }}" placeholder="{{ _('Имя или класс') }}"></label>
+  <input type="hidden" name="sort" value="{{ sort }}">
+</form>
+
+{% if rows %}
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        {% for key, label in [('name', _('Имя')), ('grade', _('Класс')), ('time', _('Урок')), ('progress', _('Прогресс'))] %}
+          <th><a href="{{ url_for('teacher.students', sort=key, q=q) }}" class="{{ 'is-active' if sort == key }}">{{ label }}{{ ' ↓' if sort == key }}</a></th>
+        {% endfor %}
+        <th>{{ _("Цель") }}</th>
+        <th>{{ _("Аккаунт") }}</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}{% set r = row.r %}
+      <tr>
+        <td><a href="{{ url_for('teacher.student_detail', record_id=r.id) }}" class="t-strong" style="color:inherit">{{ r.name }}</a></td>
+        <td>{{ r.grade or '—' }}</td>
+        <td class="num">{% if r.lesson_time %}<b>{{ r.lesson_time }}</b> <span class="muted small">{% for d in r.lesson_days or [] %}{{ WEEKDAYS[d] }}{{ ', ' if not loop.last }}{% endfor %}</span>{% else %}—{% endif %}</td>
+        <td style="min-width:160px"><div class="row" style="flex-wrap:nowrap">{{ ui.progress(row.progress) }}<span class="num small">{{ row.progress }}%</span></div></td>
+        <td>{{ r.goal_label or '—' }}</td>
+        <td>{% if r.student_user_id %}<span class="state state--checked">{{ _("подключён") }}</span>{% else %}<span class="code">{{ r.invite_code }}</span>{% endif %}</td>
+        <td style="text-align:right"><a href="{{ url_for('teacher.student_detail', record_id=r.id) }}">{{ _("Открыть") }}</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty"><h3>{{ _("В таблице пока никого") }}</h3><p>{{ _("Добавьте ученика ниже — он получит код для подключения.") }}</p></div>
+{% endif %}
+
+<form method="post" action="{{ url_for('teacher.student_new') }}" id="add">
+  {{ ui.csrf() }}
+  <fieldset>
+    <legend>{{ _("Новый ученик") }}</legend>
+    {% with r=None, prefix='n-' %}{% include "teacher/_record_form.html" %}{% endwith %}
+    <div class="row row--between">
+      <p class="small muted">{{ _("После сохранения появится код MND-XXXX и ссылка — отправьте их ученику в WhatsApp или Telegram.") }}</p>
+      <button class="btn btn--primary" type="submit">{{ _("Добавить") }}</button>
+    </div>
+  </fieldset>
+</form>
+{% endblock %}

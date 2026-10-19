@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ mode.name }}{% endblock %}
+{% set item = question.snapshot()|loc %}
+{% block body_class %}{{ 'has-figure-question' if item.image_path or item.material }}{% endblock %}
+{% block body %}
+{% set steps = [] %}
+{% for i in range(att.plan|length) %}
+  {% set a = att.answers|selectattr('index', 'equalto', i)|first %}
+  {% if a %}{% set _d = steps.append('is-done' if a.is_correct else 'is-wrong') %}
+  {% elif i == idx %}{% set _d = steps.append('is-current') %}
+  {% else %}{% set _d = steps.append('') %}{% endif %}
+{% endfor %}
+{% with close_url=url_for("student.sessions"), label=mode.name ~ " · ~" ~ mode.approx ~ " " ~ _("мин"), dot_color=None,
+        counter=_("Вопрос %(n)s из %(t)s", n=idx+1, t=att.plan|length), timer_seconds=None %}
+  {% include "partials/session_bar.html" %}
+{% endwith %}
+
+<main class="page" style="margin:0 auto;max-width:1040px" data-ajax-region>
+  {{ ui.flashes() }}
+  <div class="chips">
+    {% if question.skill %}<span class="tag tag--line">{{ question.skill.name }}</span>{% endif %}
+    <span class="tag tag--line">{{ DIFFICULTIES[question.difficulty] }}</span>
+    {% if question.skill and question.skill.subtopic %}<span class="tag tag--line">{{ question.skill.topic }} · {{ question.skill.subtopic }}</span>{% endif %}
+  </div>
+
+  <div class="rotate-hint flash flash--info">{{ ui.icon('rotate', 18) }} {{ _("Поверни телефон — рисунок и ответы поместятся рядом.") }}</div>
+
+  <form method="post" class="stack" style="gap:24px" data-ajax>
+    {{ ui.csrf() }}
+    <section class="q-card">
+      {{ ui.question_body(item, 'given', selected=answer.given if answer else None, reveal=answer is not none, disabled=answer is not none) }}
+    </section>
+
+    {% if mode_key == 'feynman' and not answer %}
+    <div class="field">
+      <label for="explanation_text">{{ _("Объясни решение своими словами") }}</label>
+      <textarea class="textarea" id="explanation_text" name="explanation_text" placeholder="{{ _('Как ты рассуждал? Какое свойство применил?') }}"></textarea>
+      <span class="field__hint">{{ _("Объяснение сохранится. Позже его проверит ИИ-наставник и подскажет, где пробел.") }}</span>
+    </div>
+    {% endif %}
+
+    {% if not answer %}
+      <div class="row" style="justify-content:flex-end">
+        <button class="btn btn--primary btn--lg" type="submit" name="action" value="answer">{{ _("Проверить") }}</button>
+      </div>
+    {% endif %}
+  </form>
+
+  {% if answer %}
+    <div class="feedback {{ 'feedback--ok' if answer.is_correct else 'feedback--bad' }}">
+      {{ ui.icon('check' if answer.is_correct else 'x', 22) }}
+      {{ _("Верно!") if answer.is_correct else _("Не совсем. Верный ответ:") }}
+      {% if not answer.is_correct %}<span class="math" style="color:var(--text)">{{ ui.correct_text(item) }}</span>{% endif %}
+    </div>
+    <section class="explain" aria-labelledby="expl-h">
+      <h2 id="expl-h" class="eyebrow" style="color:var(--accent)">{{ _("Объяснение") }}</h2>
+      <div class="explain__text math">{{ item.explanation or _("Учитель не добавил объяснение.") }}</div>
+      <div class="row" style="gap:20px">
+        {% if item.video_url %}<a class="row" style="gap:8px;font-weight:600" href="{{ item.video_url }}" target="_blank" rel="noopener">{{ ui.icon('video', 18) }}{{ _("Видео учителя") }}</a>{% endif %}
+        <span class="row muted small" style="gap:8px" title="{{ _('Скоро') }}">{{ ui.icon('camera', 18) }}{{ _("Проверка черновика по фото — скоро") }}</span>
+      </div>
+    </section>
+
+    {% if not answer.is_correct %}
+    <form method="post" class="card card--tight" data-ajax>
+      {{ ui.csrf() }}<input type="hidden" name="action" value="reason">
+      <div class="row row--between">
+        <label for="reason" class="label">{{ _("Почему ошибка? Это попадёт в журнал.") }}</label>
+        <select class="select" id="reason" name="reason" data-autosubmit style="width:auto;min-height:44px">
+          <option value="">{{ _("Не знаю") }}</option>
+          {% for k, v in MISTAKE_REASONS.items() %}<option value="{{ k }}" {{ 'selected' if answer.mistake_reason == k }}>{{ v }}</option>{% endfor %}
+        </select>
+      </div>
+      <noscript><button class="btn btn--secondary btn--sm" type="submit">{{ _("Сохранить") }}</button></noscript>
+    </form>
+    {% endif %}
+
+    <form method="post" class="row" style="justify-content:space-between" data-ajax>
+      {{ ui.csrf() }}
+      <a class="btn btn--secondary" href="{{ url_for('student.journal') }}">{{ _("Открыть журнал") }}</a>
+      <button class="btn btn--primary btn--lg" type="submit" name="action" value="next">
+        {{ _("Следующий вопрос") if idx + 1 < att.plan|length else _("Завершить сессию") }} {{ ui.icon('arrow-right', 18) }}
+      </button>
+    </form>
+  {% endif %}
+</main>
+{% endblock %}

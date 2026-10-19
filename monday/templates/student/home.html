@@ -1,0 +1,165 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Главная") }}{% endblock %}
+{% block topbar_extra %}
+  <a class="icon-btn" href="{{ url_for('student.homework') }}" aria-label="{{ _('Домашние задания') }}">{{ ui.icon('bell') }}{% if assignments %}<span class="dot-badge"></span>{% endif %}</a>
+{% endblock %}
+{% block content %}
+
+{# ------------------------------------------------------------ hero: countdown, goal ring, Monday strip #}
+<section class="hero hero--home" data-hero aria-label="{{ _('Обратный отсчёт') }}">
+  <canvas class="hero__canvas" data-hero-dots aria-hidden="true"></canvas>
+  <div class="home-hero">
+    <div class="home-hero__count">
+      <div class="eyebrow">{{ _("Привет, %(name)s", name=current_user.first_name) }}</div>
+      {% if mondays is not none %}
+        <div class="hero__count">
+          <span class="hero__number">{{ mondays }}</span>
+          <span class="hero__unit">{{ mondays|plural_ru(_("понедельник"), _("понедельника"), _("понедельников")) }}
+            <span class="home-hero__line">{{ _("до экзамена. Этот — твой.") }}</span></span>
+        </div>
+        <div class="hero-muted">{{ p.exam|exam_label }} · {{ p.exam_date|d("d MMMM y") }}</div>
+      {% else %}
+        <div class="hero__unit" style="margin:12px 0">{{ _("Укажи дату экзамена — и начнём отсчёт") }}</div>
+        <a class="hero-muted" href="{{ url_for('student.profile') }}">{{ _("Открыть профиль") }}</a>
+      {% endif %}
+    </div>
+
+    {% set goal = p.goal_score or 0 %}
+    {{ ui.dot_ring(summary.predicted, (summary.predicted / goal) if goal else 0,
+                   _("прогноз") ~ ('<br>'|safe ~ _("цель") ~ ' ' ~ goal if goal else ''),
+                   _('Прогноз %(p)s, цель %(g)s', p=summary.predicted, g=goal or '—')) }}
+  </div>
+
+  {# one dot per Monday: past ones carry your Monday-test score, the rest are still ahead #}
+  <div class="home-strip" aria-label="{{ _('Понедельники до экзамена') }}">
+    {% for d in strip %}
+      <span class="home-strip__dot is-{{ d.state }}{{ ' has-score' if d.score is not none }}"
+            title="{{ d.date|d('d MMM') }}{% if d.score is not none %} · {{ _('тест понедельника') }} {{ d.score }}%{% elif d.state == 'now' %} · {{ _('эта неделя') }}{% endif %}"
+            {% if d.score is not none %}style="--s: {{ (0.45 + d.score / 180)|round(2) }}"{% endif %}></span>
+    {% endfor %}
+    <span class="home-strip__end">{{ _("экзамен") }}</span>
+  </div>
+</section>
+
+{# ------------------------------------------------------------ questions of the day: a slim card; the questions open on their own screen #}
+{% if daily['items'] %}{% set n = daily['items']|length %}{% set left = n - daily.done %}
+<a class="card daily-card{{ ' is-done' if not left }}" href="{{ url_for('daily.play') }}" aria-labelledby="daily-h">
+  <span class="daily-card__icon" aria-hidden="true">{{ ui.icon('bulb', 24) }}</span>
+  <span class="daily-card__text">
+    <span class="eyebrow" style="color:var(--accent)">{{ _("Вопросы дня") }}</span>
+    <b id="daily-h" class="daily-card__title">
+      {% if not left %}{{ _("Готово на сегодня — посмотри разбор") }}
+      {% elif daily.auto %}{{ _("Monday подобрал вопрос на сегодня") }}
+      {% else %}{{ _("%(t)s выбрал %(n)s %(w)s на сегодня", t=daily.authors|join(', '), n=n, w=n|plural_ru(_("вопрос"), _("вопроса"), _("вопросов"))) }}{% endif %}
+    </b>
+    <span class="small muted">{% if left %}{{ _("Один ответ, сразу разбор · ~%(m)s мин", m=2 * left) }}{% else %}{{ _("Верно: %(ok)s из %(n)s", ok=daily['items']|selectattr('answer')|map(attribute='answer')|selectattr('is_correct')|list|length, n=n) }}{% endif %}</span>
+  </span>
+  <span class="daily-card__dots" aria-label="{{ _('Отвечено %(a)s из %(n)s', a=daily.done, n=n) }}">
+    {% for it in daily['items'] %}<i class="{{ ('is-ok' if it.answer.is_correct else 'is-bad') if it.answer }}"></i>{% endfor %}
+  </span>
+  <span class="daily-card__streak small" title="{{ _('Дней подряд с ответом на вопрос дня') }}">{{ _("Серия:") }} <b class="num">{{ daily.streak }}</b></span>
+  <span class="btn {{ 'btn--primary' if left else 'btn--secondary' }} daily-card__go">{{ _("Начать") if left == n else (_("Продолжить") if left else _("Разбор")) }}{{ ui.icon('arrow-right', 18) }}</span>
+</a>
+{% endif %}
+
+{# ------------------------------------------------------------ today's task + skill portrait #}
+<div class="home-row">
+  <section class="card home-task" aria-labelledby="task-h">
+    <div class="eyebrow">{{ _("Задача на сегодня") }}</div>
+    {% if task %}
+      <h2 id="task-h" class="home-task__title">{{ task.skill.name }}</h2>
+      <p class="text-2">
+        {% if task.why == 'weak' %}{{ _("Точность %(a)s%% — здесь больше всего баллов до цели. Пять задач, около пяти минут.", a=task.accuracy) }}
+        {% else %}{{ _("Новая тема на твоём маршруте. Начни с пяти задач — займёт минут пять.") }}{% endif %}
+      </p>
+      <div class="home-task__path small muted">{{ task.skill.topic }} → {{ task.skill.subtopic }}</div>
+      <form method="post" action="{{ url_for('student.start_session', mode='franklin') }}">
+        {{ ui.csrf() }}<input type="hidden" name="skill_id" value="{{ task.skill.id }}">
+        <button class="btn btn--primary btn--lg" type="submit">{{ _("Начать · ~5 мин") }} {{ ui.icon('arrow-right', 18) }}</button>
+      </form>
+    {% else %}
+      <h2 id="task-h" class="home-task__title">{{ _("Всё освоено") }}</h2>
+      <p class="text-2">{{ _("Возьми полный вариант в Сборниках и проверь себя на время.") }}</p>
+      <a class="btn btn--primary btn--lg" href="{{ url_for('student.collections') }}">{{ _("К сборникам") }}</a>
+    {% endif %}
+  </section>
+
+  <a class="card home-portrait" href="{{ url_for('student.skills') }}" aria-labelledby="portrait-h">
+    <div class="card__head"><h2 id="portrait-h" style="font-size:18px">{{ _("Ты в точках") }}</h2><span class="small muted">{{ summary.mastered }} / {{ summary.total }}</span></div>
+    <div class="portrait">
+      {% for t in portrait %}
+        {% set inroute = t["items"]|rejectattr('state', 'equalto', 'outside')|list %}
+        {% if inroute %}
+        <div class="portrait__group">
+          <div class="portrait__dots">
+            {% for i in inroute %}
+              {% set acc = i.accuracy if i.accuracy is not none else 0 %}
+              <span class="portrait__dot is-{{ i.state }}" style="--a: {{ acc|round(2) }}" title="{{ i.skill.name }}{% if i.accuracy is not none %} · {{ (acc * 100)|round|int }}%{% endif %}"></span>
+            {% endfor %}
+          </div>
+          <div class="portrait__label">{{ t.name }}</div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+    <div class="portrait__legend small muted">
+      <span><i class="portrait__dot is-mastered"></i>{{ _("освоено") }}</span>
+      <span><i class="portrait__dot is-progress" style="--a:.5"></i>{{ _("в процессе") }}</span>
+      <span><i class="portrait__dot is-new"></i>{{ _("новое") }}</span>
+    </div>
+  </a>
+</div>
+
+{# ------------------------------------------------------------ time cards, each with a fact of the day #}
+<section class="section" aria-labelledby="time-h">
+  <div class="section__head"><h2 id="time-h">{{ _("Сколько у тебя времени?") }}</h2><span class="small muted">{{ _("Факты меняются каждый день") }}</span></div>
+  {{ ui.time_cards(facts) }}
+</section>
+
+{# ------------------------------------------------------------ homework + Monday test #}
+<div class="grid grid-2">
+  <section class="card" aria-labelledby="hw-h">
+    <div class="card__head">
+      <h2 id="hw-h" style="font-size:20px">{{ _("Домашние задания") }}</h2>
+      <a href="{{ url_for('student.homework') }}" class="small" style="font-weight:600">{{ _("Все задания") }}</a>
+    </div>
+    {% if assignments %}
+    <div class="stack" style="gap:0">
+      {% for a in assignments %}
+        <a href="{{ url_for('student.homework_detail', assignment_id=a.id) }}" class="row row--between" style="text-decoration:none;color:inherit;padding:12px 0;border-top:1px solid var(--line)">
+          <span class="stack-sm" style="gap:2px"><b>{{ a.work.title }}</b><span class="small muted">{{ a.teacher.name }}{% if a.due_at %} · {{ _("до") }} {{ a.due_at|dt }}{% endif %}</span></span>
+          {{ ui.icon('arrow-right', 18) }}
+        </a>
+      {% endfor %}
+    </div>
+    {% else %}
+      <p class="text-2">{{ _("Новых заданий нет. Можно спокойно взять сессию выше.") }}</p>
+    {% endif %}
+  </section>
+
+  <section class="card" aria-labelledby="mt-h">
+    <div class="eyebrow" style="color:var(--accent)">{{ _("Ритуал недели") }}</div>
+    <h2 id="mt-h" style="font-size:20px">{{ _("Тест понедельника") }}</h2>
+    <p class="text-2">{{ _("Понедельник, 19:00 · 20 минут · одинаковые задачи для всех на треке %(exam)s", exam=p.exam|exam_label) }}</p>
+    <div class="row" style="gap:28px">
+      <div><div class="stat-value num">{% if monday_countdown %}{{ _("%(d)s д %(h)s ч", d=monday_countdown[0], h=monday_countdown[1]) }}{% else %}{{ _("Идёт") }}{% endif %}</div><div class="stat-label">{{ _("до старта") }}</div></div>
+      <div><div class="stat-value">{{ '#' ~ my_place if my_place else '—' }}</div><div class="stat-label">{{ _("твоё место в прошлый раз") }}</div></div>
+    </div>
+    <a href="{{ url_for('student.monday') }}" class="btn btn--primary" style="align-self:flex-start">{{ _("Подробнее") }}</a>
+  </section>
+</div>
+
+<section class="card" style="flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap">
+  <div class="stack-sm" style="gap:4px">
+    <h2 style="font-size:18px">{{ _("Лабораторный журнал") }}</h2>
+    {% if week_mistakes %}
+      <p class="text-2">{{ _("На этой неделе %(c)s из %(n)s ошибок — невнимательность, а не незнание темы.", c=breakdown.get('careless', 0), n=week_mistakes) }}</p>
+    {% else %}
+      <p class="text-2">{{ _("На этой неделе ошибок пока нет.") }}</p>
+    {% endif %}
+  </div>
+  <a href="{{ url_for('student.journal') }}" style="font-weight:700">{{ _("Открыть журнал") }} →</a>
+</section>
+{% endblock %}
+
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/hero.js') }}"></script>{% endblock %}
