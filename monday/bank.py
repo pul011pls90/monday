@@ -15,7 +15,7 @@ from .access import student_required
 from .constants import EXAMS, FORMAT_FOR_EXAM, TEST_FORMATS
 from .extensions import db
 from .models import Attempt, AttemptAnswer, BankState, Question, ReferenceSheet
-from .services import content_tree, is_correct
+from .services import content_tree, display_answer, is_correct
 from .content_i18n import localize
 from .taxonomy import exam_view, keyset
 
@@ -230,7 +230,7 @@ def _answer_payload(question, letters):
     L = letters or "АБВГДЕЖЗ"
     item = localize(question.snapshot())
     if question.answer_type == "number":
-        correct_text = question.correct
+        correct_text = display_answer(question.correct)
     else:
         k = int(question.correct)
         correct_text = f"{L[k]}) {(item.get('options') or [''])[k]}"

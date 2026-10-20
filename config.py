@@ -60,6 +60,11 @@ class Config:
     # Set MONDAY_TEST_ALWAYS_OPEN=0 to enforce the Monday 19:00–24:00 window.
     MONDAY_TEST_ALWAYS_OPEN = os.environ.get("MONDAY_TEST_ALWAYS_OPEN", "1") == "1"
 
+    # Content packs shipped in monday/data/packs/ (e.g. the Princeton Review SAT practice tests) are imported
+    # into a database that doesn't have them yet. PUBLISH_PACKS=0 imports them as drafts for review instead.
+    IMPORT_PACKS = os.environ.get("IMPORT_PACKS", "1") == "1"
+    PUBLISH_PACKS = os.environ.get("PUBLISH_PACKS", "1") == "1"
+
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     REMEMBER_COOKIE_HTTPONLY = True

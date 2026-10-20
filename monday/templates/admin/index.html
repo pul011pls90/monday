@@ -112,7 +112,7 @@
         {% if v %}
         <details class="mod-card__more"><summary class="small" style="font-weight:700;cursor:pointer">{{ _("Показать вопросы") }}</summary>
           <ol class="mod-card__qs">{% for it in v.items %}<li><span class="math">{{ it.text or _('Задача с рисунком') }}</span>
-            <span class="small muted"> — {{ _("ответ:") }} {% if it.answer_type == 'choice' %}{{ LETTERS[it.correct|int] }}) <span class="math">{{ it.options[it.correct|int] }}</span>{% else %}{{ it.correct }}{% endif %}</span></li>{% endfor %}</ol>
+            <span class="small muted"> — {{ _("ответ:") }} {% if it.answer_type == 'choice' %}{{ LETTERS[it.correct|int] }}) <span class="math">{{ it.options[it.correct|int] }}</span>{% else %}{{ it.correct|answer }}{% endif %}</span></li>{% endfor %}</ol>
         </details>
         {% endif %}
       </div>

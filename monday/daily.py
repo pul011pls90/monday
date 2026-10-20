@@ -17,7 +17,7 @@ from .access import student_required
 from .extensions import db
 from .models import (DAILY_MAX, Attempt, AttemptAnswer, DailyAnswer, DailyPick, Question, StudentRecord, utcnow)
 from .content_i18n import localize
-from .services import is_correct, teacher_ids_for
+from .services import display_answer, is_correct, teacher_ids_for
 
 bp = Blueprint("daily", __name__, url_prefix="/daily")
 LATIN = "ABCDEFGH"
@@ -143,7 +143,7 @@ def answer(pick_id):
     exam = current_user.profile.exam if current_user.profile else None
     L = LATIN if exam in ("SAT", "CSCA") else CYR
     item = localize(q.snapshot())
-    correct_text = q.correct if q.answer_type == "number" else f"{L[int(q.correct)]}) {(item.get('options') or [''])[int(q.correct)]}"
+    correct_text = display_answer(q.correct) if q.answer_type == "number" else f"{L[int(q.correct)]}) {(item.get('options') or [''])[int(q.correct)]}"
     return jsonify(ok=ok, correct=q.correct, correct_text=correct_text,
                    explanation=item.get("explanation") or _("Учитель не добавил объяснение."), rate=_rate(pick),
                    streak=streak(current_user.id))

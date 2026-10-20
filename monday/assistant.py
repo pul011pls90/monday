@@ -19,7 +19,7 @@ from .constants import EXAMS
 from .extensions import db
 from .importer import find_duplicates, guess_skill, parse, problems
 from .models import INPUT_FORMATS, Question, User, utcnow
-from .services import content_tree, parse_number
+from .services import content_tree, valid_number_answer
 
 bp = Blueprint("assistant", __name__, url_prefix="/assistant")
 review_bp = Blueprint("review", __name__, url_prefix="/review")
@@ -118,7 +118,7 @@ def import_save():
             problems_.append(_("не выбран экзамен"))
         if atype == "choice" and (len(options) < 2 or not correct.isdigit() or int(correct) >= len(options)):
             problems_.append(_("нужно ≥ 2 вариантов и отмеченный верный"))
-        if atype == "number" and parse_number(correct)[0] is None:
+        if atype == "number" and not valid_number_answer(correct):
             problems_.append(_("ответ должен быть числом"))
         if problems_:
             errors.append(f"№{label}: " + ", ".join(problems_))

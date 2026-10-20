@@ -103,6 +103,32 @@ def parse_number(value):
         return None, None
 
 
+def accepted_answers(correct):
+    """A free-input answer may list several accepted values: "7|-7" or "-5/9|-0.555|-0.556"."""
+    return [a.strip() for a in str(correct or "").split("|") if a.strip()]
+
+
+def display_answer(correct, joiner=None):
+    """Accepted answers for people to read: "7|-7" -> "7 или -7"; decimal roundings of a value already shown are hidden."""
+    shown, values = [], []
+    for a in accepted_answers(correct):
+        v, _ = parse_number(a)
+        if v is not None and any(abs(v - w) < Fraction(1, 1000) for w in values):
+            continue
+        shown.append(a)
+        if v is not None:
+            values.append(v)
+    if joiner is None:
+        from flask_babel import gettext
+        joiner = " " + gettext("или") + " "
+    return joiner.join(shown) if shown else str(correct or "")
+
+
+def valid_number_answer(correct):
+    answers = accepted_answers(correct)
+    return bool(answers) and all(parse_number(a)[0] is not None for a in answers)
+
+
 def normalize_number(value):
     v, _ = parse_number(value)
     return None if v is None else float(v)
@@ -127,18 +153,22 @@ def is_correct(item, given):
         return False
     if answer_type == "number":
         a, fmt = parse_number(given)
-        b, _ = parse_number(correct)
-        if a is None or b is None:
+        if a is None:
             return False
         allowed = _get(item, "input_formats") or list(INPUT_FORMATS)
         if fmt not in allowed and not (fmt == "whole" and ("fraction" in allowed or "decimal" in allowed)):
             return False
-        if a == b:
-            return True
         precision = _get(item, "precision")
-        if precision:
-            step = Fraction(1, 10 ** int(precision))
-            return abs(a - b) <= step / 2 + Fraction(1, 10 ** 9)
+        for value in accepted_answers(correct):
+            b, _ = parse_number(value)
+            if b is None:
+                continue
+            if a == b:
+                return True
+            if precision:
+                step = Fraction(1, 10 ** int(precision))
+                if abs(a - b) <= step / 2 + Fraction(1, 10 ** 9):
+                    return True
         return False
     return str(given).strip() == str(correct).strip()
 

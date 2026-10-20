@@ -67,6 +67,24 @@ translations/          language catalogs (ky, kk, uz, tg, en)
 tests/test_app.py      end-to-end tests
 ```
 
+## Content packs
+
+Ready-made questions live in `monday/data/packs/` (one JSON file + a folder of figures per pack). On start-up
+the app imports every pack the database doesn't have yet (once), so a fresh database — locally or on Render —
+always gets them. Set `IMPORT_PACKS=0` to switch this off, or `PUBLISH_PACKS=0` to import as drafts for review.
+
+```bash
+flask --app app import-pack                      # import any pack that isn't in the database yet
+flask --app app import-pack princeton_dsat_2025 --draft
+```
+
+`princeton_dsat_2025` — the Math part of both practice tests from *The Princeton Review Digital SAT Premium
+Prep 2025* (Reading & Writing skipped): 132 questions with answers, explanations, skills and figures, and four
+SAT collections (Module 1 + Module 2 Easier / Harder, 22 + 22 questions, 32 min per module). Questions marked
+`adapted` in the JSON had blank choices or a missing graph in the ebook and were rebuilt — check them first.
+
+A free-input answer may list several accepted values separated by `|` (e.g. `7|-7`, or `-5/9|-0.555|-0.556`).
+
 ## Pages
 
 **Student:** login/registration (with invite code) → exam choice → Home (Mondays left,
