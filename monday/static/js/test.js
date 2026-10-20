@@ -182,7 +182,7 @@
     return fetch(form.dataset.autosave, { method: "POST", body, headers: { "X-CSRFToken": csrf }, credentials: "same-origin" }).catch(() => {});
   };
   const answered = (idx) => $$(`[name="q${idx}"]`, form).some((f) => (f.type === "radio" ? f.checked : f.value.trim() !== ""));
-  const key = (k) => `monday-${form.dataset.attempt}-${k}`;
+  const key = (k) => `monday-${form.dataset.attempt}-m${form.dataset.start}-${k}`;   // per module: module 2 starts at its own first question
 
   /* homework: can't be handed in with no answers; asks once when some are left empty */
   if (form.hasAttribute("data-require-answer")) {
