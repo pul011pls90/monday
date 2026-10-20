@@ -489,7 +489,8 @@ def attempt_result(attempt_id):
         return redirect(url_for("student.attempt_run", attempt_id=att.id))
     items = att.work_version.items if att.work_version else []
     rows = [{"item": items[a.index] if a.index < len(items) else None, "answer": a} for a in att.answers]
-    return render_template("student/result.html", att=att, rows=rows)
+    layout = version_layout(att.work_version) if att.work_version else None
+    return render_template("student/result.html", att=att, rows=rows, layout=layout)
 
 
 # --------------------------------------------------------------------------- homework
