@@ -578,7 +578,7 @@
     prev.disabled = cur === 0;
     next.disabled = cur === screens.length - 1;
     cells.forEach((c) => c.classList.toggle("is-current", parseInt(c.dataset.rvGo, 10) === cur));
-    history.replaceState(null, "", `#q${cur + 1}`);
+    if (scroll) history.replaceState(null, "", `#q${cur + 1}`);   // only once the student moves (or opened a #qN link)
     if (window.MondayRenderMath) window.MondayRenderMath(screens[cur]);
     screens[cur].querySelectorAll(".rv-explain, .rv-question").forEach((col) => (col.scrollTop = 0));
     fit();
@@ -605,6 +605,7 @@
   });
   const m = location.hash.match(/^#q(\d+)$/);
   show(m ? parseInt(m[1], 10) - 1 : 0, !!m);
+  if (!m) window.scrollTo(0, 0);   // fresh from the test: start at the score, the review is right below
   // maths and pictures above change the page height once they load — settle the card again
   if (m) window.addEventListener("load", () => setTimeout(() => { fit(); toCard(); }, 50));
 })();
