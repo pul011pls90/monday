@@ -555,16 +555,66 @@ def journal():
     base = (AttemptAnswer.query.join(Attempt)
             .filter(Attempt.user_id == current_user.id, AttemptAnswer.is_correct.is_(False),
                     Attempt.finished_at.isnot(None)))
+    days_shown = max(7, min(365, request.args.get("days", 14, type=int)))
     entries = base.filter(AttemptAnswer.resolved.is_(show == "resolved")).order_by(
-        AttemptAnswer.answered_at.desc()).limit(60).all()
+        AttemptAnswer.answered_at.desc()).limit(1500).all()
     open_count = base.filter(AttemptAnswer.resolved.is_(False)).count()
     resolved_count = base.filter(AttemptAnswer.resolved.is_(True)).count()
     since = utcnow() - timedelta(days=7)
     breakdown = mistake_breakdown(current_user.id, since)
-    rows = [{"answer": e, "item": answer_item(e)} for e in entries]
-    return render_template("student/journal.html", rows=rows, show=show, open_count=open_count,
-                           resolved_count=resolved_count, breakdown=breakdown,
+    days, more = journal_days(entries, days_shown)
+    return render_template("student/journal.html", days=days, more=more, days_shown=days_shown, show=show, today_d=local_today(),
+                           open_count=open_count, resolved_count=resolved_count, breakdown=breakdown,
                            week_total=sum(breakdown.values()))
+
+
+def journal_days(entries, limit_days):
+    """Mistakes grouped like a diary: day → practice/test → entries, with the day's topics on top."""
+    from .models import local_date as to_local
+    days, order = {}, []
+    for e in entries:
+        d = to_local(e.answered_at)
+        if d not in days:
+            if len(order) == limit_days:
+                return [days[k] for k in order], True
+            days[d] = {"date": d, "groups": {}, "group_order": [], "topics": defaultdict(int), "total": 0}
+            order.append(d)
+        day = days[d]
+        day["total"] += 1
+        day["topics"][e.skill.name if e.skill else _("Задача")] += 1
+        g = day["groups"].get(e.attempt_id)
+        if g is None:
+            att = e.attempt
+            if att.mode in MODES:
+                title, kind = MODES[att.mode]["name"], _("Сессия")
+            else:
+                from .constants import WORK_KINDS
+                title = att.work_version.title if att.work_version else _("Работа")
+                kind = WORK_KINDS.get(att.mode) or _("Сборник")
+            layout = version_layout(att.work_version) if att.work_version else None
+            g = {"attempt": att, "title": title, "kind": kind, "rows": [], "topics": defaultdict(int),
+                 "modules": (layout or {}).get("modules") or [],
+                 "letters": "ABCDEFGH" if (layout or {}).get("format") in ("sat", "csca") else None}
+            day["groups"][e.attempt_id] = g
+            day["group_order"].append(e.attempt_id)
+        mods = g["modules"]
+        label = _("Вопрос %(n)s", n=e.index + 1)
+        if len(mods) > 1:
+            for k, m in enumerate(mods, 1):
+                if m["start"] <= e.index < m["end"]:
+                    label = _("Модуль %(k)s", k=k) + " · " + _("Вопрос %(n)s", n=e.index - m["start"] + 1)
+        g["rows"].append({"answer": e, "item": answer_item(e), "label": label})
+        g["topics"][e.skill.name if e.skill else _("Задача")] += 1
+    out = []
+    for k in order:
+        day = days[k]
+        day["topics"] = sorted(day["topics"].items(), key=lambda t: -t[1])
+        day["groups"] = [days[k]["groups"][g] for g in day["group_order"]]
+        for g in day["groups"]:
+            g["topics"] = sorted(g["topics"].items(), key=lambda t: -t[1])
+            g["rows"].sort(key=lambda r: r["answer"].index)   # in question order
+        out.append(day)
+    return out, False
 
 
 @bp.route("/journal/<int:answer_id>", methods=["POST"])

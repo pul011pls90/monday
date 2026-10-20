@@ -43,44 +43,74 @@
       <a class="chip{{ ' is-active' if show == 'resolved' }}" href="{{ url_for('student.journal', show='resolved') }}">{{ _("Разобранные") }} <span class="chip__count">{{ resolved_count }}</span></a>
     </div>
   </div>
-  {% if rows %}
-  <div class="list">
-    {% for row in rows %}{% set e = row.answer %}{% set item = row.item|loc %}
-      <div class="list__row" id="e{{ e.id }}" style="grid-template-columns:minmax(0,2fr) minmax(0,1.3fr) minmax(0,1.2fr) auto">
-        <div class="stack-sm" style="gap:2px">
-          <span class="list__title">{{ e.skill.name if e.skill else _("Задача") }}</span>
-          <span class="small" style="color:var(--accent)">{{ e.answered_at|d("EEE, d MMM") }} · {{ MODES[e.attempt.mode].name if e.attempt.mode in MODES else (WORK_KINDS.get(e.attempt.mode) or e.attempt.work_version.title) }}</span>
+  {% if days %}
+  <div class="jr-days">
+  {% for day in days %}
+    {% set delta = (today_d - day.date).days %}
+    <section class="jr-day card">
+      <header class="jr-day__head">
+        <div>
+          <h3 class="jr-day__title">{% if delta == 0 %}{{ _("Сегодня") }}{% elif delta == 1 %}{{ _("Вчера") }}{% else %}{{ day.date|d("EEEE")|capitalize }}{% endif %}
+            <span class="jr-day__date">{{ day.date|d("d MMMM") }}</span></h3>
+          <p class="small text-2">{{ day.total }} {{ day.total|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }} · {{ day.groups|length }} {{ day.groups|length|plural_ru(_("работа"), _("работы"), _("работ")) }}</p>
         </div>
-        <div class="small">
-          {% if item %}{{ _("Ответ") }} <s class="muted">{{ ui.answer_text(item, e.given) }}</s> → <b>{{ ui.correct_text(item) }}</b>{% endif %}
+        <div class="jr-topics">
+          {% for name, n in day.topics[:6] %}<span class="tag tag--soft">{{ name }}{% if n > 1 %} <b>×{{ n }}</b>{% endif %}</span>{% endfor %}
+          {% if day.topics|length > 6 %}<span class="tag tag--line">+{{ day.topics|length - 6 }}</span>{% endif %}
         </div>
-        <form method="post" action="{{ url_for('student.journal_update', answer_id=e.id) }}">
-          {{ ui.csrf() }}<input type="hidden" name="show" value="{{ show }}">
-          <label class="sr-only" for="r{{ e.id }}">{{ _("Причина") }}</label>
-          <select class="select" id="r{{ e.id }}" name="reason" data-autosubmit style="min-height:40px;font-size:13px">
-            <option value="">{{ _("Причина?") }}</option>
-            {% for k, v in MISTAKE_REASONS.items() %}<option value="{{ k }}" {{ 'selected' if e.mistake_reason == k }}>{{ v }}</option>{% endfor %}
-          </select>
-        </form>
-        <details class="disclosure">
-          <summary>{{ _("Разобрать") if show == 'open' else _("Открыть") }}</summary>
-          <div class="stack" style="gap:10px;max-width:520px">
-            {% if item %}
-              {% if item.image_path %}<img src="{{ url_for('uploaded_file', filename=item.image_path) }}" alt="" style="max-width:240px;background:#fff;border-radius:8px" data-lightbox>{% endif %}
-              {{ ui.material(item) }}
-              {% if item.text %}<div class="math" style="font-weight:600">{{ item.text }}</div>{% endif %}
-              <div class="math text-2">{{ item.explanation }}</div>
-            {% endif %}
+      </header>
+
+      {% for g in day.groups %}{% set att = g.attempt %}
+      <details class="jr-group" {{ 'open' if g.rows|length <= 3 }}>
+        <summary class="jr-group__head">
+          <span class="jr-group__kind">{{ g.kind }}</span>
+          <span class="jr-group__title">{{ g.title }}</span>
+          <span class="jr-group__meta small muted">{{ att.finished_at|dt("HH:mm") if att.finished_at else '' }} · {{ g.rows|length }} {{ g.rows|length|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }}</span>
+          {{ ui.icon('chevron-down', 18) }}
+        </summary>
+        <div class="list jr-list">
+        {% for row in g.rows %}{% set e = row.answer %}{% set item = row.item|loc %}
+          <div class="list__row" id="e{{ e.id }}" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1.4fr) minmax(0,1.2fr) auto">
+            <div class="stack-sm" style="gap:2px">
+              <span class="list__title">{{ e.skill.name if e.skill else _("Задача") }}</span>
+              <span class="small muted">{{ row.label }}</span>
+            </div>
+            <div class="small">
+              {% if item %}{{ _("Ответ") }} <s class="muted">{{ ui.answer_text(item, e.given, letters=g.letters) }}</s> → <b>{{ ui.correct_text(item, letters=g.letters) }}</b>{% endif %}
+            </div>
             <form method="post" action="{{ url_for('student.journal_update', answer_id=e.id) }}">
               {{ ui.csrf() }}<input type="hidden" name="show" value="{{ show }}">
-              {% if show == 'open' %}<button class="btn btn--primary btn--sm" name="resolve" value="1" type="submit">{{ ui.icon('check', 16) }}{{ _("Понял, закрыть") }}</button>
-              {% else %}<button class="btn btn--secondary btn--sm" name="resolve" value="0" type="submit">{{ _("Вернуть в открытые") }}</button>{% endif %}
+              <label class="sr-only" for="r{{ e.id }}">{{ _("Причина") }}</label>
+              <select class="select" id="r{{ e.id }}" name="reason" data-autosubmit style="min-height:40px;font-size:13px">
+                <option value="">{{ _("Причина?") }}</option>
+                {% for k, v in MISTAKE_REASONS.items() %}<option value="{{ k }}" {{ 'selected' if e.mistake_reason == k }}>{{ v }}</option>{% endfor %}
+              </select>
             </form>
+            <details class="disclosure">
+              <summary>{{ _("Разобрать") if show == 'open' else _("Открыть") }}</summary>
+              <div class="stack" style="gap:10px;max-width:520px">
+                {% if item %}
+                  {% if item.image_path %}<img src="{{ url_for('uploaded_file', filename=item.image_path) }}" alt="" style="max-width:240px;background:#fff;border-radius:8px" data-lightbox>{% endif %}
+                  {{ ui.material(item) }}
+                  {% if item.text %}<div class="math" style="font-weight:600">{{ item.text }}</div>{% endif %}
+                  <div class="math text-2">{{ item.explanation }}</div>
+                {% endif %}
+                <form method="post" action="{{ url_for('student.journal_update', answer_id=e.id) }}">
+                  {{ ui.csrf() }}<input type="hidden" name="show" value="{{ show }}">
+                  {% if show == 'open' %}<button class="btn btn--primary btn--sm" name="resolve" value="1" type="submit">{{ ui.icon('check', 16) }}{{ _("Понял, закрыть") }}</button>
+                  {% else %}<button class="btn btn--secondary btn--sm" name="resolve" value="0" type="submit">{{ _("Вернуть в открытые") }}</button>{% endif %}
+                </form>
+              </div>
+            </details>
           </div>
-        </details>
-      </div>
-    {% endfor %}
+        {% endfor %}
+        </div>
+      </details>
+      {% endfor %}
+    </section>
+  {% endfor %}
   </div>
+  {% if more %}<div class="row" style="justify-content:center;margin-top:16px"><a class="btn btn--secondary" href="{{ url_for('student.journal', show=show, days=days_shown + 14) }}">{{ _("Показать более ранние дни") }}</a></div>{% endif %}
   {% else %}
   <div class="empty"><h3>{{ _("Пусто") }}</h3><p>{{ _("Открытых ошибок нет. Отличная неделя.") if show == 'open' else _("Здесь будут разобранные ошибки.") }}</p></div>
   {% endif %}
