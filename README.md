@@ -80,7 +80,7 @@ flask --app app import-pack princeton_dsat_2025 --draft
 
 `princeton_dsat_2025` — the Math part of both practice tests from *The Princeton Review Digital SAT Premium
 Prep 2025* (Reading & Writing skipped): 132 questions with answers, explanations, skills and figures, and four
-SAT collections (Module 1 + Module 2 Easier / Harder, 22 + 22 questions, 32 min per module). Questions marked
+SAT collections (Module 1 + Module 2 Easier / Harder, 22 + 22 questions, 35 min per module). Questions marked
 `adapted` in the JSON had blank choices or a missing graph in the ebook and were rebuilt — check them first.
 
 A free-input answer may list several accepted values separated by `|` (e.g. `7|-7`, or `-5/9|-0.555|-0.556`).

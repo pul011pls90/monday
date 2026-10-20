@@ -69,7 +69,7 @@ def test_demo_questions_are_well_formed():
                 assert valid_number_answer(q.correct), (q.id, q.correct)
 
 
-def test_sat_pack_is_imported_with_two_32_minute_modules():
+def test_sat_pack_is_imported_with_two_35_minute_modules():
     from monday.models import Question, Work
     with APP.app_context():
         works = Work.query.filter(Work.title.like("SAT Math · Princeton Review 2025%")).all()
@@ -78,7 +78,7 @@ def test_sat_pack_is_imported_with_two_32_minute_modules():
             v = w.current_version
             assert w.status == "published" and w.exam == "SAT" and v.question_count == 44
             assert v.layout["format"] == "sat"
-            assert v.layout["modules"] == [{"start": 0, "end": 22, "minutes": 32}, {"start": 22, "end": 44, "minutes": 32}]
+            assert v.layout["modules"] == [{"start": 0, "end": 22, "minutes": 35}, {"start": 22, "end": 44, "minutes": 35}]
             assert all(item["skill_id"] for item in v.items)
         pack_q = Question.query.filter(Question.image_path.like("packs/%")).all()
         assert pack_q and all(os.path.exists(os.path.join(APP.config["UPLOAD_FOLDER"], q.image_path)) for q in pack_q)
