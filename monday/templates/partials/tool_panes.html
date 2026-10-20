@@ -28,8 +28,8 @@
   </div>
 </aside>
 {% if entry_rules %}
-<aside class="drawer drawer--left" data-drawer="entry" hidden aria-label="{{ _('Как вводить ответ') }}">
-  <div class="drawer__head"><h2>{{ _("Как вводить ответ") }}</h2><button type="button" class="icon-btn icon-btn--sm" data-drawer-close aria-label="{{ _('Закрыть') }}">{{ ui.icon('x', 16) }}</button></div>
+<aside class="drawer drawer--left" data-drawer="entry" hidden aria-label="{{ _('Правильная запись ответа') }}">
+  <div class="drawer__head"><h2>{{ _("Правильная запись ответа") }}</h2><button type="button" class="icon-btn icon-btn--sm" data-drawer-close aria-label="{{ _('Закрыть') }}">{{ ui.icon('x', 16) }}</button></div>
   <div class="drawer__body entry-rules">
     {% if entry_rules == 'sat' %}
       <p>{{ _("Для вопросов со свободным ответом решите задачу и введите ответ по правилам ниже.") }}</p>
