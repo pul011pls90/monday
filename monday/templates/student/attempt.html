@@ -153,7 +153,8 @@
           <div class="q-grid__legend small muted"><span><i class="lg is-answered"></i>{{ _("отвечен") }}</span><span><i class="lg"></i>{{ _("без ответа") }}</span><span><i class="lg is-marked"></i>{{ _("на проверку") }}</span></div>
         </div>
       </div>
-      <button type="button" class="btn btn--primary" data-next data-next-label="{{ _('Далее') }}" data-review-label="{{ _('К проверке') }}">{{ _("Далее") }}{{ ui.icon('arrow-right', 18) }}</button>
+      <button type="button" class="btn btn--primary" data-next data-next-label="{{ _('Далее') }}" data-review-label="{{ _('К проверке') }}"
+              {% if not last_module %}data-finish-label="{{ _('Завершить модуль %(k)s', k=module) }}" data-finish-confirm="{{ _('Завершить модуль %(k)s? Вернуться к его вопросам будет нельзя.', k=module) }}"{% endif %}>{{ _("Далее") }}{{ ui.icon('arrow-right', 18) }}</button>
       {% if last_module %}
         <button class="btn btn--primary" type="submit" data-final hidden>{{ _("Сдать работу") }}</button>
       {% else %}

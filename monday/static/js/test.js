@@ -244,14 +244,25 @@
       next.hidden = reviewing;
       final.hidden = !reviewing;
       const lastQ = cur === screens.length - 1;
-      next.firstChild.textContent = lastQ ? next.dataset.reviewLabel : next.dataset.nextLabel;
+      // last question of a module that isn't the last one: "Finish module N" goes straight to the next module
+      next.firstChild.textContent = lastQ ? (next.dataset.finishLabel || next.dataset.reviewLabel) : next.dataset.nextLabel;
       buildGrid(grid);
       if (reviewing) buildGrid(gridReview);
       window.scrollTo({ top: 0 });
       if (window.MondayRenderMath && !reviewing) window.MondayRenderMath(screens[cur]);
     }
     prev.addEventListener("click", () => { if (reviewing) { reviewing = false; show(screens.length - 1); } else show(cur - 1); });
-    next.addEventListener("click", () => { if (cur === screens.length - 1) { reviewing = true; show(cur); } else show(cur + 1); });
+    next.addEventListener("click", () => {
+      if (cur !== screens.length - 1) { show(cur + 1); return; }
+      if (next.dataset.finishLabel) {
+        if (window.confirm(next.dataset.finishConfirm)) {
+          try { sessionStorage.removeItem(key("cur")); } catch (_) {}
+          if (form.requestSubmit) form.requestSubmit(); else form.submit();
+        }
+        return;
+      }
+      reviewing = true; show(cur);
+    });
     $("[data-grid-toggle]", form).addEventListener("click", (e) => {
       pop.hidden = !pop.hidden;
       e.currentTarget.setAttribute("aria-expanded", String(!pop.hidden));

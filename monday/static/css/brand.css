@@ -1123,6 +1123,17 @@ kbd { font: 700 10px var(--font); padding: 1px 5px; border-radius: 4px; border: 
 .rv-pop__head ~ .rv-pop__head { margin-top: 14px; }
 .rv-grid button.is-ok, .lg.is-ok { background: var(--ok-soft); color: var(--ok); border: 1.5px solid var(--ok); }
 .rv-grid button.is-bad, .lg.is-bad { background: var(--bad-soft); color: var(--bad); border: 1.5px solid var(--bad); }
+@media (min-width: 901px) {
+  .rv.is-paged .rv-screen { height: var(--rv-h, 70vh); }
+  .rv.is-paged .rv-explain, .rv.is-paged .rv-question { overflow-y: auto; overscroll-behavior: contain; }
+  .rv .q-figure img { max-height: min(240px, 27vh); }
+  .rv-question { gap: 14px; padding: 20px 24px; }
+  .rv-question .q-text { font-size: 17px; line-height: 1.5; }
+  .rv-question .options { gap: 8px; }
+  .rv-question .option__box { min-height: 48px; padding-top: 8px; padding-bottom: 8px; font-size: 16px; }
+  .rv .q-figure__frame { padding: 10px; }
+  .rv .q-figure figcaption { display: none; }
+}
 @media (max-width: 900px) {
   .rv-screen { grid-template-columns: minmax(0, 1fr); }
   .rv-question { order: -1; }
