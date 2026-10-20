@@ -53,11 +53,47 @@
   $$("[data-drawer-open]").forEach((b) => b.addEventListener("click", () => {
     const d = $(`[data-drawer="${b.dataset.drawerOpen}"]`);
     if (!d) return;
+    $$(".drawer").forEach((o) => { if (o !== d) o.hidden = true; });   // one drawer at a time
     d.hidden = !d.hidden;
     if (!d.hidden && window.MondayRenderMath) window.MondayRenderMath(d);
   }));
   $$("[data-drawer-close]").forEach((b) => b.addEventListener("click", () => (b.closest(".drawer").hidden = true)));
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") $$(".drawer").forEach((d) => (d.hidden = true)); });
+
+  /* ------------------------------------------------------------ SAT answer entry: allowed characters, length, preview */
+  const satForm = $("form[data-sat-entry]");
+  if (satForm) {
+    const clean = (v) => {
+      v = v.replace(/[−–]/g, "-").replace(/[^0-9./-]/g, "");
+      v = v.replace(/(?!^)-/g, "");                                    // minus only in front
+      const sep = v.search(/[./]/);                                     // only one "." or "/"
+      if (sep >= 0) v = v.slice(0, sep + 1) + v.slice(sep + 1).replace(/[./]/g, "");
+      return v.slice(0, v.startsWith("-") ? 6 : 5);
+    };
+    const preview = (input) => {
+      const box = input.closest(".q-card") && $("[data-entry-preview]", input.closest(".q-card"));
+      if (!box) return;
+      const v = input.value.trim();
+      box.hidden = !v;
+      if (!v) return;
+      const m = v.match(/^(-?)(\d+)\/(\d+)$/);
+      const tex = m ? `${m[1]}\\frac{${m[2]}}{${m[3]}}` : v;
+      const out = $("[data-entry-math]", box);
+      if (window.katex) { try { window.katex.render(tex, out, { throwOnError: false }); return; } catch (_) {} }
+      out.textContent = v;
+    };
+    $$("input[name^=q]", satForm).forEach((input) => {
+      if (input.type === "radio") return;
+      input.setAttribute("maxlength", "6");
+      input.setAttribute("inputmode", "decimal");
+      input.addEventListener("input", () => {
+        const v = clean(input.value);
+        if (v !== input.value) input.value = v;
+        preview(input);
+      });
+      preview(input);
+    });
+  }
 
   /* ------------------------------------------------------------ Desmos pane (left, resizable) */
   const pane = $("[data-calc-pane]");

@@ -7,7 +7,7 @@ import random
 import re
 from collections import defaultdict
 from datetime import date, datetime, timedelta
-from decimal import Decimal, InvalidOperation
+from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal, InvalidOperation
 from fractions import Fraction
 
 from sqlalchemy import func
@@ -140,8 +140,39 @@ def _get(item, key, default=None):
     return getattr(item, key, default)
 
 
-def is_correct(item, given):
+SAT_ENTRY = re.compile(r"^-?(\d+(\.\d*)?|\.\d+|\d+/\d+)$")
+
+
+def sat_entry_ok(given, values):
+    """Digital SAT rules for a student-produced response.
+
+    Up to 5 characters for a positive answer, 6 for a negative one; only digits, one "." or "/", and "-".
+    Any exact equivalent counts (1/2 = 2/4 = 0.5 = .5). A decimal that doesn't fit must use every available
+    character and be the value truncated or rounded at that length: 2/3 -> .6666 .6667 0.666 0.667
+    (but not .66, .67, 0.66, 0.67). Mixed numbers ("3 1/2"), commas, %, $ are not accepted.
+    """
+    g = str(given or "").strip().replace("−", "-").replace("–", "-")
+    if not SAT_ENTRY.match(g) or len(g) > (6 if g.startswith("-") else 5):
+        return False
+    v, fmt = parse_number(g)
+    if v is None:
+        return False
+    for b in values:
+        if v == b:
+            return True
+        if fmt == "decimal" and len(g) == (6 if g.startswith("-") else 5):
+            places = len(g.split(".")[1]) if "." in g else 0
+            exact = Decimal(b.numerator) / Decimal(b.denominator)
+            q = Decimal(1).scaleb(-places)
+            for mode in (ROUND_DOWN, ROUND_HALF_UP):
+                if Fraction(exact.quantize(q, rounding=mode)) == v:
+                    return True
+    return False
+
+
+def is_correct(item, given, sat=False):
     """item: question snapshot dict or Question; given: raw form value.
+    sat=True: a test in the Digital SAT format — free input is checked by the SAT entry rules (sat_entry_ok).
 
     Free input: the value must match exactly, or — if the question allows rounding —
     match the correct value rounded to that many decimal places (tenths, hundredths).
@@ -151,6 +182,9 @@ def is_correct(item, given):
     correct = _get(item, "correct")
     if given in (None, ""):
         return False
+    if answer_type == "number" and sat:
+        values = [v for v in (parse_number(x)[0] for x in accepted_answers(correct)) if v is not None]
+        return sat_entry_ok(given, values)
     if answer_type == "number":
         a, fmt = parse_number(given)
         if a is None:
@@ -183,9 +217,11 @@ def grade_version_attempt(attempt, version, form):
     score = marks earned, total = marks available (each question counts its weight).
     """
     score = total = 0
+    # SAT entry rules in SAT-format collections (the test page shows them in "Как вводить ответ")
+    sat = version_layout(version).get("format") == "sat" and attempt.mode == "collection"
     for idx, item in enumerate(version.items):
         given = (form.get(f"q{idx}") or "").strip()
-        ok = is_correct(item, given)
+        ok = is_correct(item, given, sat=sat)
         w = item_weight(item)
         total += w
         score += w if ok else 0

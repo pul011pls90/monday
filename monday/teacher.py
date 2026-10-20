@@ -813,8 +813,9 @@ def bank():
 @teacher_required
 def bank_add():
     ids = [int(x) for x in request.form.getlist("qid") if x.isdigit()]
-    ids = [x.id for x in Question.query.filter(Question.id.in_(ids)).all()
-           if x.status == "published" or x.author_id == current_user.id] if ids else []
+    allowed = {x.id for x in Question.query.filter(Question.id.in_(ids)).all()
+               if x.status == "published" or x.author_id == current_user.id} if ids else set()
+    ids = [i for i in dict.fromkeys(ids) if i in allowed]   # keep the order the teacher picked
     if not ids:
         flash(_("Отметьте хотя бы один вопрос."), "error")
         return redirect(request.referrer or url_for("teacher.bank"))

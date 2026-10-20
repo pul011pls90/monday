@@ -84,6 +84,34 @@ def test_sat_pack_is_imported_with_two_35_minute_modules():
         assert pack_q and all(os.path.exists(os.path.join(APP.config["UPLOAD_FOLDER"], q.image_path)) for q in pack_q)
 
 
+def test_sat_entry_rules_and_sheet_in_sat_collections():
+    from monday.models import Attempt, Work
+    from monday.services import is_correct
+    item = {"answer_type": "number", "correct": "2/3"}
+    for g in ("2/3", "4/6", ".6666", ".6667", "0.666", "0.667"):
+        assert is_correct(item, g, sat=True), g
+    for g in ("0.66", ".67", "0.6667", "0,666", "2 / 3"):
+        assert not is_correct(item, g, sat=True), g
+    assert is_correct({"answer_type": "number", "correct": "7/2"}, "3.50", sat=True)
+    assert not is_correct({"answer_type": "number", "correct": "7/2"}, "3 1/2", sat=True)
+    assert is_correct({"answer_type": "number", "correct": "1/2"}, "0,5")          # other tests stay lenient
+    s = login(client(), "student@monday.kg", "student123")
+    with APP.app_context():
+        w = Work.query.filter(Work.title.like("SAT Math · Princeton Review 2025 · Practice Test 1 (Module 2 Easier)")).first()
+        wid, items = w.id, w.current_version.items
+    r = s.post(f"/works/{wid}/start")
+    run = r.headers["Location"]
+    ok(s, run, contains=["Как вводить ответ", ".6667", "data-sat-entry"])
+    # Module 1, question 5: 200 — "200.0" is 5 characters and equal, so it counts
+    idx = next(i for i, it in enumerate(items[:22]) if it["answer_type"] == "number")
+    r = s.post(run.rstrip("/") + "/next-module", data={f"q{idx}": items[idx]["correct"].split("|")[0]})
+    r = s.post(run, data={})
+    with APP.app_context():
+        from monday.extensions import db
+        att = db.session.get(Attempt, int(run.rstrip("/").split("/")[-1]))
+        assert att.finished_at and att.score >= 1
+
+
 def test_several_accepted_numeric_answers():
     from monday.services import display_answer, is_correct
     item = {"answer_type": "number", "correct": "-5/9|-0.5555|-0.5556|-0.555|-0.556"}

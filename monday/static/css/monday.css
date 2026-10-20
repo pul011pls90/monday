@@ -713,3 +713,16 @@ details.disclosure[open] summary { margin-bottom: 10px; }
 
 /* homework: why the hand-in button is disabled */
 .submit-hint { color: var(--bad); font-weight: 600; margin: 8px 0 0; }
+
+/* free-input answers: entry directions (drawer) and the line under the input */
+.entry-help { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+.entry-help .link-btn { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: 600; }
+.entry-preview { color: var(--text-2, inherit); }
+.entry-preview .math { font-size: 18px; margin-left: 6px; color: var(--text); }
+.entry-rules ul { margin: 0 0 16px; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; line-height: 1.45; }
+.entry-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: center; }
+.entry-table th, .entry-table td { border: 1px solid var(--line); padding: 8px 6px; vertical-align: middle; line-height: 1.6; }
+.entry-table th { font-size: 12px; font-weight: 700; background: var(--accent-soft); color: var(--accent-ink); }
+.entry-table td:first-child { font-size: 17px; }
+.entry-table td.bad { color: var(--bad); }
+form[data-sat-entry] .answer-input .field__hint { display: none; }   /* SAT tests: the rules live in "Как вводить ответ" */

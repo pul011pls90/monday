@@ -27,6 +27,48 @@
     <a class="small" href="{{ url_for('student.formulas') }}" target="_blank" rel="noopener" style="font-weight:700">{{ _("Открыть страницу «Формулы»") }} →</a>
   </div>
 </aside>
+{% if entry_rules %}
+<aside class="drawer" data-drawer="entry" hidden aria-label="{{ _('Как вводить ответ') }}">
+  <div class="drawer__head"><h2>{{ _("Как вводить ответ") }}</h2><button type="button" class="icon-btn icon-btn--sm" data-drawer-close aria-label="{{ _('Закрыть') }}">{{ ui.icon('x', 16) }}</button></div>
+  <div class="drawer__body entry-rules">
+    {% if entry_rules == 'sat' %}
+      <p>{{ _("Для вопросов со свободным ответом решите задачу и введите ответ по правилам ниже.") }}</p>
+      <ul>
+        <li>{{ _("Если подходит несколько ответов, введите только один.") }}</li>
+        <li>{{ _("Положительный ответ — не больше 5 символов, отрицательный — не больше 6 (вместе с минусом).") }}</li>
+        <li>{{ _("Дробь, которая не помещается, введите десятичной.") }}</li>
+        <li>{{ _("Десятичное число, которое не помещается, обрежьте или округлите на четвёртой цифре — так, чтобы заняли все символы.") }}</li>
+        <li>{{ _("Смешанное число (например, 3½) введите неправильной дробью (7/2) или десятичным (3.5).") }}</li>
+        <li>{{ _("Не вводите знаки: процент, запятую, доллар, пробелы.") }}</li>
+      </ul>
+      <table class="entry-table">
+        <thead><tr><th>{{ _("Ответ") }}</th><th>{{ _("Засчитывается") }}</th><th>{{ _("Не засчитывается") }}</th></tr></thead>
+        <tbody>
+          <tr><td class="math">$3.5$</td><td>3.5<br>3.50<br>7/2</td><td class="bad">31/2<br>3 1/2</td></tr>
+          <tr><td class="math">$\dfrac{2}{3}$</td><td>2/3<br>.6666<br>.6667<br>0.666<br>0.667</td><td class="bad">0.66<br>.66<br>0.67<br>.67</td></tr>
+          <tr><td class="math">$-\dfrac{1}{3}$</td><td>-1/3<br>-.3333<br>-0.333</td><td class="bad">-.33<br>-0.33</td></tr>
+          <tr><td class="math">$\dfrac{1}{2}$</td><td>1/2<br>2/4<br>0.5<br>.5</td><td class="bad">0,5<br>50%</td></tr>
+        </tbody>
+      </table>
+    {% else %}
+      <ul>
+        <li>{{ _("Ответ можно ввести целым числом, дробью или десятичным — все равные записи засчитываются.") }}</li>
+        <li>{{ _("Десятичную часть отделяйте точкой или запятой.") }}</li>
+        <li>{{ _("Смешанное число пишите через пробел: 1 1/2.") }}</li>
+        <li>{{ _("Если в задании сказано округлить — округлите. Единицы измерения и знак %% не пишите.") }}</li>
+      </ul>
+      <table class="entry-table">
+        <thead><tr><th>{{ _("Ответ") }}</th><th>{{ _("Засчитывается") }}</th><th>{{ _("Не засчитывается") }}</th></tr></thead>
+        <tbody>
+          <tr><td class="math">$\dfrac{1}{2}$</td><td>1/2<br>5/10<br>0.5<br>0,5<br>.5</td><td class="bad">50%<br>1:2</td></tr>
+          <tr><td class="math">$3\dfrac{1}{2}$</td><td>7/2<br>3 1/2<br>3.5</td><td class="bad">31/2</td></tr>
+          <tr><td class="math">$-4$</td><td>-4<br>-8/2</td><td class="bad">- 4 {{ _("см") }}</td></tr>
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+</aside>
+{% endif %}
 {% if calculator %}
 <aside class="calc-pane" data-calc-pane hidden aria-label="{{ _('Калькулятор') }}">
   <div class="calc-pane__head">
