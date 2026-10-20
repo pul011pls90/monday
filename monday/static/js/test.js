@@ -198,12 +198,19 @@
     };
     form.addEventListener("change", refresh);
     form.addEventListener("input", refresh);
-    form.addEventListener("submit", (e) => {
+    let confirmed = false;
+    form.addEventListener("submit", async (e) => {
       const n = count(), total = end - start;
       if (earlier + n === 0) { e.preventDefault(); refresh(); return; }
-      if (n < total && !window.confirm(form.dataset.partialMsg.replace("{n}", String(total - n)).replace("{total}", String(total)))) {
-        e.preventDefault();
-      }
+      if (n >= total || confirmed) return;
+      e.preventDefault();
+      const ok = await window.MondayConfirm({
+        title: form.dataset.partialTitle,
+        text: form.dataset.partialMsg.replace("{n}", String(total - n)).replace("{total}", String(total)),
+        ok: form.dataset.partialOk, cancel: form.dataset.partialCancel });
+      if (!ok) return;
+      confirmed = true;
+      if (form.requestSubmit) form.requestSubmit(e.submitter || undefined); else form.submit();
     });
     refresh();
   }
@@ -226,7 +233,7 @@
         const idx = idxOf(i);
         const b = document.createElement("button");
         b.type = "button";
-        b.textContent = String(idx + 1);
+        b.textContent = String(i + 1);   // numbers restart in every module, like the Digital SAT
         if (answered(idx)) b.classList.add("is-answered");
         if ($("[data-mark]", sc).getAttribute("aria-pressed") === "true") b.classList.add("is-marked");
         if (i === cur && !reviewing) b.classList.add("is-current");
@@ -255,10 +262,12 @@
     next.addEventListener("click", () => {
       if (cur !== screens.length - 1) { show(cur + 1); return; }
       if (next.dataset.finishLabel) {
-        if (window.confirm(next.dataset.finishConfirm)) {
+        window.MondayConfirm({ title: next.dataset.finishTitle, text: next.dataset.finishText,
+                               ok: next.dataset.finishLabel, cancel: next.dataset.finishCancel }).then((ok) => {
+          if (!ok) return;
           try { sessionStorage.removeItem(key("cur")); } catch (_) {}
           if (form.requestSubmit) form.requestSubmit(); else form.submit();
-        }
+        });
         return;
       }
       reviewing = true; show(cur);

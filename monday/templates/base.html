@@ -16,7 +16,7 @@
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
   {% block head %}{% endblock %}
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body class="{% block body_class %}{% endblock %}" data-confirm-ok="{{ _('Да') }}" data-confirm-cancel="{{ _('Отмена') }}">
   {% block body %}{% endblock %}
   <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="{{ _('Рисунок') }}"><img alt=""></div>
   <script defer src="{{ url_for('static', filename='vendor/katex/katex.min.js') }}"></script>

@@ -38,8 +38,8 @@
 
 <main class="page test-page calc-shift" style="margin:0 auto;max-width:1120px">
   {{ ui.flashes() }}
-  {% if mods|length > 1 and module > 1 %}
-    <p class="small muted">{{ _("Ответы модулей 1–%(k)s сохранены и закрыты.", k=module - 1) }}</p>
+  {% if mods|length > 1 and module > 1 and not get_flashed_messages() %}
+    <p class="small muted">{% if module == 2 %}{{ _("Ответы модуля 1 сохранены и закрыты.") }}{% else %}{{ _("Ответы модулей 1–%(k)s сохранены и закрыты.", k=module - 1) }}{% endif %}</p>
   {% endif %}
 
   {# when the timer runs out the form is sent as-is: to "next module" in module 1, to "hand in" in the last one #}
@@ -49,7 +49,8 @@
         data-start="{{ mod.start }}" data-end="{{ mod.end }}"
         {% if att.mode == 'homework' and last_module %}data-require-answer data-earlier-answered="{{ earlier_answered }}"
         data-empty-msg="{{ _('Ответьте хотя бы на один вопрос, чтобы сдать работу.') }}"
-        data-partial-msg="{{ _('Не отвечено: %(n)s из %(total)s. Всё равно сдать?', n='{n}', total='{total}') }}"{% endif %}>
+        data-partial-msg="{{ _('Не отвечено: %(n)s из %(total)s. Всё равно сдать?', n='{n}', total='{total}') }}"
+        data-partial-title="{{ _('Сдать работу?') }}" data-partial-ok="{{ _('Сдать работу') }}" data-partial-cancel="{{ _('Вернуться к вопросам') }}"{% endif %}>
     {{ ui.csrf() }}
 
   {% if layout.nav == 'pages' %}
@@ -121,7 +122,7 @@
     {% for idx in range(mod.start, mod.end) %}{% set item = version.items[idx]|loc %}
       <section class="q-screen" data-q="{{ idx }}" id="question-{{ idx + 1 }}" data-elim-scope data-elim-host data-elim-key="att{{ att.id }}-{{ idx }}">
         <div class="q-head">
-          <span class="q-head__num">{{ idx + 1 }}</span>
+          <span class="q-head__num">{{ idx - mod.start + 1 }}</span>
           <button type="button" class="q-head__btn" data-mark="{{ idx }}" aria-pressed="{{ 'true' if draft.get('r' ~ idx) else 'false' }}">{{ ui.icon('bookmark', 16) }}<span>{{ _("Отметить для проверки") }}</span></button>
           {% if item.answer_type == 'choice' %}<button type="button" class="q-head__btn" data-elim-toggle aria-pressed="false">{{ ui.icon('ban', 16) }}<span>{{ _("Исключить") }}</span></button>{% endif %}
           {% if (item.weight or 1) > 1 %}<span class="tag tag--line tag--xs" style="margin-left:auto">{{ item.weight }} {{ item.weight|plural_ru(_("балл"), _("балла"), _("баллов")) }}</span>{% endif %}
@@ -154,7 +155,8 @@
         </div>
       </div>
       <button type="button" class="btn btn--primary" data-next data-next-label="{{ _('Далее') }}" data-review-label="{{ _('К проверке') }}"
-              {% if not last_module %}data-finish-label="{{ _('Завершить модуль %(k)s', k=module) }}" data-finish-confirm="{{ _('Завершить модуль %(k)s? Вернуться к его вопросам будет нельзя.', k=module) }}"{% endif %}>{{ _("Далее") }}{{ ui.icon('arrow-right', 18) }}</button>
+              {% if not last_module %}data-finish-label="{{ _('Завершить модуль %(k)s', k=module) }}" data-finish-title="{{ _('Завершить модуль %(k)s?', k=module) }}"
+              data-finish-text="{{ _('Ответы в нём сохранятся, но вернуться к его вопросам будет нельзя. Следующий модуль начнётся сразу, со своим таймером.') }}" data-finish-cancel="{{ _('Остаться в модуле') }}"{% endif %}>{{ _("Далее") }}{{ ui.icon('arrow-right', 18) }}</button>
       {% if last_module %}
         <button class="btn btn--primary" type="submit" data-final hidden>{{ _("Сдать работу") }}</button>
       {% else %}

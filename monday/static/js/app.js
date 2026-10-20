@@ -53,12 +53,45 @@
     });
   });
 
-  /* ---------- confirmations for destructive actions ---------- */
-  $$("form[data-confirm]").forEach((form) => {
-    form.addEventListener("submit", (e) => {
-      if (!window.confirm(form.dataset.confirm)) e.preventDefault();
-    });
+  /* ---------- Monday's own confirmation window (no browser pop-ups) ----------
+     MondayConfirm({title, text, ok, cancel, danger}) → Promise<boolean> */
+  window.MondayConfirm = (opts) => new Promise((resolve) => {
+    const body = document.body.dataset;
+    if (typeof HTMLDialogElement !== "function") { resolve(window.confirm([opts.title, opts.text].filter(Boolean).join("\n\n"))); return; }
+    const dlg = document.createElement("dialog");
+    dlg.className = "exit-dialog";
+    dlg.innerHTML = `<h2></h2><p></p><div class="exit-dialog__actions"><button type="button" class="btn btn--secondary" data-no></button><button type="button" class="btn" data-yes></button></div>`;
+    dlg.querySelector("h2").textContent = opts.title || "";
+    const p = dlg.querySelector("p");
+    if (opts.text) p.textContent = opts.text; else p.remove();
+    const no = dlg.querySelector("[data-no]"), yes = dlg.querySelector("[data-yes]");
+    no.textContent = opts.cancel || body.confirmCancel || "Отмена";
+    yes.textContent = opts.ok || body.confirmOk || "OK";
+    yes.classList.add(opts.danger ? "btn--danger-solid" : "btn--primary");
+    let answer = false;
+    const done = (v) => { answer = v; dlg.close(); };
+    no.addEventListener("click", () => done(false));
+    yes.addEventListener("click", () => done(true));
+    dlg.addEventListener("click", (ev) => { if (ev.target === dlg) done(false); });
+    dlg.addEventListener("close", () => { dlg.remove(); resolve(answer); });
+    document.body.appendChild(dlg);
+    dlg.showModal();
+    yes.focus();
   });
+
+  /* ---------- confirmations for destructive actions: <form data-confirm> or <button data-confirm> ---------- */
+  document.addEventListener("submit", async (e) => {
+    const form = e.target;
+    const holder = (e.submitter && e.submitter.dataset.confirm) ? e.submitter : (form.dataset.confirm ? form : null);
+    if (!holder || form.dataset.confirmed === "1") { if (form.dataset) delete form.dataset.confirmed; return; }
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    const ok = await window.MondayConfirm({ title: holder.dataset.confirm, ok: holder.dataset.confirmOk,
+                                            danger: /удал|delete/i.test(holder.dataset.confirm) });
+    if (!ok) return;
+    form.dataset.confirmed = "1";
+    if (form.requestSubmit) form.requestSubmit(e.submitter || undefined); else form.submit();
+  }, true);
 
   /* ---------- image lightbox (delegated, so swapped-in content works too) ---------- */
   const lightbox = $("#lightbox");
@@ -541,7 +574,7 @@
   const show = (i, scroll = true) => {
     cur = Math.max(0, Math.min(screens.length - 1, i));
     screens.forEach((s, k) => (s.hidden = k !== cur));
-    counter.textContent = String(cur + 1);
+    counter.textContent = screens[cur].dataset.rvLabel || String(cur + 1);
     prev.disabled = cur === 0;
     next.disabled = cur === screens.length - 1;
     cells.forEach((c) => c.classList.toggle("is-current", parseInt(c.dataset.rvGo, 10) === cur));
