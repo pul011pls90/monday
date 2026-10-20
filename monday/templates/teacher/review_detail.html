@@ -16,6 +16,9 @@
   <p>{% if not a.record.student_user_id %}{{ _("Ученик не подключил аккаунт. Код: %(c)s", c=a.record.invite_code) }}{% else %}{{ _("Результат появится здесь после сдачи.") }}{% endif %}</p>
 </div>
 {% else %}
+{% if not last.answers|selectattr('given')|list %}
+<div class="flash flash--error">{{ _("Время вышло — ученик не ответил ни на один вопрос.") }}</div>
+{% endif %}
 <div class="grid grid-3">
   <div class="card card--tight"><div class="stat-value num">{{ last.score }} / {{ last.total }}</div><div class="stat-label">{{ _("верно") }} · {{ last.percent }}%</div></div>
   <div class="card card--tight"><div class="stat-value num">{{ last.duration_sec|duration }}</div><div class="stat-label">{{ _("время, из %(n)s мин", n=last.work_version.time_limit_min) }}</div></div>

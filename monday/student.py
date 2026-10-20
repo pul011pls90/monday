@@ -365,6 +365,9 @@ def attempt_run(attempt_id):
     k, mod = current_module(att, layout)
     if request.method == "POST":
         _merge_module_answers(att, mod, request.form)
+        blocked = _empty_homework(att, request.form)
+        if blocked:
+            return blocked
         return _finish_attempt(att, version)
     # time ran out while away: move to the next module, or hand the test in
     left = seconds_left(att, layout)
@@ -376,8 +379,10 @@ def attempt_run(attempt_id):
         left = seconds_left(att, layout)
     if left == 0:
         return _finish_attempt(att, version)
+    earlier = sum(1 for key, v in (att.draft or {}).items()
+                  if key.startswith("q") and str(v).strip() and int(key[1:]) < mod["start"])
     return render_template("student/attempt.html", att=att, version=version, layout=layout, module=k, mod=mod,
-                           seconds_left=left, draft=att.draft or {}, sheets=_enabled_sheets())
+                           seconds_left=left, draft=att.draft or {}, sheets=_enabled_sheets(), earlier_answered=earlier)
 
 
 def _merge_module_answers(att, mod, form):
@@ -390,6 +395,20 @@ def _merge_module_answers(att, mod, form):
         elif f"q{idx}" in form:
             draft.pop(f"q{idx}", None)
     att.draft = draft
+
+
+def answered_count(att):
+    return sum(1 for k, v in (att.draft or {}).items() if k.startswith("q") and str(v).strip())
+
+
+def _empty_homework(att, form):
+    """Homework can't be handed in by hand with no answers. When the timer runs out it is handed in as it is
+    (the teacher then sees "time ran out, no answers")."""
+    if att.mode != "homework" or form.get("timeout") == "1" or answered_count(att):
+        return None
+    db.session.commit()
+    flash(_("Ответьте хотя бы на один вопрос, чтобы сдать работу."), "error")
+    return redirect(url_for("student.attempt_run", attempt_id=att.id))
 
 
 def _finish_attempt(att, version):
@@ -416,6 +435,9 @@ def attempt_next_module(attempt_id):
         db.session.commit()
         flash(_("Модуль %(n)s завершён. Ответы в нём больше не меняются.", n=k), "info")
         return redirect(url_for("student.attempt_run", attempt_id=att.id))
+    blocked = _empty_homework(att, request.form)
+    if blocked:
+        return blocked
     return _finish_attempt(att, att.work_version)
 
 

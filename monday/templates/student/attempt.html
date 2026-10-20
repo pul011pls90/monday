@@ -37,7 +37,10 @@
   <form method="post" id="test-form" data-test data-nav="{{ layout.nav }}"
         {% if not last_module %}action="{{ url_for('student.attempt_next_module', attempt_id=att.id) }}"{% endif %}
         data-autosave="{{ url_for('student.attempt_save', attempt_id=att.id) }}" data-attempt="{{ att.id }}"
-        data-start="{{ mod.start }}" data-end="{{ mod.end }}">
+        data-start="{{ mod.start }}" data-end="{{ mod.end }}"
+        {% if att.mode == 'homework' and last_module %}data-require-answer data-earlier-answered="{{ earlier_answered }}"
+        data-empty-msg="{{ _('Ответьте хотя бы на один вопрос, чтобы сдать работу.') }}"
+        data-partial-msg="{{ _('Не отвечено: %(n)s из %(total)s. Всё равно сдать?', n='{n}', total='{total}') }}"{% endif %}>
     {{ ui.csrf() }}
 
   {% if layout.nav == 'pages' %}
@@ -101,6 +104,7 @@
         <p class="text-2 small">{{ _("Ответы сохраняются сами. После сдачи изменить их нельзя.") }}</p>
         <button class="btn btn--primary btn--lg" type="submit">{{ _("Сдать работу") }}</button>
       </div>
+      <p class="small submit-hint" data-submit-hint hidden></p>
     </section>
 
   {% else %}
@@ -121,6 +125,7 @@
 
     <section class="q-review" data-review hidden>
       <h2>{{ _("Проверь ответы") if last_module else _("Конец модуля %(k)s", k=module) }}</h2>
+      <p class="small submit-hint" data-submit-hint hidden></p>
       <p class="text-2">{{ _("Нажми на номер, чтобы вернуться к вопросу. Флажком отмечены вопросы «для проверки».") }}</p>
       <div class="q-grid q-grid--big" data-grid-review></div>
     </section>

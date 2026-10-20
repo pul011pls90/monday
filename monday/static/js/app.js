@@ -87,6 +87,9 @@
       timer.classList.toggle("is-low", left <= 60);
       if (left <= 0 && form && !submitted) {
         submitted = true;
+        const flag = document.createElement("input");   // tells the server the time ran out (homework may then go in empty)
+        flag.type = "hidden"; flag.name = "timeout"; flag.value = "1";
+        form.appendChild(flag);
         form.submit();
         return;
       }

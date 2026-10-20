@@ -12,10 +12,12 @@
   --grad-5: #020B29;  /* midnight */
   --grad: linear-gradient(90deg, var(--grad-2) 0%, var(--grad-3) 55%, var(--grad-4) 100%);
   --grad-deep: linear-gradient(135deg, var(--grad-3) 0%, var(--grad-4) 70%, var(--grad-5) 100%);
+  --bar: #0A1A5C;           /* top bars and hero banners: one plain dark blue */
   --card-shadow: 0 1px 2px rgba(14, 14, 14, .04), 0 10px 30px rgba(26, 40, 90, .07);
   --dot: rgba(120, 128, 150, .28);
 }
 [data-theme="dark"] {
+  --bar: #0D2266;
   --card-shadow: none;
   --dot: rgba(127, 163, 243, .22);
 }
@@ -65,7 +67,7 @@ body:not(.auth-body) {
 /* ---------------------------------------------------------------- gradient accents */
 
 .bar > span { background: var(--btn-bg); }
-.session-bar { background: var(--grad-deep); }
+.session-bar { background: var(--bar); }
 
 /* ---------------------------------------------------------------- hero: gradient + halftone + orbit */
 
