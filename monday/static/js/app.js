@@ -528,7 +528,15 @@
     document.body.style.paddingBottom = `${h + foot.offsetHeight + 12}px`;
   };
   place();
-  window.addEventListener("resize", place);
+  // desktop: the question card fills the screen between the top bar and the bottom bar, and each side
+  // (explanation / question) scrolls on its own — no more scrolling the page up and down to compare them
+  const fit = () => {
+    const top = document.querySelector(".topbar");
+    const topH = top && getComputedStyle(top).position !== "static" ? top.offsetHeight : 0;
+    const footTop = foot.getBoundingClientRect().top;
+    root.style.setProperty("--rv-h", `${Math.max(360, Math.round(footTop - topH - 24))}px`);
+  };
+  window.addEventListener("resize", () => { place(); fit(); });
   let cur = 0;
   const show = (i, scroll = true) => {
     cur = Math.max(0, Math.min(screens.length - 1, i));
@@ -539,8 +547,15 @@
     cells.forEach((c) => c.classList.toggle("is-current", parseInt(c.dataset.rvGo, 10) === cur));
     history.replaceState(null, "", `#q${cur + 1}`);
     if (window.MondayRenderMath) window.MondayRenderMath(screens[cur]);
-    if (scroll) root.scrollIntoView({ block: "start" });
+    screens[cur].querySelectorAll(".rv-explain, .rv-question").forEach((col) => (col.scrollTop = 0));
+    fit();
+    if (scroll) toCard();
   };
+  function toCard() {
+    const top = document.querySelector(".topbar");
+    const offset = (top && getComputedStyle(top).position !== "static" ? top.offsetHeight : 0) + 12;
+    window.scrollTo({ top: screens[cur].getBoundingClientRect().top + window.scrollY - offset });
+  }
   prev.addEventListener("click", () => show(cur - 1));
   next.addEventListener("click", () => show(cur + 1));
   $("[data-rv-toggle]").addEventListener("click", (e) => {
@@ -557,5 +572,7 @@
   });
   const m = location.hash.match(/^#q(\d+)$/);
   show(m ? parseInt(m[1], 10) - 1 : 0, !!m);
+  // maths and pictures above change the page height once they load — settle the card again
+  if (m) window.addEventListener("load", () => setTimeout(() => { fit(); toCard(); }, 50));
 })();
 
