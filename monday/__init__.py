@@ -102,6 +102,8 @@ def create_app(config_object=Config, *, seed_if_empty=True):
             seed_demo()
         from .taxonomy import ensure_taxonomy
         ensure_taxonomy()  # move an older skill map onto the master map (once per version)
+        from .packs import ensure_packs
+        ensure_packs()  # ready-made questions and collections from monday/data/packs (once per pack)
 
     return app
 
@@ -184,6 +186,12 @@ def _register_template_helpers(app):
             return format_datetime(value, fmt)
         return format_date(value, fmt)
 
+    @app.template_filter("answer")
+    def fmt_answer(value):
+        """A numeric answer with several accepted values ("7|-7") shown as "7 или -7"."""
+        from .services import display_answer
+        return display_answer(value)
+
     @app.template_filter("dt")
     def fmt_datetime(value, fmt="d MMM, HH:mm"):
         return format_datetime(value, fmt) if value else ""
@@ -251,4 +259,18 @@ def _register_cli(app):
         if not no_seed:
             from .seed import seed_demo
             seed_demo()
+            from .taxonomy import ensure_taxonomy
+            from .packs import ensure_packs
+            ensure_taxonomy()
+            ensure_packs()
         click.echo("Database recreated.")
+
+    @app.cli.command("import-pack")
+    @click.argument("pack_id", required=False)
+    @click.option("--draft", is_flag=True, help="Import as drafts (review before students see them).")
+    def import_pack_cmd(pack_id, draft):
+        """Import a content pack from monday/data/packs (all of them when no name is given)."""
+        from .packs import available, import_pack
+        for pid in ([pack_id] if pack_id else available()):
+            q, w = import_pack(pid, publish=not draft)
+            click.echo(f"{pid}: " + (f"{q} questions, {w} collections" if q else "already imported"))

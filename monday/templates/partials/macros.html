@@ -93,7 +93,7 @@
            value="{{ selected or '' }}" {{ 'disabled' if disabled }}>
     {% if not reveal %}{{ input_hint(item) }}{% endif %}
   </div>
-  {% if reveal %}<p class="small">{{ _("Верный ответ:") }} <b>{{ item.correct }}</b></p>{% endif %}
+  {% if reveal %}<p class="small">{{ _("Верный ответ:") }} <b>{{ item.correct|answer }}</b></p>{% endif %}
 {% else %}
   {# SAT-style: one full-width row per option, circled letter, strike button for "eliminate" #}
   <div class="options" role="radiogroup">
@@ -174,7 +174,7 @@
 {%- endmacro %}
 
 {% macro correct_text(item) -%}
-{%- if item.answer_type == 'number' -%}{{ item.correct }}
+{%- if item.answer_type == 'number' -%}{{ item.correct|answer }}
 {%- else -%}{{ LETTERS[item.correct|int] }}) <span class="math">{{ item.options[item.correct|int] }}</span>{%- endif -%}
 {%- endmacro %}
 

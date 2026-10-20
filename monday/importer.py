@@ -13,7 +13,7 @@ import json
 import re
 
 from .models import Question
-from .services import parse_number
+from .services import valid_number_answer
 
 CYR = "АБВГДЕЖЗ"
 LAT = "ABCDEFGH"
@@ -203,8 +203,7 @@ def problems(q):
         if q.get("correct", "") == "":
             out.append("answer")
     else:
-        val, _fmt = parse_number(q.get("correct") or "")
-        if val is None:
+        if not valid_number_answer(q.get("correct") or ""):
             out.append("answer")
     if DIAGRAM.search(q.get("text") or ""):
         out.append("diagram")

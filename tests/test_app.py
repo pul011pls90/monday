@@ -65,8 +65,34 @@ def test_demo_questions_are_well_formed():
                 assert len(q.options) == len(set(q.options)) >= 2, (q.id, q.options)
                 assert q.correct.isdigit() and int(q.correct) < len(q.options), (q.id, q.correct)
             else:
-                from monday.services import parse_number
-                assert parse_number(q.correct)[0] is not None, (q.id, q.correct)
+                from monday.services import valid_number_answer
+                assert valid_number_answer(q.correct), (q.id, q.correct)
+
+
+def test_sat_pack_is_imported_with_two_35_minute_modules():
+    from monday.models import Question, Work
+    with APP.app_context():
+        works = Work.query.filter(Work.title.like("SAT Math · Princeton Review 2025%")).all()
+        assert len(works) == 4
+        for w in works:
+            v = w.current_version
+            assert w.status == "published" and w.exam == "SAT" and v.question_count == 44
+            assert v.layout["format"] == "sat"
+            assert v.layout["modules"] == [{"start": 0, "end": 22, "minutes": 35}, {"start": 22, "end": 44, "minutes": 35}]
+            assert all(item["skill_id"] for item in v.items)
+        pack_q = Question.query.filter(Question.image_path.like("packs/%")).all()
+        assert pack_q and all(os.path.exists(os.path.join(APP.config["UPLOAD_FOLDER"], q.image_path)) for q in pack_q)
+
+
+def test_several_accepted_numeric_answers():
+    from monday.services import display_answer, is_correct
+    item = {"answer_type": "number", "correct": "-5/9|-0.5555|-0.5556|-0.555|-0.556"}
+    for given in ("-5/9", "-0.5556", "-.555", "-10/18"):
+        assert is_correct(item, given), given
+    assert not is_correct(item, "-0.55")
+    assert is_correct({"answer_type": "number", "correct": "7|-7"}, "-7")
+    assert display_answer("-5/9|-0.5555|-0.5556", joiner=" or ") == "-5/9"
+    assert display_answer("7|-7", joiner=" or ") == "7 or -7"
 
 
 # --------------------------------------------------------------------------- auth

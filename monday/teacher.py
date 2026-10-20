@@ -937,10 +937,14 @@ def _fill_question(qn, form, files):
     else:
         qn.options = []
         val = form.get("correct_number", "").strip()
-        value, fmt = parse_number(val)
-        if value is None:
-            errors.append(_("Верный ответ должен быть числом: целым, дробью (3/4) или десятичным (0,75)."))
-        qn.correct = val.replace(",", ".") if fmt == "decimal" else val
+        parts = []
+        for part in [p.strip() for p in val.split("|") if p.strip()] or [""]:
+            value, fmt = parse_number(part)
+            if value is None:
+                errors.append(_("Верный ответ должен быть числом: целым, дробью (3/4) или десятичным (0,75)."))
+                break
+            parts.append(part.replace(",", ".") if fmt == "decimal" else part)
+        qn.correct = "|".join(parts) if parts else val
         qn.input_formats = [f for f in form.getlist("input_formats") if f in INPUT_FORMATS] or list(INPUT_FORMATS)
         precision = form.get("precision", "")
         qn.precision = int(precision) if precision in ("1", "2") else None
