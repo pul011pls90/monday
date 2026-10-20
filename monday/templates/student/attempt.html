@@ -11,22 +11,28 @@
 {% set has_input = version.items[mod.start:mod.end]|selectattr('answer_type', 'equalto', 'number')|list %}
 {% set entry_rules = ('sat' if layout.format == 'sat' else 'general') if att.mode == 'collection' and has_input else None %}
 {% set label = version.title ~ ((' · ' ~ _('Модуль %(k)s из %(n)s', k=module, n=mods|length)) if mods|length > 1 else '') %}
-{% with close_url=back, label=label, dot_color=None, steps=None, counter=None, timer_seconds=seconds_left %}
+{% with close_url=back, label=label, dot_color=None, steps=None, counter=None, timer_seconds=None, exit_confirm=seconds_left is not none %}
   {% include "partials/session_bar.html" %}
 {% endwith %}
 
 {# ------------------------------------------------------------ tools: formulas, calculator, progress #}
-<div class="test-tools" data-calc-top>
-  <div class="row" style="gap:8px">
-    <button type="button" class="btn btn--secondary btn--sm" data-drawer-open="ref" aria-label="{{ _('Формулы') }}">{{ ui.icon('journal', 16) }}<span class="btn-label">{{ _("Формулы") }}</span></button>
-    {% if entry_rules %}<button type="button" class="btn btn--secondary btn--sm" data-drawer-open="entry" aria-label="{{ _('Как вводить ответ') }}">{{ ui.icon('info', 16) }}<span class="btn-label">{{ _("Ввод ответа") }}</span></button>{% endif %}
-    {% if layout.calculator %}<button type="button" class="btn btn--secondary btn--sm" data-calc-open aria-pressed="false" aria-label="{{ _('Калькулятор') }}">{{ ui.icon('chart', 16) }}<span class="btn-label">{{ _("Калькулятор") }}</span></button>{% endif %}
-    {% if att.mode == 'homework' %}<span class="tag tag--soft">{{ _("Домашнее задание") }}</span>{% elif att.mode == 'monday' %}<span class="tag">{{ _("Тест понедельника") }}</span>{% endif %}
+<div class="test-tools test-tools--3" data-calc-top>
+  {# left: info about the test · centre: timer · right: tools (like the Digital SAT / Bluebook bar) #}
+  <div class="row test-tools__left" style="gap:8px">
+    {% if entry_rules %}<button type="button" class="btn btn--secondary btn--sm" data-drawer-open="entry" aria-label="{{ _('Правильная запись ответа') }}">{{ ui.icon('info', 16) }}<span class="btn-label">{{ _("Правильная запись ответа") }}</span></button>{% endif %}
     <span class="tag tag--line test-tools__format">{{ TEST_FORMATS[layout.format].label }}</span>
+    {% if att.mode == 'homework' %}<span class="tag tag--soft">{{ _("Домашнее задание") }}</span>{% elif att.mode == 'monday' %}<span class="tag">{{ _("Тест понедельника") }}</span>{% endif %}
+    <span class="row small test-tools__status" style="gap:12px">
+      <span class="test-tools__answered" style="font-weight:700"><span class="btn-label">{{ _("Отвечено:") }} </span>{{ ui.icon('check', 14) }}<span data-answered class="num">0 / {{ mod.end - mod.start }}</span></span>
+      <span class="save-state muted" data-save-state data-saving="{{ _('Сохраняем…') }}" data-saved="{{ _('Ответы сохранены') }}" data-failed="{{ _('Нет связи — ответы сохранятся при сдаче') }}" aria-live="polite"></span>
+    </span>
   </div>
-  <div class="row small test-tools__status" style="gap:14px">
-    <span class="save-state muted" data-save-state data-saving="{{ _('Сохраняем…') }}" data-saved="{{ _('Ответы сохранены') }}" data-failed="{{ _('Нет связи — ответы сохранятся при сдаче') }}" aria-live="polite"></span>
-    <span class="test-tools__answered" style="font-weight:700"><span class="btn-label">{{ _("Отвечено:") }} </span>{{ ui.icon('check', 14) }}<span data-answered class="num">0 / {{ mod.end - mod.start }}</span></span>
+  <div class="test-tools__center">
+    {% if seconds_left is not none %}<span class="timer-pill">{{ ui.icon('timer', 18) }}<span class="timer" data-timer="{{ seconds_left }}" data-form="test-form" aria-live="off">--:--</span></span>{% endif %}
+  </div>
+  <div class="row test-tools__right" style="gap:8px">
+    <button type="button" class="btn btn--secondary btn--sm" data-drawer-open="ref" aria-label="{{ _('Формулы') }}">{{ ui.icon('journal', 16) }}<span class="btn-label">{{ _("Формулы") }}</span></button>
+    {% if layout.calculator %}<button type="button" class="btn btn--secondary btn--sm" data-calc-open aria-pressed="false" aria-label="{{ _('Калькулятор') }}">{{ ui.icon('calculator', 16) }}<span class="btn-label">{{ _("Калькулятор") }}</span></button>{% endif %}
   </div>
 </div>
 
@@ -125,7 +131,7 @@
           {% if entry_rules and item.answer_type == 'number' %}
             <div class="entry-help">
               {% if entry_rules == 'sat' %}<span class="entry-preview small" data-entry-preview hidden>{{ _("Ваш ответ:") }} <span class="math" data-entry-math></span></span>{% endif %}
-              <button type="button" class="link-btn small" data-drawer-open="entry">{{ ui.icon('info', 14) }} {{ _("Как вводить ответ") }}</button>
+              <button type="button" class="link-btn small" data-drawer-open="entry">{{ ui.icon('info', 14) }} {{ _("Правильная запись ответа") }}</button>
             </div>
           {% endif %}
         </div>

@@ -101,7 +101,7 @@ def test_sat_entry_rules_and_sheet_in_sat_collections():
         wid, items = w.id, w.current_version.items
     r = s.post(f"/works/{wid}/start")
     run = r.headers["Location"]
-    ok(s, run, contains=["Как вводить ответ", ".6667", "data-sat-entry"])
+    ok(s, run, contains=["Правильная запись ответа", ".6667", "data-sat-entry"])
     # Module 1, question 5: 200 — "200.0" is 5 characters and equal, so it counts
     idx = next(i for i, it in enumerate(items[:22]) if it["answer_type"] == "number")
     r = s.post(run.rstrip("/") + "/next-module", data={f"q{idx}": items[idx]["correct"].split("|")[0]})
