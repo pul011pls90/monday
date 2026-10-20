@@ -4,7 +4,7 @@
 <header class="session-bar">
   <div class="row session-bar__left" style="gap:16px">
     <a class="icon-btn" href="{{ close_url }}" aria-label="{{ _('Выйти') }}"
-       {% if timer_seconds is not none %}data-exit-confirm data-exit-title="{{ _('Выйти из теста?') }}"
+       {% if timer_seconds is not none or exit_confirm %}data-exit-confirm data-exit-title="{{ _('Выйти из теста?') }}"
        data-exit-text="{{ _('Ответы уже сохранены — сможешь продолжить с того же места. Таймер при этом не останавливается.') }}"
        data-exit-stay="{{ _('Остаться') }}" data-exit-go="{{ _('Выйти') }}"{% endif %}>{{ ui.icon('x', 18) }}</a>
     <div class="row session-bar__label" style="gap:8px;font-weight:700">{% if dot_color %}<span class="dot bg-{{ dot_color }}"></span>{% endif %}<span class="session-bar__text">{{ label }}</span></div>

@@ -1088,3 +1088,19 @@ kbd { font: 700 10px var(--font); padding: 1px 5px; border-radius: 4px; border: 
   .test-tools .tag { white-space: nowrap; }
 }
 @media (min-width: 761px) and (min-height: 521px) { .test-tools__answered .ic { display: none; } }
+
+/* test tool row in three parts: info left, timer centre, tools right */
+.test-tools--3 { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); flex-wrap: nowrap; }
+.test-tools--3 .test-tools__left { justify-self: start; min-width: 0; }
+.test-tools--3 .test-tools__right { justify-self: end; }
+.test-tools--3 .test-tools__center { justify-self: center; }
+.timer-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); }
+.timer-pill .timer { font-size: 20px; letter-spacing: .04em; }
+.test-tools .test-tools__status .save-state { white-space: nowrap; }
+@media (max-width: 760px), (orientation: landscape) and (max-height: 520px) {
+  .test-tools--3 { grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px; }
+  .timer-pill { padding: 4px 10px; }
+  .timer-pill .ic { display: none; }
+  .timer-pill .timer { font-size: 16px; }
+  .test-tools--3 .save-state { display: none; }
+}
