@@ -165,17 +165,17 @@
 </div>
 {%- endmacro %}
 
-{% macro answer_text(item, value) -%}
+{% macro answer_text(item, value, letters=None) -%}{% set L = letters or LETTERS %}
 {%- if value in (None, '') -%}<span class="muted">{{ _("нет ответа") }}</span>
 {%- elif item.answer_type == 'number' -%}<span class="num">{{ value }}</span>
-{%- elif value|string in (range(item.options|length)|map('string')|list) -%}{{ LETTERS[value|int] }}) <span class="math">{{ item.options[value|int] }}</span>
+{%- elif value|string in (range(item.options|length)|map('string')|list) -%}{{ L[value|int] }}) <span class="math">{{ item.options[value|int] }}</span>
 {%- else -%}<span class="muted">{{ _("нет ответа") }}</span>
 {%- endif -%}
 {%- endmacro %}
 
-{% macro correct_text(item) -%}
+{% macro correct_text(item, letters=None) -%}{% set L = letters or LETTERS %}
 {%- if item.answer_type == 'number' -%}{{ item.correct|answer }}
-{%- else -%}{{ LETTERS[item.correct|int] }}) <span class="math">{{ item.options[item.correct|int] }}</span>{%- endif -%}
+{%- else -%}{{ L[item.correct|int] }}) <span class="math">{{ item.options[item.correct|int] }}</span>{%- endif -%}
 {%- endmacro %}
 
 {% macro figure(item) -%}
