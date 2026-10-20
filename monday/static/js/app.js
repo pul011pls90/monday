@@ -504,3 +504,58 @@
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !drawer.hidden) close(); });
   window.addEventListener("resize", () => { if (window.innerWidth > 760 && !drawer.hidden) close(); });
 })();
+
+/* ---------- test review: one question at a time, picker at the bottom (collections) ---------- */
+(() => {
+  const root = document.querySelector("[data-rv]");
+  if (!root) return;
+  const $ = (s, el = root) => el.querySelector(s);
+  const screens = [...root.querySelectorAll("[data-rv-screen]")];
+  if (!screens.length) return;
+  const foot = $("[data-rv-foot]"), pop = $("[data-rv-pop]"), counter = $("[data-rv-counter]");
+  const prev = $("[data-rv-prev]"), next = $("[data-rv-next]");
+  const cells = [...root.querySelectorAll("[data-rv-go]")];
+  root.classList.add("is-paged");
+  foot.hidden = false;
+  document.body.classList.add("has-rv-foot");
+  // phones: the app menu sits at the bottom — put the review bar right above it
+  const rail = document.querySelector(".rail");
+  const place = () => {
+    const r = rail && rail.getBoundingClientRect();
+    const atBottom = r && getComputedStyle(rail).position === "fixed" && r.top > window.innerHeight / 2;
+    const h = atBottom ? Math.round(window.innerHeight - r.top) : 0;
+    foot.style.bottom = `${h}px`;
+    document.body.style.paddingBottom = `${h + foot.offsetHeight + 12}px`;
+  };
+  place();
+  window.addEventListener("resize", place);
+  let cur = 0;
+  const show = (i, scroll = true) => {
+    cur = Math.max(0, Math.min(screens.length - 1, i));
+    screens.forEach((s, k) => (s.hidden = k !== cur));
+    counter.textContent = String(cur + 1);
+    prev.disabled = cur === 0;
+    next.disabled = cur === screens.length - 1;
+    cells.forEach((c) => c.classList.toggle("is-current", parseInt(c.dataset.rvGo, 10) === cur));
+    history.replaceState(null, "", `#q${cur + 1}`);
+    if (window.MondayRenderMath) window.MondayRenderMath(screens[cur]);
+    if (scroll) root.scrollIntoView({ block: "start" });
+  };
+  prev.addEventListener("click", () => show(cur - 1));
+  next.addEventListener("click", () => show(cur + 1));
+  $("[data-rv-toggle]").addEventListener("click", (e) => {
+    pop.hidden = !pop.hidden;
+    e.currentTarget.setAttribute("aria-expanded", String(!pop.hidden));
+  });
+  cells.forEach((c) => c.addEventListener("click", () => { pop.hidden = true; show(parseInt(c.dataset.rvGo, 10)); }));
+  document.addEventListener("click", (e) => { if (!pop.hidden && !e.target.closest("[data-rv-pop], [data-rv-toggle]")) pop.hidden = true; });
+  document.addEventListener("keydown", (e) => {
+    if (e.target.matches("input, textarea")) return;
+    if (e.key === "ArrowRight" && !next.disabled) show(cur + 1);
+    if (e.key === "ArrowLeft" && !prev.disabled) show(cur - 1);
+    if (e.key === "Escape") pop.hidden = true;
+  });
+  const m = location.hash.match(/^#q(\d+)$/);
+  show(m ? parseInt(m[1], 10) - 1 : 0, !!m);
+})();
+

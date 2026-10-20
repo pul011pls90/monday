@@ -1,0 +1,55 @@
+{# Step-by-step review of a finished collection test (like Bluebook): explanation on the left,
+   the question with the answers on the right, a question picker at the bottom.
+   Expects: att, rows, layout. Without JavaScript every question is shown one under another. #}
+{% set abc = 'ABCDEFGH' if layout.format in ('sat', 'csca') else None %}
+{% set mods = layout.modules %}
+<section class="section rv" data-rv>
+  <h2>{{ _("Разбор") }}</h2>
+  {% for row in rows %}
+    {% set item = row.item|loc %}{% set a = row.answer %}{% set n = loop.index %}
+    {% if item %}
+    {% set state = 'ok' if a.is_correct else ('skip' if not a.given else 'bad') %}
+    <article class="rv-screen" data-rv-screen="{{ loop.index0 }}" id="q{{ n }}">
+      <aside class="rv-explain">
+        <div class="row row--between">
+          <span class="q-num">{{ _("Вопрос %(n)s", n=n) }}{% if mods|length > 1 %}{% for m in mods %}{% if m.start < n and n <= m.end %} · {{ _("Модуль %(k)s", k=loop.index) }}{% endif %}{% endfor %}{% endif %}</span>
+          <span class="tag {{ 'tag--ok' if state == 'ok' else ('tag--line' if state == 'skip' else 'tag--bad') }}">{{ _("Верно") if state == 'ok' else (_("Нет ответа") if state == 'skip' else _("Ошибка")) }}</span>
+        </div>
+        <dl class="rv-answers">
+          <div><dt>{{ _("Ваш ответ") }}</dt><dd>{% if not a.given %}<span class="muted">{{ _("нет ответа") }}</span>{% elif item.answer_type == 'number' %}<span class="num">{{ a.given }}</span>{% else %}{{ (abc or LETTERS)[a.given|int] }}{% endif %}</dd></div>
+          <div><dt>{{ _("Верный ответ") }}</dt><dd>{% if item.answer_type == 'number' %}<span class="num">{{ item.correct|answer }}</span>{% else %}{{ (abc or LETTERS)[item.correct|int] }}{% endif %}</dd></div>
+        </dl>
+        <h3 class="rv-explain__title">{{ _("Объяснение") }}</h3>
+        {% if item.explanation %}<div class="explain__text math">{{ item.explanation }}</div>
+        {% else %}<p class="muted">{{ _("Учитель не добавил объяснение.") }}</p>{% endif %}
+        {% if item.video_url %}<a class="row" style="gap:8px;font-weight:600" href="{{ item.video_url }}" target="_blank" rel="noopener">{{ ui.icon('video', 18) }}{{ _("Видео учителя") }}</a>{% endif %}
+      </aside>
+      <div class="rv-question">
+        {{ ui.figure(item) }}
+        {{ ui.material(item) }}
+        {% if item.text %}<div class="q-text math">{{ item.text }}</div>{% endif %}
+        {{ ui.option_inputs(item, 'r' ~ loop.index0, selected=a.given, reveal=True, disabled=True, letters=abc) }}
+      </div>
+    </article>
+    {% endif %}
+  {% endfor %}
+
+  <div class="rv-foot" data-rv-foot hidden>
+    <button type="button" class="btn btn--secondary" data-rv-prev aria-label="{{ _('Назад') }}">{{ ui.icon('arrow-left', 18) }}<span class="btn-label">{{ _("Назад") }}</span></button>
+    <div class="test-foot__mid">
+      <button type="button" class="btn btn--ghost test-foot__counter" data-rv-toggle aria-expanded="false"><span class="rv-foot__word">{{ _("Вопрос") }} </span><span data-rv-counter>1</span> {{ _("из") }} {{ rows|length }} ▾</button>
+      <div class="q-grid-pop" data-rv-pop hidden>
+        {% for m in mods %}
+          {% if mods|length > 1 %}<div class="rv-pop__head">{{ _("Модуль %(k)s", k=loop.index) }}</div>{% endif %}
+          <div class="q-grid rv-grid">
+            {% for i in range(m.start, m.end) %}{% if i < rows|length %}{% set a = rows[i].answer %}
+              <button type="button" data-rv-go="{{ i }}" class="{{ 'is-ok' if a.is_correct else ('is-skip' if not a.given else 'is-bad') }}">{{ i + 1 }}</button>
+            {% endif %}{% endfor %}
+          </div>
+        {% endfor %}
+        <div class="q-grid__legend small muted"><span><i class="lg is-ok"></i>{{ _("верно") }}</span><span><i class="lg is-bad"></i>{{ _("ошибка") }}</span><span><i class="lg"></i>{{ _("без ответа") }}</span></div>
+      </div>
+    </div>
+    <button type="button" class="btn btn--primary" data-rv-next aria-label="{{ _('Далее') }}"><span class="btn-label">{{ _("Далее") }}</span>{{ ui.icon('arrow-right', 18) }}</button>
+  </div>
+</section>

@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block title %}{{ _("Результат") }}{% endblock %}
-{% block page_class %}page--narrow{% endblock %}
+{% block page_class %}{{ "page--rv" if att.mode == "collection" else "page--narrow" }}{% endblock %}
 {% block content %}
 {% set v = att.work_version %}
 <section class="hero" style="align-items:center">
@@ -24,6 +24,9 @@
 {% set wrong = rows|rejectattr('answer.is_correct')|list|length %}
 {% if wrong %}<div class="flash flash--info">{{ _("Ошибок в работе: %(n)s. Они добавлены в Лабораторный журнал — там их можно разобрать и закрыть.", n=wrong) }}</div>{% endif %}
 
+{% if att.mode == 'collection' and layout %}
+{% include "student/_review_steps.html" %}
+{% else %}
 <section class="section">
   <h2>{{ _("Разбор") }}</h2>
   {% for row in rows %}
@@ -46,4 +49,5 @@
     {% endif %}
   {% endfor %}
 </section>
+{% endif %}
 {% endblock %}
