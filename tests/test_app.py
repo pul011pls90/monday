@@ -213,6 +213,35 @@ def test_collection_test_flow():
     ok(c, r.headers["Location"], contains=["Разбор", f"1 / {n}"])
 
 
+def db_get(model, pk):
+    from monday.extensions import db
+    return db.session.get(model, pk)
+
+
+def test_empty_homework_goes_in_only_when_time_runs_out():
+    from monday.models import Assignment, Attempt, Work
+    s = login(client(), "student@monday.kg", "student123")
+    with APP.app_context():
+        from monday.extensions import db
+        from monday.models import StudentRecord, User
+        student = User.query.filter_by(email="student@monday.kg").first()
+        rec = StudentRecord.query.filter_by(student_user_id=student.id).first()
+        work = Work.query.filter_by(kind="homework", status="published").first()
+        a = Assignment(work=work, teacher_id=rec.teacher_id, record=rec)
+        db.session.add(a)
+        db.session.commit()
+        aid, teacher_email = a.id, rec.teacher.email
+    r = s.post(f"/homework/{aid}/start")
+    run = r.headers["Location"]
+    r = s.post(run, data={"timeout": "1"})
+    assert "/result" in r.headers["Location"]
+    with APP.app_context():
+        att = db_get(Attempt, int(run.rstrip("/").split("/")[-1]))
+        assert att.finished_at is not None and att.score == 0
+    t = login(client(), teacher_email, "teacher123")
+    ok(t, f"/teacher/review/{aid}", contains="ни на один вопрос")
+
+
 def test_homework_flow_student_then_teacher():
     from monday.models import Assignment, Work
     s = login(client(), "student@monday.kg", "student123")
@@ -224,6 +253,14 @@ def test_homework_flow_student_then_teacher():
     ok(s, f"/homework/{aid}", contains="Начать")
     r = s.post(f"/homework/{aid}/start")
     run = r.headers["Location"]
+    # handing in with no answers is refused (the test stays open) ...
+    r = s.post(run, data={})
+    assert r.headers["Location"].endswith(run)
+    ok(s, run, contains="Ответьте хотя бы на один вопрос")
+    # ... unless the timer ran out
+    with APP.app_context():
+        from monday.models import Attempt
+        assert db_get(Attempt, int(run.rstrip("/").split("/")[-1])).finished_at is None
     form = {f"q{i}": it["correct"] for i, it in enumerate(items)}
     r = s.post(run, data=form)
     ok(s, r.headers["Location"], contains="К заданию")

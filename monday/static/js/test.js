@@ -148,6 +148,30 @@
   const answered = (idx) => $$(`[name="q${idx}"]`, form).some((f) => (f.type === "radio" ? f.checked : f.value.trim() !== ""));
   const key = (k) => `monday-${form.dataset.attempt}-${k}`;
 
+  /* homework: can't be handed in with no answers; asks once when some are left empty */
+  if (form.hasAttribute("data-require-answer")) {
+    const earlier = parseInt(form.dataset.earlierAnswered || "0", 10) || 0;
+    const start = parseInt(form.dataset.start, 10), end = parseInt(form.dataset.end, 10);
+    const count = () => { let n = 0; for (let i = start; i < end; i += 1) if (answered(i)) n += 1; return n; };
+    const finals = $$("button[type=submit]", form);
+    const hints = $$("[data-submit-hint]", form);
+    const refresh = () => {
+      const none = earlier + count() === 0;
+      finals.forEach((b) => { b.disabled = none; b.setAttribute("aria-disabled", String(none)); });
+      hints.forEach((h) => { h.hidden = !none; h.textContent = form.dataset.emptyMsg; });
+    };
+    form.addEventListener("change", refresh);
+    form.addEventListener("input", refresh);
+    form.addEventListener("submit", (e) => {
+      const n = count(), total = end - start;
+      if (earlier + n === 0) { e.preventDefault(); refresh(); return; }
+      if (n < total && !window.confirm(form.dataset.partialMsg.replace("{n}", String(total - n)).replace("{total}", String(total)))) {
+        e.preventDefault();
+      }
+    });
+    refresh();
+  }
+
   /* grid navigation */
   if (form.dataset.nav === "grid") {
     const screens = $$(".q-screen", form);
