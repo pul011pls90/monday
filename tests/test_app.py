@@ -1079,3 +1079,14 @@ def test_ort_sheet_allows_one_correction():
     with APP.app_context():
         att = db_get(Attempt, att_id)
         assert att.finished_at and next(x for x in att.answers if x.index == idx).given == "1"
+
+
+def test_bank_source_filter_and_format_info():
+    from monday.models import Question
+    c = login(client(), "student@monday.kg", "student123")
+    with APP.app_context():
+        assert Question.query.filter(Question.source.isnot(None)).count() > 0
+    r = c.get("/bank/?exam=SAT&src=pack").data.decode()
+    assert "Из сборников" in r and "От учителей" in r
+    t = login(client(), "aibek@monday.kg", "teacher123")
+    ok(t, "/teacher/works/new?kind=homework", contains=["data-format-info=\"ort\"", "исправить только один раз"])

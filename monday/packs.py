@@ -94,7 +94,7 @@ def import_pack(pack_id, publish=True, author=None):
                      weight=int(item.get("weight") or 1), rubric=item.get("rubric") or None,
                      answer_type=item["answer_type"], options=item.get("options") or [],
                      correct=item["correct"], explanation=item.get("explanation", ""),
-                     tags=item.get("tags") or [], status=status)
+                     tags=item.get("tags") or [], status=status, source=pack_id)
         db.session.add(q)
         by_key[item["id"]] = q
     db.session.flush()
