@@ -63,6 +63,7 @@ class Config:
     # Content packs shipped in monday/data/packs/ (e.g. the Princeton Review SAT practice tests) are imported
     # into a database that doesn't have them yet. PUBLISH_PACKS=0 imports them as drafts for review instead.
     IMPORT_PACKS = os.environ.get("IMPORT_PACKS", "1") == "1"
+    DATA_FIXES = os.environ.get("DATA_FIXES", "1") == "1"  # one-time fixes in monday/cleanup.py
     PUBLISH_PACKS = os.environ.get("PUBLISH_PACKS", "1") == "1"
 
     SESSION_COOKIE_HTTPONLY = True
