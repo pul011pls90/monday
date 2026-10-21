@@ -1183,3 +1183,6 @@ kbd { font: 700 10px var(--font); padding: 1px 5px; border-radius: 4px; border: 
 .sat-ref__wide { grid-column: span 2; }
 .sat-ref__wide svg { width: 48%; }
 .sat-ref__mine { font-size: 18px; margin: 6px 0 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+/* ORT sheet: a corrected answer is a square; the row is then final */
+.bubble--square span { border-radius: 6px; }
+.ort-sheet__row.is-fixed .bubble input:disabled + span { opacity: .45; cursor: not-allowed; }

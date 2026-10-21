@@ -346,6 +346,21 @@
       target.classList.add("is-flash");
       setTimeout(() => target.classList.remove("is-flash"), 900);
     }));
+    // ORT answer sheet: one correction per question; the corrected mark becomes a square, then the row is fixed
+    $$("[data-sheet-row][data-once]", form).forEach((row) => {
+      const radios = $$("input[type=radio]", row);
+      let prev = radios.find((r) => r.checked) || null;
+      const fix = (picked) => {
+        row.dataset.fixed = "1"; row.classList.add("is-fixed");
+        radios.forEach((r) => { r.disabled = r !== picked; r.parentElement.classList.toggle("bubble--square", r === picked); });
+      };
+      radios.forEach((r) => r.addEventListener("change", (e) => {
+        if (!r.checked) return;
+        if (row.dataset.fixed) { e.stopImmediatePropagation(); if (prev) prev.checked = true; return; }
+        if (prev && prev !== r) fix(r);
+        prev = r;
+      }));
+    });
     const markRows = () => $$("[data-sheet-row]", form).forEach((row) => row.classList.toggle("is-answered", answered(row.dataset.sheetRow)));
     form.addEventListener("change", markRows);
     form.addEventListener("input", markRows);
