@@ -70,11 +70,13 @@
   // per-question timer: counts this visit; unsent seconds go with "check" or when leaving the page
   const timerEl = $("[data-qtimer]");
   let visit = 0, unsent = 0;
+  const metaTime = $("[data-meta-time]"), base = metaTime ? Number(metaTime.dataset.base) || 0 : 0;
   const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
   setInterval(() => {
     if (document.hidden) return;
     visit += 1; unsent += 1;
     timerEl.textContent = fmt(visit);
+    if (metaTime) { const t = base + visit; metaTime.textContent = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; }
   }, 1000);
   const flushTime = () => {
     if (unsent < 1) return;

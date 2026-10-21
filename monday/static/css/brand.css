@@ -415,9 +415,9 @@ details[open] > summary .bank-topic__chev { transform: rotate(180deg); }
 .bank-tools > .row:last-child { justify-content: flex-end; }
 .bank-timer { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border: 1.5px solid var(--line-strong); border-radius: 12px; font-weight: 800; font-size: 17px; background: var(--surface); }
 .bank-meta { position: relative; }
-.bank-meta__pop { position: absolute; top: calc(100% + 8px); left: 0; z-index: 25; width: 320px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 16px; padding: 16px 18px; box-shadow: 0 20px 50px rgba(2, 11, 41, .2); }
+.bank-meta__pop { position: absolute; top: calc(100% + 8px); left: 0; z-index: 25; width: 400px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 16px; padding: 16px 18px; box-shadow: 0 20px 50px rgba(2, 11, 41, .2); }
 .bank-meta__pop .kv { grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; }
-.bank-meta__pop dt { color: var(--muted); }
+.bank-meta__pop dt { color: var(--muted); white-space: nowrap; }
 .bank-meta__pop dd { margin: 0; font-weight: 600; }
 .bank-page .q-screen { gap: 22px; margin-top: 8px; }
 .q-card--flat { border: 0; background: transparent !important; padding: 8px 0 0; box-shadow: none; }
@@ -1170,3 +1170,16 @@ kbd { font: 700 10px var(--font); padding: 1px 5px; border-radius: 4px; border: 
   .jr-group__head { flex-wrap: wrap; row-gap: 2px; }
   .jr-group__title { flex-basis: 100%; order: 3; white-space: normal; }
 }
+
+/* SAT reference sheet in the formulas drawer */
+.sat-ref__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.sat-ref figure { margin: 0; padding: 10px 8px 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); text-align: center; }
+.sat-ref svg { width: 100%; max-width: 150px; height: auto; color: var(--text); fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
+.sat-ref svg text { fill: currentColor; stroke: none; font: italic 10px "Times New Roman", serif; }
+.sat-ref svg .dot { fill: currentColor; }
+.sat-ref svg .dash { stroke-dasharray: 3 2.5; }
+.sat-ref figcaption { font-size: 14px; margin-top: 4px; line-height: 1.5; }
+.sat-ref__facts { margin: 12px 0 18px; padding-left: 18px; display: grid; gap: 4px; }
+.sat-ref__wide { grid-column: span 2; }
+.sat-ref__wide svg { width: 48%; }
+.sat-ref__mine { font-size: 18px; margin: 6px 0 10px; padding-top: 14px; border-top: 1px solid var(--line); }

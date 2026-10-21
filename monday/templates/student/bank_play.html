@@ -23,7 +23,7 @@
           <dt>{{ _("Сложность") }}</dt><dd>{{ DIFFICULTIES[question.difficulty or 2] }}</dd>
           <dt>{{ _("Тип ответа") }}</dt><dd>{{ _("Ввод ответа") if question.answer_type == 'number' else _("Варианты") }}</dd>
           <dt>{{ _("Автор") }}</dt><dd>{{ question.author.name if question.author else '—' }}</dd>
-          <dt>{{ _("Время на вопрос") }}</dt><dd class="num">{{ (state.seconds // 60) if state else 0 }} {{ _("мин") }}</dd>
+          <dt>{{ _("Время на вопрос") }}</dt><dd class="num" data-meta-time data-base="{{ state.seconds if state else 0 }}">{{ '%d:%02d' % (((state.seconds if state else 0) or 0) // 60, ((state.seconds if state else 0) or 0) % 60) }}</dd>
           <dt>ID</dt><dd class="num">{{ question.id }}</dd>
         </dl>
       </div>
@@ -55,7 +55,7 @@
       {% if (question.weight or 1) > 1 %}<span class="tag tag--line tag--xs" style="margin-left:auto;margin-right:10px">{{ question.weight }} {{ question.weight|plural_ru(_("балл"), _("балла"), _("баллов")) }}</span>{% endif %}
     </div>
     <div class="q-card q-card--test q-card--flat">
-      {{ ui.question_body(item, 'given', selected=state.last_given if state and state.attempts and state.last_correct else None, letters=letters) }}
+      {{ ui.question_body(item, 'given', selected=state.last_given if state and state.attempts and state.last_correct else None, letters=letters, weight_tag=False) }}
     </div>
     <div class="feedback" data-feedback hidden aria-live="polite"></div>
     <section class="explain" data-explain hidden aria-labelledby="expl-h">
@@ -87,6 +87,6 @@
   </div>
 </div>
 
-{% include "partials/tool_panes.html" %}
+{% with sat_ref=exam == 'SAT' %}{% include "partials/tool_panes.html" %}{% endwith %}
 {% endblock %}
 {% block scripts %}<script defer src="{{ url_for('static', filename='js/test.js') }}"></script><script defer src="{{ url_for('static', filename='js/bank.js') }}"></script>{% endblock %}
