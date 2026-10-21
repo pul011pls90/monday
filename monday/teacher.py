@@ -685,11 +685,36 @@ def review():
         rows.append({"a": a, "state": state, "last": latest_attempt(a, uid) if uid else None})
     counts = {k: sum(1 for r in rows if r["state"] == k) for k in ("submitted", "checked")}
     counts["open"] = sum(1 for r in rows if r["state"] in ("new", "in_progress", "overdue"))
+    written = written_to_mark(current_user)
+    counts["written"] = len(written)
+    if show == "written":
+        return render_template("teacher/review.html", rows=[], written=written, show=show, counts=counts)
     if show == "open":
         rows = [r for r in rows if r["state"] in ("new", "in_progress", "overdue")]
     else:
         rows = [r for r in rows if r["state"] == show]
-    return render_template("teacher/review.html", rows=rows, show=show, counts=counts)
+    return render_template("teacher/review.html", rows=rows, written=written, show=show, counts=counts)
+
+
+def written_to_mark(teacher):
+    """Finished attempts of the teacher's students with part-2 (written) answers the teacher hasn't marked yet."""
+    records = {r.student_user_id: r for r in StudentRecord.query.filter_by(teacher_id=teacher.id)
+               .filter(StudentRecord.student_user_id.isnot(None)).all()}
+    if not records:
+        return []
+    answers = (AttemptAnswer.query.join(Attempt, AttemptAnswer.attempt_id == Attempt.id)
+               .filter(Attempt.user_id.in_(list(records)), Attempt.finished_at.isnot(None),
+                       db.or_(AttemptAnswer.points_by.is_(None), AttemptAnswer.points_by != "teacher"),
+                       db.or_(AttemptAnswer.photo_path.isnot(None), AttemptAnswer.given.isnot(None))).all())
+    by_attempt = {}
+    for ans in answers:
+        items = ans.attempt.work_version.items if ans.attempt.work_version else []
+        if ans.index < len(items) and items[ans.index].get("answer_type") == "written" and (ans.photo_path or ans.given):
+            by_attempt.setdefault(ans.attempt, []).append(ans)
+    rows = [{"att": att, "record": records[att.user_id], "n": len(lst),
+             "self": sum(1 for x in lst if x.points_by == "self")} for att, lst in by_attempt.items()]
+    rows.sort(key=lambda r: r["att"].finished_at, reverse=True)
+    return rows
 
 
 @bp.route("/review/<int:assignment_id>", methods=["GET", "POST"])

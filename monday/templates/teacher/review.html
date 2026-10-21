@@ -9,8 +9,28 @@
   <a class="chip{{ ' is-active' if show == 'submitted' }}" href="{{ url_for('teacher.review', show='submitted') }}">{{ _("Ждут проверки") }} <span class="chip__count">{{ counts.submitted }}</span></a>
   <a class="chip{{ ' is-active' if show == 'open' }}" href="{{ url_for('teacher.review', show='open') }}">{{ _("Не сданы") }} <span class="chip__count">{{ counts.open }}</span></a>
   <a class="chip{{ ' is-active' if show == 'checked' }}" href="{{ url_for('teacher.review', show='checked') }}">{{ _("Проверены") }} <span class="chip__count">{{ counts.checked }}</span></a>
+  <a class="chip{{ ' is-active' if show == 'written' }}" href="{{ url_for('teacher.review', show='written') }}">{{ _("Часть 2") }} <span class="chip__count">{{ counts.written }}</span></a>
 </div>
-{% if rows %}
+{% if show == 'written' %}
+{% if written %}
+<p class="text-2 small">{{ _("Развёрнутые решения учеников, которые вы ещё не оценили. Ученик сначала ставит балл сам — ваша оценка его заменяет.") }}</p>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>{{ _("Ученик") }}</th><th>{{ _("Работа") }}</th><th>{{ _("Сдано") }}</th><th>{{ _("Заданий") }}</th><th>{{ _("Итог") }}</th><th></th></tr></thead>
+  <tbody>{% for r in written %}
+    <tr>
+      <td class="t-strong">{{ r.record.name }}</td>
+      <td>{{ r.att.work_version.title }}</td>
+      <td class="muted nowrap">{{ r.att.finished_at|dt }}</td>
+      <td class="num">{{ r.n }}{% if r.self %} <span class="small muted">· {{ _("самопроверка: %(n)s", n=r.self) }}</span>{% endif %}</td>
+      <td class="num">{{ r.att.score }} / {{ r.att.total }}</td>
+      <td style="text-align:right"><a href="{{ url_for('teacher.written_review', attempt_id=r.att.id) }}">{{ _("Оценить") }}</a></td>
+    </tr>
+  {% endfor %}</tbody>
+</table></div>
+{% else %}
+<div class="empty"><h3>{{ _("Все решения оценены") }}</h3><p>{{ _("Новые развёрнутые решения учеников появятся здесь.") }}</p></div>
+{% endif %}
+{% elif rows %}
 <div class="table-wrap"><table class="table">
   <thead><tr><th>{{ _("Ученик") }}</th><th>{{ _("Работа") }}</th><th>{{ _("Срок") }}</th><th>{{ _("Статус") }}</th><th>{{ _("Результат") }}</th><th></th></tr></thead>
   <tbody>{% for row in rows %}{% set a = row.a %}

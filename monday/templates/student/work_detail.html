@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}{{ work.title }}{% endblock %}
 {% block page_class %}page--narrow{% endblock %}
+{% block context %}{% if work.exam %}{{ work.exam|exam_label }} · {{ _("математика") }}{% else %}{{ super() }}{% endif %}{% endblock %}
 {% block content %}
 {% set v = work.current_version %}
 <a href="{{ url_for('student.collections') }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Все сборники") }}</a>
