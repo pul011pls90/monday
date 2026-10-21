@@ -385,11 +385,28 @@ def attempt_run(attempt_id):
                            seconds_left=left, draft=att.draft or {}, sheets=_enabled_sheets(), earlier_answered=earlier)
 
 
+def ort_once(layout, version, draft, idx, value):
+    """ORT answer sheet: the first mark is a circle; it may be corrected once (the new mark becomes a square),
+    after that the answer is final. Returns False if this change isn't allowed. Updates draft["c<i>"]."""
+    if layout.get("format") != "ort" or (version.items[idx] or {}).get("answer_type") != "choice":
+        return True
+    old = draft.get(f"q{idx}")
+    if not old or old == value:
+        return True
+    if draft.get(f"c{idx}"):
+        return False
+    draft[f"c{idx}"] = "1"
+    return True
+
+
 def _merge_module_answers(att, mod, form):
     """Answers of the current module from a submitted form go into the draft (earlier modules stay locked)."""
     draft = dict(att.draft or {})
+    layout = version_layout(att.work_version)
     for idx in range(mod["start"], mod["end"]):
         value = (form.get(f"q{idx}") or "").strip()[:64]
+        if (value or f"q{idx}" in form) and not ort_once(layout, att.work_version, draft, idx, value):
+            continue
         if value:
             draft[f"q{idx}"] = value
         elif f"q{idx}" in form:
@@ -468,6 +485,8 @@ def attempt_save(attempt_id):
         return jsonify(ok=False, reason="locked"), 409
     draft = dict(att.draft or {})
     value = request.form.get("value", "").strip()[:64]
+    if name.startswith("q") and not ort_once(layout, version, draft, int(name[1:]), value):
+        return jsonify(ok=False, reason="once", value=draft.get(name)), 409
     if value:
         draft[name] = value
     else:

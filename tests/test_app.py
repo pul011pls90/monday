@@ -1047,3 +1047,31 @@ def test_data_fixes_remove_demo_collections_and_rename_student():
     assert "ОРТ Май 2026" not in c.get("/collections").data.decode()
     for path in ("/home", "/skills", "/sessions", "/collections?exam=SAT", "/homework", "/journal", "/monday", "/profile", "/bank/"):
         assert c.get(path).status_code in (200, 302), path
+
+
+def test_ort_sheet_allows_one_correction():
+    from monday.models import Assignment, Attempt, StudentRecord, User, Work
+    s = login(client(), "student@monday.kg", "student123")
+    with APP.app_context():
+        from monday.extensions import db
+        student = User.query.filter_by(email="student@monday.kg").first()
+        rec = StudentRecord.query.filter_by(student_user_id=student.id).first()
+        work = Work.query.filter_by(kind="homework", status="published", format="ort").first()
+        a = Assignment(work=work, teacher_id=rec.teacher_id, record=rec)
+        db.session.add(a)
+        db.session.commit()
+        aid = a.id
+        idx = next(i for i, it in enumerate(work.current_version.items) if it["answer_type"] == "choice")
+    run = s.post(f"/homework/{aid}/start").headers["Location"]
+    att_id = int(run.rstrip("/").split("/")[-1])
+    ok(s, run, contains="только один раз")
+    save = lambda v: s.post(f"/attempts/{att_id}/save", data={"name": f"q{idx}", "value": v})
+    assert save("0").status_code == 200      # first mark: circle
+    assert save("0").status_code == 200      # same mark again is fine
+    assert save("1").status_code == 200      # one correction: square
+    assert save("2").status_code == 409      # no second correction
+    ok(s, run, contains="bubble--square")
+    r = s.post(run, data={f"q{idx}": "3"})   # hand-in can't sneak a change in either
+    with APP.app_context():
+        att = db_get(Attempt, att_id)
+        assert att.finished_at and next(x for x in att.answers if x.index == idx).given == "1"

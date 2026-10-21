@@ -54,6 +54,7 @@
         data-partial-title="{{ _('Сдать работу?') }}" data-partial-ok="{{ _('Сдать работу') }}" data-partial-cancel="{{ _('Вернуться к вопросам') }}"{% endif %}>
     {{ ui.csrf() }}
 
+  {% set ort_once = layout.format == 'ort' %}
   {% if layout.nav == 'pages' %}
     {# ============================================================ ORT: pages + bubble answer sheet #}
     {% set per = layout.per_page %}
@@ -98,12 +99,12 @@
       <h2 id="sheet-h">{{ _("Бланк ответов") }}</h2>
       {# numbers run down the columns, like the paper answer sheet #}
       <div class="ort-sheet__grid" style="--rows: {{ ((mod.end - mod.start + 2) // 3) }}">
-        {% for idx in range(mod.start, mod.end) %}{% set item = version.items[idx]|loc %}{% set val = draft.get('q' ~ idx) %}
-          <div class="ort-sheet__row" data-sheet-row="{{ idx }}">
+        {% for idx in range(mod.start, mod.end) %}{% set item = version.items[idx]|loc %}{% set val = draft.get('q' ~ idx) %}{% set fixed = ort_once and draft.get('c' ~ idx) %}
+          <div class="ort-sheet__row{{ ' is-fixed' if fixed }}" data-sheet-row="{{ idx }}"{% if ort_once and item.answer_type == 'choice' %} data-once{% if fixed %} data-fixed{% endif %}{% endif %}>
             <a class="ort-sheet__num" href="#question-{{ idx + 1 }}" data-goto="{{ idx }}">{{ idx + 1 }}</a>
             {% if item.answer_type == 'choice' %}
               {% for opt in item.options %}{% set i = loop.index0|string %}
-                <label class="bubble"><input type="radio" name="q{{ idx }}" value="{{ i }}" {{ 'checked' if val == i }}><span>{{ LETTERS[loop.index0] }}</span></label>
+                <label class="bubble{{ ' bubble--square' if fixed and val == i }}"><input type="radio" name="q{{ idx }}" value="{{ i }}" {{ 'checked' if val == i }} {{ 'disabled' if fixed and val != i }}><span>{{ LETTERS[loop.index0] }}</span></label>
               {% endfor %}
             {% else %}
               <input class="input input--mono ort-sheet__input" name="q{{ idx }}" value="{{ val or '' }}" autocomplete="off" aria-label="{{ _('Ответ на вопрос %(n)s', n=idx + 1) }}">
@@ -112,7 +113,7 @@
         {% endfor %}
       </div>
       <div class="row row--between" style="margin-top:16px">
-        <p class="text-2 small">{{ _("Ответы сохраняются сами. После сдачи изменить их нельзя.") }}</p>
+        <p class="text-2 small">{{ _("Ответы сохраняются сами. После сдачи изменить их нельзя.") }}{% if ort_once %}<br>{{ _("Как на бланке ОРТ: ответ можно исправить только один раз — исправленный ответ отмечается квадратом.") }}{% endif %}</p>
         <button class="btn btn--primary btn--lg" type="submit">{{ _("Сдать работу") }}</button>
       </div>
       <p class="small submit-hint" data-submit-hint hidden></p>
