@@ -104,6 +104,8 @@ def create_app(config_object=Config, *, seed_if_empty=True):
         ensure_taxonomy()  # move an older skill map onto the master map (once per version)
         from .packs import ensure_packs
         ensure_packs()  # ready-made questions and collections from monday/data/packs (once per pack)
+        from .cleanup import run_fixes
+        run_fixes()  # one-time data fixes (demo collections removed, demo student renamed)
 
     return app
 

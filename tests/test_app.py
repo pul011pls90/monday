@@ -22,6 +22,7 @@ def make_app():
         SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(tmp, "test.db")
         UPLOAD_FOLDER = os.path.join(tmp, "uploads")
         SERVER_NAME = "localhost"
+        DATA_FIXES = False  # the flows below use the demo collections; test_data_fixes runs the fixes itself
 
     from monday import create_app
     return create_app(TestConfig)
@@ -1021,3 +1022,28 @@ def test_written_answer_photo_self_assessment_and_teacher_mark():
         assert (a.points, a.points_by) == (2, "teacher") and att.score == 3
     other = login(client(), "nurai@monday.kg", "teacher123")
     assert other.get(f"/teacher/attempts/{att_id}/written").status_code == 404
+
+
+def test_data_fixes_remove_demo_collections_and_rename_student():
+    from monday.cleanup import DEMO_COLLECTIONS, run_fixes
+    from monday.extensions import db
+    from monday.models import Attempt, StudentRecord, User, Work
+    app = make_app()
+    app.config["DATA_FIXES"] = True
+    with app.app_context():
+        assert Work.query.filter(Work.title.in_(DEMO_COLLECTIONS)).count() >= 12
+        packs_before = Work.query.filter(Work.title.like("ЕГЭ профиль 2026%")).count()
+        run_fixes()
+        run_fixes()  # second run does nothing
+        assert Work.query.filter(Work.title.in_(DEMO_COLLECTIONS)).count() == 0
+        assert Work.query.filter(Work.title.like("ЕГЭ профиль 2026%")).count() == packs_before > 0
+        assert all(a.work_version is not None for a in Attempt.query.filter(Attempt.work_version_id.isnot(None)))
+        u = User.query.filter_by(email="student@monday.kg").first()
+        assert u.name == "Student"
+        assert StudentRecord.query.filter_by(student_user_id=u.id).first().name == "Student"
+        db.session.remove()
+    c = app.test_client()
+    login(c, "student@monday.kg", "student123")
+    assert "ОРТ Май 2026" not in c.get("/collections").data.decode()
+    for path in ("/home", "/skills", "/sessions", "/collections?exam=SAT", "/homework", "/journal", "/monday", "/profile", "/bank/"):
+        assert c.get(path).status_code in (200, 302), path
