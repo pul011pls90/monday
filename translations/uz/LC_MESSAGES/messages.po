@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Monday VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-21 04:35-0700\n"
+"POT-Creation-Date: 2026-10-21 08:45-0700\n"
 "PO-Revision-Date: 2026-10-17 13:27-0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: uz\n"
@@ -18,40 +18,40 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: monday/__init__.py:205
+#: monday/__init__.py:207
 #, python-format
 msgid "%(h)s ч %(m)s мин"
 msgstr "%(h)s soat %(m)s daq"
 
-#: monday/__init__.py:207
+#: monday/__init__.py:209
 #, python-format
 msgid "%(h)s ч"
 msgstr "%(h)s soat"
 
-#: monday/__init__.py:208 monday/__init__.py:218
+#: monday/__init__.py:210 monday/__init__.py:220
 #, python-format
 msgid "%(m)s мин"
 msgstr "%(m)s daq"
 
-#: monday/__init__.py:216
+#: monday/__init__.py:218
 #, python-format
 msgid "%(m)s мин %(s)s с"
 msgstr "%(m)s daq %(s)s s"
 
-#: monday/__init__.py:219
+#: monday/__init__.py:221
 #, python-format
 msgid "%(s)s с"
 msgstr "%(s)s s"
 
-#: monday/__init__.py:241
+#: monday/__init__.py:243
 msgid "Нет доступа к этой странице."
 msgstr "Bu sahifaga kirish huquqi yo‘q."
 
-#: monday/__init__.py:245
+#: monday/__init__.py:247
 msgid "Такой страницы нет."
 msgstr "Bunday sahifa yo‘q."
 
-#: monday/__init__.py:249
+#: monday/__init__.py:251
 msgid "Файл слишком большой (максимум 8 МБ)."
 msgstr "Fayl juda katta (ko‘pi bilan 8 MB)."
 
@@ -1621,9 +1621,9 @@ msgstr "Uy vazifasi"
 msgid "Журнал"
 msgstr "Jurnal"
 
-#: monday/templates/layout.html:39 monday/templates/partials/tool_panes.html:5 monday/templates/student/attempt.html:35
-#: monday/templates/student/bank_play.html:34 monday/templates/student/formulas.html:2
-#: monday/templates/student/formulas.html:6
+#: monday/templates/layout.html:39 monday/templates/partials/tool_panes.html:5 monday/templates/partials/tool_panes.html:6
+#: monday/templates/student/attempt.html:35 monday/templates/student/bank_play.html:34
+#: monday/templates/student/formulas.html:2 monday/templates/student/formulas.html:6
 msgid "Формулы"
 msgstr "Formulalar"
 
@@ -1636,7 +1636,7 @@ msgid "Ещё разделы"
 msgstr "Boshqa bo‘limlar"
 
 #: monday/templates/admin/index.html:215 monday/templates/layout.html:62 monday/templates/partials/tool_panes.html:6
-#: monday/templates/partials/tool_panes.html:32
+#: monday/templates/partials/tool_panes.html:33
 msgid "Закрыть"
 msgstr "Yopish"
 
@@ -2024,8 +2024,7 @@ msgstr "savol"
 msgid "вопросов"
 msgstr "savol"
 
-#: monday/templates/admin/index.html:111 monday/templates/partials/macros.html:251
-#: monday/templates/student/bank_play.html:26 monday/templates/student/journal.html:29
+#: monday/templates/admin/index.html:111 monday/templates/partials/macros.html:251 monday/templates/student/journal.html:29
 #: monday/templates/student/monday.html:14 monday/templates/student/monday.html:60 monday/templates/student/session.html:14
 #: monday/templates/student/sessions.html:16 monday/templates/teacher/bank.html:24
 #: monday/templates/teacher/work_edit.html:82
@@ -2837,6 +2836,30 @@ msgstr "Ismni o‘zgartirish"
 msgid "Удалить фото"
 msgstr "Rasmni o‘chirish"
 
+#: monday/templates/partials/sat_reference.html:3
+msgid "Справка SAT"
+msgstr "SAT ma’lumotnomasi"
+
+#: monday/templates/partials/sat_reference.html:4
+msgid "Эти формулы даны на экзамене в каждом модуле математики."
+msgstr "Bu formulalar imtihonda matematikaning har bir modulida beriladi."
+
+#: monday/templates/partials/sat_reference.html:25
+msgid "Особые прямоугольные треугольники"
+msgstr "Maxsus to‘g‘ri burchakli uchburchaklar"
+
+#: monday/templates/partials/sat_reference.html:49
+msgid "Дуга полной окружности — 360°."
+msgstr "To‘liq aylana yoyi — 360°."
+
+#: monday/templates/partials/sat_reference.html:50
+msgid "Дуга полной окружности — $2\\pi$ радиан."
+msgstr "To‘liq aylana yoyi — $2\\pi$ radian."
+
+#: monday/templates/partials/sat_reference.html:51
+msgid "Сумма углов треугольника — 180°."
+msgstr "Uchburchak burchaklari yig‘indisi — 180°."
+
 #: monday/templates/partials/session_bar.html:7
 msgid "Выйти из теста?"
 msgstr "Testdan chiqasanmi?"
@@ -2858,86 +2881,86 @@ msgstr "Natijalar"
 msgid "Мои формулы"
 msgstr "Mening formulalarim"
 
-#: monday/templates/partials/tool_panes.html:25
+#: monday/templates/partials/tool_panes.html:26
 msgid "Пока нет включённых листов"
 msgstr "Hozircha yoqilgan varaqlar yo‘q"
 
-#: monday/templates/partials/tool_panes.html:25
+#: monday/templates/partials/tool_panes.html:26
 msgid "Собери свои формулы на странице «Формулы» — они будут открываться здесь в любом тесте."
 msgstr "Formulalaringni «Formulalar» sahifasida yig‘ — ular bu yerda istalgan testda ochiladi."
 
-#: monday/templates/partials/tool_panes.html:27
+#: monday/templates/partials/tool_panes.html:28
 msgid "Открыть страницу «Формулы»"
 msgstr "«Formulalar» sahifasini ochish"
 
-#: monday/templates/partials/tool_panes.html:31 monday/templates/partials/tool_panes.html:32
+#: monday/templates/partials/tool_panes.html:32 monday/templates/partials/tool_panes.html:33
 #: monday/templates/student/attempt.html:23 monday/templates/student/attempt.html:136
 msgid "Правильная запись ответа"
 msgstr "Javobni to‘g‘ri yozish"
 
-#: monday/templates/partials/tool_panes.html:35
+#: monday/templates/partials/tool_panes.html:36
 msgid "Для вопросов со свободным ответом решите задачу и введите ответ по правилам ниже."
 msgstr "Erkin javobli savollar uchun masalani yeching va javobni quyidagi qoidalar bo‘yicha kiriting."
 
-#: monday/templates/partials/tool_panes.html:37
+#: monday/templates/partials/tool_panes.html:38
 msgid "Если подходит несколько ответов, введите только один."
 msgstr "Bir nechta javob to‘g‘ri kelsa, faqat bittasini kiriting."
 
-#: monday/templates/partials/tool_panes.html:38
+#: monday/templates/partials/tool_panes.html:39
 msgid "Положительный ответ — не больше 5 символов, отрицательный — не больше 6 (вместе с минусом)."
 msgstr "Musbat javob — 5 belgidan oshmaydi, manfiy — 6 belgidan oshmaydi (minus bilan)."
 
-#: monday/templates/partials/tool_panes.html:39
+#: monday/templates/partials/tool_panes.html:40
 msgid "Дробь, которая не помещается, введите десятичной."
 msgstr "Sig‘maydigan kasrni o‘nli shaklda kiriting."
 
-#: monday/templates/partials/tool_panes.html:40
+#: monday/templates/partials/tool_panes.html:41
 msgid "Десятичное число, которое не помещается, обрежьте или округлите на четвёртой цифре — так, чтобы заняли все символы."
 msgstr "Sig‘maydigan o‘nli sonni to‘rtinchi raqamda qisqartiring yoki yaxlitlang — barcha belgilar to‘ladigan qilib."
 
-#: monday/templates/partials/tool_panes.html:41
+#: monday/templates/partials/tool_panes.html:42
 msgid "Смешанное число (например, 3½) введите неправильной дробью (7/2) или десятичным (3.5)."
 msgstr "Aralash sonni (masalan, 3½) noto‘g‘ri kasr (7/2) yoki o‘nli (3.5) ko‘rinishida kiriting."
 
-#: monday/templates/partials/tool_panes.html:42
+#: monday/templates/partials/tool_panes.html:43
 msgid "Не вводите знаки: процент, запятую, доллар, пробелы."
 msgstr "Foiz, vergul, dollar belgilari va bo‘sh joylarni kiritmang."
 
-#: monday/templates/partials/tool_panes.html:45 monday/templates/partials/tool_panes.html:90
+#: monday/templates/partials/tool_panes.html:46 monday/templates/partials/tool_panes.html:91
 #: monday/templates/student/journal.html:79 monday/templates/teacher/review_detail.html:37
 msgid "Ответ"
 msgstr "Javob"
 
-#: monday/templates/partials/tool_panes.html:45 monday/templates/partials/tool_panes.html:90
+#: monday/templates/partials/tool_panes.html:46 monday/templates/partials/tool_panes.html:91
 msgid "Засчитывается"
 msgstr "Qabul qilinadi"
 
-#: monday/templates/partials/tool_panes.html:45 monday/templates/partials/tool_panes.html:90
+#: monday/templates/partials/tool_panes.html:46 monday/templates/partials/tool_panes.html:91
 msgid "Не засчитывается"
 msgstr "Qabul qilinmaydi"
 
-#: monday/templates/partials/tool_panes.html:54
+#: monday/templates/partials/tool_panes.html:55
 msgid "Часть 1 · задания 1–12"
 msgstr "1-qism · 1–12 topshiriqlar"
 
-#: monday/templates/partials/tool_panes.html:56
+#: monday/templates/partials/tool_panes.html:57
 msgid "Ответ — целое число или конечная десятичная дробь. Дробь вида 3/4 записывайте как 0,75."
 msgstr "Javob — butun son yoki chekli o‘nli kasr. 3/4 kabi kasrni 0,75 deb yozing."
 
-#: monday/templates/partials/tool_panes.html:57
+#: monday/templates/partials/tool_panes.html:58
 msgid "Десятичную часть отделяйте запятой (точка тоже засчитывается). Минус — перед числом."
 msgstr "O‘nli qismini vergul bilan ajrating (nuqta ham qabul qilinadi). Minus — son oldida."
 
-#: monday/templates/partials/tool_panes.html:58
+#: monday/templates/partials/tool_panes.html:59
 #, python-format
 msgid "Единицы измерения, знаки %%, ° и пробелы не пишите."
 msgstr "O‘lchov birliklari, %% va ° belgilari hamda bo‘sh joylarni yozmang."
 
-#: monday/templates/partials/tool_panes.html:60
+#: monday/templates/partials/tool_panes.html:61
 msgid "Часть 2 · задания 13–19"
 msgstr "2-qism · 13–19 topshiriqlar"
 
-#: monday/templates/partials/tool_panes.html:61
+#: monday/templates/partials/tool_panes.html:62
 msgid ""
 "Оценивается полное обоснованное решение. Метод может быть любым, но ход рассуждений должен быть понятен из записи. "
 "Ответ — это решение вместе с выводом."
@@ -2945,35 +2968,35 @@ msgstr ""
 "To‘liq asoslangan yechim baholanadi. Usul har qanday bo‘lishi mumkin, lekin fikr yuritish yozuvdan tushunarli "
 "bo‘lishi kerak. Javob — bu yechim va xulosa."
 
-#: monday/templates/partials/tool_panes.html:63
+#: monday/templates/partials/tool_panes.html:64
 msgid "Начинайте с номера задания и пункта: «13 а)», «13 б)»."
 msgstr "Topshiriq raqami va bandidan boshlang: «13 a)», «13 b)»."
 
-#: monday/templates/partials/tool_panes.html:64
+#: monday/templates/partials/tool_panes.html:65
 msgid "Пишите область допустимых значений (ОДЗ) и проверяйте, что найденные корни в неё входят."
 msgstr "Joiz qiymatlar sohasini yozing va topilgan ildizlar unga kirishini tekshiring."
 
-#: monday/templates/partials/tool_panes.html:65
+#: monday/templates/partials/tool_panes.html:66
 msgid "Каждый переход пишите равносильным: «⇔» или «при условии …». Нарушение равносильности в неравенстве — 0 баллов."
 msgstr "Har bir o‘tishni teng kuchli yozing: «⇔» yoki «… shartida». Tengsizlikda teng kuchlilik buzilsa — 0 ball."
 
-#: monday/templates/partials/tool_panes.html:66
+#: monday/templates/partials/tool_panes.html:67
 msgid "В конце — строка «Ответ:» отдельно для каждого пункта."
 msgstr "Oxirida har bir band uchun alohida «Javob:» qatori."
 
-#: monday/templates/partials/tool_panes.html:67
+#: monday/templates/partials/tool_panes.html:68
 msgid "Можно без доказательства ссылаться на факты из школьных учебников."
 msgstr "Maktab darsliklaridagi faktlarga isbotsiz tayanish mumkin."
 
-#: monday/templates/partials/tool_panes.html:70
+#: monday/templates/partials/tool_panes.html:71
 msgid "Макс."
 msgstr "Maks."
 
-#: monday/templates/partials/tool_panes.html:70
+#: monday/templates/partials/tool_panes.html:71
 msgid "Что нужно для полного балла"
 msgstr "To‘liq ball uchun nima kerak"
 
-#: monday/templates/partials/tool_panes.html:72
+#: monday/templates/partials/tool_panes.html:73
 msgid ""
 "а) решить уравнение полностью; б) обоснованно отобрать корни (окружность с подписанными концами отрезка, график или "
 "двойное неравенство). Без пункта а — 0 баллов."
@@ -2981,7 +3004,7 @@ msgstr ""
 "a) tenglamani to‘liq yechish; b) ildizlarni asoslab tanlash (kesma uchlari belgilangan aylana, grafik yoki qo‘sh "
 "tengsizlik). a bandisiz — 0 ball."
 
-#: monday/templates/partials/tool_panes.html:73
+#: monday/templates/partials/tool_panes.html:74
 msgid ""
 "а) доказательство; б) вычисление с обоснованием. Пункт б можно решать, используя а, даже если а не доказан (тогда 1 "
 "балл)."
@@ -2989,7 +3012,7 @@ msgstr ""
 "a) isbot; b) asoslangan hisoblash. b bandini a dan foydalanib yechish mumkin, a isbotlanmagan bo‘lsa ham (unda 1 "
 "ball)."
 
-#: monday/templates/partials/tool_panes.html:74
+#: monday/templates/partials/tool_panes.html:75
 msgid ""
 "Неравенство с ОДЗ. Ошибка только во включении/исключении граничной точки — 1 балл. Точка, где выражение не имеет "
 "смысла, в ответе — 0."
@@ -2997,17 +3020,17 @@ msgstr ""
 "Joiz qiymatlar sohasi bor tengsizlik. Faqat chegaraviy nuqtani qo‘shish/chiqarishdagi xato — 1 ball. Javobda ifoda "
 "ma’noga ega bo‘lmagan nuqta — 0."
 
-#: monday/templates/partials/tool_panes.html:75
+#: monday/templates/partials/tool_panes.html:76
 msgid ""
 "Экономическая задача: верная математическая модель (1 балл) и обоснованный верный ответ (2 балла). Подписывайте "
 "единицы в ответе."
 msgstr "Iqtisodiy masala: to‘g‘ri matematik model (1 ball) va asoslangan to‘g‘ri javob (2 ball). Javobda birliklarni yozing."
 
-#: monday/templates/partials/tool_panes.html:76
+#: monday/templates/partials/tool_panes.html:77
 msgid "Планиметрия: а) доказательство, б) вычисление — как в задании 14. Сделайте чертёж."
 msgstr "Planimetriya: a) isbot, b) hisoblash — 14-topshiriqdagidek. Chizma chizing."
 
-#: monday/templates/partials/tool_panes.html:77
+#: monday/templates/partials/tool_panes.html:78
 msgid ""
 "Параметр: обоснованно получен весь ответ. Ответ, отличающийся конечным числом точек, — 3 балла; верно сведено к "
 "исследованию — 1–2 балла."
@@ -3015,61 +3038,61 @@ msgstr ""
 "Parametr: butun javob asosli olingan. Chekli sondagi nuqtalarga farq qiladigan javob — 3 ball; tadqiqotga to‘g‘ri "
 "keltirilgan — 1–2 ball."
 
-#: monday/templates/partials/tool_panes.html:78
+#: monday/templates/partials/tool_panes.html:79
 msgid "Числа и их свойства: каждый результат (пример в а, обоснование в б, оценка в в, пример в в) — по 1 баллу."
 msgstr "Sonlar va ularning xossalari: har bir natija (a da misol, b da asoslash, v da baholash, v da misol) — 1 balldan."
 
-#: monday/templates/partials/tool_panes.html:81
+#: monday/templates/partials/tool_panes.html:82
 msgid "По методическим рекомендациям ФИПИ для экспертов ЕГЭ."
 msgstr "FIPIning EGE ekspertlari uchun uslubiy tavsiyalari asosida."
 
-#: monday/templates/partials/tool_panes.html:84
+#: monday/templates/partials/tool_panes.html:85
 msgid "Ответ можно ввести целым числом, дробью или десятичным — все равные записи засчитываются."
 msgstr "Javobni butun son, kasr yoki o‘nli ko‘rinishda kiritish mumkin — barcha teng yozuvlar qabul qilinadi."
 
-#: monday/templates/partials/tool_panes.html:85
+#: monday/templates/partials/tool_panes.html:86
 msgid "Десятичную часть отделяйте точкой или запятой."
 msgstr "O‘nli qismini nuqta yoki vergul bilan ajrating."
 
-#: monday/templates/partials/tool_panes.html:86
+#: monday/templates/partials/tool_panes.html:87
 msgid "Смешанное число пишите через пробел: 1 1/2."
 msgstr "Aralash sonni bo‘sh joy bilan yozing: 1 1/2."
 
-#: monday/templates/partials/tool_panes.html:87
+#: monday/templates/partials/tool_panes.html:88
 #, python-format
 msgid "Если в задании сказано округлить — округлите. Единицы измерения и знак %% не пишите."
 msgstr "Topshiriqda yaxlitlash aytilgan bo‘lsa — yaxlitlang. O‘lchov birliklari va %% belgisini yozmang."
 
-#: monday/templates/partials/tool_panes.html:94
+#: monday/templates/partials/tool_panes.html:95
 msgid "см"
 msgstr "sm"
 
-#: monday/templates/partials/tool_panes.html:102 monday/templates/student/attempt.html:36
+#: monday/templates/partials/tool_panes.html:103 monday/templates/student/attempt.html:36
 #: monday/templates/student/bank_play.html:35
 msgid "Калькулятор"
 msgstr "Kalkulyator"
 
-#: monday/templates/partials/tool_panes.html:104 monday/templates/teacher/work_edit.html:58
+#: monday/templates/partials/tool_panes.html:105 monday/templates/teacher/work_edit.html:58
 msgid "Калькулятор Desmos"
 msgstr "Desmos kalkulyatori"
 
-#: monday/templates/partials/tool_panes.html:105
+#: monday/templates/partials/tool_panes.html:106
 msgid "Потяни за край, чтобы изменить ширину"
 msgstr "Kenglikni o‘zgartirish uchun chetidan tort"
 
-#: monday/templates/partials/tool_panes.html:106
+#: monday/templates/partials/tool_panes.html:107
 msgid "Закрыть калькулятор"
 msgstr "Kalkulyatorni yopish"
 
-#: monday/templates/partials/tool_panes.html:109
+#: monday/templates/partials/tool_panes.html:110
 msgid "Калькулятор не загрузился — нужен интернет. Попробуй ещё раз позже."
 msgstr "Kalkulyator yuklanmadi — internet kerak. Keyinroq yana urinib ko‘r."
 
-#: monday/templates/partials/tool_panes.html:109
+#: monday/templates/partials/tool_panes.html:110
 msgid "Загружаем калькулятор…"
 msgstr "Kalkulyator yuklanmoqda…"
 
-#: monday/templates/partials/tool_panes.html:110
+#: monday/templates/partials/tool_panes.html:111
 msgid "Ширина калькулятора"
 msgstr "Kalkulyator kengligi"
 

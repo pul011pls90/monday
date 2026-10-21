@@ -170,6 +170,6 @@
   </form>
 </main>
 
-{% with calculator=layout.calculator, entry_rules=entry_rules %}{% include "partials/tool_panes.html" %}{% endwith %}
+{% with calculator=layout.calculator, entry_rules=entry_rules, sat_ref=layout.format == 'sat' %}{% include "partials/tool_panes.html" %}{% endwith %}
 {% endblock %}
 {% block scripts %}<script defer src="{{ url_for('static', filename='js/test.js') }}"></script>{% endblock %}

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-21 04:35-0700\n"
+"POT-Creation-Date: 2026-10-21 08:45-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,40 +17,40 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: monday/__init__.py:205
+#: monday/__init__.py:207
 #, python-format
 msgid "%(h)s ч %(m)s мин"
 msgstr ""
 
-#: monday/__init__.py:207
+#: monday/__init__.py:209
 #, python-format
 msgid "%(h)s ч"
 msgstr ""
 
-#: monday/__init__.py:208 monday/__init__.py:218
+#: monday/__init__.py:210 monday/__init__.py:220
 #, python-format
 msgid "%(m)s мин"
 msgstr ""
 
-#: monday/__init__.py:216
+#: monday/__init__.py:218
 #, python-format
 msgid "%(m)s мин %(s)s с"
 msgstr ""
 
-#: monday/__init__.py:219
+#: monday/__init__.py:221
 #, python-format
 msgid "%(s)s с"
 msgstr ""
 
-#: monday/__init__.py:241
+#: monday/__init__.py:243
 msgid "Нет доступа к этой странице."
 msgstr ""
 
-#: monday/__init__.py:245
+#: monday/__init__.py:247
 msgid "Такой страницы нет."
 msgstr ""
 
-#: monday/__init__.py:249
+#: monday/__init__.py:251
 msgid "Файл слишком большой (максимум 8 МБ)."
 msgstr ""
 
@@ -1678,6 +1678,7 @@ msgid "Журнал"
 msgstr ""
 
 #: monday/templates/layout.html:39 monday/templates/partials/tool_panes.html:5
+#: monday/templates/partials/tool_panes.html:6
 #: monday/templates/student/attempt.html:35
 #: monday/templates/student/bank_play.html:34
 #: monday/templates/student/formulas.html:2
@@ -1696,7 +1697,7 @@ msgstr ""
 
 #: monday/templates/admin/index.html:215 monday/templates/layout.html:62
 #: monday/templates/partials/tool_panes.html:6
-#: monday/templates/partials/tool_panes.html:32
+#: monday/templates/partials/tool_panes.html:33
 msgid "Закрыть"
 msgstr ""
 
@@ -2132,7 +2133,6 @@ msgstr ""
 
 #: monday/templates/admin/index.html:111
 #: monday/templates/partials/macros.html:251
-#: monday/templates/student/bank_play.html:26
 #: monday/templates/student/journal.html:29
 #: monday/templates/student/monday.html:14
 #: monday/templates/student/monday.html:60
@@ -3021,6 +3021,30 @@ msgstr ""
 msgid "Удалить фото"
 msgstr ""
 
+#: monday/templates/partials/sat_reference.html:3
+msgid "Справка SAT"
+msgstr ""
+
+#: monday/templates/partials/sat_reference.html:4
+msgid "Эти формулы даны на экзамене в каждом модуле математики."
+msgstr ""
+
+#: monday/templates/partials/sat_reference.html:25
+msgid "Особые прямоугольные треугольники"
+msgstr ""
+
+#: monday/templates/partials/sat_reference.html:49
+msgid "Дуга полной окружности — 360°."
+msgstr ""
+
+#: monday/templates/partials/sat_reference.html:50
+msgid "Дуга полной окружности — $2\\pi$ радиан."
+msgstr ""
+
+#: monday/templates/partials/sat_reference.html:51
+msgid "Сумма углов треугольника — 180°."
+msgstr ""
+
 #: monday/templates/partials/session_bar.html:7
 msgid "Выйти из теста?"
 msgstr ""
@@ -3045,244 +3069,244 @@ msgstr ""
 msgid "Мои формулы"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:25
+#: monday/templates/partials/tool_panes.html:26
 msgid "Пока нет включённых листов"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:25
+#: monday/templates/partials/tool_panes.html:26
 msgid ""
 "Собери свои формулы на странице «Формулы» — они будут открываться здесь в"
 " любом тесте."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:27
+#: monday/templates/partials/tool_panes.html:28
 msgid "Открыть страницу «Формулы»"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:31
 #: monday/templates/partials/tool_panes.html:32
+#: monday/templates/partials/tool_panes.html:33
 #: monday/templates/student/attempt.html:23
 #: monday/templates/student/attempt.html:136
 msgid "Правильная запись ответа"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:35
+#: monday/templates/partials/tool_panes.html:36
 msgid ""
 "Для вопросов со свободным ответом решите задачу и введите ответ по "
 "правилам ниже."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:37
+#: monday/templates/partials/tool_panes.html:38
 msgid "Если подходит несколько ответов, введите только один."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:38
+#: monday/templates/partials/tool_panes.html:39
 msgid ""
 "Положительный ответ — не больше 5 символов, отрицательный — не больше 6 "
 "(вместе с минусом)."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:39
+#: monday/templates/partials/tool_panes.html:40
 msgid "Дробь, которая не помещается, введите десятичной."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:40
+#: monday/templates/partials/tool_panes.html:41
 msgid ""
 "Десятичное число, которое не помещается, обрежьте или округлите на "
 "четвёртой цифре — так, чтобы заняли все символы."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:41
+#: monday/templates/partials/tool_panes.html:42
 msgid ""
 "Смешанное число (например, 3½) введите неправильной дробью (7/2) или "
 "десятичным (3.5)."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:42
+#: monday/templates/partials/tool_panes.html:43
 msgid "Не вводите знаки: процент, запятую, доллар, пробелы."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:45
-#: monday/templates/partials/tool_panes.html:90
+#: monday/templates/partials/tool_panes.html:46
+#: monday/templates/partials/tool_panes.html:91
 #: monday/templates/student/journal.html:79
 #: monday/templates/teacher/review_detail.html:37
 msgid "Ответ"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:45
-#: monday/templates/partials/tool_panes.html:90
+#: monday/templates/partials/tool_panes.html:46
+#: monday/templates/partials/tool_panes.html:91
 msgid "Засчитывается"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:45
-#: monday/templates/partials/tool_panes.html:90
+#: monday/templates/partials/tool_panes.html:46
+#: monday/templates/partials/tool_panes.html:91
 msgid "Не засчитывается"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:54
+#: monday/templates/partials/tool_panes.html:55
 msgid "Часть 1 · задания 1–12"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:56
+#: monday/templates/partials/tool_panes.html:57
 msgid ""
 "Ответ — целое число или конечная десятичная дробь. Дробь вида 3/4 "
 "записывайте как 0,75."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:57
+#: monday/templates/partials/tool_panes.html:58
 msgid ""
 "Десятичную часть отделяйте запятой (точка тоже засчитывается). Минус — "
 "перед числом."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:58
+#: monday/templates/partials/tool_panes.html:59
 #, python-format
 msgid "Единицы измерения, знаки %%, ° и пробелы не пишите."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:60
+#: monday/templates/partials/tool_panes.html:61
 msgid "Часть 2 · задания 13–19"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:61
+#: monday/templates/partials/tool_panes.html:62
 msgid ""
 "Оценивается полное обоснованное решение. Метод может быть любым, но ход "
 "рассуждений должен быть понятен из записи. Ответ — это решение вместе с "
 "выводом."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:63
+#: monday/templates/partials/tool_panes.html:64
 msgid "Начинайте с номера задания и пункта: «13 а)», «13 б)»."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:64
+#: monday/templates/partials/tool_panes.html:65
 msgid ""
 "Пишите область допустимых значений (ОДЗ) и проверяйте, что найденные "
 "корни в неё входят."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:65
+#: monday/templates/partials/tool_panes.html:66
 msgid ""
 "Каждый переход пишите равносильным: «⇔» или «при условии …». Нарушение "
 "равносильности в неравенстве — 0 баллов."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:66
+#: monday/templates/partials/tool_panes.html:67
 msgid "В конце — строка «Ответ:» отдельно для каждого пункта."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:67
+#: monday/templates/partials/tool_panes.html:68
 msgid "Можно без доказательства ссылаться на факты из школьных учебников."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:70
+#: monday/templates/partials/tool_panes.html:71
 msgid "Макс."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:70
+#: monday/templates/partials/tool_panes.html:71
 msgid "Что нужно для полного балла"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:72
+#: monday/templates/partials/tool_panes.html:73
 msgid ""
 "а) решить уравнение полностью; б) обоснованно отобрать корни (окружность "
 "с подписанными концами отрезка, график или двойное неравенство). Без "
 "пункта а — 0 баллов."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:73
+#: monday/templates/partials/tool_panes.html:74
 msgid ""
 "а) доказательство; б) вычисление с обоснованием. Пункт б можно решать, "
 "используя а, даже если а не доказан (тогда 1 балл)."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:74
+#: monday/templates/partials/tool_panes.html:75
 msgid ""
 "Неравенство с ОДЗ. Ошибка только во включении/исключении граничной точки "
 "— 1 балл. Точка, где выражение не имеет смысла, в ответе — 0."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:75
+#: monday/templates/partials/tool_panes.html:76
 msgid ""
 "Экономическая задача: верная математическая модель (1 балл) и "
 "обоснованный верный ответ (2 балла). Подписывайте единицы в ответе."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:76
+#: monday/templates/partials/tool_panes.html:77
 msgid ""
 "Планиметрия: а) доказательство, б) вычисление — как в задании 14. "
 "Сделайте чертёж."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:77
+#: monday/templates/partials/tool_panes.html:78
 msgid ""
 "Параметр: обоснованно получен весь ответ. Ответ, отличающийся конечным "
 "числом точек, — 3 балла; верно сведено к исследованию — 1–2 балла."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:78
+#: monday/templates/partials/tool_panes.html:79
 msgid ""
 "Числа и их свойства: каждый результат (пример в а, обоснование в б, "
 "оценка в в, пример в в) — по 1 баллу."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:81
+#: monday/templates/partials/tool_panes.html:82
 msgid "По методическим рекомендациям ФИПИ для экспертов ЕГЭ."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:84
+#: monday/templates/partials/tool_panes.html:85
 msgid ""
 "Ответ можно ввести целым числом, дробью или десятичным — все равные "
 "записи засчитываются."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:85
+#: monday/templates/partials/tool_panes.html:86
 msgid "Десятичную часть отделяйте точкой или запятой."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:86
+#: monday/templates/partials/tool_panes.html:87
 msgid "Смешанное число пишите через пробел: 1 1/2."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:87
+#: monday/templates/partials/tool_panes.html:88
 #, python-format
 msgid ""
 "Если в задании сказано округлить — округлите. Единицы измерения и знак %%"
 " не пишите."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:94
+#: monday/templates/partials/tool_panes.html:95
 msgid "см"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:102
+#: monday/templates/partials/tool_panes.html:103
 #: monday/templates/student/attempt.html:36
 #: monday/templates/student/bank_play.html:35
 msgid "Калькулятор"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:104
+#: monday/templates/partials/tool_panes.html:105
 #: monday/templates/teacher/work_edit.html:58
 msgid "Калькулятор Desmos"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:105
+#: monday/templates/partials/tool_panes.html:106
 msgid "Потяни за край, чтобы изменить ширину"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:106
+#: monday/templates/partials/tool_panes.html:107
 msgid "Закрыть калькулятор"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:109
+#: monday/templates/partials/tool_panes.html:110
 msgid "Калькулятор не загрузился — нужен интернет. Попробуй ещё раз позже."
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:109
+#: monday/templates/partials/tool_panes.html:110
 msgid "Загружаем калькулятор…"
 msgstr ""
 
-#: monday/templates/partials/tool_panes.html:110
+#: monday/templates/partials/tool_panes.html:111
 msgid "Ширина калькулятора"
 msgstr ""
 

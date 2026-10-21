@@ -3,8 +3,9 @@
    Pages mark the bar above the pane with data-calc-top, the footer with data-calc-bottom,
    and the content that moves right with class "calc-shift". #}
 <aside class="drawer" data-drawer="ref" hidden aria-label="{{ _('Формулы') }}">
-  <div class="drawer__head"><h2>{{ _("Мои формулы") }}</h2><button type="button" class="icon-btn icon-btn--sm" data-drawer-close aria-label="{{ _('Закрыть') }}">{{ ui.icon('x', 16) }}</button></div>
+  <div class="drawer__head"><h2>{{ _("Формулы") if sat_ref else _("Мои формулы") }}</h2><button type="button" class="icon-btn icon-btn--sm" data-drawer-close aria-label="{{ _('Закрыть') }}">{{ ui.icon('x', 16) }}</button></div>
   <div class="drawer__body">
+    {% if sat_ref %}{% include "partials/sat_reference.html" %}{% if sheets %}<h2 class="sat-ref__mine">{{ _("Мои формулы") }}</h2>{% endif %}{% endif %}
     {% for sh in sheets %}
       <section class="sheet-view">
         <h3>{{ sh.title }}</h3>
@@ -21,8 +22,8 @@
           </div>
         {% endfor %}
       </section>
-    {% else %}
-      <div class="empty"><h3>{{ _("Пока нет включённых листов") }}</h3><p>{{ _("Собери свои формулы на странице «Формулы» — они будут открываться здесь в любом тесте.") }}</p></div>
+    {% else %}{% if not sat_ref %}
+      <div class="empty"><h3>{{ _("Пока нет включённых листов") }}</h3><p>{{ _("Собери свои формулы на странице «Формулы» — они будут открываться здесь в любом тесте.") }}</p></div>{% endif %}
     {% endfor %}
     <a class="small" href="{{ url_for('student.formulas') }}" target="_blank" rel="noopener" style="font-weight:700">{{ _("Открыть страницу «Формулы»") }} →</a>
   </div>
