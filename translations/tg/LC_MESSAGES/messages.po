@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Monday VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-21 08:55-0700\n"
+"POT-Creation-Date: 2026-10-21 09:04-0700\n"
 "PO-Revision-Date: 2026-10-17 13:27-0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: tg\n"
@@ -268,7 +268,7 @@ msgstr "Акс нав карда шуд."
 msgid "По этим фильтрам вопросов нет. Сними часть фильтров."
 msgstr "Аз рӯи ин филтрҳо савол нест. Қисми филтрҳоро бардор."
 
-#: monday/bank.py:238 monday/daily.py:149 monday/templates/student/_review_steps.html:28
+#: monday/bank.py:238 monday/daily.py:149 monday/templates/student/_review_steps.html:27
 #: monday/templates/student/daily.html:50 monday/templates/student/session.html:58
 msgid "Учитель не добавил объяснение."
 msgstr "Омӯзгор шарҳ илова накардааст."
@@ -464,7 +464,7 @@ msgstr "Нав"
 msgid "В процессе"
 msgstr "Дар ҷараён"
 
-#: monday/constants.py:53
+#: monday/constants.py:53 monday/templates/teacher/review.html:18
 msgid "Сдано"
 msgstr "Супорида шуд"
 
@@ -1199,13 +1199,13 @@ msgstr "Масъала"
 msgid "Сессия"
 msgstr "Сессия"
 
-#: monday/student.py:671 monday/templates/teacher/assign.html:16 monday/templates/teacher/review.html:15
-#: monday/templates/teacher/student_detail.html:132
+#: monday/student.py:671 monday/templates/teacher/assign.html:16 monday/templates/teacher/review.html:18
+#: monday/templates/teacher/review.html:35 monday/templates/teacher/student_detail.html:132
 msgid "Работа"
 msgstr "Кор"
 
 #: monday/student.py:680 monday/student.py:684 monday/templates/partials/macros.html:169
-#: monday/templates/student/_review_steps.html:18 monday/templates/student/result.html:39
+#: monday/templates/student/_review_steps.html:18 monday/templates/student/result.html:40
 #, python-format
 msgid "Вопрос %(n)s"
 msgstr "Саволи %(n)s"
@@ -1224,15 +1224,15 @@ msgstr "Санҷиши душанбе рӯзи душанбе соати 19:00 �
 msgid "Профиль сохранён."
 msgstr "Профил нигоҳ дошта шуд."
 
-#: monday/student.py:823 monday/teacher.py:1103
+#: monday/student.py:823 monday/teacher.py:1128
 msgid "Текущий пароль неверный."
 msgstr "Пароли ҷорӣ нодуруст аст."
 
-#: monday/student.py:825 monday/teacher.py:1105
+#: monday/student.py:825 monday/teacher.py:1130
 msgid "Новый пароль должен быть не короче 8 символов."
 msgstr "Пароли нав бояд на камтар аз 8 аломат бошад."
 
-#: monday/student.py:829 monday/teacher.py:1109
+#: monday/student.py:829 monday/teacher.py:1134
 msgid "Пароль изменён."
 msgstr "Парол иваз шуд."
 
@@ -1347,7 +1347,7 @@ msgstr "Версияи %(n)s нашр шуд. Натиҷаҳои кӯҳнаи х
 msgid "Работа опубликована."
 msgstr "Кор нашр шуд."
 
-#: monday/teacher.py:586 monday/teacher.py:1038
+#: monday/teacher.py:586 monday/teacher.py:1063
 msgid "Черновик сохранён."
 msgstr "Сиёҳнавис нигоҳ дошта шуд."
 
@@ -1398,135 +1398,135 @@ msgstr "Вазифа дода шуд: %(n)s хонанда."
 msgid "Ещё не подключены к Monday: %(names)s. Они увидят задание после ввода кода."
 msgstr "Ҳанӯз ба Monday пайваст нашудаанд: %(names)s. Онҳо пас аз ворид кардани рамз вазифаро мебинанд."
 
-#: monday/teacher.py:706
+#: monday/teacher.py:731
 msgid "Задание снова открыто для проверки."
 msgstr "Вазифа барои санҷиш боз кушода шуд."
 
-#: monday/teacher.py:710
+#: monday/teacher.py:735
 msgid "Проверено. Ученик увидит ваш комментарий."
 msgstr "Санҷида шуд. Хонанда шарҳи шуморо мебинад."
 
-#: monday/teacher.py:750
+#: monday/teacher.py:775
 msgid "Введите название (минимум 2 символа)."
 msgstr "Ном ворид кунед (ақаллан 2 аломат)."
 
-#: monday/teacher.py:755
+#: monday/teacher.py:780
 msgid "Неверное место в дереве."
 msgstr "Ҷой дар дарахт нодуруст аст."
 
-#: monday/teacher.py:760
+#: monday/teacher.py:785
 #, python-format
 msgid "Добавлено: %(name)s."
 msgstr "Илова шуд: %(name)s."
 
-#: monday/teacher.py:760
+#: monday/teacher.py:785
 msgid "Видно вам и вашим ученикам."
 msgstr "Ба шумо ва хонандагонатон намоён аст."
 
-#: monday/teacher.py:774
+#: monday/teacher.py:799
 #, python-format
 msgid "«%(name)s» перенесено в архив. Результаты учеников сохранены."
 msgstr "«%(name)s» ба бойгонӣ гузаронда шуд. Натиҷаҳои хонандагон нигоҳ дошта шуданд."
 
-#: monday/teacher.py:777
+#: monday/teacher.py:802
 msgid "Восстановлено."
 msgstr "Барқарор шуд."
 
-#: monday/teacher.py:790 monday/teacher.py:1100
+#: monday/teacher.py:815 monday/teacher.py:1125
 msgid "Сохранено."
 msgstr "Нигоҳ дошта шуд."
 
-#: monday/teacher.py:847
+#: monday/teacher.py:872
 msgid "Отметьте хотя бы один вопрос."
 msgstr "Ақаллан як саволро қайд кунед."
 
-#: monday/teacher.py:856
+#: monday/teacher.py:881
 #, python-format
 msgid "Вопросов дня на %(d)s: добавлено %(n)s."
 msgstr "Саволҳои рӯз барои %(d)s: %(n)s илова шуд."
 
-#: monday/teacher.py:858
+#: monday/teacher.py:883
 #, python-format
 msgid "Не добавлено %(n)s: в день не больше 3 вопросов, повторы пропускаются."
 msgstr "%(n)s илова нашуд: дар як рӯз на зиёда аз 3 савол, такрорҳо гузаронда мешаванд."
 
-#: monday/teacher.py:866
+#: monday/teacher.py:891
 #, python-format
 msgid "Новая работа · %(n)s вопр."
 msgstr "Кори нав · %(n)s савол"
 
-#: monday/teacher.py:871
+#: monday/teacher.py:896
 #, python-format
 msgid "Создана работа из %(n)s вопросов — задайте название и опубликуйте."
 msgstr "Аз %(n)s савол кор сохта шуд — ном гузоред ва нашр кунед."
 
-#: monday/teacher.py:878
+#: monday/teacher.py:903
 #, python-format
 msgid "Добавлено в «%(t)s»: %(n)s. Уже были: %(k)s."
 msgstr "Ба «%(t)s» илова шуд: %(n)s. Аллакай буданд: %(k)s."
 
-#: monday/teacher.py:878 monday/templates/teacher/bank.html:36
+#: monday/teacher.py:903 monday/templates/teacher/bank.html:36
 msgid "без названия"
 msgstr "беном"
 
-#: monday/teacher.py:914 monday/templates/partials/macros.html:147 monday/templates/teacher/question_edit.html:23
+#: monday/teacher.py:939 monday/templates/partials/macros.html:147 monday/templates/teacher/question_edit.html:23
 msgid "Колонка А"
 msgstr "Сутуни А"
 
-#: monday/teacher.py:915 monday/templates/partials/macros.html:148 monday/templates/teacher/question_edit.html:24
+#: monday/teacher.py:940 monday/templates/partials/macros.html:148 monday/templates/teacher/question_edit.html:24
 msgid "Колонка Б"
 msgstr "Сутуни Б"
 
-#: monday/teacher.py:925
+#: monday/teacher.py:950
 #, python-format
 msgid "Текст вопроса — до %(n)s слов (сейчас %(w)s). Длинный текст вынесите в блок «Текст для чтения»."
 msgstr "Матни савол — то %(n)s калима (ҳоло %(w)s). Матни дарозро ба блоки «Матн барои хондан» гузаронед."
 
-#: monday/teacher.py:930
+#: monday/teacher.py:955
 msgid "Ссылка на видео должна начинаться с https://"
 msgstr "Пайванди видео бояд бо https:// оғоз шавад"
 
-#: monday/teacher.py:934
+#: monday/teacher.py:959
 msgid "Отметьте хотя бы один экзамен."
 msgstr "Ақаллан як имтиҳонро қайд кунед."
 
-#: monday/teacher.py:958
+#: monday/teacher.py:983
 msgid "Нужно минимум два варианта ответа."
 msgstr "Ақаллан ду варианти ҷавоб лозим аст."
 
-#: monday/teacher.py:960
+#: monday/teacher.py:985
 msgid "Отметьте верный вариант."
 msgstr "Варианти дурустро қайд кунед."
 
-#: monday/teacher.py:972
+#: monday/teacher.py:997
 msgid "Верный ответ должен быть числом: целым, дробью (3/4) или десятичным (0,75)."
 msgstr "Ҷавоби дуруст бояд адад бошад: бутун, каср (3/4) ё даҳӣ (0,75)."
 
-#: monday/teacher.py:983
+#: monday/teacher.py:1008
 msgid "Изображение: только PNG, JPG или WEBP."
 msgstr "Тасвир: танҳо PNG, JPG ё WEBP."
 
-#: monday/teacher.py:992
+#: monday/teacher.py:1017
 msgid "Добавьте текст вопроса или изображение."
 msgstr "Матни савол ё тасвирро илова кунед."
 
-#: monday/teacher.py:1034
+#: monday/teacher.py:1059
 msgid "Вопрос отправлен на проверку методисту. После одобрения он появится в банке."
 msgstr "Савол ба методист барои санҷиш фиристода шуд. Пас аз тасдиқ он дар бонк пайдо мешавад."
 
-#: monday/teacher.py:1036
+#: monday/teacher.py:1061
 msgid "Вопрос опубликован в банке."
 msgstr "Савол дар бонк нашр шуд."
 
-#: monday/teacher.py:1063
+#: monday/teacher.py:1088
 msgid "Вопрос сохранён. Уже опубликованные работы не меняются — переопубликуйте их, чтобы включить правку."
 msgstr "Савол нигоҳ дошта шуд. Корҳои қаблан нашршуда тағйир намеёбанд — барои дохил кардани ислоҳ онҳоро аз нав нашр кунед."
 
-#: monday/teacher.py:1076
+#: monday/teacher.py:1101
 msgid "На вопрос уже отвечали ученики, поэтому он скрыт (перенесён в черновики), а не удалён."
 msgstr "Ба ин савол хонандагон ҷавоб додаанд, бинобар ин он нест нашуда, пинҳон карда шуд (ба сиёҳнависҳо гузаронда шуд)."
 
-#: monday/teacher.py:1079
+#: monday/teacher.py:1104
 msgid "Вопрос удалён."
 msgstr "Савол нест карда шуд."
 
@@ -1642,7 +1642,7 @@ msgstr "Пӯшидан"
 msgid "Меню"
 msgstr "Меню"
 
-#: monday/templates/layout.html:77
+#: monday/templates/layout.html:77 monday/templates/student/result.html:4 monday/templates/student/work_detail.html:4
 msgid "математика"
 msgstr "математика"
 
@@ -1809,7 +1809,8 @@ msgid "Роль"
 msgstr "Нақш"
 
 #: monday/templates/admin/_panel_body.html:69 monday/templates/auth/welcome.html:80 monday/templates/auth/welcome.html:112
-#: monday/templates/teacher/dashboard.html:166 monday/templates/teacher/review.html:15
+#: monday/templates/teacher/dashboard.html:166 monday/templates/teacher/review.html:18
+#: monday/templates/teacher/review.html:35
 msgid "Ученик"
 msgstr "Хонанда"
 
@@ -2007,19 +2008,19 @@ msgstr ""
 "имтиҳон мебинанд."
 
 #: monday/templates/admin/index.html:111 monday/templates/partials/macros.html:70 monday/templates/student/bank.html:85
-#: monday/templates/student/home.html:53 monday/templates/student/work_detail.html:14
+#: monday/templates/student/home.html:53 monday/templates/student/work_detail.html:15
 #: monday/templates/teacher/questions.html:40 monday/templates/teacher/tree.html:87
 msgid "вопрос"
 msgstr "савол"
 
 #: monday/templates/admin/index.html:111 monday/templates/partials/macros.html:70 monday/templates/student/bank.html:85
-#: monday/templates/student/home.html:53 monday/templates/student/work_detail.html:14
+#: monday/templates/student/home.html:53 monday/templates/student/work_detail.html:15
 #: monday/templates/teacher/questions.html:40 monday/templates/teacher/tree.html:87
 msgid "вопроса"
 msgstr "савол"
 
 #: monday/templates/admin/index.html:111 monday/templates/partials/macros.html:70 monday/templates/student/bank.html:85
-#: monday/templates/student/home.html:53 monday/templates/student/work_detail.html:14
+#: monday/templates/student/home.html:53 monday/templates/student/work_detail.html:15
 #: monday/templates/teacher/questions.html:40 monday/templates/teacher/tree.html:87
 msgid "вопросов"
 msgstr "савол"
@@ -2056,7 +2057,7 @@ msgid "Опубликовать"
 msgstr "Нашр кардан"
 
 #: monday/templates/admin/index.html:121 monday/templates/assistant/mine.html:24 monday/templates/student/homework.html:38
-#: monday/templates/student/journal.html:90 monday/templates/teacher/review.html:23
+#: monday/templates/student/journal.html:90 monday/templates/teacher/review.html:43
 #: monday/templates/teacher/student_detail.html:137 monday/templates/teacher/students.html:40
 msgid "Открыть"
 msgstr "Кушодан"
@@ -2315,7 +2316,7 @@ msgid "Загрузить ещё"
 msgstr "Боз бор кардан"
 
 #: monday/templates/assistant/mine.html:11 monday/templates/teacher/questions.html:34
-#: monday/templates/teacher/review.html:15 monday/templates/teacher/student_detail.html:132
+#: monday/templates/teacher/review.html:35 monday/templates/teacher/student_detail.html:132
 msgid "Статус"
 msgstr "Ҳолат"
 
@@ -2323,7 +2324,7 @@ msgstr "Ҳолат"
 msgid "Исправить"
 msgstr "Ислоҳ кардан"
 
-#: monday/templates/assistant/mine.html:30 monday/templates/teacher/review.html:28 monday/templates/teacher/works.html:145
+#: monday/templates/assistant/mine.html:30 monday/templates/teacher/review.html:48 monday/templates/teacher/works.html:145
 msgid "Здесь пусто"
 msgstr "Ин ҷо холӣ аст"
 
@@ -2734,7 +2735,7 @@ msgid "Верный ответ:"
 msgstr "Ҷавоби дуруст:"
 
 #: monday/templates/partials/macros.html:125 monday/templates/student/_review_steps.html:19
-#: monday/templates/student/bank.html:6 monday/templates/student/result.html:40
+#: monday/templates/student/bank.html:6 monday/templates/student/result.html:41
 msgid "Верно"
 msgstr "Дуруст"
 
@@ -2754,7 +2755,7 @@ msgid "балла"
 msgstr "хол"
 
 #: monday/templates/partials/macros.html:170 monday/templates/student/attempt.html:130
-#: monday/templates/student/bank_play.html:55 monday/templates/student/result.html:7
+#: monday/templates/student/bank_play.html:55 monday/templates/student/result.html:8
 msgid "баллов"
 msgstr "хол"
 
@@ -3099,8 +3100,8 @@ msgid "Ширина калькулятора"
 msgstr "Паҳнии ҳисобкунак"
 
 #: monday/templates/student/_review_steps.html:7 monday/templates/student/daily.html:49
-#: monday/templates/student/home.html:61 monday/templates/student/result.html:33
-#: monday/templates/student/work_detail.html:34
+#: monday/templates/student/home.html:61 monday/templates/student/result.html:34
+#: monday/templates/student/work_detail.html:35
 msgid "Разбор"
 msgstr "Таҳлил"
 
@@ -3122,7 +3123,7 @@ msgstr "Интизори баҳо"
 msgid "%(p)s из %(m)s"
 msgstr "%(p)s аз %(m)s"
 
-#: monday/templates/student/_review_steps.html:19 monday/templates/student/result.html:40
+#: monday/templates/student/_review_steps.html:19 monday/templates/student/result.html:41
 msgid "Ошибка"
 msgstr "Хато"
 
@@ -3143,17 +3144,17 @@ msgstr "ҳал нест"
 msgid "Верный ответ"
 msgstr "Ҷавоби дуруст"
 
-#: monday/templates/student/_review_steps.html:26
+#: monday/templates/student/_review_steps.html:25 monday/templates/student/result.html:49
 msgid "Решение"
 msgstr "Ҳал"
 
-#: monday/templates/student/_review_steps.html:26 monday/templates/student/bank_play.html:15
+#: monday/templates/student/_review_steps.html:25 monday/templates/student/bank_play.html:15
 #: monday/templates/student/bank_play.html:62 monday/templates/student/result.html:49
 #: monday/templates/student/session.html:57 monday/templates/teacher/question_edit.html:189
 msgid "Объяснение"
 msgstr "Шарҳ"
 
-#: monday/templates/student/_review_steps.html:29 monday/templates/student/bank_play.html:46
+#: monday/templates/student/_review_steps.html:28 monday/templates/student/bank_play.html:46
 #: monday/templates/student/bank_play.html:65 monday/templates/student/result.html:51
 #: monday/templates/student/session.html:60
 msgid "Видео учителя"
@@ -3385,7 +3386,7 @@ msgid "%(a)s из %(n)s решено"
 msgstr "%(a)s аз %(n)s ҳал шуд"
 
 #: monday/templates/student/bank.html:34 monday/templates/student/homework_detail.html:19
-#: monday/templates/student/work_detail.html:31 monday/templates/teacher/assign.html:40
+#: monday/templates/student/work_detail.html:32 monday/templates/teacher/assign.html:40
 msgid "Время"
 msgstr "Вақт"
 
@@ -3514,7 +3515,7 @@ msgid "не решён"
 msgstr "ҳал нашуда"
 
 #: monday/templates/student/bank_play.html:84 monday/templates/student/session.html:45
-#: monday/templates/teacher/review.html:23 monday/templates/teacher/student_detail.html:137
+#: monday/templates/teacher/review.html:43 monday/templates/teacher/student_detail.html:137
 msgid "Проверить"
 msgstr "Санҷидан"
 
@@ -3559,7 +3560,7 @@ msgid "По твоему экзамену и слабым темам"
 msgstr "Аз рӯи имтиҳон ва мавзӯъҳои заифи ту"
 
 #: monday/templates/student/collections.html:44 monday/templates/student/collections.html:56
-#: monday/templates/student/monday.html:19 monday/templates/student/work_detail.html:22
+#: monday/templates/student/monday.html:19 monday/templates/student/work_detail.html:23
 msgid "Начать тест"
 msgstr "Оғози санҷиш"
 
@@ -3567,7 +3568,7 @@ msgstr "Оғози санҷиш"
 msgid "Твоя слабая тема"
 msgstr "Мавзӯи заифи ту"
 
-#: monday/templates/student/collections.html:51 monday/templates/student/work_detail.html:6
+#: monday/templates/student/collections.html:51 monday/templates/student/work_detail.html:7
 msgid "Все сборники"
 msgstr "Ҳамаи маҷмӯаҳо"
 
@@ -3599,7 +3600,8 @@ msgstr "Дархостро иваз кунед ё филтрҳоро тоза к
 msgid "от Monday"
 msgstr "аз Monday"
 
-#: monday/templates/student/daily.html:19 monday/templates/teacher/student_detail.html:55
+#: monday/templates/student/daily.html:19 monday/templates/teacher/review.html:18
+#: monday/templates/teacher/student_detail.html:55
 msgid "Итог"
 msgstr "Ҷамъбаст"
 
@@ -4019,8 +4021,8 @@ msgid "Срок прошёл, но сдать ещё можно."
 msgstr "Мӯҳлат гузашт, аммо ҳоло ҳам супоридан мумкин аст."
 
 #: monday/templates/student/homework_detail.html:34 monday/templates/student/result.html:2
-#: monday/templates/student/sessions.html:33 monday/templates/student/work_detail.html:31
-#: monday/templates/teacher/review.html:15 monday/templates/teacher/student_detail.html:117
+#: monday/templates/student/sessions.html:33 monday/templates/student/work_detail.html:32
+#: monday/templates/teacher/review.html:35 monday/templates/teacher/student_detail.html:117
 #: monday/templates/teacher/student_detail.html:132
 msgid "Результат"
 msgstr "Натиҷа"
@@ -4353,35 +4355,35 @@ msgstr "Пароли нав"
 msgid "Изменить пароль"
 msgstr "Иваз кардани парол"
 
-#: monday/templates/student/result.html:10
+#: monday/templates/student/result.html:11
 msgid "Отличная работа."
 msgstr "Кори олӣ."
 
-#: monday/templates/student/result.html:10
+#: monday/templates/student/result.html:11
 msgid "Хорошая основа — разбери ошибки ниже."
 msgstr "Асоси хуб — хатоҳои поёнро таҳлил кун."
 
-#: monday/templates/student/result.html:10
+#: monday/templates/student/result.html:11
 msgid "Ошибки — это карта. Начни с разбора ниже."
 msgstr "Хатоҳо — ин харита аст. Аз таҳлили поён оғоз кун."
 
-#: monday/templates/student/result.html:11
+#: monday/templates/student/result.html:12
 msgid "Время:"
 msgstr "Вақт:"
 
-#: monday/templates/student/result.html:14
+#: monday/templates/student/result.html:15
 msgid "К заданию"
 msgstr "Ба вазифа"
 
-#: monday/templates/student/result.html:16
+#: monday/templates/student/result.html:17
 msgid "К рейтингу"
 msgstr "Ба рейтинг"
 
-#: monday/templates/student/result.html:18
+#: monday/templates/student/result.html:19
 msgid "Другие сборники"
 msgstr "Маҷмӯаҳои дигар"
 
-#: monday/templates/student/result.html:25
+#: monday/templates/student/result.html:26
 #, python-format
 msgid ""
 "Часть 2 ждёт оценки: %(n)s зад. Откройте каждое задание в разборе, сравните с эталоном и отметьте свой балл по "
@@ -4390,12 +4392,12 @@ msgstr ""
 "Қисми 2 интизори баҳо: %(n)s супориш. Дар таҳлил ҳар супоришро кушоед, бо намуна муқоиса кунед ва холи худро аз рӯи "
 "меъёрҳо қайд кунед — натиҷа нав мешавад. Муаллим метавонад баҳоро ислоҳ кунад."
 
-#: monday/templates/student/result.html:27
+#: monday/templates/student/result.html:28
 #, python-format
 msgid "Ошибок в работе: %(n)s. Они добавлены в Лабораторный журнал — там их можно разобрать и закрыть."
 msgstr "Хатоҳо дар кор: %(n)s. Онҳо ба Маҷаллаи лабораторӣ илова шуданд — дар он ҷо онҳоро таҳлил карда, пӯшидан мумкин аст."
 
-#: monday/templates/student/result.html:44 monday/templates/teacher/written_review.html:16
+#: monday/templates/student/result.html:45 monday/templates/teacher/written_review.html:16
 msgid "Ответ:"
 msgstr "Ҷавоб:"
 
@@ -4592,34 +4594,34 @@ msgstr "Ҳеҷ чиз ёфт нашуд"
 msgid "Попробуйте другое слово или откройте все навыки."
 msgstr "Калимаи дигарро санҷед ё ҳамаи малакаҳоро кушоед."
 
-#: monday/templates/student/work_detail.html:8
+#: monday/templates/student/work_detail.html:9
 #, python-format
 msgid "версия %(n)s"
 msgstr "версияи %(n)s"
 
-#: monday/templates/student/work_detail.html:13
+#: monday/templates/student/work_detail.html:14
 msgid "ограничение по времени"
 msgstr "маҳдудияти вақт"
 
-#: monday/templates/student/work_detail.html:15
+#: monday/templates/student/work_detail.html:16
 msgid "твоих попыток"
 msgstr "кӯшишҳои ту"
 
-#: monday/templates/student/work_detail.html:17
+#: monday/templates/student/work_detail.html:18
 msgid "Таймер запустится сразу. Ответы можно менять до конца. Когда время выйдет, тест сдастся автоматически."
 msgstr ""
 "Таймер фавран оғоз мешавад. Ҷавобҳоро то охир иваз кардан мумкин аст. Вақте вақт тамом шавад, санҷиш худкор супорида "
 "мешавад."
 
-#: monday/templates/student/work_detail.html:20
+#: monday/templates/student/work_detail.html:21
 msgid "Продолжить попытку"
 msgstr "Идомаи кӯшиш"
 
-#: monday/templates/student/work_detail.html:29
+#: monday/templates/student/work_detail.html:30
 msgid "Твои попытки"
 msgstr "Кӯшишҳои ту"
 
-#: monday/templates/student/work_detail.html:31 monday/templates/teacher/assign.html:39
+#: monday/templates/student/work_detail.html:32 monday/templates/teacher/assign.html:39
 #: monday/templates/teacher/student_detail.html:117
 msgid "Дата"
 msgstr "Сана"
@@ -5530,11 +5532,42 @@ msgstr "Супорида нашуда"
 msgid "Проверены"
 msgstr "Санҷидашуда"
 
-#: monday/templates/teacher/review.html:15 monday/templates/teacher/student_detail.html:132
+#: monday/templates/teacher/review.html:12 monday/templates/teacher/student_detail.html:122
+msgid "Часть 2"
+msgstr "Қисми 2"
+
+#: monday/templates/teacher/review.html:16
+msgid "Развёрнутые решения учеников, которые вы ещё не оценили. Ученик сначала ставит балл сам — ваша оценка его заменяет."
+msgstr ""
+"Ҳалҳои пурраи хонандагон, ки шумо ҳанӯз баҳо надодаед. Аввал хонанда худаш хол мегузорад — баҳои шумо онро иваз "
+"мекунад."
+
+#: monday/templates/teacher/review.html:18
+msgid "Заданий"
+msgstr "Супоришҳо"
+
+#: monday/templates/teacher/review.html:24
+#, python-format
+msgid "самопроверка: %(n)s"
+msgstr "худсанҷӣ: %(n)s"
+
+#: monday/templates/teacher/review.html:26
+msgid "Оценить"
+msgstr "Баҳо додан"
+
+#: monday/templates/teacher/review.html:31
+msgid "Все решения оценены"
+msgstr "Ҳамаи ҳалҳо баҳо гирифтанд"
+
+#: monday/templates/teacher/review.html:31
+msgid "Новые развёрнутые решения учеников появятся здесь."
+msgstr "Ҳалҳои нави пурраи хонандагон дар ин ҷо пайдо мешаванд."
+
+#: monday/templates/teacher/review.html:35 monday/templates/teacher/student_detail.html:132
 msgid "Срок"
 msgstr "Мӯҳлат"
 
-#: monday/templates/teacher/review.html:28
+#: monday/templates/teacher/review.html:48
 msgid "Нет работ с таким статусом."
 msgstr "Корҳо бо чунин ҳолат нест."
 
@@ -5737,10 +5770,6 @@ msgstr "Хатоҳои кушода нест."
 #: monday/templates/teacher/student_detail.html:117
 msgid "Что"
 msgstr "Чӣ"
-
-#: monday/templates/teacher/student_detail.html:122
-msgid "Часть 2"
-msgstr "Қисми 2"
 
 #: monday/templates/teacher/student_detail.html:123
 msgid "Пока нет результатов."

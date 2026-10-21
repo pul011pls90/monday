@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}{{ _("Результат") }}{% endblock %}
 {% block page_class %}{{ "page--rv" if att.mode == "collection" else "page--narrow" }}{% endblock %}
+{% block context %}{% set e = att.work_version.work.exam if att.work_version and att.work_version.work else None %}{% if e %}{{ e|exam_label }} · {{ _("математика") }}{% else %}{{ super() }}{% endif %}{% endblock %}
 {% block content %}
 {% set v = att.work_version %}
 <section class="hero" style="align-items:center">
@@ -42,15 +43,15 @@
       {{ ui.question_body(item, 'r' ~ loop.index0, selected=a.given, reveal=True, disabled=True) }}
       {% if item.answer_type == 'written' %}
         <p class="small"><b>{{ _("Ответ:") }}</b> <span class="math">{{ item.correct }}</span></p>
-        {% if a.given or a.photo_path %}{{ ui.written_assess(item, a, url_for('student.attempt_assess', attempt_id=att.id, idx=loop.index0)) }}{% endif %}
       {% endif %}
       {% if item.explanation %}
-      <details class="disclosure" {{ 'open' if not a.is_correct }}>
-        <summary>{{ _("Объяснение") }}</summary>
+      <details class="disclosure" {{ 'open' if not a.is_correct or item.answer_type == 'written' }}>
+        <summary>{{ _("Решение") if item.answer_type == 'written' else _("Объяснение") }}</summary>
         <div class="explain__text math">{{ item.explanation }}</div>
         {% if item.video_url %}<a class="row" style="gap:8px;font-weight:600;margin-top:8px" href="{{ item.video_url }}" target="_blank" rel="noopener">{{ ui.icon('video', 18) }}{{ _("Видео учителя") }}</a>{% endif %}
       </details>
       {% endif %}
+      {% if item.answer_type == 'written' and (a.given or a.photo_path) %}{{ ui.written_assess(item, a, url_for('student.attempt_assess', attempt_id=att.id, idx=loop.index0)) }}{% endif %}
     </section>
     {% endif %}
   {% endfor %}

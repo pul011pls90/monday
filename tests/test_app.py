@@ -1013,6 +1013,7 @@ def test_written_answer_photo_self_assessment_and_teacher_mark():
     with APP.app_context():
         assert db_get(Attempt, att_id).score == 2
     t = login(client(), teacher_email, "teacher123")
+    ok(t, "/teacher/review?show=written", contains=[f"/teacher/attempts/{att_id}/written", "Оценить"])
     ok(t, f"/teacher/attempts/{att_id}/written", contains=["Проверка части 2", "самопроверка ученика"])
     t.post(f"/teacher/attempts/{att_id}/written", data={"idx": "12", "points": "2"})
     s.post(f"/attempts/{att_id}/assess/12", data={"points": "0"})  # teacher's mark stays
@@ -1022,6 +1023,9 @@ def test_written_answer_photo_self_assessment_and_teacher_mark():
         assert (a.points, a.points_by) == (2, "teacher") and att.score == 3
     other = login(client(), "nurai@monday.kg", "teacher123")
     assert other.get(f"/teacher/attempts/{att_id}/written").status_code == 404
+    t.post(f"/teacher/attempts/{att_id}/written", data={"idx": "13", "points": "0"})
+    ok(t, "/teacher/review?show=written", contains="Все решения оценены")
+    ok(s, result, contains="ЕГЭ · ")
 
 
 def test_data_fixes_remove_demo_collections_and_rename_student():
