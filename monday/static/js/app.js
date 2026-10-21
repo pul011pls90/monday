@@ -275,6 +275,7 @@
     const syncFmt = () => {
       const opt = fmtSel.selectedOptions[0];
       if (calc && !calcTouched) calc.checked = opt.dataset.calc === "1";
+      $$("[data-format-info]").forEach((el) => { el.hidden = el.dataset.formatInfo !== fmtSel.value; });
       $$("[data-fmt-only]").forEach((el) => {
         el.hidden = el.dataset.fmtOnly === "modules" ? opt.dataset.modules !== "2" : opt.dataset.nav !== el.dataset.fmtOnly;
       });

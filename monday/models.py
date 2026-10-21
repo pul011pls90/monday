@@ -224,6 +224,7 @@ class Question(db.Model):
     precision = db.Column(db.Integer)  # free input: accepted rounding (1 = tenths, 2 = hundredths)
     explanation = db.Column(db.Text, default="")
     video_url = db.Column(db.String(255))
+    source = db.Column(db.String(40))  # content pack id for questions from compilations (None = made by a teacher)
     rubric = db.Column(JSONText)  # written: [{"points": 2, "text": "…"}, …] — scoring criteria, best first
     tags = db.Column(JSONText)  # kinds of question: word, graph, nocalc, compare (see taxonomy.TAGS)
     status = db.Column(db.String(12), default="published")  # draft | pending (assistant's, waits for review) | published

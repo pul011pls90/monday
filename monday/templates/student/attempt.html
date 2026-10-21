@@ -37,7 +37,7 @@
   </div>
 </div>
 
-<main class="page test-page calc-shift" style="margin:0 auto;max-width:1120px">
+<main class="page test-page calc-shift{{ ' test-page--ort' if layout.nav == 'pages' }}" style="margin:0 auto;max-width:{{ '1440px' if layout.nav == 'pages' else '1120px' }}">
   {{ ui.flashes() }}
   {% if mods|length > 1 and module > 1 and not get_flashed_messages() %}
     <p class="small muted">{% if module == 2 %}{{ _("Ответы модуля 1 сохранены и закрыты.") }}{% else %}{{ _("Ответы модулей 1–%(k)s сохранены и закрыты.", k=module - 1) }}{% endif %}</p>
@@ -58,6 +58,7 @@
   {% if layout.nav == 'pages' %}
     {# ============================================================ ORT: pages + bubble answer sheet #}
     {% set per = layout.per_page %}
+    <div class="ort-layout"><div class="ort-main">
     {% set n = mod.end - mod.start %}
     {% set pages = ((n + per - 1) // per) %}
     {% for p in range(pages) %}
@@ -81,7 +82,7 @@
                 {% if item.answer_type == 'choice' %}
                   <ol class="ort-q__options">{% for opt in item.options %}<li><b>({{ LETTERS[loop.index0] }})</b> <span class="math">{{ opt }}</span></li>{% endfor %}</ol>
                 {% else %}
-                  <p class="small muted">{{ _("Ответ впишите в бланк ниже.") }} {{ ui.input_hint(item) }}</p>
+                  <p class="small muted">{{ _("Ответ впишите в бланк ответов.") }} {{ ui.input_hint(item) }}</p>
                 {% endif %}
               </div>
             </article>
@@ -94,11 +95,12 @@
       <span class="ort-pager__dots" data-page-dots>{% for p in range(pages) %}<button type="button" data-page-go="{{ p }}" aria-label="{{ _('Страница %(n)s', n=p + 1) }}"></button>{% endfor %}</span>
       <button type="button" class="btn btn--secondary" data-page-next>{{ _("Вперёд") }}{{ ui.icon('arrow-right', 18) }}</button>
     </div>
+    </div>
 
     <section class="ort-sheet" aria-labelledby="sheet-h">
       <h2 id="sheet-h">{{ _("Бланк ответов") }}</h2>
       {# numbers run down the columns, like the paper answer sheet #}
-      <div class="ort-sheet__grid" style="--rows: {{ ((mod.end - mod.start + 2) // 3) }}">
+      <div class="ort-sheet__grid" style="--rows: {{ ((mod.end - mod.start + 2) // 3) }}; --rows2: {{ ((mod.end - mod.start + 1) // 2) }}">
         {% for idx in range(mod.start, mod.end) %}{% set item = version.items[idx]|loc %}{% set val = draft.get('q' ~ idx) %}{% set fixed = ort_once and draft.get('c' ~ idx) %}
           <div class="ort-sheet__row{{ ' is-fixed' if fixed }}" data-sheet-row="{{ idx }}"{% if ort_once and item.answer_type == 'choice' %} data-once{% if fixed %} data-fixed{% endif %}{% endif %}>
             <a class="ort-sheet__num" href="#question-{{ idx + 1 }}" data-goto="{{ idx }}">{{ idx + 1 }}</a>
@@ -118,6 +120,7 @@
       </div>
       <p class="small submit-hint" data-submit-hint hidden></p>
     </section>
+    </div>
 
   {% else %}
     {# ============================================================ grid navigation: SAT, CSCA, ЕНТ, ЕГЭ, ОГЭ #}

@@ -50,8 +50,22 @@ def rename_demo_student():
         r.name = new
 
 
+def mark_pack_sources():
+    """Questions imported from content packs before Question.source existed get their pack id."""
+    import json
+    import os
+    from .models import Question
+    from .packs import PACK_DIR, available
+    for pack_id in available():
+        with open(os.path.join(PACK_DIR, pack_id + ".json"), encoding="utf-8") as f:
+            texts = {q["text"] for q in json.load(f)["questions"]}
+        for q in Question.query.filter(Question.source.is_(None), Question.text.in_(texts)).all():
+            q.source = pack_id
+
+
 def run_fixes():
     if not current_app.config.get("DATA_FIXES", True):
         return
     _once("demo-collections-removed", remove_demo_collections)
     _once("demo-student-renamed", rename_demo_student)
+    _once("question-source", mark_pack_sources)

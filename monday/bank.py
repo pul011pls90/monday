@@ -26,6 +26,7 @@ FILTERS = {
     "st": ("correct", "incorrect", "none"),     # answered status
     "mk": ("yes", "no"),                        # marked for review
     "t": ("choice", "number"),                  # answer type
+    "src": ("pack", "teacher"),                 # from compilations / made by teachers
 }
 LATIN = "ABCDEFGH"
 
@@ -93,6 +94,8 @@ def _match(q, f, status, states):
         if ("yes" if marked else "no") not in f["mk"]:
             return False
     if f["t"] and (q.answer_type or "choice") not in f["t"]:
+        return False
+    if f["src"] and ("pack" if q.source else "teacher") not in f["src"]:
         return False
     return True
 
