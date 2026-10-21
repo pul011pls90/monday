@@ -78,7 +78,7 @@ def _pool(user, exam):
             for n in s["nodes"]:
                 order[n.id] = len(order)
     qs = [q for q in Question.query.filter(Question.status == "published").all()
-          if q.skill_id in order and (not exam or exam in (q.exams or []))]
+          if q.skill_id in order and q.answer_type != "written" and (not exam or exam in (q.exams or []))]
     qs.sort(key=lambda q: (order[q.skill_id], q.difficulty or 2, q.id))
     return tree, qs
 

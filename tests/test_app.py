@@ -64,6 +64,8 @@ def test_demo_questions_are_well_formed():
             if q.answer_type == "choice":
                 assert len(q.options) == len(set(q.options)) >= 2, (q.id, q.options)
                 assert q.correct.isdigit() and int(q.correct) < len(q.options), (q.id, q.correct)
+            elif q.answer_type == "written":
+                assert q.correct and q.rubric and q.rubric[0]["points"] == q.weight, (q.id, q.weight)
             else:
                 from monday.services import valid_number_answer
                 assert valid_number_answer(q.correct), (q.id, q.correct)
@@ -965,3 +967,57 @@ def test_questions_translated_for_student():
     body = c.get("/sessions").data.decode()
     c.get("/prefs/original?next=/home")
     c.post("/prefs/lang", data={"lang": "ru", "next": "/home"})
+
+
+def test_ege_full_variant_combines_both_parts():
+    from monday.models import Work
+    with APP.app_context():
+        w = Work.query.filter(Work.title.like("%Вариант 1 (полный%")).first()
+        items = w.current_version.items if w.current_version else None
+        assert w.time_limit_min == 235
+        assert items and len(items) == 19
+        assert [i["answer_type"] for i in items[12:]] == ["written"] * 7
+        assert [i["weight"] for i in items[12:]] == [2, 3, 2, 2, 3, 4, 4]
+        assert items[0]["answer_type"] == "number"
+
+
+def test_written_answer_photo_self_assessment_and_teacher_mark():
+    import io
+    from monday.models import Attempt, AttemptAnswer, StudentRecord, User, Work
+    s = login(client(), "student@monday.kg", "student123")
+    with APP.app_context():
+        w = Work.query.filter(Work.title.like("%Вариант 1 (полный%")).first()
+        wid, first = w.id, w.current_version.items[0]
+        student = User.query.filter_by(email="student@monday.kg").first()
+        teacher_email = StudentRecord.query.filter_by(student_user_id=student.id).first().teacher.email
+    run = s.post(f"/works/{wid}/start").headers["Location"]
+    ok(s, run, contains=["data-photo-input", "Решение записано на бумаге"])
+    att_id = int(run.rstrip("/").split("/")[-1])
+    png = b"\x89PNG\r\n\x1a\n" + b"0" * 64
+    r = s.post(f"/attempts/{att_id}/photo", data={"idx": "12", "photo": (io.BytesIO(png), "sol.png")},
+               content_type="multipart/form-data")
+    assert r.get_json()["ok"]
+    assert s.post(f"/attempts/{att_id}/photo", data={"idx": "0", "photo": (io.BytesIO(png), "x.png")},
+                  content_type="multipart/form-data").status_code == 400
+    r = s.post(run, data={"q0": first["correct"], "q13": "done"})
+    result = r.headers["Location"]
+    ok(s, result, contains=["ждёт оценки"])
+    with APP.app_context():
+        att = db_get(Attempt, att_id)
+        assert att.score == 1 and att.total == 12 + 20
+        by_idx = {a.index: a for a in att.answers}
+        assert by_idx[12].photo_path and by_idx[12].points is None
+        assert by_idx[13].points is None and by_idx[14].points == 0  # paper-only answer waits, empty one is 0
+    s.post(f"/attempts/{att_id}/assess/12", data={"points": "1"})
+    with APP.app_context():
+        assert db_get(Attempt, att_id).score == 2
+    t = login(client(), teacher_email, "teacher123")
+    ok(t, f"/teacher/attempts/{att_id}/written", contains=["Проверка части 2", "самопроверка ученика"])
+    t.post(f"/teacher/attempts/{att_id}/written", data={"idx": "12", "points": "2"})
+    s.post(f"/attempts/{att_id}/assess/12", data={"points": "0"})  # teacher's mark stays
+    with APP.app_context():
+        att = db_get(Attempt, att_id)
+        a = AttemptAnswer.query.filter_by(attempt_id=att_id, index=12).first()
+        assert (a.points, a.points_by) == (2, "teacher") and att.score == 3
+    other = login(client(), "nurai@monday.kg", "teacher123")
+    assert other.get(f"/teacher/attempts/{att_id}/written").status_code == 404

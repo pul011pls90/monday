@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Проверка части 2") }}{% endblock %}
+{% block page_class %}page--narrow{% endblock %}
+{% block content %}
+{% if record %}<a href="{{ url_for('teacher.student_detail', record_id=record.id) }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ record.name }}</a>{% endif %}
+<header class="page-head__text">
+  <h1>{{ _("Проверка части 2") }}</h1>
+  <p>{{ att.work_version.title }} · {{ att.finished_at|dt }} · {{ _("итог") }} <b class="num">{{ att.score }} / {{ att.total }}</b></p>
+</header>
+{{ ui.flashes() }}
+{% for a, item in rows %}{% set item = item|loc %}
+<section class="q-card" id="w{{ a.index }}">
+  <div class="row row--between"><span class="q-num">{{ _("Задание %(n)s", n=a.index + 1) }}</span><span class="small muted">{{ _("макс.") }} {{ item.weight }}</span></div>
+  {{ ui.figure(item) }}
+  <div class="q-text math" style="font-size:16px">{{ item.text }}</div>
+  <p class="small"><b>{{ _("Ответ:") }}</b> <span class="math">{{ item.correct }}</span></p>
+  {% if not a.photo_path and not a.given %}<p class="muted">{{ _("Ученик не приложил решение.") }}</p>{% endif %}
+  <form method="post" class="assess">
+    {{ ui.csrf() }}<input type="hidden" name="idx" value="{{ a.index }}">
+    <div class="row row--between"><b>{{ _("Оценка") }}</b>
+      {% if a.points is not none %}<span class="tag tag--soft">{{ a.points }} / {{ item.weight }} · {{ _("учитель") if a.points_by == 'teacher' else _("самопроверка ученика") }}</span>{% else %}<span class="tag tag--line">{{ _("ждёт оценки") }}</span>{% endif %}</div>
+    {% if a.photo_path %}<img class="written-thumb" src="{{ url_for('uploaded_file', filename=a.photo_path) }}" alt="" data-lightbox>{% endif %}
+    <ul class="rubric">{% for r in item.rubric or [] %}
+      <li><label><input type="radio" name="points" value="{{ r.points }}" {{ 'checked' if a.points == r.points }} required> <b>{{ r.points }}</b> <span class="math">{{ r.text }}</span></label></li>
+    {% endfor %}</ul>
+    <button class="btn btn--primary btn--sm" type="submit">{{ _("Поставить балл") }}</button>
+  </form>
+  <details class="disclosure"><summary>{{ _("Эталонное решение") }}</summary><div class="explain__text math">{{ item.explanation }}</div></details>
+</section>
+{% else %}
+<div class="empty"><h3>{{ _("В этой работе нет заданий с развёрнутым ответом") }}</h3></div>
+{% endfor %}
+{% endblock %}

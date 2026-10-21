@@ -9,7 +9,8 @@
 {% set abc = 'ABCDEFGH' if layout.format in ('sat', 'csca') else None %}
 {% set last_module = module == mods|length %}
 {% set has_input = version.items[mod.start:mod.end]|selectattr('answer_type', 'equalto', 'number')|list %}
-{% set entry_rules = ('sat' if layout.format == 'sat' else 'general') if att.mode == 'collection' and has_input else None %}
+{% set has_written = version.items|selectattr('answer_type', 'equalto', 'written')|list %}
+{% set entry_rules = 'ege' if layout.format == 'ege' and (has_input or has_written) else (('sat' if layout.format == 'sat' else 'general') if att.mode == 'collection' and has_input else None) %}
 {% set label = version.title ~ ((' · ' ~ _('Модуль %(k)s из %(n)s', k=module, n=mods|length)) if mods|length > 1 else '') %}
 {% with close_url=back, label=label, dot_color=None, steps=None, counter=None, timer_seconds=None, exit_confirm=seconds_left is not none %}
   {% include "partials/session_bar.html" %}
@@ -45,7 +46,7 @@
   {# when the timer runs out the form is sent as-is: to "next module" in module 1, to "hand in" in the last one #}
   <form method="post" id="test-form" data-test data-nav="{{ layout.nav }}" {% if entry_rules == 'sat' %}data-sat-entry{% endif %}
         {% if not last_module %}action="{{ url_for('student.attempt_next_module', attempt_id=att.id) }}"{% endif %}
-        data-autosave="{{ url_for('student.attempt_save', attempt_id=att.id) }}" data-attempt="{{ att.id }}"
+        data-autosave="{{ url_for('student.attempt_save', attempt_id=att.id) }}" data-photo-url="{{ url_for('student.attempt_photo', attempt_id=att.id) }}" data-attempt="{{ att.id }}"
         data-start="{{ mod.start }}" data-end="{{ mod.end }}"
         {% if att.mode == 'homework' and last_module %}data-require-answer data-earlier-answered="{{ earlier_answered }}"
         data-empty-msg="{{ _('Ответьте хотя бы на один вопрос, чтобы сдать работу.') }}"
@@ -128,8 +129,8 @@
           {% if (item.weight or 1) > 1 %}<span class="tag tag--line tag--xs" style="margin-left:auto">{{ item.weight }} {{ item.weight|plural_ru(_("балл"), _("балла"), _("баллов")) }}</span>{% endif %}
         </div>
         <div class="q-card q-card--test q-card--flat">
-          {{ ui.question_body(item, 'q' ~ idx, selected=draft.get('q' ~ idx), letters=abc) }}
-          {% if entry_rules and item.answer_type == 'number' %}
+          {{ ui.question_body(item, 'q' ~ idx, selected=draft.get('q' ~ idx), letters=abc, photo=draft.get('p' ~ idx), weight_tag=False) }}
+          {% if entry_rules and item.answer_type in ('number', 'written') %}
             <div class="entry-help">
               {% if entry_rules == 'sat' %}<span class="entry-preview small" data-entry-preview hidden>{{ _("Ваш ответ:") }} <span class="math" data-entry-math></span></span>{% endif %}
               <button type="button" class="link-btn small" data-drawer-open="entry">{{ ui.icon('info', 14) }} {{ _("Правильная запись ответа") }}</button>

@@ -217,13 +217,14 @@ class Question(db.Model):
     text = db.Column(db.Text, default="")  # the question, may contain $...$ LaTeX
     image_path = db.Column(db.String(255))  # main picture, file name inside instance/uploads
     weight = db.Column(db.Integer, nullable=False, default=1)  # marks
-    answer_type = db.Column(db.String(8), default="choice")  # choice | number (free input)
+    answer_type = db.Column(db.String(8), default="choice")  # choice | number (free input) | written (full solution)
     options = db.Column(JSONText, default=list)  # list of strings (choice)
     correct = db.Column(db.String(64), nullable=False)  # option index, or the value as text
     input_formats = db.Column(JSONText, default=lambda: ["whole", "fraction", "decimal"])
     precision = db.Column(db.Integer)  # free input: accepted rounding (1 = tenths, 2 = hundredths)
     explanation = db.Column(db.Text, default="")
     video_url = db.Column(db.String(255))
+    rubric = db.Column(JSONText)  # written: [{"points": 2, "text": "…"}, …] — scoring criteria, best first
     tags = db.Column(JSONText)  # kinds of question: word, graph, nocalc, compare (see taxonomy.TAGS)
     status = db.Column(db.String(12), default="published")  # draft | pending (assistant's, waits for review) | published
     review_note = db.Column(db.Text)  # reviewer's comment when a question is sent back
@@ -258,6 +259,7 @@ class Question(db.Model):
             "explanation": self.explanation,
             "video_url": self.video_url,
             "tags": list(self.tags or []),
+            "rubric": list(self.rubric or []),
             "language": self.language or "ru",
         }
 
@@ -425,6 +427,9 @@ class AttemptAnswer(db.Model):
     explanation_text = db.Column(db.Text)  # Feynman mode: the student's own explanation
     is_correct = db.Column(db.Boolean, default=False)
     mistake_reason = db.Column(db.String(12))  # careless | gap | misread | time
+    points = db.Column(db.Integer)  # written answers: marks given (None = not assessed yet)
+    points_by = db.Column(db.String(8))  # self | teacher
+    photo_path = db.Column(db.String(255))  # written answers: photo of the solution (inside uploads)
     resolved = db.Column(db.Boolean, default=False)
     answered_at = db.Column(db.DateTime, default=utcnow)
 

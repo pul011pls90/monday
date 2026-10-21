@@ -326,6 +326,33 @@ def student_detail(record_id):
                            standing=max(0, progress - penalty), today_mark=today_mark.status if today_mark else None)
 
 
+@bp.route("/attempts/<int:attempt_id>/written", methods=["GET", "POST"])
+@teacher_required
+def written_review(attempt_id):
+    """Written answers (part 2) of one finished attempt of the teacher's student: photo, student's own mark, criteria."""
+    from .services import rescore
+    att = db.session.get(Attempt, attempt_id)
+    if not att or not att.finished_at:
+        abort(404)
+    linked = StudentRecord.query.filter_by(teacher_id=current_user.id, student_user_id=att.user_id).first()
+    if not linked and not current_user.is_admin:
+        abort(404)
+    items = att.work_version.items
+    rows = [(a, items[a.index]) for a in att.answers
+            if a.index < len(items) and items[a.index].get("answer_type") == "written"]
+    if request.method == "POST":
+        idx = request.form.get("idx", type=int)
+        pts = request.form.get("points", type=int)
+        for a, item in rows:
+            if a.index == idx and pts is not None and 0 <= pts <= int(item.get("weight") or 1):
+                a.points, a.points_by = pts, "teacher"
+        rescore(att)
+        db.session.commit()
+        flash(_("Оценка сохранена."), "success")
+        return redirect(url_for("teacher.written_review", attempt_id=att.id) + f"#w{idx}")
+    return render_template("teacher/written_review.html", att=att, rows=rows, record=linked)
+
+
 @bp.route("/students/<int:record_id>/edit", methods=["POST"])
 @teacher_required
 def student_edit(record_id):

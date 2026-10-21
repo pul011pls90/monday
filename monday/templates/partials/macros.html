@@ -84,9 +84,23 @@
 {%- endmacro %}
 
 {# Render the answer controls for a question snapshot (dict) inside a form. #}
-{% macro option_inputs(item, name, selected=None, reveal=False, disabled=False, letters=None) -%}
+{% macro option_inputs(item, name, selected=None, reveal=False, disabled=False, letters=None, photo=None) -%}
 {% set L = letters or LETTERS %}
-{% if item.answer_type == 'number' %}
+{% if item.answer_type == 'written' %}
+  {% if not reveal %}
+  <div class="written-box" data-written="{{ name }}">
+    <p class="small text-2">{{ _("Решите на бумаге с полным обоснованием. Затем сфотографируйте решение и прикрепите его — или отметьте, что решение записано. Баллы ставятся после сдачи: сначала вы сами по критериям, потом может поправить учитель.") }}</p>
+    <div class="row" style="gap:12px;flex-wrap:wrap;align-items:center">
+      <label class="btn btn--secondary btn--sm file-btn">{{ icon('camera', 16) }}<span>{{ _("Прикрепить фото решения") }}</span>
+        <input class="sr-only" type="file" accept="image/*" capture="environment" data-photo-input {{ 'disabled' if disabled }}></label>
+      <label class="check small"><input type="checkbox" name="{{ name }}" value="done" {{ 'checked' if selected }} {{ 'disabled' if disabled }}> {{ _("Решение записано на бумаге") }}</label>
+      <span class="small muted" data-photo-state></span>
+    </div>
+    <img class="written-thumb" data-photo-thumb {% if photo %}src="{{ url_for('uploaded_file', filename=photo) }}"{% else %}hidden{% endif %} alt="{{ _('Фото решения') }}" data-lightbox>
+    <p class="small muted" style="margin:6px 0 0">{{ _("Максимум баллов: %(n)s", n=item.weight or 1) }}</p>
+  </div>
+  {% endif %}
+{% elif item.answer_type == 'number' %}
   <div class="field answer-input">
     <label for="{{ name }}">{{ _("Ваш ответ") }}</label>
     <input class="input input--mono" id="{{ name }}" name="{{ name }}" inputmode="text" autocomplete="off" spellcheck="false"
@@ -140,7 +154,7 @@
 {# The one question layout used everywhere.
    With material (picture, passage, columns): material on the left, question + answers on the right.
    Without: one centred column — question on top, answers underneath. #}
-{% macro question_body(item, name, selected=None, reveal=False, disabled=False, number=None, letters=None) -%}
+{% macro question_body(item, name, selected=None, reveal=False, disabled=False, number=None, letters=None, photo=None, weight_tag=True) -%}
 {% set has_material = item.image_path or item.material %}
 <div class="q-layout {{ 'q-layout--split' if has_material else 'q-layout--single' }}">
   {% if has_material %}
@@ -150,23 +164,24 @@
   </div>
   {% endif %}
   <div class="q-main">
-    {% if number or (item.weight or 1) > 1 %}
+    {% if number or (weight_tag and (item.weight or 1) > 1) %}
     <div class="row row--between q-main__meta">
       {% if number %}<span class="q-num">{{ _("Вопрос %(n)s", n=number) }}</span>{% else %}<span></span>{% endif %}
-      {% if (item.weight or 1) > 1 %}<span class="tag tag--line tag--xs">{{ item.weight }} {{ item.weight|plural_ru(_("балл"), _("балла"), _("баллов")) }}</span>{% endif %}
+      {% if weight_tag and (item.weight or 1) > 1 %}<span class="tag tag--line tag--xs">{{ item.weight }} {{ item.weight|plural_ru(_("балл"), _("балла"), _("баллов")) }}</span>{% endif %}
     </div>
     {% endif %}
     {% if item._translated %}
     <a class="q-lang" href="{{ url_for('content_i18n.toggle_original', next=request.full_path) }}">{{ icon('globe', 14) }}{{ _("Показать перевод") if item._original_shown else _("Показать оригинал") }}</a>
     {% endif %}
     {% if item.text %}<div class="q-text math">{{ item.text }}</div>{% endif %}
-    {{ option_inputs(item, name, selected=selected, reveal=reveal, disabled=disabled, letters=letters) }}
+    {{ option_inputs(item, name, selected=selected, reveal=reveal, disabled=disabled, letters=letters, photo=photo) }}
   </div>
 </div>
 {%- endmacro %}
 
 {% macro answer_text(item, value, letters=None) -%}{% set L = letters or LETTERS %}
-{%- if value in (None, '') -%}<span class="muted">{{ _("нет ответа") }}</span>
+{%- if item.answer_type == 'written' -%}{{ _("развёрнутое решение") }}
+{%- elif value in (None, '') -%}<span class="muted">{{ _("нет ответа") }}</span>
 {%- elif item.answer_type == 'number' -%}<span class="num">{{ value }}</span>
 {%- elif value|string in (range(item.options|length)|map('string')|list) -%}{{ L[value|int] }}) <span class="math">{{ item.options[value|int] }}</span>
 {%- else -%}<span class="muted">{{ _("нет ответа") }}</span>
@@ -174,7 +189,8 @@
 {%- endmacro %}
 
 {% macro correct_text(item, letters=None) -%}{% set L = letters or LETTERS %}
-{%- if item.answer_type == 'number' -%}{{ item.correct|answer }}
+{%- if item.answer_type == 'written' -%}<span class="math">{{ item.correct }}</span>
+{%- elif item.answer_type == 'number' -%}{{ item.correct|answer }}
 {%- else -%}{{ L[item.correct|int] }}) <span class="math">{{ item.options[item.correct|int] }}</span>{%- endif -%}
 {%- endmacro %}
 
@@ -245,4 +261,31 @@
 {% macro mode_dot(key) -%}
 {% set n = (MODES.keys()|list).index(key) + 1 if key in MODES else 3 %}
 <span class="mode-dot shade-{{ n }}"></span>
+{%- endmacro %}
+
+
+{# Marks for a written answer: the criteria as radio buttons. action = where the form posts. #}
+{% macro written_assess(item, a, action, who='self') -%}
+<div class="assess">
+  <div class="row row--between" style="gap:8px;flex-wrap:wrap">
+    <b>{{ _("Оценка по критериям") }}</b>
+    {% if a.points is not none %}<span class="tag {{ 'tag--ok' if a.points >= (item.weight or 1) else 'tag--soft' }}">{{ a.points }} / {{ item.weight or 1 }} · {{ _("учитель") if a.points_by == 'teacher' else _("самопроверка") }}</span>
+    {% else %}<span class="tag tag--line">{{ _("ждёт оценки") }}</span>{% endif %}
+  </div>
+  {% if a.photo_path %}<img class="written-thumb" src="{{ url_for('uploaded_file', filename=a.photo_path) }}" alt="{{ _('Фото решения') }}" data-lightbox>{% endif %}
+  {% if who == 'self' and a.points_by == 'teacher' %}
+    <ul class="rubric">{% for r in item.rubric or [] %}<li class="{{ 'is-on' if r.points == a.points }}"><b>{{ r.points }}</b><span class="math">{{ r.text }}</span></li>{% endfor %}</ul>
+  {% else %}
+  <form method="post" action="{{ action }}" class="rubric-form">
+    {{ csrf() }}
+    <p class="small text-2" style="margin:0 0 8px">{{ _("Сравните своё решение с эталоном и выберите, какой критерий оно выполняет:") if who == 'self' else _("Выберите балл по критериям:") }}</p>
+    <ul class="rubric">
+    {% for r in item.rubric or [] %}
+      <li><label><input type="radio" name="points" value="{{ r.points }}" {{ 'checked' if a.points == r.points }} required> <b>{{ r.points }}</b> <span class="math">{{ r.text }}</span></label></li>
+    {% endfor %}
+    </ul>
+    <button class="btn btn--primary btn--sm" type="submit">{{ _("Сохранить оценку") }}</button>
+  </form>
+  {% endif %}
+</div>
 {%- endmacro %}
