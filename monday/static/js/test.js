@@ -181,7 +181,30 @@
     body.set("csrf_token", csrf); body.set("name", name); body.set("value", value);
     return fetch(form.dataset.autosave, { method: "POST", body, headers: { "X-CSRFToken": csrf }, credentials: "same-origin" }).catch(() => {});
   };
-  const answered = (idx) => $$(`[name="q${idx}"]`, form).some((f) => (f.type === "radio" ? f.checked : f.value.trim() !== ""));
+  const answered = (idx) => $$(`[name="q${idx}"]`, form).some((f) => (f.type === "radio" || f.type === "checkbox" ? f.checked : f.value.trim() !== ""));
+
+  /* written answers: attach a photo of the solution */
+  $$("[data-written]", form).forEach((box) => {
+    const input = $("[data-photo-input]", box), thumb = $("[data-photo-thumb]", box), state = $("[data-photo-state]", box);
+    const done = $(`input[type=checkbox]`, box);
+    if (!input || !form.dataset.photoUrl) return;
+    input.addEventListener("change", async () => {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      state.textContent = "…";
+      const body = new FormData();
+      body.set("csrf_token", csrf);
+      body.set("idx", box.dataset.written.slice(1));
+      body.set("photo", file);
+      try {
+        const res = await fetch(form.dataset.photoUrl, { method: "POST", body, headers: { "X-CSRFToken": csrf }, credentials: "same-origin" });
+        const data = await res.json();
+        if (!res.ok || !data.ok) { state.textContent = data.message || "✕"; return; }
+        thumb.src = data.url; thumb.hidden = false; state.textContent = "✓";
+        if (done && !done.checked) { done.checked = true; done.dispatchEvent(new Event("change", { bubbles: true })); }
+      } catch (_) { state.textContent = "✕"; }
+    });
+  });
   const key = (k) => `monday-${form.dataset.attempt}-m${form.dataset.start}-${k}`;   // per module: module 2 starts at its own first question
 
   /* homework: can't be handed in with no answers; asks once when some are left empty */

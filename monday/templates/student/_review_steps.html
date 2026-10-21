@@ -9,18 +9,21 @@
     {% set item = row.item|loc %}{% set a = row.answer %}{% set n = loop.index %}
     {% set ns = namespace(k=1, num=n, size=rows|length) %}{% for m in mods %}{% if m.start < n and n <= m.end %}{% set ns.k = loop.index %}{% set ns.num = n - m.start %}{% set ns.size = m.end - m.start %}{% endif %}{% endfor %}
     {% if item %}
-    {% set state = 'ok' if a.is_correct else ('skip' if not a.given else 'bad') %}
+    {% set written = item.answer_type == 'written' %}
+    {% set state = ('wait' if a.points is none else ('ok' if a.points >= (item.weight or 1) else ('part' if a.points > 0 else 'bad'))) if written and (a.given or a.photo_path)
+                   else ('ok' if a.is_correct else ('skip' if not a.given else 'bad')) %}
     <article class="rv-screen" data-rv-screen="{{ loop.index0 }}" id="q{{ n }}" data-rv-label="{% if mods|length > 1 %}{{ _('Модуль %(k)s', k=ns.k) }} · {% endif %}{{ ns.num }} {{ _('из') }} {{ ns.size }}">
       <aside class="rv-explain">
         <div class="row row--between">
           <span class="q-num">{% if mods|length > 1 %}{{ _("Модуль %(k)s", k=ns.k) }} · {% endif %}{{ _("Вопрос %(n)s", n=ns.num) }}</span>
-          <span class="tag {{ 'tag--ok' if state == 'ok' else ('tag--line' if state == 'skip' else 'tag--bad') }}">{{ _("Верно") if state == 'ok' else (_("Нет ответа") if state == 'skip' else _("Ошибка")) }}</span>
+          <span class="tag {{ 'tag--ok' if state == 'ok' else ('tag--line' if state in ('skip', 'wait') else ('tag--soft' if state == 'part' else 'tag--bad')) }}">{{ _("Верно") if state == 'ok' else (_("Нет ответа") if state == 'skip' else (_("Ждёт оценки") if state == 'wait' else (_("%(p)s из %(m)s", p=a.points, m=item.weight) if state == 'part' else _("Ошибка")))) }}</span>
         </div>
         <dl class="rv-answers">
-          <div><dt>{{ _("Ваш ответ") }}</dt><dd>{% if not a.given %}<span class="muted">{{ _("нет ответа") }}</span>{% elif item.answer_type == 'number' %}<span class="num">{{ a.given }}</span>{% else %}{{ (abc or LETTERS)[a.given|int] }}{% endif %}</dd></div>
-          <div><dt>{{ _("Верный ответ") }}</dt><dd>{% if item.answer_type == 'number' %}<span class="num">{{ item.correct|answer }}</span>{% else %}{{ (abc or LETTERS)[item.correct|int] }}{% endif %}</dd></div>
+          <div><dt>{{ _("Ваш ответ") }}</dt><dd>{% if written %}<span class="small">{{ _("фото решения") if a.photo_path else (_("на бумаге") if a.given else _("нет решения")) }}</span>{% elif not a.given %}<span class="muted">{{ _("нет ответа") }}</span>{% elif item.answer_type == 'number' %}<span class="num">{{ a.given }}</span>{% else %}{{ (abc or LETTERS)[a.given|int] }}{% endif %}</dd></div>
+          <div><dt>{{ _("Верный ответ") }}</dt><dd>{% if written %}<span class="math small">{{ item.correct }}</span>{% elif item.answer_type == 'number' %}<span class="num">{{ item.correct|answer }}</span>{% else %}{{ (abc or LETTERS)[item.correct|int] }}{% endif %}</dd></div>
         </dl>
-        <h3 class="rv-explain__title">{{ _("Объяснение") }}</h3>
+        {% if written and (a.given or a.photo_path) %}{{ ui.written_assess(item, a, url_for('student.attempt_assess', attempt_id=att.id, idx=loop.index0)) }}{% endif %}
+        <h3 class="rv-explain__title">{{ _("Решение") if written else _("Объяснение") }}</h3>
         {% if item.explanation %}<div class="explain__text math">{{ item.explanation }}</div>
         {% else %}<p class="muted">{{ _("Учитель не добавил объяснение.") }}</p>{% endif %}
         {% if item.video_url %}<a class="row" style="gap:8px;font-weight:600" href="{{ item.video_url }}" target="_blank" rel="noopener">{{ ui.icon('video', 18) }}{{ _("Видео учителя") }}</a>{% endif %}
@@ -44,7 +47,7 @@
           {% if mods|length > 1 %}<div class="rv-pop__head">{{ _("Модуль %(k)s", k=loop.index) }}</div>{% endif %}
           <div class="q-grid rv-grid">
             {% for i in range(m.start, m.end) %}{% if i < rows|length %}{% set a = rows[i].answer %}
-              <button type="button" data-rv-go="{{ i }}" class="{{ 'is-ok' if a.is_correct else ('is-skip' if not a.given else 'is-bad') }}">{{ i - m.start + 1 }}</button>
+              <button type="button" data-rv-go="{{ i }}" class="{{ 'is-ok' if a.is_correct else ('is-skip' if not a.given and not a.photo_path or a.points is none and a.photo_path else 'is-bad') }}">{{ i - m.start + 1 }}</button>
             {% endif %}{% endfor %}
           </div>
         {% endfor %}

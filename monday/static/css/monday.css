@@ -476,7 +476,7 @@ legend { padding: 0 8px; font-size: 13px; font-weight: 700; letter-spacing: .08e
 .q-figure { margin: 0; display: flex; flex-direction: column; gap: 8px; }
 .q-figure__frame { border-radius: 16px; background: #F6FAFE; border: 1px solid var(--line); padding: 16px; display: flex; align-items: center; justify-content: center; }
 .q-figure img { width: 100%; height: auto; max-height: 420px; object-fit: contain; cursor: zoom-in; }
-.q-text { font-size: 20px; font-weight: 600; line-height: 1.45; }
+.q-text { font-size: 20px; font-weight: 600; line-height: 1.45; white-space: pre-line; }
 .q-num { font-size: 13px; font-weight: 700; color: var(--muted); }
 /* Answer options, SAT style: one full-width row each, circled letter on the left. */
 .options { display: flex; flex-direction: column; gap: 14px; }
@@ -510,7 +510,7 @@ legend { padding: 0 8px; font-size: 13px; font-weight: 700; letter-spacing: .08e
 .option-row.is-crossed .option__box { opacity: .5; }
 .option-row.is-crossed .option__box::after { content: ""; position: absolute; left: 10px; right: 10px; top: 50%; height: 2px; background: var(--text); }
 .explain { border: 1px solid var(--line); border-radius: var(--r-xl); padding: 24px 28px; display: flex; flex-direction: column; gap: 12px; }
-.explain__text { font-size: 17px; line-height: 1.65; }
+.explain__text { font-size: 17px; line-height: 1.65; white-space: pre-line; }
 .feedback { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; }
 .feedback--ok { color: var(--ok); }
 .feedback--bad { color: var(--bad); }
@@ -726,3 +726,16 @@ details.disclosure[open] summary { margin-bottom: 10px; }
 .entry-table td:first-child { font-size: 17px; }
 .entry-table td.bad { color: var(--bad); }
 form[data-sat-entry] .answer-input .field__hint { display: none; }   /* SAT tests: the rules live in "Как вводить ответ" */
+
+/* written answers (part 2): photo of the solution, criteria */
+.written-box { border: 1.5px dashed var(--line-strong); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.file-btn { cursor: pointer; }
+.written-thumb { max-width: 100%; max-height: 220px; object-fit: contain; border-radius: 10px; border: 1px solid var(--line); background: #fff; cursor: zoom-in; align-self: flex-start; }
+.assess { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
+.rubric { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.45; }
+.rubric li label, .rubric li { display: flex; gap: 8px; align-items: flex-start; }
+.rubric li b { min-width: 16px; }
+.rubric li.is-on { font-weight: 600; color: var(--accent-ink); }
+.entry-h { font-size: 15px; margin: 4px 0 6px; }
+.entry-table--left td:last-child { text-align: left; font-size: 13px; line-height: 1.45; }
+.entry-table--left td:first-child { font-size: 14px; font-weight: 700; }

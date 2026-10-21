@@ -180,7 +180,7 @@ def is_correct(item, given, sat=False):
     """
     answer_type = _get(item, "answer_type")
     correct = _get(item, "correct")
-    if given in (None, ""):
+    if given in (None, "") or answer_type == "written":
         return False
     if answer_type == "number" and sat:
         values = [v for v in (parse_number(x)[0] for x in accepted_answers(correct)) if v is not None]
@@ -207,6 +207,28 @@ def is_correct(item, given, sat=False):
     return str(given).strip() == str(correct).strip()
 
 
+def written_pending(attempt):
+    """Written answers of a finished attempt that nobody has marked yet."""
+    items = attempt.work_version.items if attempt.work_version else []
+    return [a for a in attempt.answers
+            if a.index < len(items) and items[a.index].get("answer_type") == "written" and a.points is None]
+
+
+def rescore(attempt):
+    """Score = automatic answers + marks for written answers (self or teacher)."""
+    items = attempt.work_version.items if attempt.work_version else []
+    score = 0
+    for a in attempt.answers:
+        item = items[a.index] if a.index < len(items) else {}
+        if item.get("answer_type") == "written":
+            score += a.points or 0
+            a.is_correct = (a.points or 0) >= item_weight(item)
+        elif a.is_correct:
+            score += item_weight(item)
+    attempt.score = score
+    return attempt
+
+
 def item_weight(item):
     return max(1, int(_get(item, "weight", 1) or 1))
 
@@ -222,12 +244,14 @@ def grade_version_attempt(attempt, version, form):
     for idx, item in enumerate(version.items):
         given = (form.get(f"q{idx}") or "").strip()
         ok = is_correct(item, given, sat=sat)
+        written = item.get("answer_type") == "written"
         w = item_weight(item)
         total += w
         score += w if ok else 0
         db.session.add(AttemptAnswer(
             attempt=attempt, index=idx, question_id=item.get("question_id"), skill_id=item.get("skill_id"),
-            given=given or None, is_correct=ok,
+            given=given or None, is_correct=ok, photo_path=(form.get(f"p{idx}") or None) if written else None,
+            points=0 if written and not given and not form.get(f"p{idx}") else None,
             mistake_reason=None if ok else ("time" if not given else None),
         ))
     attempt.score = score
@@ -400,7 +424,7 @@ def answer_item(answer):
 def pick_practice_questions(user, mode, skill_id=None):
     exam = user.profile.exam if user.profile else None
     count = MODES[mode]["count"]
-    base = Question.query.filter(Question.status == "published")
+    base = Question.query.filter(Question.status == "published", Question.answer_type != "written")
     pool = [q for q in base.all() if not exam or exam in (q.exams or [])] or base.all()
     if skill_id:
         focused = [q for q in pool if q.skill_id == skill_id]

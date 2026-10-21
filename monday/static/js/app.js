@@ -171,15 +171,15 @@
       let answered = 0;
       names.forEach((n) => {
         const fields = $$(`[name="${n}"]`, testForm);
-        if (fields.some((f) => (f.type === "radio" ? f.checked : f.value.trim() !== ""))) answered += 1;
+        if (fields.some((f) => (f.type === "radio" || f.type === "checkbox" ? f.checked : f.value.trim() !== ""))) answered += 1;
       });
       if (counter) counter.textContent = `${answered} / ${names.size}`;
     };
     const valueOf = (name) => {
       const fields = $$(`[name="${name}"]`, testForm);
-      const checked = fields.find((f) => f.type === "radio" && f.checked);
+      const checked = fields.find((f) => (f.type === "radio" || f.type === "checkbox") && f.checked);
       if (checked) return checked.value;
-      const text = fields.find((f) => f.type !== "radio");
+      const text = fields.find((f) => f.type !== "radio" && f.type !== "checkbox");
       return text ? text.value.trim() : "";
     };
     const pending = new Map();

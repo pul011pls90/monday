@@ -118,7 +118,8 @@
     <tbody>{% for a in data.recent %}
       <tr><td class="muted">{{ a.finished_at|dt }}</td>
       <td>{{ MODES[a.mode].name if a.mode in MODES else (a.work_version.title if a.work_version else (_('Вопросы дня') if a.mode == 'daily' else a.mode)) }}</td>
-      <td class="num"><b>{{ a.score }} / {{ a.total or a.answers|length }}</b> <span class="t-score t-score--{{ 'green' if a.percent >= 80 else ('yellow' if a.percent >= 50 else 'red') }}">{{ a.percent }}%</span></td></tr>
+      <td class="num"><b>{{ a.score }} / {{ a.total or a.answers|length }}</b> <span class="t-score t-score--{{ 'green' if a.percent >= 80 else ('yellow' if a.percent >= 50 else 'red') }}">{{ a.percent }}%</span>
+        {% if a.answers|selectattr('photo_path')|list or a.answers|selectattr('points_by')|list %}<a class="small" style="margin-left:8px;font-weight:700" href="{{ url_for('teacher.written_review', attempt_id=a.id) }}">{{ _("Часть 2") }} →</a>{% endif %}</td></tr>
     {% else %}<tr><td colspan="3" class="muted">{{ _("Пока нет результатов.") }}</td></tr>{% endfor %}</tbody>
   </table></div>
 </section>

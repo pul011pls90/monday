@@ -50,6 +50,29 @@ def _copy_figures(pack_id):
             shutil.copyfile(os.path.join(src, name), target)
 
 
+def _foreign_questions(ids, own_pack, publish, author):
+    """Questions a collection borrows from other packs (e.g. a full EGE variant = part 1 pack + part 2 pack).
+    The other pack is imported first if needed; its question is matched by text and answer."""
+    found = {}
+    for other in available():
+        if other == own_pack:
+            continue
+        with open(os.path.join(PACK_DIR, other + ".json"), encoding="utf-8") as f:
+            items = {q["id"]: q for q in json.load(f)["questions"]}
+        wanted = [k for k in ids if k in items and k not in found]
+        if not wanted:
+            continue
+        import_pack(other, publish=publish, author=author)
+        for k in wanted:
+            q = Question.query.filter_by(text=items[k]["text"], correct=items[k]["correct"]).order_by(Question.id).first()
+            if q:
+                found[k] = q
+    lost = [k for k in ids if k not in found]
+    if lost:
+        raise KeyError(f"pack {own_pack}: unknown question ids {lost[:5]}")
+    return found
+
+
 def import_pack(pack_id, publish=True, author=None):
     """Create the pack's questions and collections. Returns (questions, works) created; (0, 0) if already there."""
     _copy_figures(pack_id)
@@ -68,7 +91,8 @@ def import_pack(pack_id, publish=True, author=None):
         q = Question(author=author, skill=node, exams=[exam], difficulty=item.get("difficulty", 2),
                      language=pack.get("language", "en"), material=[], text=item["text"],
                      image_path=f"packs/{pack_id}/{item['image']}" if item.get("image") else None,
-                     weight=1, answer_type=item["answer_type"], options=item.get("options") or [],
+                     weight=int(item.get("weight") or 1), rubric=item.get("rubric") or None,
+                     answer_type=item["answer_type"], options=item.get("options") or [],
                      correct=item["correct"], explanation=item.get("explanation", ""),
                      tags=item.get("tags") or [], status=status)
         db.session.add(q)
@@ -77,6 +101,9 @@ def import_pack(pack_id, publish=True, author=None):
     from .services import publish_work
     works = 0
     for c in pack.get("collections", []):
+        missing = [k for k in c["questions"] if k not in by_key]
+        if missing:
+            by_key.update(_foreign_questions(missing, pack_id, publish, author))
         minutes = c.get("minutes_per_module", 32) * (2 if c.get("module_split") else 1)
         w = Work(author=author, kind="collection", category="full", exam=exam, title=c["title"][:160],
                  description=c.get("description", ""), time_limit_min=minutes, status="draft",

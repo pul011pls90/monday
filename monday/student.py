@@ -394,6 +394,8 @@ def _merge_module_answers(att, mod, form):
             draft[f"q{idx}"] = value
         elif f"q{idx}" in form:
             draft.pop(f"q{idx}", None)
+        if draft.get(f"p{idx}"):  # a photo of a written solution counts as an answer
+            draft[f"q{idx}"] = "photo"
     att.draft = draft
 
 
@@ -412,7 +414,7 @@ def _empty_homework(att, form):
 
 
 def _finish_attempt(att, version):
-    answers = {k: v for k, v in (att.draft or {}).items() if k.startswith("q")}
+    answers = {k: v for k, v in (att.draft or {}).items() if k[:1] in ("q", "p")}
     grade_version_attempt(att, version, answers)
     db.session.commit()
     if att.mode == "homework":
@@ -473,6 +475,62 @@ def attempt_save(attempt_id):
     att.draft = draft
     db.session.commit()
     return jsonify(ok=True, answered=sum(1 for k in draft if k.startswith("q")))
+
+
+ALLOWED_PHOTO = {"png", "jpg", "jpeg", "webp", "heic"}
+
+
+@bp.route("/attempts/<int:attempt_id>/photo", methods=["POST"])
+@student_required
+def attempt_photo(attempt_id):
+    """Photo of a written solution (part 2 of ЕГЭ etc.), attached while the test is running."""
+    import os
+    import secrets as _secrets
+    att = _own_attempt(attempt_id)
+    if att.finished_at or att.mode in MODES:
+        return jsonify(ok=False, reason="closed"), 409
+    version = att.work_version
+    _k, mod = current_module(att, version_layout(version))
+    idx = request.form.get("idx", type=int)
+    if idx is None or not (mod["start"] <= idx < mod["end"]) or version.items[idx].get("answer_type") != "written":
+        return jsonify(ok=False, reason="field"), 400
+    f = request.files.get("photo")
+    ext = (f.filename.rsplit(".", 1)[-1].lower() if f and "." in f.filename else "")
+    if not f or ext not in ALLOWED_PHOTO:
+        return jsonify(ok=False, reason="type", message=_("Нужна фотография: JPG, PNG, WEBP или HEIC.")), 400
+    folder = os.path.join(current_app.config["UPLOAD_FOLDER"], "solutions")
+    os.makedirs(folder, exist_ok=True)
+    name = f"solutions/a{att.id}_{idx}_{_secrets.token_hex(6)}.{ext}"
+    f.save(os.path.join(current_app.config["UPLOAD_FOLDER"], name))
+    draft = dict(att.draft or {})
+    draft[f"p{idx}"] = name
+    draft[f"q{idx}"] = "photo"
+    att.draft = draft
+    db.session.commit()
+    return jsonify(ok=True, url=url_for("uploaded_file", filename=name))
+
+
+@bp.route("/attempts/<int:attempt_id>/assess/<int:idx>", methods=["POST"])
+@student_required
+def attempt_assess(attempt_id, idx):
+    """Self-assessment of a written answer by the criteria (a teacher's mark is final)."""
+    from .services import rescore
+    att = _own_attempt(attempt_id)
+    if not att.finished_at:
+        abort(404)
+    ans = next((a for a in att.answers if a.index == idx), None)
+    items = att.work_version.items
+    if not ans or idx >= len(items) or items[idx].get("answer_type") != "written":
+        abort(404)
+    if ans.points_by == "teacher":
+        flash(_("Это задание уже оценил учитель."), "info")
+    else:
+        pts = request.form.get("points", type=int)
+        if pts is not None and 0 <= pts <= int(items[idx].get("weight") or 1):
+            ans.points, ans.points_by = pts, "self"
+            rescore(att)
+            db.session.commit()
+    return redirect(url_for("student.attempt_result", attempt_id=att.id) + f"#q{idx + 1}")
 
 
 def _enabled_sheets():
@@ -552,9 +610,11 @@ def homework_start(assignment_id):
 @student_required
 def journal():
     show = request.args.get("show", "open")
-    base = (AttemptAnswer.query.join(Attempt)
+    base = (AttemptAnswer.query.join(Attempt).outerjoin(Question, AttemptAnswer.question_id == Question.id)
             .filter(Attempt.user_id == current_user.id, AttemptAnswer.is_correct.is_(False),
-                    Attempt.finished_at.isnot(None)))
+                    Attempt.finished_at.isnot(None),
+                    or_(Question.answer_type.is_(None), Question.answer_type != "written",
+                        AttemptAnswer.points.isnot(None))))
     days_shown = max(7, min(365, request.args.get("days", 14, type=int)))
     entries = base.filter(AttemptAnswer.resolved.is_(show == "resolved")).order_by(
         AttemptAnswer.answered_at.desc()).limit(1500).all()

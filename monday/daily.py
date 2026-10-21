@@ -29,7 +29,8 @@ def _auto_pick(exam, day):
     pick = DailyPick.query.filter_by(teacher_id=None, exam=exam, day=day).first()
     if pick:
         return pick
-    pool = [q for q in Question.query.filter_by(status="published").all() if exam in (q.exams or [])]
+    pool = [q for q in Question.query.filter_by(status="published").all()
+            if exam in (q.exams or []) and q.answer_type != "written"]
     if not pool:
         return None
     rng = random.Random(f"{exam}-{day.isoformat()}")
