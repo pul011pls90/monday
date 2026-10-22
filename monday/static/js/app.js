@@ -706,4 +706,6 @@ document.addEventListener("click", (e) => {
   rest.hidden = !open;
   b.textContent = open ? b.dataset.close : b.dataset.open;
   b.setAttribute("aria-expanded", String(open));
+  b.classList.toggle("is-open", open);
+  b.classList.toggle("tag", !open); b.classList.toggle("tag--line", !open);
 }, true);
