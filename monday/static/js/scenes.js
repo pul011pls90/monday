@@ -435,32 +435,6 @@
   if (reduce) draw(); else requestAnimationFrame(loop);
 })();
 
-/* a 5×7 dot-matrix font for numbers (countdown, ranking scores): lit dots + faintly visible unlit ones */
-(function () {
-  // a 5×7 dot-matrix font: every digit is drawn from small squares
-  const FONT = {
-    "/": ["00001", "00010", "00010", "00100", "01000", "01000", "10000"], "#": ["01010", "11111", "01010", "01010", "01010", "11111", "01010"],
-    0: ["01110", "10001", "10001", "10001", "10001", "10001", "01110"], 1: ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
-    2: ["01110", "10001", "00001", "00010", "00100", "01000", "11111"], 3: ["11110", "00001", "00001", "01110", "00001", "00001", "11110"],
-    4: ["00010", "00110", "01010", "10010", "11111", "00010", "00010"], 5: ["11111", "10000", "11110", "00001", "00001", "10001", "01110"],
-    6: ["00110", "01000", "10000", "11110", "10001", "10001", "01110"], 7: ["11111", "00001", "00010", "00100", "01000", "01000", "01000"],
-    8: ["01110", "10001", "10001", "01110", "10001", "10001", "01110"], 9: ["01110", "10001", "10001", "01111", "00001", "00010", "01100"],
-  };
-  window.MondayPixel = (cv, text, cell = 6, lit = "rgba(255,255,255,.88)", unlit = "rgba(255,255,255,.07)") => {
-    if (!cv) return;
-    const gap = Math.max(1, Math.round(cell / 5)), dpr = Math.min(2, window.devicePixelRatio || 1);
-    const w = text.length * 6 * cell - cell, h = 7 * cell;
-    if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + "px"; cv.style.height = h + "px"; }
-    const ctx = cv.getContext("2d");
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
-    [...text].forEach((ch, i) => (FONT[ch] || []).forEach((row, r) => [...row].forEach((b, c) => {
-      const x = i * 6 * cell + c * cell, y = r * cell;
-      ctx.fillStyle = b === "1" ? lit : unlit;
-      ctx.fillRect(x, y, cell - gap, cell - gap);
-    })));
-  };
-})();
-
 /* countdown tiles: days · hours · minutes · seconds to the start; reloads when the test opens */
 (function () {
   const box = document.querySelector("[data-countdown]");
