@@ -4,6 +4,14 @@
   <a class="icon-btn" href="{{ url_for('student.homework') }}" aria-label="{{ _('Домашние задания') }}">{{ ui.icon('bell') }}{% if assignments %}<span class="dot-badge"></span>{% endif %}</a>
 {% endblock %}
 {% block content %}
+{% for r in replies %}
+<div class="flash {{ 'flash--success' if r.status == 'fixed' else 'flash--info' }} rp-reply" data-report-card>
+  {{ ui.icon('flag', 18) }}
+  <span><b>{{ _("Ты сообщил об ошибке — вопрос исправлен.") if r.status == 'fixed' else _("Ты сообщил об ошибке — учитель проверил: в вопросе всё верно.") }}</b>
+    {% if r.reply %}{{ r.handled_by.name if r.handled_by else '' }}: «{{ r.reply }}»{% endif %}</span>
+  <button type="button" class="btn btn--ghost btn--sm" data-report-seen data-action="{{ url_for('reports.seen', report_id=r.id) }}" data-csrf="{{ csrf_token() }}">{{ _("Понятно") }}</button>
+</div>
+{% endfor %}
 
 {# ------------------------------------------------------------ hero: countdown, goal ring, Monday strip #}
 <section class="hero hero--home" data-hero aria-label="{{ _('Обратный отсчёт') }}">

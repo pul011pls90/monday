@@ -971,10 +971,16 @@ def test_questions_translated_for_student():
     assert translate_string("Совсем новая фраза", "ru", "en") is None   # unknown: left for the online translator
     c = login(client(), "student@monday.kg", "student123")
     c.post("/prefs/lang", data={"lang": "en", "next": "/home"})
-    from monday.models import Question
-    with APP.app_context():  # a skill with the seed's own questions (compilation top-ups may not have a known pattern)
-        sid = Question.query.filter(Question.source.is_(None), Question.text.like("Найдите%")).first().skill_id
-    body = c.post("/sessions/start/franklin", data={"skill_id": sid}, follow_redirects=True).data.decode()
+    from monday.extensions import db
+    from monday.models import Attempt, Question, User
+    with APP.app_context():  # a session on a seed question with a known pattern (compilation questions may have none)
+        q = Question.query.filter(Question.source.is_(None), Question.text.like("Найдите%")).first()
+        u = User.query.filter_by(email="student@monday.kg").first()
+        att = Attempt(user=u, mode="franklin", plan=[q.id], position=0, total=1)
+        db.session.add(att)
+        db.session.commit()
+        att_id = att.id
+    body = c.get(f"/sessions/{att_id}", follow_redirects=True).data.decode()
     assert "Show original" in body and "/prefs/original" in body
     c.get("/prefs/original?next=/home")
     body = c.get("/sessions").data.decode()
@@ -1168,3 +1174,27 @@ def test_practice_pack_answers_are_consistent():
             assert 0 <= int(q["correct"]) < len(q["options"]) and len(set(q["options"])) == len(q["options"])
         else:
             assert parse_number(q["correct"])[0] is not None, q["id"]
+
+
+def test_error_report_flow_and_teacher_map():
+    """A student flags a question, staff fix it and reply, the student sees the reply once; the map shows gaps."""
+    from monday.models import Question, Report
+    s = login(client(), "student11@monday.kg", "student123")
+    with APP.app_context():
+        qid = Question.query.filter_by(status="published").first().id
+    r = s.post("/report", data={"question_id": qid, "kind": "typo", "message": "опечатка в условии"},
+               headers={"X-Requested-With": "fetch"})
+    assert r.status_code == 200 and r.json["ok"]
+    assert s.post("/report", data={"question_id": qid, "kind": "other"}, headers={"X-Requested-With": "fetch"}).status_code == 400
+    a = login(client(), "admin@monday.kg", "monday2026")
+    ok(a, "/teacher/reports", contains=["опечатка в условии", "Исправлено"])
+    with APP.app_context():
+        rid = Report.query.filter_by(question_id=qid, status="open").first().id
+    a.post(f"/teacher/reports/{rid}", data={"action": "fixed", "reply": "Поправили условие"})
+    ok(s, "/home", contains=["Поправили условие"])
+    s.post(f"/report/{rid}/seen", headers={"X-Requested-With": "fetch"})
+    assert "Поправили условие" not in s.get("/home").data.decode()
+    t = login(client(), "aibek@monday.kg", "teacher123")
+    ok(t, "/teacher/tree?exam=ORT", contains=["Только пробелы", "tm-count"])
+    ok(t, "/teacher/tree?exam=SAT&gaps=1")
+    ok(t, "/teacher/reports")

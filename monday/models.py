@@ -594,3 +594,25 @@ class AppMeta(db.Model):
 
     key = db.Column(db.String(40), primary_key=True)
     value = db.Column(db.String(255))
+
+
+class Report(db.Model):
+    """A student (or teacher) says something is wrong with a question or a map entry; staff fix it and reply."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    author_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    question_id = db.Column(db.Integer, db.ForeignKey("question.id"), index=True)
+    node_id = db.Column(db.Integer, db.ForeignKey("content_node.id"), index=True)
+    kind = db.Column(db.String(12), nullable=False, default="other")  # answer | typo | unclear | other | node
+    message = db.Column(db.Text, default="")
+    status = db.Column(db.String(10), nullable=False, default="open")  # open | fixed | rejected
+    reply = db.Column(db.Text)
+    handled_by_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    created_at = db.Column(db.DateTime, default=utcnow)
+    handled_at = db.Column(db.DateTime)
+    seen = db.Column(db.Boolean, nullable=False, default=False)  # the author has seen the reply
+
+    author = db.relationship("User", foreign_keys=[author_id])
+    handled_by = db.relationship("User", foreign_keys=[handled_by_id])
+    question = db.relationship("Question")
+    node = db.relationship("ContentNode")

@@ -22,6 +22,7 @@
     {% if question.skill %}<span class="tag tag--line">{{ question.skill.name }}</span>{% endif %}
     <span class="tag tag--line">{{ DIFFICULTIES[question.difficulty] }}</span>
     {% if question.skill and question.skill.subtopic %}<span class="tag tag--line">{{ question.skill.topic }} · {{ question.skill.subtopic }}</span>{% endif %}
+    <span class="spacer"></span>{{ ui.report_button(question.id, 'right') }}
   </div>
 
   <div class="rotate-hint flash flash--info">{{ ui.icon('rotate', 18) }} {{ _("Поверни телефон — рисунок и ответы поместятся рядом.") }}</div>

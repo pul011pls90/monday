@@ -80,6 +80,7 @@
         <button class="btn btn--primary" name="resolve" value="1" type="submit">{{ ui.icon('check', 16) }}{{ _("Понял, дальше") }}</button>
       {% endif %}
     </form>
+    {{ ui.report_button(a.question_id) }}
   </aside>
   <div class="rv-question">
     {% if item %}

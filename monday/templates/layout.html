@@ -15,6 +15,7 @@
         ('teacher.review', 'inbox', _('Проверка'), ['teacher.review', 'teacher.review_detail', 'teacher.assign', 'teacher.written_review']),
         ('teacher.bank', 'collections', _('Банк'), ['teacher.bank']),
         ('teacher.questions', 'questions', _('Вопросы'), ['teacher.questions', 'teacher.question_new', 'teacher.question_edit', 'assistant.home', 'assistant.import_preview', 'assistant.import_save', 'assistant.mine']),
+        ('reports.inbox', 'flag', _('Исправления'), ['reports.inbox']),
       ] %}
       {% if current_user.can_review %}{% set items = items + [('review.queue', 'check', _('Модерация'), ['review.queue'])] %}{% endif %}
       {% if current_user.is_admin %}{% set items = items + [('admin.index', 'shield', _('Админ'), ['admin.index'])] %}{% endif %}
@@ -43,7 +44,7 @@
     {% endif %}
     {% for endpoint, ic, label, active in items %}{% set on = (nav_active == endpoint) if nav_active is defined else (ep in active) %}
       <a class="rail__item{{ ' is-active' if on }}{{ ' rail__item--extra' if endpoint not in primary }}{{ ' rail__item--key' if endpoint == 'student.monday' }}" href="{{ url_for(endpoint) }}"{{ ' aria-current=page' if on }}>
-        {{ ui.icon(ic, 22) }}<span>{{ label }}</span>{% if endpoint == 'student.monday' and monday_live() %}<i class="rail__live" title="{{ _('Тест идёт сейчас') }}"></i>{% endif %}
+        {{ ui.icon(ic, 22) }}<span>{{ label }}</span>{% if endpoint == 'student.monday' and monday_live() %}<i class="rail__live" title="{{ _('Тест идёт сейчас') }}"></i>{% endif %}{% if endpoint == 'reports.inbox' %}{% set nr = open_reports() %}{% if nr %}<i class="rail__count">{{ nr }}</i>{% endif %}{% endif %}
       </a>
     {% endfor %}
     <div class="spacer"></div>

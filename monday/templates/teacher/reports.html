@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Исправления") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Исправления") }}</h1>
+    <p>{{ _("Ученики сообщают об ошибках в вопросах. Откройте вопрос, исправьте его и ответьте — ученик увидит ответ на главной.") }}</p>
+  </div>
+  <div class="chips">
+    <a class="chip{{ ' is-active' if tab == 'open' }}" href="{{ url_for('reports.inbox', tab='open') }}">{{ _("Открытые") }} <span class="chip__count">{{ counts.open }}</span></a>
+    <a class="chip{{ ' is-active' if tab != 'open' }}" href="{{ url_for('reports.inbox', tab='done') }}">{{ _("Закрытые") }} <span class="chip__count">{{ counts.done }}</span></a>
+  </div>
+</div>
+{{ ui.flashes() }}
+
+{% if items %}
+<div class="stack" style="gap:16px">
+  {% for r in items %}
+  {% set q = r.question %}
+  <article class="card rp" id="r{{ r.id }}">
+    <header class="rp__head">
+      <span class="tag {{ 'tag--bad' if r.kind == 'answer' else 'tag--soft' }}">{{ REPORT_KINDS.get(r.kind, r.kind) }}</span>
+      <span class="small text-2">{{ r.author.name }}{% if r.author.profile and r.author.profile.exam %} · {{ r.author.profile.exam|exam_label }}{% endif %} · {{ r.created_at|dt }}</span>
+      <span class="spacer"></span>
+      {% if r.status != 'open' %}<span class="tag {{ 'tag--ok' if r.status == 'fixed' else 'tag--line' }}">{{ _("Исправлено") if r.status == 'fixed' else _("Отклонено") }}</span>{% endif %}
+    </header>
+    {% if r.message %}<blockquote class="rp__msg">{{ r.message }}</blockquote>{% endif %}
+
+    {% if q %}
+    <div class="rp__q">
+      <div class="small muted">{{ _("Вопрос #%(id)s", id=q.id) }}{% if q.skill %} · {{ q.skill.name }}{% endif %}{% if q.source %} · {{ _("из сборника") }}{% endif %}</div>
+      {{ ui.figure(q) }}
+      {% if q.text %}<div class="q-text math">{{ q.text }}</div>{% endif %}
+      {% if q.answer_type == 'choice' %}
+        <ol class="rp__opts">{% for o in q.options %}<li class="math{{ ' is-key' if loop.index0 == q.correct|int }}">{{ o }}</li>{% endfor %}</ol>
+      {% else %}
+        <div class="small">{{ _("Ответ:") }} <b class="num">{{ q.correct|answer }}</b></div>
+      {% endif %}
+      {% if q.explanation %}<details class="disclosure"><summary>{{ _("Объяснение") }}</summary><div class="explain__text math">{{ q.explanation }}</div></details>{% endif %}
+    </div>
+    {% elif r.node %}
+    <div class="rp__q small">{{ _("Карта:") }} <b>{{ r.node.name }}</b></div>
+    {% endif %}
+
+    {% if r.status == 'open' %}
+    <form method="post" action="{{ url_for('reports.handle', report_id=r.id) }}" class="rp__actions">
+      {{ ui.csrf() }}<input type="hidden" name="tab" value="{{ tab }}">
+      <label class="sr-only" for="reply{{ r.id }}">{{ _("Ответ ученику") }}</label>
+      <input class="input" id="reply{{ r.id }}" name="reply" placeholder="{{ _('Ответ ученику (необязательно): что исправили') }}">
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        {% if q and can_edit(q) %}<a class="btn btn--secondary btn--sm" href="{{ url_for('teacher.question_edit', question_id=q.id, back='reports') }}">{{ ui.icon('edit', 16) }}{{ _("Открыть в редакторе") }}</a>
+        {% elif q %}<span class="small muted">{{ _("Вопрос из общего банка — исправит администратор.") }}</span>{% endif %}
+        <span class="spacer"></span>
+        <button class="btn btn--ghost btn--sm" name="action" value="rejected" type="submit">{{ _("Ошибки нет") }}</button>
+        <button class="btn btn--primary btn--sm" name="action" value="fixed" type="submit">{{ ui.icon('check', 16) }}{{ _("Исправлено") }}</button>
+      </div>
+    </form>
+    {% else %}
+      {% if r.reply %}<p class="small"><b>{{ _("Ответ:") }}</b> {{ r.reply }}</p>{% endif %}
+      <form method="post" action="{{ url_for('reports.handle', report_id=r.id) }}">{{ ui.csrf() }}<input type="hidden" name="tab" value="{{ tab }}">
+        <button class="btn btn--ghost btn--sm" name="action" value="reopen" type="submit">{{ _("Открыть снова") }}</button></form>
+    {% endif %}
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty"><h3>{{ _("Пусто") }}</h3><p>{{ _("Новых сообщений об ошибках нет.") if tab == 'open' else _("Здесь будут закрытые сообщения.") }}</p></div>
+{% endif %}
+{% endblock %}
