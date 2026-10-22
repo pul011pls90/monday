@@ -37,7 +37,7 @@
   </div>
 </div>
 
-<main class="page test-page calc-shift{{ ' test-page--ort' if layout.nav == 'pages' }}" style="margin:0 auto;max-width:{{ '1440px' if layout.nav == 'pages' else '1120px' }}">
+<main class="page test-page calc-shift{{ ' test-page--ort' if layout.nav == 'pages' }}" style="margin:0 auto;max-width:{{ 'clamp(1440px, 94vw, 2000px)' if layout.nav == 'pages' else 'clamp(1120px, 78vw, 1560px)' }}">
   {{ ui.flashes() }}
   {% if mods|length > 1 and module > 1 and not get_flashed_messages() %}
     <p class="small muted">{% if module == 2 %}{{ _("Ответы модуля 1 сохранены и закрыты.") }}{% else %}{{ _("Ответы модулей 1–%(k)s сохранены и закрыты.", k=module - 1) }}{% endif %}</p>
