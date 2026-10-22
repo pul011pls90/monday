@@ -41,8 +41,8 @@
       ] %}
       {% set primary = ['student.monday', 'student.home', 'student.sessions', 'bank.index', 'student.homework'] %}
     {% endif %}
-    {% for endpoint, ic, label, active in items %}
-      <a class="rail__item{{ ' is-active' if ep in active }}{{ ' rail__item--extra' if endpoint not in primary }}{{ ' rail__item--key' if endpoint == 'student.monday' }}" href="{{ url_for(endpoint) }}"{{ ' aria-current=page' if ep in active }}>
+    {% for endpoint, ic, label, active in items %}{% set on = (nav_active == endpoint) if nav_active is defined else (ep in active) %}
+      <a class="rail__item{{ ' is-active' if on }}{{ ' rail__item--extra' if endpoint not in primary }}{{ ' rail__item--key' if endpoint == 'student.monday' }}" href="{{ url_for(endpoint) }}"{{ ' aria-current=page' if on }}>
         {{ ui.icon(ic, 22) }}<span>{{ label }}</span>{% if endpoint == 'student.monday' and monday_live() %}<i class="rail__live" title="{{ _('Тест идёт сейчас') }}"></i>{% endif %}
       </a>
     {% endfor %}
