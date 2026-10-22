@@ -16,7 +16,7 @@
   {% include "partials/session_bar.html" %}
 {% endwith %}
 
-<main class="page" style="margin:0 auto;max-width:1040px" data-ajax-region>
+<main class="page" style="margin:0 auto;max-width:clamp(1040px, 72vw, 1440px)" data-ajax-region>
   {{ ui.flashes() }}
   <div class="chips">
     {% if question.skill %}<span class="tag tag--line">{{ question.skill.name }}</span>{% endif %}

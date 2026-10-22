@@ -1255,3 +1255,10 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 .chip-more.is-open { margin-left: auto; border: 0; background: none; padding: 4px 2px; color: var(--btn-bg); font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
 .chip-more.is-open::after { content: ""; width: 7px; height: 7px; border-left: 2px solid currentColor; border-top: 2px solid currentColor; transform: translateY(2px) rotate(45deg); }
 .chip-more.is-open:hover { text-decoration: underline; }
+
+/* fluid widths: on wide windows (or when the page is zoomed out) content grows to the sides
+   instead of staying a fixed column in the middle; small screens are unchanged */
+.page { max-width: clamp(1180px, 84vw, 1760px); padding-inline: clamp(16px, 3vw, 64px); }
+.page--narrow { max-width: clamp(820px, 60vw, 1180px); }
+.page--rv { max-width: clamp(1240px, 90vw, 1880px); }
+.page:has(.pk-layout), .page:has(.pk-page) { max-width: clamp(1480px, 94vw, 2000px); }
