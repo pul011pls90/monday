@@ -1251,3 +1251,7 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 .mr-letter { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; font-weight: 800; color: #fff; }
 .mr-letter--bad { background: var(--bad); }
 .mr-letter--ok { background: var(--ok); }
+/* folded-out chip list: a plain "Свернуть ↑" link on the right instead of a chip */
+.chip-more.is-open { margin-left: auto; border: 0; background: none; padding: 4px 2px; color: var(--btn-bg); font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+.chip-more.is-open::after { content: ""; width: 7px; height: 7px; border-left: 2px solid currentColor; border-top: 2px solid currentColor; transform: translateY(2px) rotate(45deg); }
+.chip-more.is-open:hover { text-decoration: underline; }
