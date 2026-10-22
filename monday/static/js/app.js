@@ -770,6 +770,11 @@ document.addEventListener("click", (e) => {
   const all = () => [...tree.querySelectorAll("details")];
   const label = () => { btn.textContent = all().every((d) => d.open) ? btn.dataset.close : btn.dataset.open; };
   btn.addEventListener("click", () => { const open = !all().every((d) => d.open); all().forEach((d) => { d.open = open; }); label(); });
-  tree.addEventListener("toggle", label, true);
+  tree.addEventListener("toggle", (e) => {
+    const tile = e.target.closest(".sk-topic");
+    if (tile) tile.classList.toggle("is-open", e.target.open);
+    if (e.target.open && !all().every((d) => d.open)) e.target.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    label();
+  }, true);
   label();
 })();

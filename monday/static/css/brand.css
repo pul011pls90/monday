@@ -1470,3 +1470,38 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 @media (max-width: 720px) {
   .skills-tools .skills-legend { flex-direction: row; flex-wrap: wrap; gap: 6px 16px !important; }
 }
+
+/* skills map as square tiles, four in a row; an opened tile takes the whole row, the rest close the gap */
+.sk-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; grid-auto-flow: row dense; margin-top: 4px; }
+.sk-grid .sk-topic { min-width: 0; }
+.sk-grid .sk-topic summary { flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 14px;
+  aspect-ratio: 1; padding: 20px; transition: background .15s; }
+.sk-grid .sk-topic summary:hover { background: var(--surface-2); }
+.sk-grid .sk-topic .bank-topic__text { flex: none; width: 100%; }
+.sk-grid .sk-topic .bank-topic__text b { font-size: 18px; line-height: 1.2; }
+.sk-grid .sk-topic .bank-topic__text b .tag { display: inline-block; margin-top: 4px; vertical-align: middle; }
+.sk-grid .sk-topic .bank-topic__chev { position: absolute; right: 18px; bottom: 18px; }
+.sk-grid .sk-topic .bank-play--topic { right: 18px; top: 18px; width: 42px; height: 42px; }
+.sk-grid .sk-topic .skills-strip { padding-right: 28px; }
+/* opened: full row, header back to one line */
+.sk-grid .sk-topic:has(details[open]), .sk-grid .sk-topic.is-open { grid-column: 1 / -1; }
+.sk-grid .sk-topic:has(details[open]) summary, .sk-grid .sk-topic.is-open summary { aspect-ratio: auto; flex-direction: row; align-items: center; padding: 20px 88px 20px 22px; }
+.sk-grid .sk-topic:has(details[open]) .bank-topic__text, .sk-grid .sk-topic.is-open .bank-topic__text { flex: 1; width: auto; }
+.sk-grid .sk-topic:has(details[open]) .bank-topic__chev, .sk-grid .sk-topic.is-open .bank-topic__chev { position: static; }
+.sk-grid .sk-topic:has(details[open]) .bank-play--topic, .sk-grid .sk-topic.is-open .bank-play--topic { right: 22px; top: 22px; width: 46px; height: 46px; }
+@media (max-width: 1100px) { .sk-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .sk-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
+@media (max-width: 560px) {
+  .sk-grid .sk-topic summary { padding: 14px; gap: 10px; }
+  .sk-grid .sk-topic .bank-topic__text b { font-size: 15px; }
+  .sk-grid .sk-topic .bank-topic__text > .small { font-size: 12px; }
+  .sk-grid .sk-topic .skills-strip { display: none; }
+  .sk-grid .sk-topic .bank-play--topic { right: 12px; top: 12px; width: 36px; height: 36px; }
+  .sk-grid .sk-topic .bank-topic__chev { right: 12px; bottom: 12px; }
+  .sk-grid .sk-topic:has(details[open]) summary, .sk-grid .sk-topic.is-open summary { padding: 16px 64px 16px 16px; }
+  .sk-grid .sk-topic:has(details[open]) .skills-strip { display: flex; }
+}
+@media (min-width: 1001px) {
+  .sk-grid .sk-topic .bank-topic__body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; align-items: start; }
+}
+@media (max-width: 560px) { .sk-grid .sk-topic .bank-topic__text { padding-right: 20px; } }
