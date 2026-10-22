@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}{{ _("Разбор ошибок") }} · {{ title }}{% endblock %}
 {% block page_class %}page--rv{% endblock %}
+{% block context %}{% set e = att.work_version.work.exam if att.work_version and att.work_version.work else None %}{% if e %}{{ e|exam_label }} · {{ _("математика") }}{% else %}{{ super() }}{% endif %}{% endblock %}
 {% block content %}
 {% set base = url_for('student.journal_review', attempt_id=att.id) %}
 {% macro link(t=tab, tp=topic, k=None) -%}{{ base }}?tab={{ t }}{% if tp %}&topic={{ tp }}{% endif %}{% if k is not none %}&i={{ k }}{% endif %}{%- endmacro %}
@@ -39,8 +40,7 @@
   <a class="tag {{ 'tag--soft' if not topic else 'tag--line' }}" href="{{ link(tab, None) }}">{{ _("Все темы") }}</a>
   {% set cut = 6 if not topic or topic in topics[:6]|map(attribute=0)|list else topics|length %}
   {% for tid, name, n in topics[:cut] %}<a class="tag {{ 'tag--soft' if topic == tid else 'tag--line' }}" href="{{ link(tab, tid) }}#mr">{{ name }} ×{{ n }}</a>{% endfor %}
-  {% if topics|length > cut %}<details class="mr-more"><summary class="tag tag--line">+{{ topics|length - cut }}</summary>
-    {% for tid, name, n in topics[cut:] %}<a class="tag tag--line" href="{{ link(tab, tid) }}#mr">{{ name }} ×{{ n }}</a>{% endfor %}</details>{% endif %}
+  {% if topics|length > cut %}{% call ui.more_chips(topics|length - cut) %}{% for tid, name, n in topics[cut:] %}<a class="tag tag--line" href="{{ link(tab, tid) }}#mr">{{ name }} ×{{ n }}</a>{% endfor %}{% endcall %}{% endif %}
 </div>
 {% endif %}
 
@@ -54,8 +54,9 @@
     </div>
     {% if item %}
     <dl class="rv-answers">
-      <div><dt>{{ _("Ваш ответ") }}</dt><dd>{% if row.blank %}<span class="muted">{{ _("нет ответа") }}</span>{% else %}{{ ui.answer_text(item, a.given, letters=letters) }}{% endif %}</dd></div>
-      <div><dt>{{ _("Верный ответ") }}</dt><dd>{{ ui.correct_text(item, letters=letters) }}</dd></div>
+      {% set L = letters or LETTERS %}
+      <div><dt>{{ _("Ваш ответ") }}</dt><dd>{% if row.blank %}<span class="muted">{{ _("нет ответа") }}</span>{% elif item.answer_type == 'choice' and a.given|string in (range(item.options|length)|map('string')|list) %}<span class="mr-letter mr-letter--bad">{{ L[a.given|int] }}</span>{% else %}{{ ui.answer_text(item, a.given, letters=letters) }}{% endif %}</dd></div>
+      <div><dt>{{ _("Верный ответ") }}</dt><dd>{% if item.answer_type == 'choice' %}<span class="mr-letter mr-letter--ok">{{ L[item.correct|int] }}</span>{% else %}{{ ui.correct_text(item, letters=letters) }}{% endif %}</dd></div>
     </dl>
     <h3 class="rv-explain__title">{{ _("Объяснение") }}</h3>
     {% if item.explanation %}<div class="explain__text math">{{ item.explanation }}</div>
@@ -90,16 +91,20 @@
   </div>
 </article>
 
-<nav class="mr-strip" aria-label="{{ _('Ошибки') }}">
-  <a class="btn btn--secondary btn--sm{{ ' is-disabled' if i == 0 }}" href="{{ link(tab, topic, [i - 1, 0]|max) }}#mr">{{ ui.icon('arrow-left', 16) }}{{ _("Назад") }}</a>
-  <div class="mr-strip__nums">
-    {% for r in rows %}
-      <a href="{{ link(tab, topic, loop.index0) }}#mr" class="mr-num{{ ' is-current' if loop.index0 == i }}{{ ' is-done' if r.answer.resolved else (' is-blank' if r.blank else '') }}" title="{{ _('Вопрос %(n)s', n=r.answer.index + 1) }}">{{ r.answer.index + 1 }}</a>
-    {% endfor %}
+<div class="rv-foot mr-foot" data-mr-foot>
+  <a class="btn btn--secondary{{ ' is-disabled' if i == 0 }}" href="{{ link(tab, topic, [i - 1, 0]|max) }}#mr" aria-label="{{ _('Назад') }}">{{ ui.icon('arrow-left', 18) }}<span class="btn-label">{{ _("Назад") }}</span></a>
+  <div class="test-foot__mid">
+    <button type="button" class="btn btn--ghost test-foot__counter" data-mr-toggle aria-expanded="false">{{ _("Ошибка %(n)s из %(m)s", n=i + 1, m=rows|length) }} ▾</button>
+    <div class="q-grid-pop" data-mr-pop hidden>
+      <div class="rv-pop__head">{{ {'all': _("Все ошибки"), 'wrong': _("Неверные"), 'blank': _("Без ответа")}[tab] }}</div>
+      <div class="q-grid mr-grid">
+        {% for r in rows %}<a href="{{ link(tab, topic, loop.index0) }}#mr" class="{{ 'is-done' if r.answer.resolved else ('is-blank' if r.blank else 'is-open') }}{{ ' is-current' if loop.index0 == i }}" title="{{ _('Вопрос %(n)s', n=r.answer.index + 1) }}">{{ r.answer.index + 1 }}</a>{% endfor %}
+      </div>
+      <div class="q-grid__legend small muted"><span><i class="lg is-open"></i>{{ _("открыта") }}</span><span><i class="lg"></i>{{ _("без ответа") }}</span><span><i class="lg is-ok"></i>{{ _("разобрана") }}</span></div>
+    </div>
   </div>
-  <a class="btn btn--secondary btn--sm{{ ' is-disabled' if i + 1 >= rows|length }}" href="{{ link(tab, topic, [i + 1, rows|length - 1]|min) }}#mr">{{ _("Далее") }}{{ ui.icon('arrow-right', 16) }}</a>
-</nav>
-<p class="small muted mr-legend"><span class="mr-num">1</span> {{ _("открыта") }} <span class="mr-num is-blank">1</span> {{ _("без ответа") }} <span class="mr-num is-done">1</span> {{ _("разобрана") }}</p>
+  <a class="btn btn--primary{{ ' is-disabled' if i + 1 >= rows|length }}" href="{{ link(tab, topic, [i + 1, rows|length - 1]|min) }}#mr" aria-label="{{ _('Далее') }}"><span class="btn-label">{{ _("Далее") }}</span>{{ ui.icon('arrow-right', 18) }}</a>
+</div>
 {% else %}
 <div class="empty"><h3>{{ _("Здесь пусто") }}</h3><p>{{ _("Под эти фильтры ничего не подходит.") }}</p></div>
 {% endif %}

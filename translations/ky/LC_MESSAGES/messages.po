@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Monday VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-21 18:04-0700\n"
+"POT-Creation-Date: 2026-10-21 18:10-0700\n"
 "PO-Revision-Date: 2026-10-17 13:27-0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ky\n"
@@ -269,7 +269,7 @@ msgid "По этим фильтрам вопросов нет. Сними час
 msgstr "Бул чыпкалар боюнча суроо жок. Чыпкалардын бир бөлүгүн алып сал."
 
 #: monday/bank.py:241 monday/daily.py:149 monday/templates/student/_review_steps.html:27
-#: monday/templates/student/daily.html:50 monday/templates/student/journal_review.html:59
+#: monday/templates/student/daily.html:50 monday/templates/student/journal_review.html:63
 #: monday/templates/student/session.html:58
 msgid "Учитель не добавил объяснение."
 msgstr "Мугалим түшүндүрмө кошкон жок."
@@ -1205,8 +1205,8 @@ msgid "Работа"
 msgstr "Иш"
 
 #: monday/student.py:680 monday/student.py:684 monday/templates/partials/macros.html:169
-#: monday/templates/student/_review_steps.html:18 monday/templates/student/journal_review.html:49
-#: monday/templates/student/journal_review.html:94 monday/templates/student/result.html:40
+#: monday/templates/student/_review_steps.html:18 monday/templates/student/journal_review.html:52
+#: monday/templates/student/journal_review.html:101 monday/templates/student/result.html:40
 #, python-format
 msgid "Вопрос %(n)s"
 msgstr "%(n)s-суроо"
@@ -1540,7 +1540,7 @@ msgstr "Суроо сакталды. Мурун жарыяланган иште�
 msgid "На вопрос уже отвечали ученики, поэтому он скрыт (перенесён в черновики), а не удалён."
 msgstr "Бул суроого окуучулар жооп беришкен, ошондуктан ал өчүрүлбөй, жашырылды (долбоорго көчүрүлдү)."
 
-#: monday/teacher.py:1104 monday/templates/student/journal_review.html:86
+#: monday/teacher.py:1104 monday/templates/student/journal_review.html:90
 msgid "Вопрос удалён."
 msgstr "Суроо өчүрүлдү."
 
@@ -1656,7 +1656,8 @@ msgstr "Жабуу"
 msgid "Меню"
 msgstr "Меню"
 
-#: monday/templates/layout.html:77 monday/templates/student/result.html:4 monday/templates/student/work_detail.html:4
+#: monday/templates/layout.html:77 monday/templates/student/journal_review.html:4 monday/templates/student/result.html:4
+#: monday/templates/student/work_detail.html:4
 msgid "математика"
 msgstr "математика"
 
@@ -2334,7 +2335,7 @@ msgstr "Абалы"
 msgid "Исправить"
 msgstr "Оңдоо"
 
-#: monday/templates/assistant/mine.html:30 monday/templates/student/journal_review.html:101
+#: monday/templates/assistant/mine.html:30 monday/templates/student/journal_review.html:109
 #: monday/templates/teacher/review.html:48 monday/templates/teacher/works.html:145
 msgid "Здесь пусто"
 msgstr "Бул жер бош"
@@ -2353,7 +2354,7 @@ msgstr "2ден аз вариант"
 
 #: monday/templates/assistant/preview.html:4 monday/templates/partials/macros.html:184
 #: monday/templates/partials/macros.html:187 monday/templates/student/_review_steps.html:22
-#: monday/templates/student/journal_review.html:54
+#: monday/templates/student/journal_review.html:58
 msgid "нет ответа"
 msgstr "жооп жок"
 
@@ -2500,7 +2501,7 @@ msgid "Одобрить все на странице"
 msgstr "Барактагылардын баарын жактыруу"
 
 #: monday/templates/assistant/review.html:13 monday/templates/student/collections.html:26
-#: monday/templates/student/journal_review.html:24
+#: monday/templates/student/journal_review.html:25
 msgid "Все"
 msgstr "Баары"
 
@@ -2738,7 +2739,7 @@ msgid "Максимум баллов: %(n)s"
 msgstr "Эң көп упай: %(n)s"
 
 #: monday/templates/partials/macros.html:105 monday/templates/partials/macros.html:126
-#: monday/templates/student/_review_steps.html:22 monday/templates/student/journal_review.html:54
+#: monday/templates/student/_review_steps.html:22 monday/templates/student/journal_review.html:58
 #: monday/templates/teacher/question_edit.html:202
 msgid "Ваш ответ"
 msgstr "Сиздин жообуңуз"
@@ -2832,6 +2833,10 @@ msgstr "Критерийлер боюнча упай тандаңыз:"
 #: monday/templates/partials/macros.html:287
 msgid "Сохранить оценку"
 msgstr "Бааны сактоо"
+
+#: monday/templates/partials/macros.html:295
+msgid "Свернуть"
+msgstr "Жыйноо"
 
 #: monday/templates/partials/profile_head.html:5
 msgid "Изменить фото"
@@ -3125,7 +3130,7 @@ msgstr "Талдоо"
 msgid "из"
 msgstr "ичинен"
 
-#: monday/templates/student/_review_steps.html:19 monday/templates/student/journal_review.html:50
+#: monday/templates/student/_review_steps.html:19 monday/templates/student/journal_review.html:53
 msgid "Нет ответа"
 msgstr "Жооп жок"
 
@@ -3138,7 +3143,7 @@ msgstr "Баа күтүүдө"
 msgid "%(p)s из %(m)s"
 msgstr "%(m)s ичинен %(p)s"
 
-#: monday/templates/student/_review_steps.html:19 monday/templates/student/journal_review.html:50
+#: monday/templates/student/_review_steps.html:19 monday/templates/student/journal_review.html:53
 #: monday/templates/student/result.html:41
 msgid "Ошибка"
 msgstr "Ката"
@@ -3155,7 +3160,7 @@ msgstr "кагазда"
 msgid "нет решения"
 msgstr "чыгарылыш жок"
 
-#: monday/templates/student/_review_steps.html:23 monday/templates/student/journal_review.html:55
+#: monday/templates/student/_review_steps.html:23 monday/templates/student/journal_review.html:59
 #: monday/templates/teacher/question_edit.html:153 monday/templates/teacher/question_edit.html:166
 msgid "Верный ответ"
 msgstr "Туура жооп"
@@ -3165,21 +3170,21 @@ msgid "Решение"
 msgstr "Чыгарылыш"
 
 #: monday/templates/student/_review_steps.html:25 monday/templates/student/bank_play.html:15
-#: monday/templates/student/bank_play.html:62 monday/templates/student/journal_review.html:57
+#: monday/templates/student/bank_play.html:62 monday/templates/student/journal_review.html:61
 #: monday/templates/student/result.html:49 monday/templates/student/session.html:57
 #: monday/templates/teacher/question_edit.html:189
 msgid "Объяснение"
 msgstr "Түшүндүрмө"
 
 #: monday/templates/student/_review_steps.html:28 monday/templates/student/bank_play.html:46
-#: monday/templates/student/bank_play.html:65 monday/templates/student/journal_review.html:60
+#: monday/templates/student/bank_play.html:65 monday/templates/student/journal_review.html:64
 #: monday/templates/student/result.html:51 monday/templates/student/session.html:60
 msgid "Видео учителя"
 msgstr "Мугалимдин видеосу"
 
 #: monday/templates/student/_review_steps.html:42 monday/templates/student/attempt.html:94
 #: monday/templates/student/attempt.html:155 monday/templates/student/bank_play.html:71
-#: monday/templates/student/bank_play.html:72 monday/templates/student/journal_review.html:91
+#: monday/templates/student/bank_play.html:72 monday/templates/student/journal_review.html:95
 #: monday/templates/teacher/_picker_list.html:30 monday/templates/teacher/question_edit.html:37
 msgid "Назад"
 msgstr "Артка"
@@ -3198,13 +3203,13 @@ msgid "ошибка"
 msgstr "ката"
 
 #: monday/templates/student/_review_steps.html:54 monday/templates/student/attempt.html:159
-#: monday/templates/student/journal_review.html:99
+#: monday/templates/student/journal_review.html:103
 msgid "без ответа"
 msgstr "жоопсуз"
 
 #: monday/templates/student/_review_steps.html:57 monday/templates/student/attempt.html:162
 #: monday/templates/student/attempt.html:164 monday/templates/student/bank_play.html:85
-#: monday/templates/student/journal_review.html:97
+#: monday/templates/student/journal_review.html:106
 msgid "Далее"
 msgstr "Кийинки"
 
@@ -3372,7 +3377,8 @@ msgstr "Суроолор банкы"
 msgid "Неверно"
 msgstr "Туура эмес"
 
-#: monday/templates/student/bank.html:6 monday/templates/student/journal_review.html:26
+#: monday/templates/student/bank.html:6 monday/templates/student/journal_review.html:27
+#: monday/templates/student/journal_review.html:99
 msgid "Без ответа"
 msgstr "Жоопсуз"
 
@@ -3659,7 +3665,7 @@ msgstr "Класста туура: %(t)s ичинен %(ok)s"
 msgid "Ответить"
 msgstr "Жооп берүү"
 
-#: monday/templates/student/daily.html:45 monday/templates/student/journal_review.html:72
+#: monday/templates/student/daily.html:45 monday/templates/student/journal_review.html:76
 msgid "Дальше"
 msgstr "Андан ары"
 
@@ -3994,7 +4000,7 @@ msgid "Подробнее"
 msgstr "Кененирээк"
 
 #: monday/templates/student/home.html:154 monday/templates/student/journal.html:2 monday/templates/student/journal.html:5
-#: monday/templates/student/journal_review.html:8
+#: monday/templates/student/journal_review.html:9
 msgid "Лабораторный журнал"
 msgstr "Лабораториялык журнал"
 
@@ -4185,59 +4191,64 @@ msgstr "Ачык ката жок. Сонун жума."
 msgid "Здесь будут разобранные ошибки."
 msgstr "Бул жерде талданган каталар болот."
 
-#: monday/templates/student/journal_review.html:2 monday/templates/student/journal_review.html:12
+#: monday/templates/student/journal_review.html:2 monday/templates/student/journal_review.html:13
 msgid "Разбор ошибок"
 msgstr "Каталарды талдоо"
 
-#: monday/templates/student/journal_review.html:16 monday/templates/student/journal_review.html:50
+#: monday/templates/student/journal_review.html:17 monday/templates/student/journal_review.html:53
 msgid "Разобрано"
 msgstr "Талданды"
 
-#: monday/templates/student/journal_review.html:25
+#: monday/templates/student/journal_review.html:26 monday/templates/student/journal_review.html:99
 msgid "Неверные"
 msgstr "Туура эмес"
 
-#: monday/templates/student/journal_review.html:31
+#: monday/templates/student/journal_review.html:32
 msgid "Всем пропущенным → «Не хватило времени»"
 msgstr "Бардык жоопсуздарга → «Убакыт жетпеди»"
 
-#: monday/templates/student/journal_review.html:34
+#: monday/templates/student/journal_review.html:35
 msgid "Потренировать эти темы"
 msgstr "Бул темаларды машыктыруу"
 
-#: monday/templates/student/journal_review.html:39 monday/templates/teacher/_picker_tree.html:2
+#: monday/templates/student/journal_review.html:40 monday/templates/teacher/_picker_tree.html:2
 msgid "Все темы"
 msgstr "Бардык темалар"
 
-#: monday/templates/student/journal_review.html:65
+#: monday/templates/student/journal_review.html:69
 msgid "Причина"
 msgstr "Себеби"
 
-#: monday/templates/student/journal_review.html:67
+#: monday/templates/student/journal_review.html:71
 msgid "Причина?"
 msgstr "Себеби?"
 
-#: monday/templates/student/journal_review.html:73
+#: monday/templates/student/journal_review.html:77
 msgid "Вернуть в открытые"
 msgstr "Ачыктарга кайтаруу"
 
-#: monday/templates/student/journal_review.html:76
+#: monday/templates/student/journal_review.html:80
 msgid "Понял, дальше"
 msgstr "Түшүндүм, кийинки"
 
-#: monday/templates/student/journal_review.html:90
-msgid "Ошибки"
-msgstr "Каталар"
+#: monday/templates/student/journal_review.html:97
+#, python-format
+msgid "Ошибка %(n)s из %(m)s"
+msgstr "%(m)s ичинен %(n)s-ката"
 
 #: monday/templates/student/journal_review.html:99
+msgid "Все ошибки"
+msgstr "Бардык каталар"
+
+#: monday/templates/student/journal_review.html:103
 msgid "открыта"
 msgstr "ачык"
 
-#: monday/templates/student/journal_review.html:99
+#: monday/templates/student/journal_review.html:103
 msgid "разобрана"
 msgstr "талданды"
 
-#: monday/templates/student/journal_review.html:101
+#: monday/templates/student/journal_review.html:109
 msgid "Под эти фильтры ничего не подходит."
 msgstr "Бул чыпкаларга эч нерсе туура келбейт."
 
@@ -6724,4 +6735,7 @@ msgstr "Бул иште толук жооп талап кылган тапшыр
 
 #~ msgid "Открыть разбор теста"
 #~ msgstr "Тесттин талдоосун ачуу"
+
+#~ msgid "Ошибки"
+#~ msgstr "Каталар"
 
