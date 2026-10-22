@@ -44,7 +44,7 @@
         <span class="rk-row__place">${r.place}</span>
         <span class="rk-row__who"><b>${esc(r.me ? T.tYou : r.name)}</b><span>${esc(r.region)}</span>${delta(r.delta)}</span>
         ${dots(r)}
-        <span class="rk-row__score" data-pixnum>${r.score}/${r.total}</span>
+        <span class="rk-row__score">${r.score}/${r.total}</span>
       </li>`).join("");
   }
   function renderMe(d) {
@@ -55,7 +55,7 @@
       <span class="rk-me__place">#${me.place}</span>
       <span class="rk-me__who"><b>${esc(T.tYou)}</b><span>${esc(me.region)}</span>${delta(me.delta)}</span>
       <span class="rk-me__gap">${esc(gap)}</span>
-      <span class="rk-me__score" data-pixnum>${me.score}/${me.total}</span>
+      <span class="rk-me__score">${me.score}/${me.total}</span>
     </div>`;
   }
   function render(scope, animate) {
@@ -65,7 +65,6 @@
     renderPodium(d.top); renderList(d.top); renderMe(d);
     more.textContent = d.count > 10 ? T.tMore.replace("{n}", d.count - 10) : (d.count ? "" : T.tEmpty);
     card.classList.toggle("is-empty", !d.count);
-    if (window.MondayPixelize) window.MondayPixelize();
     if (!animate || reduce) return;
     card.querySelectorAll("[data-id]").forEach((el) => {
       const was = before.get(el.dataset.id + el.className.split(" ")[0]);
