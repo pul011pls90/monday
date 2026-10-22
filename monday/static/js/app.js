@@ -672,3 +672,38 @@
     const topic = box.querySelector("input[name=topic]"); if (topic) topic.focus({ preventScroll: true });
   }));
 })();
+
+/* mistakes review: number picker in the bottom bar */
+(() => {
+  const foot = document.querySelector("[data-mr-foot]");
+  if (!foot) return;
+  document.body.classList.add("has-rv-foot");
+  const btn = foot.querySelector("[data-mr-toggle]"), pop = foot.querySelector("[data-mr-pop]");
+  btn.addEventListener("click", (e) => { e.stopPropagation(); pop.hidden = !pop.hidden; btn.setAttribute("aria-expanded", String(!pop.hidden)); });
+  document.addEventListener("click", (e) => { if (!pop.hidden && !e.target.closest("[data-mr-pop]")) { pop.hidden = true; btn.setAttribute("aria-expanded", "false"); } });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") pop.hidden = true;
+    if (e.target.closest("input, select, textarea")) return;
+    const link = e.key === "ArrowRight" ? foot.querySelector(".btn--primary") : e.key === "ArrowLeft" ? foot.querySelector(".btn--secondary") : null;
+    if (link && !link.classList.contains("is-disabled")) location.href = link.href;
+  });
+  // phones: the app menu sits at the bottom — keep the bar right above it
+  const rail = document.querySelector(".rail");
+  const place = () => {
+    const r = rail && rail.getBoundingClientRect();
+    const atBottom = r && getComputedStyle(rail).position === "fixed" && r.top > window.innerHeight / 2;
+    foot.style.bottom = atBottom ? `${Math.round(window.innerHeight - r.top)}px` : "";
+  };
+  place(); window.addEventListener("resize", place);
+})();
+
+/* "+N" chips: show the rest of the list, "Свернуть" folds it back */
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-chip-more]");
+  if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const rest = b.previousElementSibling, open = rest.hidden;
+  rest.hidden = !open;
+  b.textContent = open ? b.dataset.close : b.dataset.open;
+  b.setAttribute("aria-expanded", String(open));
+}, true);

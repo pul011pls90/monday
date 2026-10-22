@@ -289,3 +289,8 @@
   {% endif %}
 </div>
 {%- endmacro %}
+
+{# "+N" chip that reveals the rest of a chip list and folds it back ("Свернуть") #}
+{% macro more_chips(n) -%}
+<span class="chip-more__rest" hidden>{{ caller() }}</span><button type="button" class="tag tag--line chip-more" data-chip-more data-open="+{{ n }}" data-close="{{ _('Свернуть') }}" aria-expanded="false">+{{ n }}</button>
+{%- endmacro %}

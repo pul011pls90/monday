@@ -56,7 +56,7 @@
         </div>
         <div class="jr-topics">
           {% for name, n in day.topics[:6] %}<span class="tag tag--soft">{{ name }}{% if n > 1 %} <b>×{{ n }}</b>{% endif %}</span>{% endfor %}
-          {% if day.topics|length > 6 %}<span class="tag tag--line">+{{ day.topics|length - 6 }}</span>{% endif %}
+          {% if day.topics|length > 6 %}{% call ui.more_chips(day.topics|length - 6) %}{% for name, n in day.topics[6:] %}<span class="tag tag--soft">{{ name }}{% if n > 1 %} <b>×{{ n }}</b>{% endif %}</span>{% endfor %}{% endcall %}{% endif %}
         </div>
       </header>
 
@@ -72,7 +72,7 @@
         <div class="jr-group__intro">
           <div class="stack-sm" style="gap:6px;flex:1 1 320px">
             <div class="small text-2">{{ _("Неверных: %(w)s · без ответа: %(b)s", w=g.rows|length - blank, b=blank) }}</div>
-            <div class="row" style="gap:6px;flex-wrap:wrap">{% for name, n in g.topics[:3] %}<span class="tag tag--soft">{{ name }} ×{{ n }}</span>{% endfor %}{% if g.topics|length > 3 %}<span class="tag tag--line">+{{ g.topics|length - 3 }}</span>{% endif %}</div>
+            <div class="row" style="gap:6px;flex-wrap:wrap">{% for name, n in g.topics[:3] %}<span class="tag tag--soft">{{ name }} ×{{ n }}</span>{% endfor %}{% if g.topics|length > 3 %}{% call ui.more_chips(g.topics|length - 3) %}{% for name, n in g.topics[3:] %}<span class="tag tag--soft">{{ name }} ×{{ n }}</span>{% endfor %}{% endcall %}{% endif %}</div>
           </div>
           <a class="btn btn--primary" href="{{ url_for('student.journal_review', attempt_id=att.id) }}">{{ ui.icon('play', 16) }}{{ _("Разобрать ошибки") }} · {{ g.rows|length }}</a>
         </div>

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-21 18:04-0700\n"
+"POT-Creation-Date: 2026-10-21 18:10-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -278,7 +278,7 @@ msgstr ""
 #: monday/bank.py:241 monday/daily.py:149
 #: monday/templates/student/_review_steps.html:27
 #: monday/templates/student/daily.html:50
-#: monday/templates/student/journal_review.html:59
+#: monday/templates/student/journal_review.html:63
 #: monday/templates/student/session.html:58
 msgid "Учитель не добавил объяснение."
 msgstr ""
@@ -1240,8 +1240,8 @@ msgstr ""
 #: monday/student.py:680 monday/student.py:684
 #: monday/templates/partials/macros.html:169
 #: monday/templates/student/_review_steps.html:18
-#: monday/templates/student/journal_review.html:49
-#: monday/templates/student/journal_review.html:94
+#: monday/templates/student/journal_review.html:52
+#: monday/templates/student/journal_review.html:101
 #: monday/templates/student/result.html:40
 #, python-format
 msgid "Вопрос %(n)s"
@@ -1591,7 +1591,7 @@ msgid ""
 " а не удалён."
 msgstr ""
 
-#: monday/teacher.py:1104 monday/templates/student/journal_review.html:86
+#: monday/teacher.py:1104 monday/templates/student/journal_review.html:90
 msgid "Вопрос удалён."
 msgstr ""
 
@@ -1722,7 +1722,9 @@ msgstr ""
 msgid "Меню"
 msgstr ""
 
-#: monday/templates/layout.html:77 monday/templates/student/result.html:4
+#: monday/templates/layout.html:77
+#: monday/templates/student/journal_review.html:4
+#: monday/templates/student/result.html:4
 #: monday/templates/student/work_detail.html:4
 msgid "математика"
 msgstr ""
@@ -2479,7 +2481,7 @@ msgid "Исправить"
 msgstr ""
 
 #: monday/templates/assistant/mine.html:30
-#: monday/templates/student/journal_review.html:101
+#: monday/templates/student/journal_review.html:109
 #: monday/templates/teacher/review.html:48
 #: monday/templates/teacher/works.html:145
 msgid "Здесь пусто"
@@ -2501,7 +2503,7 @@ msgstr ""
 #: monday/templates/partials/macros.html:184
 #: monday/templates/partials/macros.html:187
 #: monday/templates/student/_review_steps.html:22
-#: monday/templates/student/journal_review.html:54
+#: monday/templates/student/journal_review.html:58
 msgid "нет ответа"
 msgstr ""
 
@@ -2657,7 +2659,7 @@ msgstr ""
 
 #: monday/templates/assistant/review.html:13
 #: monday/templates/student/collections.html:26
-#: monday/templates/student/journal_review.html:24
+#: monday/templates/student/journal_review.html:25
 msgid "Все"
 msgstr ""
 
@@ -2919,7 +2921,7 @@ msgstr ""
 #: monday/templates/partials/macros.html:105
 #: monday/templates/partials/macros.html:126
 #: monday/templates/student/_review_steps.html:22
-#: monday/templates/student/journal_review.html:54
+#: monday/templates/student/journal_review.html:58
 #: monday/templates/teacher/question_edit.html:202
 msgid "Ваш ответ"
 msgstr ""
@@ -3020,6 +3022,10 @@ msgstr ""
 
 #: monday/templates/partials/macros.html:287
 msgid "Сохранить оценку"
+msgstr ""
+
+#: monday/templates/partials/macros.html:295
+msgid "Свернуть"
 msgstr ""
 
 #: monday/templates/partials/profile_head.html:5
@@ -3347,7 +3353,7 @@ msgid "из"
 msgstr ""
 
 #: monday/templates/student/_review_steps.html:19
-#: monday/templates/student/journal_review.html:50
+#: monday/templates/student/journal_review.html:53
 msgid "Нет ответа"
 msgstr ""
 
@@ -3361,7 +3367,7 @@ msgid "%(p)s из %(m)s"
 msgstr ""
 
 #: monday/templates/student/_review_steps.html:19
-#: monday/templates/student/journal_review.html:50
+#: monday/templates/student/journal_review.html:53
 #: monday/templates/student/result.html:41
 msgid "Ошибка"
 msgstr ""
@@ -3379,7 +3385,7 @@ msgid "нет решения"
 msgstr ""
 
 #: monday/templates/student/_review_steps.html:23
-#: monday/templates/student/journal_review.html:55
+#: monday/templates/student/journal_review.html:59
 #: monday/templates/teacher/question_edit.html:153
 #: monday/templates/teacher/question_edit.html:166
 msgid "Верный ответ"
@@ -3393,7 +3399,7 @@ msgstr ""
 #: monday/templates/student/_review_steps.html:25
 #: monday/templates/student/bank_play.html:15
 #: monday/templates/student/bank_play.html:62
-#: monday/templates/student/journal_review.html:57
+#: monday/templates/student/journal_review.html:61
 #: monday/templates/student/result.html:49
 #: monday/templates/student/session.html:57
 #: monday/templates/teacher/question_edit.html:189
@@ -3403,7 +3409,7 @@ msgstr ""
 #: monday/templates/student/_review_steps.html:28
 #: monday/templates/student/bank_play.html:46
 #: monday/templates/student/bank_play.html:65
-#: monday/templates/student/journal_review.html:60
+#: monday/templates/student/journal_review.html:64
 #: monday/templates/student/result.html:51
 #: monday/templates/student/session.html:60
 msgid "Видео учителя"
@@ -3414,7 +3420,7 @@ msgstr ""
 #: monday/templates/student/attempt.html:155
 #: monday/templates/student/bank_play.html:71
 #: monday/templates/student/bank_play.html:72
-#: monday/templates/student/journal_review.html:91
+#: monday/templates/student/journal_review.html:95
 #: monday/templates/teacher/_picker_list.html:30
 #: monday/templates/teacher/question_edit.html:37
 msgid "Назад"
@@ -3440,7 +3446,7 @@ msgstr ""
 
 #: monday/templates/student/_review_steps.html:54
 #: monday/templates/student/attempt.html:159
-#: monday/templates/student/journal_review.html:99
+#: monday/templates/student/journal_review.html:103
 msgid "без ответа"
 msgstr ""
 
@@ -3448,7 +3454,7 @@ msgstr ""
 #: monday/templates/student/attempt.html:162
 #: monday/templates/student/attempt.html:164
 #: monday/templates/student/bank_play.html:85
-#: monday/templates/student/journal_review.html:97
+#: monday/templates/student/journal_review.html:106
 msgid "Далее"
 msgstr ""
 
@@ -3632,7 +3638,8 @@ msgid "Неверно"
 msgstr ""
 
 #: monday/templates/student/bank.html:6
-#: monday/templates/student/journal_review.html:26
+#: monday/templates/student/journal_review.html:27
+#: monday/templates/student/journal_review.html:99
 msgid "Без ответа"
 msgstr ""
 
@@ -3947,7 +3954,7 @@ msgid "Ответить"
 msgstr ""
 
 #: monday/templates/student/daily.html:45
-#: monday/templates/student/journal_review.html:72
+#: monday/templates/student/journal_review.html:76
 msgid "Дальше"
 msgstr ""
 
@@ -4309,7 +4316,7 @@ msgstr ""
 #: monday/templates/student/home.html:154
 #: monday/templates/student/journal.html:2
 #: monday/templates/student/journal.html:5
-#: monday/templates/student/journal_review.html:8
+#: monday/templates/student/journal_review.html:9
 msgid "Лабораторный журнал"
 msgstr ""
 
@@ -4513,61 +4520,67 @@ msgid "Здесь будут разобранные ошибки."
 msgstr ""
 
 #: monday/templates/student/journal_review.html:2
-#: monday/templates/student/journal_review.html:12
+#: monday/templates/student/journal_review.html:13
 msgid "Разбор ошибок"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:16
-#: monday/templates/student/journal_review.html:50
+#: monday/templates/student/journal_review.html:17
+#: monday/templates/student/journal_review.html:53
 msgid "Разобрано"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:25
+#: monday/templates/student/journal_review.html:26
+#: monday/templates/student/journal_review.html:99
 msgid "Неверные"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:31
+#: monday/templates/student/journal_review.html:32
 msgid "Всем пропущенным → «Не хватило времени»"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:34
+#: monday/templates/student/journal_review.html:35
 msgid "Потренировать эти темы"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:39
+#: monday/templates/student/journal_review.html:40
 #: monday/templates/teacher/_picker_tree.html:2
 msgid "Все темы"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:65
+#: monday/templates/student/journal_review.html:69
 msgid "Причина"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:67
+#: monday/templates/student/journal_review.html:71
 msgid "Причина?"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:73
+#: monday/templates/student/journal_review.html:77
 msgid "Вернуть в открытые"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:76
+#: monday/templates/student/journal_review.html:80
 msgid "Понял, дальше"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:90
-msgid "Ошибки"
+#: monday/templates/student/journal_review.html:97
+#, python-format
+msgid "Ошибка %(n)s из %(m)s"
 msgstr ""
 
 #: monday/templates/student/journal_review.html:99
+msgid "Все ошибки"
+msgstr ""
+
+#: monday/templates/student/journal_review.html:103
 msgid "открыта"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:99
+#: monday/templates/student/journal_review.html:103
 msgid "разобрана"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:101
+#: monday/templates/student/journal_review.html:109
 msgid "Под эти фильтры ничего не подходит."
 msgstr ""
 
