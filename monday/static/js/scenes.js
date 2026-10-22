@@ -442,12 +442,34 @@
   const end = Date.now() + Number(box.dataset.seconds) * 1000;
   const cells = { d: box.querySelector("[data-d]"), h: box.querySelector("[data-h]"), m: box.querySelector("[data-m]"), s: box.querySelector("[data-s]") };
   const pad = (n) => String(n).padStart(2, "0");
+  // a 5×7 dot-matrix font: every digit is drawn from small squares
+  const FONT = {
+    0: ["01110", "10001", "10001", "10001", "10001", "10001", "01110"], 1: ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
+    2: ["01110", "10001", "00001", "00010", "00100", "01000", "11111"], 3: ["11110", "00001", "00001", "01110", "00001", "00001", "11110"],
+    4: ["00010", "00110", "01010", "10010", "11111", "00010", "00010"], 5: ["11111", "10000", "11110", "00001", "00001", "10001", "01110"],
+    6: ["00110", "01000", "10000", "11110", "10001", "10001", "01110"], 7: ["11111", "00001", "00010", "00100", "01000", "01000", "01000"],
+    8: ["01110", "10001", "10001", "01110", "10001", "10001", "01110"], 9: ["01110", "10001", "10001", "01111", "00001", "00010", "01100"],
+  };
+  const pixel = (cv, text) => {
+    if (!cv) return;
+    const cell = innerWidth < 640 ? 4 : 6, gap = 1, dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = text.length * 6 * cell - cell, h = 7 * cell;
+    if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + "px"; cv.style.height = h + "px"; }
+    const ctx = cv.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+    [...text].forEach((ch, i) => (FONT[ch] || []).forEach((row, r) => [...row].forEach((b, c) => {
+      const x = i * 6 * cell + c * cell, y = r * cell;
+      ctx.fillStyle = b === "1" ? "rgba(255,255,255,.88)" : "rgba(255,255,255,.07)";   // lit and unlit dots
+      ctx.fillRect(x, y, cell - gap, cell - gap);
+    })));
+  };
   const tick = () => {
     const left = Math.max(0, Math.round((end - Date.now()) / 1000));
     cells.d.textContent = Math.floor(left / 86400);
     cells.h.textContent = pad(Math.floor(left % 86400 / 3600));
     cells.m.textContent = pad(Math.floor(left % 3600 / 60));
     cells.s.textContent = pad(left % 60);
+    for (const k of "dhms") pixel(box.querySelector(`[data-pix="${k}"]`), cells[k].textContent);
     if (left === 0) { setTimeout(() => location.reload(), 1500); return; }
     setTimeout(tick, 1000 - (Date.now() % 1000));
   };
