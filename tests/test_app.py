@@ -1149,3 +1149,22 @@ def test_scan_fixes_goal_time_skills():
         assert len(student_pool("ORT")) > len(own)
         assert all(q.answer_type != "written" for q in student_pool("ORT"))
     ok(c, "/skills", contains=["Развернуть всё", "sk-ring"])
+
+
+def test_practice_pack_answers_are_consistent():
+    """The generated practice pack: every choice key points at an option, every number answer parses, every skill exists."""
+    import json
+    from monday.models import ContentNode
+    from monday.packs import PACK_DIR
+    from monday.services import parse_number
+    with open(os.path.join(PACK_DIR, "monday_practice_2026.json"), encoding="utf-8") as f:
+        qs = json.load(f)["questions"]
+    with APP.app_context():
+        codes = {n.code for n in ContentNode.query.filter(ContentNode.code.isnot(None))}
+    assert len(qs) > 400
+    for q in qs:
+        assert q["skill"] in codes and q["exams"]
+        if q["answer_type"] == "choice":
+            assert 0 <= int(q["correct"]) < len(q["options"]) and len(set(q["options"])) == len(q["options"])
+        else:
+            assert parse_number(q["correct"])[0] is not None, q["id"]

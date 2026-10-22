@@ -88,8 +88,8 @@ def import_pack(pack_id, publish=True, author=None):
     by_key = {}
     for item in pack["questions"]:
         node = nodes.get(item["skill"])
-        q = Question(author=author, skill=node, exams=[exam], difficulty=item.get("difficulty", 2),
-                     language=pack.get("language", "en"), material=[], text=item["text"],
+        q = Question(author=author, skill=node, exams=item.get("exams") or [exam], difficulty=item.get("difficulty", 2),
+                     language=item.get("language") or pack.get("language", "en"), material=[], text=item["text"],
                      image_path=f"packs/{pack_id}/{item['image']}" if item.get("image") else None,
                      weight=int(item.get("weight") or 1), rubric=item.get("rubric") or None,
                      answer_type=item["answer_type"], options=item.get("options") or [],
