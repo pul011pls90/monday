@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Monday VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-21 17:52-0700\n"
+"POT-Creation-Date: 2026-10-21 18:04-0700\n"
 "PO-Revision-Date: 2026-10-17 13:27-0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ky\n"
@@ -269,7 +269,8 @@ msgid "По этим фильтрам вопросов нет. Сними час
 msgstr "Бул чыпкалар боюнча суроо жок. Чыпкалардын бир бөлүгүн алып сал."
 
 #: monday/bank.py:241 monday/daily.py:149 monday/templates/student/_review_steps.html:27
-#: monday/templates/student/daily.html:50 monday/templates/student/session.html:58
+#: monday/templates/student/daily.html:50 monday/templates/student/journal_review.html:59
+#: monday/templates/student/session.html:58
 msgid "Учитель не добавил объяснение."
 msgstr "Мугалим түшүндүрмө кошкон жок."
 
@@ -386,7 +387,7 @@ msgstr "20–30 мүн"
 msgid "сложные задачи, два способа"
 msgstr "татаал маселелер, эки жол"
 
-#: monday/constants.py:29 monday/student.py:672 monday/templates/teacher/works.html:10
+#: monday/constants.py:29 monday/student.py:672 monday/student.py:742 monday/templates/teacher/works.html:10
 msgid "Сборник"
 msgstr "Жыйнак"
 
@@ -1189,21 +1190,23 @@ msgstr "Бул тапшырманы мугалим баалап койгон."
 msgid "Это задание уже проверено."
 msgstr "Бул тапшырма текшерилип бүткөн."
 
-#: monday/student.py:663 monday/student.py:686 monday/templates/student/journal.html:82
+#: monday/student.py:663 monday/student.py:686
 msgid "Задача"
 msgstr "Маселе"
 
-#: monday/student.py:668
+#: monday/student.py:668 monday/student.py:739
 msgid "Сессия"
 msgstr "Сессия"
 
-#: monday/student.py:671 monday/templates/teacher/assign.html:16 monday/templates/teacher/review.html:18
-#: monday/templates/teacher/review.html:35 monday/templates/teacher/student_detail.html:132
+#: monday/student.py:671 monday/student.py:742 monday/templates/teacher/assign.html:16
+#: monday/templates/teacher/review.html:18 monday/templates/teacher/review.html:35
+#: monday/templates/teacher/student_detail.html:132
 msgid "Работа"
 msgstr "Иш"
 
 #: monday/student.py:680 monday/student.py:684 monday/templates/partials/macros.html:169
-#: monday/templates/student/_review_steps.html:18 monday/templates/student/result.html:40
+#: monday/templates/student/_review_steps.html:18 monday/templates/student/journal_review.html:49
+#: monday/templates/student/journal_review.html:94 monday/templates/student/result.html:40
 #, python-format
 msgid "Вопрос %(n)s"
 msgstr "%(n)s-суроо"
@@ -1214,43 +1217,56 @@ msgstr "%(n)s-суроо"
 msgid "Модуль %(k)s"
 msgstr "%(k)s-модуль"
 
-#: monday/student.py:779
+#: monday/student.py:720
+msgid "В этой работе нет ошибок."
+msgstr "Бул иште ката жок."
+
+#: monday/student.py:762
+#, python-format
+msgid "Причина «Не хватило времени» поставлена: %(n)s."
+msgstr "«Убакыт жетпеди» себеби коюлду: %(n)s."
+
+#: monday/student.py:778
+msgid "Для этих тем пока нет вопросов в банке."
+msgstr "Бул темалар боюнча банкта азырынча суроо жок."
+
+#: monday/student.py:870
 msgid "Тест понедельника откроется в понедельник в 19:00."
 msgstr "Дүйшөмбүдөгү тест дүйшөмбү күнү саат 19:00дө ачылат."
 
-#: monday/student.py:817
+#: monday/student.py:908
 msgid "Профиль сохранён."
 msgstr "Профиль сакталды."
 
-#: monday/student.py:823 monday/teacher.py:1128
+#: monday/student.py:914 monday/teacher.py:1128
 msgid "Текущий пароль неверный."
 msgstr "Учурдагы сырсөз туура эмес."
 
-#: monday/student.py:825 monday/teacher.py:1130
+#: monday/student.py:916 monday/teacher.py:1130
 msgid "Новый пароль должен быть не короче 8 символов."
 msgstr "Жаңы сырсөз 8 белгиден кыска болбошу керек."
 
-#: monday/student.py:829 monday/teacher.py:1134
+#: monday/student.py:920 monday/teacher.py:1134
 msgid "Пароль изменён."
 msgstr "Сырсөз өзгөртүлдү."
 
-#: monday/student.py:862
+#: monday/student.py:953
 msgid "Назови лист, например «CSCA формулы»."
 msgstr "Баракты атаңыз, мисалы «CSCA формулалары»."
 
-#: monday/student.py:869
+#: monday/student.py:960
 msgid "Лист создан. Добавь первую формулу."
 msgstr "Барак түзүлдү. Биринчи формуланы кош."
 
-#: monday/student.py:883
+#: monday/student.py:974
 msgid "Лист удалён."
 msgstr "Барак өчүрүлдү."
 
-#: monday/student.py:900 monday/student.py:918
+#: monday/student.py:991 monday/student.py:1009
 msgid "Укажи название и формулу или картинку."
 msgstr "Аталышын жана формуланы же сүрөттү көрсөт."
 
-#: monday/student.py:913
+#: monday/student.py:1004
 msgid "Картинка: только PNG, JPG или WEBP."
 msgstr "Сүрөт: PNG, JPG же WEBP гана."
 
@@ -1524,7 +1540,7 @@ msgstr "Суроо сакталды. Мурун жарыяланган иште�
 msgid "На вопрос уже отвечали ученики, поэтому он скрыт (перенесён в черновики), а не удалён."
 msgstr "Бул суроого окуучулар жооп беришкен, ошондуктан ал өчүрүлбөй, жашырылды (долбоорго көчүрүлдү)."
 
-#: monday/teacher.py:1104
+#: monday/teacher.py:1104 monday/templates/student/journal_review.html:86
 msgid "Вопрос удалён."
 msgstr "Суроо өчүрүлдү."
 
@@ -2053,8 +2069,8 @@ msgid "Опубликовать"
 msgstr "Жарыялоо"
 
 #: monday/templates/admin/index.html:121 monday/templates/assistant/mine.html:24 monday/templates/student/homework.html:38
-#: monday/templates/student/journal.html:97 monday/templates/teacher/review.html:43
-#: monday/templates/teacher/student_detail.html:137 monday/templates/teacher/students.html:40
+#: monday/templates/teacher/review.html:43 monday/templates/teacher/student_detail.html:137
+#: monday/templates/teacher/students.html:40
 msgid "Открыть"
 msgstr "Ачуу"
 
@@ -2257,7 +2273,7 @@ msgstr "Тесттин тексти же JSON"
 msgid "До 80 вопросов за раз. Формулы — между знаками $…$."
 msgstr "Бир жолу 80 суроого чейин. Формулалар — $…$ белгилеринин ортосунда."
 
-#: monday/templates/assistant/home.html:33 monday/templates/student/journal.html:97
+#: monday/templates/assistant/home.html:33
 msgid "Разобрать"
 msgstr "Талдоо"
 
@@ -2318,7 +2334,8 @@ msgstr "Абалы"
 msgid "Исправить"
 msgstr "Оңдоо"
 
-#: monday/templates/assistant/mine.html:30 monday/templates/teacher/review.html:48 monday/templates/teacher/works.html:145
+#: monday/templates/assistant/mine.html:30 monday/templates/student/journal_review.html:101
+#: monday/templates/teacher/review.html:48 monday/templates/teacher/works.html:145
 msgid "Здесь пусто"
 msgstr "Бул жер бош"
 
@@ -2336,6 +2353,7 @@ msgstr "2ден аз вариант"
 
 #: monday/templates/assistant/preview.html:4 monday/templates/partials/macros.html:184
 #: monday/templates/partials/macros.html:187 monday/templates/student/_review_steps.html:22
+#: monday/templates/student/journal_review.html:54
 msgid "нет ответа"
 msgstr "жооп жок"
 
@@ -2482,6 +2500,7 @@ msgid "Одобрить все на странице"
 msgstr "Барактагылардын баарын жактыруу"
 
 #: monday/templates/assistant/review.html:13 monday/templates/student/collections.html:26
+#: monday/templates/student/journal_review.html:24
 msgid "Все"
 msgstr "Баары"
 
@@ -2719,7 +2738,8 @@ msgid "Максимум баллов: %(n)s"
 msgstr "Эң көп упай: %(n)s"
 
 #: monday/templates/partials/macros.html:105 monday/templates/partials/macros.html:126
-#: monday/templates/student/_review_steps.html:22 monday/templates/teacher/question_edit.html:202
+#: monday/templates/student/_review_steps.html:22 monday/templates/student/journal_review.html:54
+#: monday/templates/teacher/question_edit.html:202
 msgid "Ваш ответ"
 msgstr "Сиздин жообуңуз"
 
@@ -2924,7 +2944,7 @@ msgid "Не вводите знаки: процент, запятую, долл�
 msgstr "Пайыз, үтүр, доллар белгилерин жана боштуктарды киргизбеңиз."
 
 #: monday/templates/partials/tool_panes.html:46 monday/templates/partials/tool_panes.html:91
-#: monday/templates/student/journal.html:86 monday/templates/teacher/review_detail.html:37
+#: monday/templates/teacher/review_detail.html:37
 msgid "Ответ"
 msgstr "Жооп"
 
@@ -3105,7 +3125,7 @@ msgstr "Талдоо"
 msgid "из"
 msgstr "ичинен"
 
-#: monday/templates/student/_review_steps.html:19
+#: monday/templates/student/_review_steps.html:19 monday/templates/student/journal_review.html:50
 msgid "Нет ответа"
 msgstr "Жооп жок"
 
@@ -3118,7 +3138,8 @@ msgstr "Баа күтүүдө"
 msgid "%(p)s из %(m)s"
 msgstr "%(m)s ичинен %(p)s"
 
-#: monday/templates/student/_review_steps.html:19 monday/templates/student/result.html:41
+#: monday/templates/student/_review_steps.html:19 monday/templates/student/journal_review.html:50
+#: monday/templates/student/result.html:41
 msgid "Ошибка"
 msgstr "Ката"
 
@@ -3134,8 +3155,8 @@ msgstr "кагазда"
 msgid "нет решения"
 msgstr "чыгарылыш жок"
 
-#: monday/templates/student/_review_steps.html:23 monday/templates/teacher/question_edit.html:153
-#: monday/templates/teacher/question_edit.html:166
+#: monday/templates/student/_review_steps.html:23 monday/templates/student/journal_review.html:55
+#: monday/templates/teacher/question_edit.html:153 monday/templates/teacher/question_edit.html:166
 msgid "Верный ответ"
 msgstr "Туура жооп"
 
@@ -3144,21 +3165,22 @@ msgid "Решение"
 msgstr "Чыгарылыш"
 
 #: monday/templates/student/_review_steps.html:25 monday/templates/student/bank_play.html:15
-#: monday/templates/student/bank_play.html:62 monday/templates/student/result.html:49
-#: monday/templates/student/session.html:57 monday/templates/teacher/question_edit.html:189
+#: monday/templates/student/bank_play.html:62 monday/templates/student/journal_review.html:57
+#: monday/templates/student/result.html:49 monday/templates/student/session.html:57
+#: monday/templates/teacher/question_edit.html:189
 msgid "Объяснение"
 msgstr "Түшүндүрмө"
 
 #: monday/templates/student/_review_steps.html:28 monday/templates/student/bank_play.html:46
-#: monday/templates/student/bank_play.html:65 monday/templates/student/result.html:51
-#: monday/templates/student/session.html:60
+#: monday/templates/student/bank_play.html:65 monday/templates/student/journal_review.html:60
+#: monday/templates/student/result.html:51 monday/templates/student/session.html:60
 msgid "Видео учителя"
 msgstr "Мугалимдин видеосу"
 
 #: monday/templates/student/_review_steps.html:42 monday/templates/student/attempt.html:94
 #: monday/templates/student/attempt.html:155 monday/templates/student/bank_play.html:71
-#: monday/templates/student/bank_play.html:72 monday/templates/teacher/_picker_list.html:30
-#: monday/templates/teacher/question_edit.html:37
+#: monday/templates/student/bank_play.html:72 monday/templates/student/journal_review.html:91
+#: monday/templates/teacher/_picker_list.html:30 monday/templates/teacher/question_edit.html:37
 msgid "Назад"
 msgstr "Артка"
 
@@ -3171,16 +3193,18 @@ msgid "верно"
 msgstr "туура"
 
 #: monday/templates/student/_review_steps.html:54 monday/templates/student/journal.html:55
-#: monday/templates/student/journal.html:69
+#: monday/templates/student/journal.html:68
 msgid "ошибка"
 msgstr "ката"
 
 #: monday/templates/student/_review_steps.html:54 monday/templates/student/attempt.html:159
+#: monday/templates/student/journal_review.html:99
 msgid "без ответа"
 msgstr "жоопсуз"
 
 #: monday/templates/student/_review_steps.html:57 monday/templates/student/attempt.html:162
 #: monday/templates/student/attempt.html:164 monday/templates/student/bank_play.html:85
+#: monday/templates/student/journal_review.html:97
 msgid "Далее"
 msgstr "Кийинки"
 
@@ -3348,7 +3372,7 @@ msgstr "Суроолор банкы"
 msgid "Неверно"
 msgstr "Туура эмес"
 
-#: monday/templates/student/bank.html:6
+#: monday/templates/student/bank.html:6 monday/templates/student/journal_review.html:26
 msgid "Без ответа"
 msgstr "Жоопсуз"
 
@@ -3635,7 +3659,7 @@ msgstr "Класста туура: %(t)s ичинен %(ok)s"
 msgid "Ответить"
 msgstr "Жооп берүү"
 
-#: monday/templates/student/daily.html:45
+#: monday/templates/student/daily.html:45 monday/templates/student/journal_review.html:72
 msgid "Дальше"
 msgstr "Андан ары"
 
@@ -3970,6 +3994,7 @@ msgid "Подробнее"
 msgstr "Кененирээк"
 
 #: monday/templates/student/home.html:154 monday/templates/student/journal.html:2 monday/templates/student/journal.html:5
+#: monday/templates/student/journal_review.html:8
 msgid "Лабораторный журнал"
 msgstr "Лабораториялык журнал"
 
@@ -4127,53 +4152,94 @@ msgstr "Талданган"
 msgid "Вчера"
 msgstr "Кечээ"
 
-#: monday/templates/student/journal.html:55 monday/templates/student/journal.html:69
+#: monday/templates/student/journal.html:55 monday/templates/student/journal.html:68
 msgid "ошибки"
 msgstr "ката"
 
-#: monday/templates/student/journal.html:55 monday/templates/student/journal.html:69
+#: monday/templates/student/journal.html:55 monday/templates/student/journal.html:68
 msgid "ошибок"
 msgstr "ката"
 
 #: monday/templates/student/journal.html:74
-msgid "Смотреть вопросы"
-msgstr "Суроолорду көрүү"
+#, python-format
+msgid "Неверных: %(w)s · без ответа: %(b)s"
+msgstr "Туура эмес: %(w)s · жоопсуз: %(b)s"
 
-#: monday/templates/student/journal.html:75
-msgid "Открыть разбор теста"
-msgstr "Тесттин талдоосун ачуу"
+#: monday/templates/student/journal.html:77 monday/templates/student/session_done.html:29
+msgid "Разобрать ошибки"
+msgstr "Каталарды талдоо"
 
-#: monday/templates/student/journal.html:90
-msgid "Причина"
-msgstr "Себеби"
-
-#: monday/templates/student/journal.html:92
-msgid "Причина?"
-msgstr "Себеби?"
-
-#: monday/templates/student/journal.html:107
-msgid "Понял, закрыть"
-msgstr "Түшүндүм, жабуу"
-
-#: monday/templates/student/journal.html:108
-msgid "Вернуть в открытые"
-msgstr "Ачыктарга кайтаруу"
-
-#: monday/templates/student/journal.html:120
+#: monday/templates/student/journal.html:84
 msgid "Показать более ранние дни"
 msgstr "Мурунку күндөрдү көрсөтүү"
 
-#: monday/templates/student/journal.html:122
+#: monday/templates/student/journal.html:86
 msgid "Пусто"
 msgstr "Бош"
 
-#: monday/templates/student/journal.html:122
+#: monday/templates/student/journal.html:86
 msgid "Открытых ошибок нет. Отличная неделя."
 msgstr "Ачык ката жок. Сонун жума."
 
-#: monday/templates/student/journal.html:122
+#: monday/templates/student/journal.html:86
 msgid "Здесь будут разобранные ошибки."
 msgstr "Бул жерде талданган каталар болот."
+
+#: monday/templates/student/journal_review.html:2 monday/templates/student/journal_review.html:12
+msgid "Разбор ошибок"
+msgstr "Каталарды талдоо"
+
+#: monday/templates/student/journal_review.html:16 monday/templates/student/journal_review.html:50
+msgid "Разобрано"
+msgstr "Талданды"
+
+#: monday/templates/student/journal_review.html:25
+msgid "Неверные"
+msgstr "Туура эмес"
+
+#: monday/templates/student/journal_review.html:31
+msgid "Всем пропущенным → «Не хватило времени»"
+msgstr "Бардык жоопсуздарга → «Убакыт жетпеди»"
+
+#: monday/templates/student/journal_review.html:34
+msgid "Потренировать эти темы"
+msgstr "Бул темаларды машыктыруу"
+
+#: monday/templates/student/journal_review.html:39 monday/templates/teacher/_picker_tree.html:2
+msgid "Все темы"
+msgstr "Бардык темалар"
+
+#: monday/templates/student/journal_review.html:65
+msgid "Причина"
+msgstr "Себеби"
+
+#: monday/templates/student/journal_review.html:67
+msgid "Причина?"
+msgstr "Себеби?"
+
+#: monday/templates/student/journal_review.html:73
+msgid "Вернуть в открытые"
+msgstr "Ачыктарга кайтаруу"
+
+#: monday/templates/student/journal_review.html:76
+msgid "Понял, дальше"
+msgstr "Түшүндүм, кийинки"
+
+#: monday/templates/student/journal_review.html:90
+msgid "Ошибки"
+msgstr "Каталар"
+
+#: monday/templates/student/journal_review.html:99
+msgid "открыта"
+msgstr "ачык"
+
+#: monday/templates/student/journal_review.html:99
+msgid "разобрана"
+msgstr "талданды"
+
+#: monday/templates/student/journal_review.html:101
+msgid "Под эти фильтры ничего не подходит."
+msgstr "Бул чыпкаларга эч нерсе туура келбейт."
 
 #: monday/templates/student/monday.html:7
 #, python-format
@@ -4502,10 +4568,6 @@ msgstr "журналда"
 msgid "Ещё одна сессия"
 msgstr "Дагы бир сессия"
 
-#: monday/templates/student/session_done.html:29
-msgid "Разобрать ошибки"
-msgstr "Каталарды талдоо"
-
 #: monday/templates/student/sessions.html:7
 msgid "Пять режимов — от пяти минут в дороге до получаса на сложные задачи. Выбери по времени и настроению."
 msgstr "Беш режим — жолдогу беш мүнөттөн татаал маселелерге жарым саатка чейин. Убакытка жана маанайга жараша танда."
@@ -4808,10 +4870,6 @@ msgstr "Чыпкалардын бир бөлүгүн алып сал же баш
 #: monday/templates/teacher/_picker_preview.html:5
 msgid "изменить"
 msgstr "өзгөртүү"
-
-#: monday/templates/teacher/_picker_tree.html:2
-msgid "Все темы"
-msgstr "Бардык темалар"
 
 #: monday/templates/teacher/_picker_tree.html:6
 msgid "Раскрыть"
@@ -6660,4 +6718,10 @@ msgstr "Бул иште толук жооп талап кылган тапшыр
 
 #~ msgid "— между знаками"
 #~ msgstr "— белгилердин ортосунда"
+
+#~ msgid "Смотреть вопросы"
+#~ msgstr "Суроолорду көрүү"
+
+#~ msgid "Открыть разбор теста"
+#~ msgstr "Тесттин талдоосун ачуу"
 

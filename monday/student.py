@@ -696,6 +696,94 @@ def journal_days(entries, limit_days):
     return out, False
 
 
+def _journal_mistakes(att):
+    """The attempt's mistakes as the journal keeps them (written answers only once marked)."""
+    rows = [a for a in att.answers if a.is_correct is False]
+    out = []
+    for a in sorted(rows, key=lambda a: a.index):
+        item = answer_item(a)
+        if item and item.get("answer_type") == "written" and a.points is None:
+            continue
+        out.append({"answer": a, "item": item, "blank": not a.given and not a.photo_path})
+    return out
+
+
+@bp.route("/journal/attempt/<int:attempt_id>")
+@student_required
+def journal_review(attempt_id):
+    """One test's mistakes, one at a time: answer vs correct, explanation, reason, «Понял, дальше»."""
+    att = _own_attempt(attempt_id)
+    if not att.finished_at:
+        abort(404)
+    every = _journal_mistakes(att)
+    if not every:
+        flash(_("В этой работе нет ошибок."), "info")
+        return redirect(url_for("student.journal"))
+    tab = request.args.get("tab", "all")
+    if tab not in ("all", "wrong", "blank"):
+        tab = "all"
+    topic = request.args.get("topic", type=int)
+    rows = [r for r in every if (tab == "all" or (tab == "blank") == r["blank"])
+            and (not topic or r["answer"].skill_id == topic)]
+    topics = defaultdict(lambda: [None, 0])
+    for r in every:
+        sk = r["answer"].skill
+        if sk:
+            topics[sk.id][0], topics[sk.id][1] = sk.name, topics[sk.id][1] + 1
+    topics = sorted(((k, v[0], v[1]) for k, v in topics.items()), key=lambda t: -t[2])
+    i = request.args.get("i", type=int)
+    if i is None or not (0 <= i < len(rows)):
+        i = next((k for k, r in enumerate(rows) if not r["answer"].resolved), 0)
+    layout = version_layout(att.work_version) if att.work_version else {}
+    if att.mode in MODES:
+        title, kind = MODES[att.mode]["name"], _("Сессия")
+    else:
+        from .constants import WORK_KINDS
+        title, kind = (att.work_version.title if att.work_version else _("Работа")), WORK_KINDS.get(att.mode) or _("Сборник")
+    return render_template("student/journal_review.html", att=att, rows=rows, every=every, i=i, tab=tab, topic=topic,
+                           topics=topics, title=title, kind=kind,
+                           letters="ABCDEFGH" if layout.get("format") in ("sat", "csca") else None,
+                           counts={"all": len(every), "wrong": sum(1 for r in every if not r["blank"]),
+                                   "blank": sum(1 for r in every if r["blank"]),
+                                   "done": sum(1 for r in every if r["answer"].resolved)})
+
+
+@bp.route("/journal/attempt/<int:attempt_id>/blank-reason", methods=["POST"])
+@student_required
+def journal_blank_reason(attempt_id):
+    """«Всем пропущенным → Не хватило времени» in one click (only where no reason was chosen yet)."""
+    att = _own_attempt(attempt_id)
+    n = 0
+    for r in _journal_mistakes(att):
+        if r["blank"] and not r["answer"].mistake_reason:
+            r["answer"].mistake_reason = "time"
+            n += 1
+    db.session.commit()
+    flash(_("Причина «Не хватило времени» поставлена: %(n)s.", n=n), "success")
+    return redirect(url_for("student.journal_review", attempt_id=att.id, tab=request.form.get("tab", "blank")))
+
+
+@bp.route("/journal/attempt/<int:attempt_id>/practice", methods=["POST"])
+@student_required
+def journal_practice(attempt_id):
+    """A bank session on the skills where this test's mistakes were."""
+    import random
+    att = _own_attempt(attempt_id)
+    skills = {r["answer"].skill_id for r in _journal_mistakes(att) if r["answer"].skill_id}
+    exam = (att.work_version.work.exam if att.work_version and att.work_version.work else None) or \
+        (current_user.profile.exam if current_user.profile else None)
+    pool = [q.id for q in Question.query.filter(Question.status == "published", Question.skill_id.in_(skills or {0})).all()
+            if q.answer_type != "written" and (not exam or exam in (q.exams or []))]
+    if not pool:
+        flash(_("Для этих тем пока нет вопросов в банке."), "info")
+        return redirect(url_for("student.journal_review", attempt_id=att.id))
+    plan = random.sample(pool, min(20, len(pool)))
+    bank = Attempt(user=current_user, mode="bank", plan=plan, position=0, total=len(plan), draft={"exam": exam})
+    db.session.add(bank)
+    db.session.commit()
+    return redirect(url_for("bank.play", attempt_id=bank.id))
+
+
 @bp.route("/journal/<int:answer_id>", methods=["POST"])
 @student_required
 def journal_update(answer_id):
@@ -710,6 +798,9 @@ def journal_update(answer_id):
     if request.form.get("resolve") == "0":
         ans.resolved = False
     db.session.commit()
+    back = request.form.get("next", "")
+    if back.startswith("/journal/attempt/"):
+        return redirect(back)
     return redirect(url_for("student.journal", show=request.form.get("show", "open")) + f"#e{ans.id}")
 
 

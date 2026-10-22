@@ -1215,3 +1215,30 @@ kbd { font: 700 10px var(--font); padding: 1px 5px; border-radius: 4px; border: 
 @media (max-width: 900px) { .formula-row { grid-template-columns: 1fr; } }
 .input--file { padding: 8px; font-size: 13px; color: var(--muted); }
 .input--file::file-selector-button { margin-right: 10px; padding: 8px 12px; border: 0; border-radius: 10px; background: var(--accent-soft, #e8edff); color: var(--accent); font-weight: 700; cursor: pointer; }
+/* mistakes review page (journal → one test) */
+.jr-group__intro .btn--primary { margin-left: auto; }
+.mr-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; margin: 12px 0 18px; }
+.mr-title { font-size: 34px; margin: 2px 0; }
+.mr-progress { min-width: 260px; display: grid; gap: 8px; }
+.mr-progress .progress { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.mr-progress .progress span { display: block; height: 100%; background: var(--btn-bg); border-radius: inherit; }
+.mr-filters { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.mr-filters .chips { margin: 0; }
+.mr-topics { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.mr-topics a { text-decoration: none; }
+.mr-screen { display: grid !important; }
+.mr-actions { display: grid; gap: 8px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.mr-strip { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.mr-strip__nums { flex: 1; display: flex; gap: 6px; overflow-x: auto; padding: 4px 2px; }
+.mr-num { flex: none; min-width: 34px; height: 34px; padding: 0 6px; display: inline-grid; place-items: center; border-radius: 10px; border: 1.5px solid var(--btn-bg); color: var(--btn-bg); font-weight: 700; font-size: 13px; text-decoration: none; background: var(--surface); }
+.mr-num.is-blank { border-style: dashed; border-color: var(--line-strong); color: var(--muted); }
+.mr-num.is-done { background: #e6f4ea; border-color: #2e7d4f; color: #2e7d4f; }
+.mr-num.is-current { outline: 3px solid var(--accent); outline-offset: 2px; }
+.mr-legend { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.mr-legend .mr-num { min-width: 22px; height: 22px; font-size: 11px; }
+.btn.is-disabled { pointer-events: none; opacity: .45; }
+.mr-more { display: contents; }
+.mr-more summary { cursor: pointer; list-style: none; }
+.mr-more summary::-webkit-details-marker { display: none; }
+.mr-more[open] summary { display: none; }
+#mr { scroll-margin-top: 90px; }
