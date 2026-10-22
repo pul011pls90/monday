@@ -61,7 +61,6 @@
       </header>
 
       {% for g in day.groups %}{% set att = g.attempt %}
-      {% set many = g.rows|length > 3 %}
       <details class="jr-group">
         <summary class="jr-group__head">
           <span class="jr-group__kind">{{ g.kind }}</span>
@@ -69,48 +68,13 @@
           <span class="jr-group__meta small muted">{{ att.finished_at|dt("HH:mm") if att.finished_at else '' }} · {{ g.rows|length }} {{ g.rows|length|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }}</span>
           {{ ui.icon('chevron-down', 18) }}
         </summary>
-        {% if many %}
+        {% set blank = g.rows|selectattr('answer.given', 'none')|list|length + g.rows|selectattr('answer.given', 'equalto', '')|list|length %}
         <div class="jr-group__intro">
-          <button type="button" class="btn btn--secondary btn--sm" data-jr-show>{{ ui.icon('list', 16) }}{{ _("Смотреть вопросы") }} · {{ g.rows|length }}</button>
-          {% if att.finished_at and att.work_version_id %}<a class="small" style="font-weight:700" href="{{ url_for('student.attempt_result', attempt_id=att.id) }}">{{ _("Открыть разбор теста") }} →</a>{% endif %}
-        </div>
-        {% endif %}
-        <div class="list jr-list" {{ 'hidden' if many }}>
-        {% for row in g.rows %}{% set e = row.answer %}{% set item = row.item|loc %}
-          <div class="list__row" id="e{{ e.id }}" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1.4fr) minmax(0,1.2fr) auto">
-            <div class="stack-sm" style="gap:2px">
-              <span class="list__title">{{ e.skill.name if e.skill else _("Задача") }}</span>
-              <span class="small muted">{{ row.label }}</span>
-            </div>
-            <div class="small">
-              {% if item %}{{ _("Ответ") }} <s class="muted">{{ ui.answer_text(item, e.given, letters=g.letters) }}</s> → <b>{{ ui.correct_text(item, letters=g.letters) }}</b>{% endif %}
-            </div>
-            <form method="post" action="{{ url_for('student.journal_update', answer_id=e.id) }}">
-              {{ ui.csrf() }}<input type="hidden" name="show" value="{{ show }}">
-              <label class="sr-only" for="r{{ e.id }}">{{ _("Причина") }}</label>
-              <select class="select" id="r{{ e.id }}" name="reason" data-autosubmit style="min-height:40px;font-size:13px">
-                <option value="">{{ _("Причина?") }}</option>
-                {% for k, v in MISTAKE_REASONS.items() %}<option value="{{ k }}" {{ 'selected' if e.mistake_reason == k }}>{{ v }}</option>{% endfor %}
-              </select>
-            </form>
-            <details class="disclosure">
-              <summary>{{ _("Разобрать") if show == 'open' else _("Открыть") }}</summary>
-              <div class="stack" style="gap:10px;max-width:520px">
-                {% if item %}
-                  {% if item.image_path %}<img src="{{ url_for('uploaded_file', filename=item.image_path) }}" alt="" style="max-width:240px;background:#fff;border-radius:8px" data-lightbox>{% endif %}
-                  {{ ui.material(item) }}
-                  {% if item.text %}<div class="math" style="font-weight:600">{{ item.text }}</div>{% endif %}
-                  <div class="math text-2">{{ item.explanation }}</div>
-                {% endif %}
-                <form method="post" action="{{ url_for('student.journal_update', answer_id=e.id) }}">
-                  {{ ui.csrf() }}<input type="hidden" name="show" value="{{ show }}">
-                  {% if show == 'open' %}<button class="btn btn--primary btn--sm" name="resolve" value="1" type="submit">{{ ui.icon('check', 16) }}{{ _("Понял, закрыть") }}</button>
-                  {% else %}<button class="btn btn--secondary btn--sm" name="resolve" value="0" type="submit">{{ _("Вернуть в открытые") }}</button>{% endif %}
-                </form>
-              </div>
-            </details>
+          <div class="stack-sm" style="gap:6px;flex:1 1 320px">
+            <div class="small text-2">{{ _("Неверных: %(w)s · без ответа: %(b)s", w=g.rows|length - blank, b=blank) }}</div>
+            <div class="row" style="gap:6px;flex-wrap:wrap">{% for name, n in g.topics[:3] %}<span class="tag tag--soft">{{ name }} ×{{ n }}</span>{% endfor %}{% if g.topics|length > 3 %}<span class="tag tag--line">+{{ g.topics|length - 3 }}</span>{% endif %}</div>
           </div>
-        {% endfor %}
+          <a class="btn btn--primary" href="{{ url_for('student.journal_review', attempt_id=att.id) }}">{{ ui.icon('play', 16) }}{{ _("Разобрать ошибки") }} · {{ g.rows|length }}</a>
         </div>
       </details>
       {% endfor %}

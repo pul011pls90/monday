@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Разбор ошибок") }} · {{ title }}{% endblock %}
+{% block page_class %}page--rv{% endblock %}
+{% block content %}
+{% set base = url_for('student.journal_review', attempt_id=att.id) %}
+{% macro link(t=tab, tp=topic, k=None) -%}{{ base }}?tab={{ t }}{% if tp %}&topic={{ tp }}{% endif %}{% if k is not none %}&i={{ k }}{% endif %}{%- endmacro %}
+
+<a href="{{ url_for('student.journal') }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Лабораторный журнал") }}</a>
+<header class="mr-head">
+  <div class="stack-sm">
+    <span class="jr-group__kind">{{ kind }}</span>
+    <h1 class="mr-title">{{ _("Разбор ошибок") }}</h1>
+    <p class="text-2" style="margin:0">{{ title }}{% if att.finished_at %} · {{ att.finished_at|dt }}{% endif %}</p>
+  </div>
+  <div class="mr-progress">
+    <div class="row row--between small"><b>{{ _("Разобрано") }}</b><span class="num">{{ counts.done }} / {{ counts.all }}</span></div>
+    <div class="progress"><span style="width:{{ (100 * counts.done / counts.all)|round|int }}%"></span></div>
+  </div>
+</header>
+{{ ui.flashes() }}
+
+<div class="mr-filters">
+  <div class="chips">
+    <a class="chip{{ ' is-active' if tab == 'all' }}" href="{{ link('all', topic) }}">{{ _("Все") }} <span class="chip__count">{{ counts.all }}</span></a>
+    <a class="chip{{ ' is-active' if tab == 'wrong' }}" href="{{ link('wrong', topic) }}">{{ _("Неверные") }} <span class="chip__count">{{ counts.wrong }}</span></a>
+    <a class="chip{{ ' is-active' if tab == 'blank' }}" href="{{ link('blank', topic) }}">{{ _("Без ответа") }} <span class="chip__count">{{ counts.blank }}</span></a>
+  </div>
+  <div class="row" style="gap:8px;flex-wrap:wrap">
+    {% if counts.blank %}
+    <form method="post" action="{{ url_for('student.journal_blank_reason', attempt_id=att.id) }}">{{ ui.csrf() }}<input type="hidden" name="tab" value="{{ tab }}">
+      <button class="btn btn--secondary btn--sm" type="submit">{{ ui.icon('timer', 16) }}{{ _("Всем пропущенным → «Не хватило времени»") }}</button></form>
+    {% endif %}
+    <form method="post" action="{{ url_for('student.journal_practice', attempt_id=att.id) }}">{{ ui.csrf() }}
+      <button class="btn btn--primary btn--sm" type="submit">{{ ui.icon('play', 16) }}{{ _("Потренировать эти темы") }}</button></form>
+  </div>
+</div>
+{% if topics|length > 1 %}
+<div class="mr-topics">
+  <a class="tag {{ 'tag--soft' if not topic else 'tag--line' }}" href="{{ link(tab, None) }}">{{ _("Все темы") }}</a>
+  {% set cut = 6 if not topic or topic in topics[:6]|map(attribute=0)|list else topics|length %}
+  {% for tid, name, n in topics[:cut] %}<a class="tag {{ 'tag--soft' if topic == tid else 'tag--line' }}" href="{{ link(tab, tid) }}#mr">{{ name }} ×{{ n }}</a>{% endfor %}
+  {% if topics|length > cut %}<details class="mr-more"><summary class="tag tag--line">+{{ topics|length - cut }}</summary>
+    {% for tid, name, n in topics[cut:] %}<a class="tag tag--line" href="{{ link(tab, tid) }}#mr">{{ name }} ×{{ n }}</a>{% endfor %}</details>{% endif %}
+</div>
+{% endif %}
+
+{% if rows %}
+{% set row = rows[i] %}{% set a = row.answer %}{% set item = row.item|loc %}
+<article class="rv-screen mr-screen" id="mr">
+  <aside class="rv-explain">
+    <div class="row row--between">
+      <span class="q-num">{{ _("Вопрос %(n)s", n=a.index + 1) }}</span>
+      <span class="tag {{ 'tag--ok' if a.resolved else ('tag--line' if row.blank else 'tag--bad') }}">{{ _("Разобрано") if a.resolved else (_("Нет ответа") if row.blank else _("Ошибка")) }}</span>
+    </div>
+    {% if item %}
+    <dl class="rv-answers">
+      <div><dt>{{ _("Ваш ответ") }}</dt><dd>{% if row.blank %}<span class="muted">{{ _("нет ответа") }}</span>{% else %}{{ ui.answer_text(item, a.given, letters=letters) }}{% endif %}</dd></div>
+      <div><dt>{{ _("Верный ответ") }}</dt><dd>{{ ui.correct_text(item, letters=letters) }}</dd></div>
+    </dl>
+    <h3 class="rv-explain__title">{{ _("Объяснение") }}</h3>
+    {% if item.explanation %}<div class="explain__text math">{{ item.explanation }}</div>
+    {% else %}<p class="muted">{{ _("Учитель не добавил объяснение.") }}</p>{% endif %}
+    {% if item.video_url %}<a class="row" style="gap:8px;font-weight:600" href="{{ item.video_url }}" target="_blank" rel="noopener">{{ ui.icon('video', 18) }}{{ _("Видео учителя") }}</a>{% endif %}
+    {% endif %}
+    {% set next_url = link(tab, topic, (i + 1) if i + 1 < rows|length else i) ~ '#mr' %}
+    <form method="post" action="{{ url_for('student.journal_update', answer_id=a.id) }}" class="mr-actions">
+      {{ ui.csrf() }}<input type="hidden" name="next" value="{{ next_url }}">
+      <label class="label" for="reason">{{ _("Причина") }}</label>
+      <select class="select" id="reason" name="reason">
+        <option value="">{{ _("Причина?") }}</option>
+        {% for k, v in MISTAKE_REASONS.items() %}<option value="{{ k }}" {{ 'selected' if a.mistake_reason == k }}>{{ v }}</option>{% endfor %}
+      </select>
+      {% if a.resolved %}
+        <div class="row" style="gap:8px">
+          <button class="btn btn--primary" name="resolve" value="1" type="submit">{{ _("Дальше") }} {{ ui.icon('arrow-right', 16) }}</button>
+          <button class="btn btn--secondary" name="resolve" value="0" type="submit">{{ _("Вернуть в открытые") }}</button>
+        </div>
+      {% else %}
+        <button class="btn btn--primary" name="resolve" value="1" type="submit">{{ ui.icon('check', 16) }}{{ _("Понял, дальше") }}</button>
+      {% endif %}
+    </form>
+  </aside>
+  <div class="rv-question">
+    {% if item %}
+      {{ ui.figure(item) }}
+      {{ ui.material(item) }}
+      {% if item.text %}<div class="q-text math">{{ item.text }}</div>{% endif %}
+      {% if item.answer_type == 'choice' %}{{ ui.option_inputs(item, 'mr', selected=a.given, reveal=True, disabled=True, letters=letters) }}{% endif %}
+    {% else %}<p class="muted">{{ _("Вопрос удалён.") }}</p>{% endif %}
+  </div>
+</article>
+
+<nav class="mr-strip" aria-label="{{ _('Ошибки') }}">
+  <a class="btn btn--secondary btn--sm{{ ' is-disabled' if i == 0 }}" href="{{ link(tab, topic, [i - 1, 0]|max) }}#mr">{{ ui.icon('arrow-left', 16) }}{{ _("Назад") }}</a>
+  <div class="mr-strip__nums">
+    {% for r in rows %}
+      <a href="{{ link(tab, topic, loop.index0) }}#mr" class="mr-num{{ ' is-current' if loop.index0 == i }}{{ ' is-done' if r.answer.resolved else (' is-blank' if r.blank else '') }}" title="{{ _('Вопрос %(n)s', n=r.answer.index + 1) }}">{{ r.answer.index + 1 }}</a>
+    {% endfor %}
+  </div>
+  <a class="btn btn--secondary btn--sm{{ ' is-disabled' if i + 1 >= rows|length }}" href="{{ link(tab, topic, [i + 1, rows|length - 1]|min) }}#mr">{{ _("Далее") }}{{ ui.icon('arrow-right', 16) }}</a>
+</nav>
+<p class="small muted mr-legend"><span class="mr-num">1</span> {{ _("открыта") }} <span class="mr-num is-blank">1</span> {{ _("без ответа") }} <span class="mr-num is-done">1</span> {{ _("разобрана") }}</p>
+{% else %}
+<div class="empty"><h3>{{ _("Здесь пусто") }}</h3><p>{{ _("Под эти фильтры ничего не подходит.") }}</p></div>
+{% endif %}
+{% endblock %}

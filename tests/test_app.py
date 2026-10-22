@@ -1099,3 +1099,30 @@ def test_bank_source_filter_and_format_info():
     assert "Из сборников" in r and "От учителей" in r
     t = login(client(), "aibek@monday.kg", "teacher123")
     ok(t, "/teacher/works/new?kind=homework", contains=["data-format-info=\"ort\"", "исправить только один раз"])
+
+
+def test_mistakes_review_page():
+    from monday.models import Attempt, AttemptAnswer, User
+    c = login(client(), "student@monday.kg", "student123")
+    with APP.app_context():
+        u = User.query.filter_by(email="student@monday.kg").first()
+        att = (Attempt.query.join(AttemptAnswer).filter(Attempt.user_id == u.id, Attempt.finished_at.isnot(None),
+                                                        Attempt.work_version_id.isnot(None),
+                                                        AttemptAnswer.is_correct.is_(False)).first())
+        att_id = att.id
+        wrong = [a.id for a in att.answers if a.is_correct is False]
+    ok(c, "/journal", contains=f"/journal/attempt/{att_id}")
+    page = f"/journal/attempt/{att_id}"
+    ok(c, page, contains=["Разбор ошибок", "Понял, дальше", "Потренировать эти темы"])
+    for tab in ("wrong", "blank", "all"):
+        assert c.get(page + f"?tab={tab}").status_code == 200
+    # «Понял, дальше» closes the mistake and goes to the next one on the same page
+    r = c.post(f"/journal/{wrong[0]}", data={"reason": "careless", "resolve": "1", "next": page + "?tab=all&i=1"})
+    assert page + "?tab=all&i=1" in r.headers["Location"]
+    r = c.post(f"/journal/{wrong[0]}", data={"resolve": "1", "next": "https://evil.example/"})
+    assert "/journal" in r.headers["Location"] and "evil" not in r.headers["Location"]
+    c.post(page + "/blank-reason", data={"tab": "blank"})
+    r = c.post(page + "/practice")
+    assert "/bank/" in r.headers["Location"]
+    other = login(client(), "student2@monday.kg", "student123")
+    assert other.get(page).status_code == 404

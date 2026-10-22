@@ -612,20 +612,6 @@
 })();
 
 
-/* journal: a test's mistakes stay folded behind "Смотреть вопросы" */
-(() => {
-  document.querySelectorAll("[data-jr-show]").forEach((btn) => btn.addEventListener("click", () => {
-    const list = btn.closest(".jr-group").querySelector(".jr-list");
-    list.hidden = false; btn.parentElement.hidden = true;
-  }));
-  const target = location.hash && document.querySelector(location.hash);
-  if (target && target.closest(".jr-list")) {
-    const group = target.closest(".jr-group");
-    group.open = true; target.closest(".jr-list").hidden = false;
-    const intro = group.querySelector(".jr-group__intro"); if (intro) intro.hidden = true;
-    target.scrollIntoView({ block: "center" });
-  }
-})();
 
 /* formula sheets: math keyboard, live preview, several formulas at once, "add to this section" */
 (() => {
