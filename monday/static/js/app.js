@@ -710,10 +710,8 @@ document.addEventListener("click", (e) => {
   b.classList.toggle("tag", !open); b.classList.toggle("tag--line", !open);
 }, true);
 
-/* ---------- pixel numbers: scores, percents and stats drawn in a 5×7 dot-matrix font ----------
-   window.MondayPixel(canvas, text, cell, lit, unlit) draws text into a canvas;
-   every .home-ring__value, .stat-value and [data-pixnum] is drawn this way automatically:
-   the numeric part becomes dots, words after it ("мин") stay text, screen readers keep the text. */
+/* ---------- pixel numbers: window.MondayPixel(canvas, text, cell, lit, unlit) draws text in a 5×7 dot-matrix font
+   (used by the Monday test countdown and ranking podium; other numbers stay in the regular font) */
 (function () {
   "use strict";
   const FONT = {
@@ -746,23 +744,4 @@ document.addEventListener("click", (e) => {
       x0 += (g[0].length + 1) * cell;
     }
   };
-  const NUM = /^[0-9%/#+\-–.,\s]*[0-9][0-9%/#+\-–.,]*/;
-  const rgba = (color, a) => { const m = color.match(/[\d.]+/g) || [0, 0, 0]; return `rgba(${m[0]},${m[1]},${m[2]},${a})`; };
-  function pixelize(el) {
-    if (!el.dataset.pixSrc) {
-      const text = el.textContent.trim(), m = text.match(NUM);
-      if (!m) return;
-      el.dataset.pixSrc = m[0].trim(); el.dataset.pixRest = text.slice(m[0].length).trim();
-      el.setAttribute("aria-label", text); el.classList.add("is-pix");
-      el.innerHTML = `<canvas aria-hidden="true"></canvas>${el.dataset.pixRest ? `<span class="pix-rest" aria-hidden="true">${el.dataset.pixRest.replace(/[&<>]/g, "")}</span>` : ""}`;
-    }
-    const cs = getComputedStyle(el), size = parseFloat(el.dataset.pixSize || cs.fontSize) || 24;
-    const cell = Math.max(2, Math.round(size / 8));
-    window.MondayPixel(el.querySelector("canvas"), el.dataset.pixSrc, cell, cs.color, rgba(cs.color, .05));
-  }
-  const all = () => document.querySelectorAll(".home-ring__value, .stat-value, [data-pixnum]").forEach(pixelize);
-  all();
-  // colours follow the theme: redraw when it changes
-  new MutationObserver(all).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-  window.MondayPixelize = all;
 })();

@@ -1417,11 +1417,6 @@ body.has-rv-foot .page { padding-bottom: 110px; }
   .rk-col__bar i, .rk-duel__bar i { opacity: 1; transform: none; animation: none !important; }
   .rk-col--1 .rk-col__bar::after { animation: none; display: none; }
 }
-/* pixel numbers (app.js draws them); the canvas sits on the text baseline */
-.is-pix { display: inline-flex; align-items: flex-end; gap: .25em; line-height: 1; }
-.is-pix canvas { display: block; }
-.is-pix .pix-rest { font-size: .42em; font-weight: 600; letter-spacing: .02em; opacity: .85; }
-.home-ring__value.is-pix { justify-content: center; }
 /* the right column matches the ranking's height: the school duel stretches to fill it */
 @media (min-width: 1001px) {
   .rk-grid { align-items: stretch; }
