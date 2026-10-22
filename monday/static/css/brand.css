@@ -1505,3 +1505,6 @@ body.has-rv-foot .page { padding-bottom: 110px; }
   .sk-grid .sk-topic .bank-topic__body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; align-items: start; }
 }
 @media (max-width: 560px) { .sk-grid .sk-topic .bank-topic__text { padding-right: 20px; } }
+
+/* skills map: the student's own exam carries a small dot in the exam filter */
+.sk-own { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-left: 6px; vertical-align: middle; opacity: .7; }

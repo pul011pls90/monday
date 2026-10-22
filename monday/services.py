@@ -456,8 +456,12 @@ def student_pool(exam, questions=None):
     return own + extra
 
 
-def pick_practice_questions(user, mode, skill_id=None):
-    exam = user.profile.exam if user.profile else None
+def pick_practice_questions(user, mode, skill_id=None, exam=None):
+    """exam: the map the student trains from ("all" = any exam); default is the student's own exam."""
+    if exam == "all":
+        exam = None
+    elif not exam:
+        exam = user.profile.exam if user.profile else None
     count = MODES[mode]["count"]
     pool = student_pool(exam) or student_pool(None)
     if skill_id:

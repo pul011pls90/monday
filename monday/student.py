@@ -167,10 +167,14 @@ def _daily_facts(n):
 @bp.route("/skills")
 @student_required
 def skills():
-    exam = _exam()
-    scope = request.args.get("scope", "exam")
+    own = _exam()
+    view = request.args.get("exam") or ("all" if request.args.get("scope") == "all" else own)
+    if view not in EXAMS and view != "all":
+        view = own
+    exam = None if view == "all" else view
+    scope = "all" if view == "all" else "exam"
     q = request.args.get("q", "").strip().lower()
-    topics = skill_map(current_user.id, exam if scope == "exam" else None)
+    topics = skill_map(current_user.id, exam)
 
     def keep(topic, sub, item):
         if scope == "exam" and item["state"] == "outside":
@@ -200,10 +204,11 @@ def skills():
         target = ([i for i in counted if i["state"] == "progress" and i["n"]] or [i for i in counted if i["state"] == "new" and i["n"]]
                   or [i for i in counted if i["n"]])
         t["target"] = target[0]["skill"].id if target else None
-    summary = progress_summary(current_user.id, exam)
-    highlight = summary["weak"][0]["skill"].topic_node.id if summary["weak"] and summary["weak"][0]["skill"].topic_node else None
+    summary = {"total": sum(t["counted"] for t in topics), "mastered": sum(t["mastered"] for t in topics)}
+    weak = progress_summary(current_user.id, own)["weak"] if exam == own else []
+    highlight = weak[0]["skill"].topic_node.id if weak and weak[0]["skill"].topic_node else None
     return render_template("student/skills.html", topics=topics, summary=summary, scope=scope, q=q, exam=exam,
-                           highlight=highlight)
+                           view=view, own=own, highlight=highlight)
 
 
 # --------------------------------------------------------------------------- practice sessions
@@ -224,7 +229,9 @@ def start_session(mode):
         flash(_("Этот режим скоро появится."), "info")
         return redirect(url_for("student.sessions"))
     skill_id = request.form.get("skill_id", type=int)
-    questions = pick_practice_questions(current_user, mode, skill_id=skill_id)
+    exam = request.form.get("exam")
+    questions = pick_practice_questions(current_user, mode, skill_id=skill_id,
+                                        exam=exam if exam in EXAMS or exam == "all" else None)
     if not questions:
         flash(_("Пока нет вопросов для этого режима."), "error")
         return redirect(url_for("student.sessions"))
