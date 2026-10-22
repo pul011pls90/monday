@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
+{% set nav_active = {'monday': 'student.monday', 'homework': 'student.homework'}.get(att.mode, 'student.collections') %}
 {% block title %}{{ _("Результат") }}{% endblock %}
-{% block page_class %}{{ "page--rv" if att.mode == "collection" else "page--narrow" }}{% endblock %}
+{% block page_class %}{{ "page--rv" if layout else "page--narrow" }}{% endblock %}
 {% block context %}{% set e = att.work_version.work.exam if att.work_version and att.work_version.work else None %}{% if e %}{{ e|exam_label }} · {{ _("математика") }}{% else %}{{ super() }}{% endif %}{% endblock %}
 {% block content %}
 {% set v = att.work_version %}
@@ -27,7 +28,7 @@
 {% set ns_w = namespace(n=0) %}{% for r in rows if not r.answer.is_correct and not (r.item and r.item.answer_type == 'written' and r.answer.points is none) %}{% set ns_w.n = ns_w.n + 1 %}{% endfor %}{% set wrong = ns_w.n %}
 {% if wrong %}<div class="flash flash--info">{{ _("Ошибок в работе: %(n)s. Они добавлены в Лабораторный журнал — там их можно разобрать и закрыть.", n=wrong) }}</div>{% endif %}
 
-{% if att.mode == 'collection' and layout %}
+{% if layout %}
 {% include "student/_review_steps.html" %}
 {% else %}
 <section class="section">
