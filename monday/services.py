@@ -432,28 +432,68 @@ def exam_language(exam):
     return "en" if exam in ("SAT", "CSCA") else "ru"
 
 
+_POOL_CACHE = {}  # exam → (stamp, [(id, skill_id, difficulty), ...]); one per worker process
+
+
+def _question_stamp():
+    """Changes whenever any question is added, edited or deleted (cheap: one aggregate query)."""
+    return tuple(db.session.query(func.count(Question.id), func.max(Question.updated_at)).one())
+
+
+def pool_index(exam):
+    """(id, skill_id, difficulty) of every practice question of an exam — see student_pool. Cached per process
+    until a question changes, so pages that only count questions don't load ~1000 rows each time."""
+    stamp = _question_stamp()
+    hit = _POOL_CACHE.get(exam)
+    if hit and hit[0] == stamp:
+        return hit[1]
+    rows = (db.session.query(Question.id, Question.skill_id, Question.exams, Question.language, Question.source,
+                             Question.difficulty)
+            .filter(Question.status == "published", Question.answer_type != "written").all())
+    if not exam:
+        out = [(r.id, r.skill_id, r.difficulty or 2) for r in rows]
+    else:
+        own = [r for r in rows if exam in (r.exams or [])]
+        have = Counter(r.skill_id for r in own)
+        lang = exam_language(exam)
+        thin = {r.skill_id for r in rows if have[r.skill_id] < TOP_UP}
+        extra = []
+        for r in sorted(rows, key=lambda r: (r.difficulty or 2, r.id)):
+            if (r.skill_id in thin and r.source and exam not in (r.exams or [])
+                    and (r.language or "ru") == lang and have[r.skill_id] < TOP_UP_MAX):
+                extra.append(r)
+                have[r.skill_id] += 1
+        out = [(r.id, r.skill_id, r.difficulty or 2) for r in own + extra]
+    _POOL_CACHE[exam] = (stamp, out)
+    return out
+
+
 def student_pool(exam, questions=None):
     """Practice questions of an exam, never written ones.
 
     A skill with fewer than TOP_UP of the exam's own questions is topped up (to TOP_UP_MAX) with
     compilation questions of the same skill from other exams, in the exam's language.
     """
-    if questions is None:
-        questions = Question.query.filter(Question.status == "published").all()
-    base = [q for q in questions if q.answer_type != "written"]
-    if not exam:
-        return base
-    own = [q for q in base if exam in (q.exams or [])]
-    have = Counter(q.skill_id for q in own)
-    lang = exam_language(exam)
-    extra = []
-    thin = {sid for sid in {q.skill_id for q in base} if have[sid] < TOP_UP}
-    for q in sorted(base, key=lambda q: (q.difficulty or 2, q.id)):
-        if (q.skill_id in thin and q.source and exam not in (q.exams or [])
-                and (q.language or "ru") == lang and have[q.skill_id] < TOP_UP_MAX):
-            extra.append(q)
-            have[q.skill_id] += 1
-    return own + extra
+    if questions is not None:  # an explicit list (tests): filter it the same way
+        base = [q for q in questions if q.answer_type != "written"]
+        if not exam:
+            return base
+        own = [q for q in base if exam in (q.exams or [])]
+        have = Counter(q.skill_id for q in own)
+        lang = exam_language(exam)
+        thin = {q.skill_id for q in base if have[q.skill_id] < TOP_UP}
+        extra = []
+        for q in sorted(base, key=lambda q: (q.difficulty or 2, q.id)):
+            if (q.skill_id in thin and q.source and exam not in (q.exams or [])
+                    and (q.language or "ru") == lang and have[q.skill_id] < TOP_UP_MAX):
+                extra.append(q)
+                have[q.skill_id] += 1
+        return own + extra
+    ids = [i for i, _s, _d in pool_index(exam)]
+    if not ids:
+        return []
+    by_id = {q.id: q for q in Question.query.filter(Question.id.in_(ids)).all()}
+    return [by_id[i] for i in ids if i in by_id]
 
 
 def build_custom_plan(user, cfg):

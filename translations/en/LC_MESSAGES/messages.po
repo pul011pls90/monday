@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Monday VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-22 01:30-0700\n"
+"POT-Creation-Date: 2026-10-22 02:07-0700\n"
 "PO-Revision-Date: 2026-10-17 13:27-0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -18,40 +18,40 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: monday/__init__.py:241
+#: monday/__init__.py:245
 #, python-format
 msgid "%(h)s ч %(m)s мин"
 msgstr "%(h)s h %(m)s min"
 
-#: monday/__init__.py:243
+#: monday/__init__.py:247
 #, python-format
 msgid "%(h)s ч"
 msgstr "%(h)s h"
 
-#: monday/__init__.py:244 monday/__init__.py:254
+#: monday/__init__.py:248 monday/__init__.py:258
 #, python-format
 msgid "%(m)s мин"
 msgstr "%(m)s min"
 
-#: monday/__init__.py:252
+#: monday/__init__.py:256
 #, python-format
 msgid "%(m)s мин %(s)s с"
 msgstr "%(m)s min %(s)s s"
 
-#: monday/__init__.py:255
+#: monday/__init__.py:259
 #, python-format
 msgid "%(s)s с"
 msgstr "%(s)s s"
 
-#: monday/__init__.py:277
+#: monday/__init__.py:281
 msgid "Нет доступа к этой странице."
 msgstr "You don't have access to this page."
 
-#: monday/__init__.py:281
+#: monday/__init__.py:285
 msgid "Такой страницы нет."
 msgstr "This page doesn't exist."
 
-#: monday/__init__.py:285
+#: monday/__init__.py:289
 msgid "Файл слишком большой (максимум 8 МБ)."
 msgstr "The file is too large (8 MB max)."
 
@@ -129,55 +129,55 @@ msgstr "%(n)s d ago"
 msgid "Не нашли ни одного вопроса. Вопросы должны начинаться с номера: «1.» или «1)»."
 msgstr "No questions found. Each question must start with a number: “1.” or “1)”."
 
-#: monday/assistant.py:114 monday/templates/assistant/preview.html:4
+#: monday/assistant.py:112 monday/templates/assistant/preview.html:4
 msgid "нет текста"
 msgstr "no text"
 
-#: monday/assistant.py:116
+#: monday/assistant.py:114
 msgid "не выбран навык"
 msgstr "no skill chosen"
 
-#: monday/assistant.py:118
+#: monday/assistant.py:116
 msgid "не выбран экзамен"
 msgstr "no exam chosen"
 
-#: monday/assistant.py:120
+#: monday/assistant.py:118
 msgid "нужно ≥ 2 вариантов и отмеченный верный"
 msgstr "needs ≥ 2 options and a marked correct one"
 
-#: monday/assistant.py:122
+#: monday/assistant.py:120
 msgid "ответ должен быть числом"
 msgstr "the answer must be a number"
 
-#: monday/assistant.py:140
+#: monday/assistant.py:138
 msgid "Ничего не сохранено — исправьте отмеченные вопросы или снимите с них галочку."
 msgstr "Nothing was saved — fix the marked questions or untick them."
 
-#: monday/assistant.py:146
+#: monday/assistant.py:144
 #, python-format
 msgid "Отправлено на проверку: %(n)s. Пропущено: %(s)s."
 msgstr "Sent for review: %(n)s. Skipped: %(s)s."
 
-#: monday/assistant.py:148
+#: monday/assistant.py:146
 #, python-format
 msgid "Сохранено в черновики: %(n)s."
 msgstr "Saved to drafts: %(n)s."
 
-#: monday/assistant.py:150
+#: monday/assistant.py:148
 #, python-format
 msgid "Опубликовано в банке: %(n)s. Пропущено: %(s)s."
 msgstr "Published to the bank: %(n)s. Skipped: %(s)s."
 
-#: monday/assistant.py:152
+#: monday/assistant.py:150
 #, python-format
 msgid "Не сохранены (ошибки): %(e)s"
 msgstr "Not saved (errors): %(e)s"
 
-#: monday/assistant.py:230
+#: monday/assistant.py:228
 msgid "Напишите, что исправить — ассистент увидит комментарий."
 msgstr "Write what to fix — the assistant will see your comment."
 
-#: monday/assistant.py:248
+#: monday/assistant.py:246
 #, python-format
 msgid "Одобрено: %(n)s."
 msgstr "Approved: %(n)s."
@@ -260,7 +260,7 @@ msgstr "Choose a photo."
 msgid "Фото: только PNG, JPG или WEBP."
 msgstr "Photo: PNG, JPG or WEBP only."
 
-#: monday/auth.py:229
+#: monday/auth.py:228
 msgid "Фото обновлено."
 msgstr "Photo updated."
 
@@ -276,7 +276,7 @@ msgstr "No questions match these filters. Remove some of them."
 msgid "Учитель не добавил объяснение."
 msgstr "The teacher hasn't added an explanation."
 
-#: monday/bank.py:259 monday/daily.py:122 monday/student.py:393
+#: monday/bank.py:259 monday/daily.py:122 monday/student.py:395
 #: monday/templates/student/bank_play.html:48
 #: monday/templates/student/daily.html:29
 msgid "Выберите или введите ответ."
@@ -403,7 +403,7 @@ msgstr "as long as you like"
 msgid "время, число вопросов и сложность — твои"
 msgstr "time, number of questions and difficulty are yours"
 
-#: monday/constants.py:36 monday/student.py:931 monday/student.py:1001
+#: monday/constants.py:36 monday/student.py:933 monday/student.py:1003
 #: monday/templates/teacher/works.html:10
 msgid "Сборник"
 msgstr "Collection"
@@ -1205,66 +1205,66 @@ msgstr "Choose an exam."
 msgid "Целевой балл для %(exam)s — от %(a)s до %(b)s."
 msgstr "The goal score for %(exam)s is from %(a)s to %(b)s."
 
-#: monday/student.py:268
+#: monday/student.py:270
 msgid "Этот режим скоро появится."
 msgstr "This mode is coming soon."
 
-#: monday/student.py:275
+#: monday/student.py:277
 msgid "Пока нет вопросов для этого режима."
 msgstr "No questions for this mode yet."
 
-#: monday/student.py:363
+#: monday/student.py:365
 #, python-format
 msgid "Вспомни тему «%(n)s»: какое свойство или формула здесь работает?"
 msgstr "Recall the topic «%(n)s»: which property or formula works here?"
 
-#: monday/student.py:464
+#: monday/student.py:466
 msgid "Под эти настройки нет вопросов — выбери другие темы или сложность."
 msgstr "No questions match these settings — choose other topics or difficulty."
 
-#: monday/student.py:512
+#: monday/student.py:514
 msgid "Мой режим"
 msgstr "My mode"
 
-#: monday/student.py:515
+#: monday/student.py:517
 #, python-format
 msgid "Режим «%(n)s» сохранён."
 msgstr "Mode «%(n)s» saved."
 
-#: monday/student.py:687 monday/templates/student/attempt.html:52
+#: monday/student.py:689 monday/templates/student/attempt.html:52
 msgid "Ответьте хотя бы на один вопрос, чтобы сдать работу."
 msgstr "Answer at least one question to hand in your work."
 
-#: monday/student.py:696
+#: monday/student.py:698
 msgid "Домашнее задание сдано. Учитель увидит результат."
 msgstr "Homework submitted. Your teacher will see the result."
 
-#: monday/student.py:713
+#: monday/student.py:715
 #, python-format
 msgid "Модуль %(n)s завершён. Ответы в нём больше не меняются."
 msgstr "Module %(n)s is finished. Its answers can no longer be changed."
 
-#: monday/student.py:777
+#: monday/student.py:779
 msgid "Нужна фотография: JPG, PNG, WEBP или HEIC."
 msgstr "A photo is needed: JPG, PNG, WEBP or HEIC."
 
-#: monday/student.py:803
+#: monday/student.py:805
 msgid "Это задание уже оценил учитель."
 msgstr "Your teacher has already marked this task."
 
-#: monday/student.py:875
+#: monday/student.py:877
 msgid "Это задание уже проверено."
 msgstr "This assignment has already been checked."
 
-#: monday/student.py:922 monday/student.py:945
+#: monday/student.py:924 monday/student.py:947
 msgid "Задача"
 msgstr "Problem"
 
-#: monday/student.py:927 monday/student.py:998
+#: monday/student.py:929 monday/student.py:1000
 msgid "Сессия"
 msgstr "Session"
 
-#: monday/student.py:930 monday/student.py:1001
+#: monday/student.py:932 monday/student.py:1003
 #: monday/templates/teacher/assign.html:16
 #: monday/templates/teacher/review.html:18
 #: monday/templates/teacher/review.html:35
@@ -1272,7 +1272,7 @@ msgstr "Session"
 msgid "Работа"
 msgstr "Work"
 
-#: monday/student.py:939 monday/student.py:943
+#: monday/student.py:941 monday/student.py:945
 #: monday/templates/partials/macros.html:169
 #: monday/templates/student/_review_steps.html:18
 #: monday/templates/student/journal_review.html:52
@@ -1282,63 +1282,63 @@ msgstr "Work"
 msgid "Вопрос %(n)s"
 msgstr "Question %(n)s"
 
-#: monday/student.py:943 monday/templates/student/_review_steps.html:15
+#: monday/student.py:945 monday/templates/student/_review_steps.html:15
 #: monday/templates/student/_review_steps.html:18
 #: monday/templates/student/_review_steps.html:48
 #, python-format
 msgid "Модуль %(k)s"
 msgstr "Module %(k)s"
 
-#: monday/student.py:979
+#: monday/student.py:981
 msgid "В этой работе нет ошибок."
 msgstr "There are no mistakes in this test."
 
-#: monday/student.py:1021
+#: monday/student.py:1023
 #, python-format
 msgid "Причина «Не хватило времени» поставлена: %(n)s."
 msgstr "Reason “Ran out of time” set: %(n)s."
 
-#: monday/student.py:1037
+#: monday/student.py:1039
 msgid "Для этих тем пока нет вопросов в банке."
 msgstr "The bank has no questions on these topics yet."
 
-#: monday/student.py:1172
+#: monday/student.py:1174
 msgid "Тест понедельника откроется в понедельник в 19:00."
 msgstr "The Monday test opens on Monday at 19:00."
 
-#: monday/student.py:1210
+#: monday/student.py:1212
 msgid "Профиль сохранён."
 msgstr "Profile saved."
 
-#: monday/student.py:1216 monday/teacher.py:1192
+#: monday/student.py:1218 monday/teacher.py:1194
 msgid "Текущий пароль неверный."
 msgstr "The current password is wrong."
 
-#: monday/student.py:1218 monday/teacher.py:1194
+#: monday/student.py:1220 monday/teacher.py:1196
 msgid "Новый пароль должен быть не короче 8 символов."
 msgstr "The new password must be at least 8 characters."
 
-#: monday/student.py:1222 monday/teacher.py:1198
+#: monday/student.py:1224 monday/teacher.py:1200
 msgid "Пароль изменён."
 msgstr "Password changed."
 
-#: monday/student.py:1255
+#: monday/student.py:1257
 msgid "Назови лист, например «CSCA формулы»."
 msgstr "Name the sheet, e.g. “CSCA formulas”."
 
-#: monday/student.py:1262
+#: monday/student.py:1264
 msgid "Лист создан. Добавь первую формулу."
 msgstr "Sheet created. Add the first formula."
 
-#: monday/student.py:1276
+#: monday/student.py:1278
 msgid "Лист удалён."
 msgstr "Sheet deleted."
 
-#: monday/student.py:1293 monday/student.py:1311
+#: monday/student.py:1295 monday/student.py:1312
 msgid "Укажи название и формулу или картинку."
 msgstr "Enter a title and a formula or a picture."
 
-#: monday/student.py:1306
+#: monday/student.py:1307
 msgid "Картинка: только PNG, JPG или WEBP."
 msgstr "Picture: PNG, JPG or WEBP only."
 
@@ -1433,7 +1433,7 @@ msgstr "Version %(n)s published. Students' old results are kept."
 msgid "Работа опубликована."
 msgstr "Work published."
 
-#: monday/teacher.py:591 monday/teacher.py:1127
+#: monday/teacher.py:591 monday/teacher.py:1129
 msgid "Черновик сохранён."
 msgstr "Draft saved."
 
@@ -1518,103 +1518,103 @@ msgstr "“%(name)s” moved to the archive. Students' results are kept."
 msgid "Восстановлено."
 msgstr "Restored."
 
-#: monday/teacher.py:877 monday/teacher.py:1189
+#: monday/teacher.py:877 monday/teacher.py:1191
 msgid "Сохранено."
 msgstr "Saved."
 
-#: monday/teacher.py:934
+#: monday/teacher.py:938
 msgid "Отметьте хотя бы один вопрос."
 msgstr "Tick at least one question."
 
-#: monday/teacher.py:943
+#: monday/teacher.py:947
 #, python-format
 msgid "Вопросов дня на %(d)s: добавлено %(n)s."
 msgstr "Questions of the day for %(d)s: %(n)s added."
 
-#: monday/teacher.py:945
+#: monday/teacher.py:949
 #, python-format
 msgid "Не добавлено %(n)s: в день не больше 3 вопросов, повторы пропускаются."
 msgstr "%(n)s not added: no more than 3 questions a day, repeats are skipped."
 
-#: monday/teacher.py:953
+#: monday/teacher.py:957
 #, python-format
 msgid "Новая работа · %(n)s вопр."
 msgstr "New work · %(n)s q."
 
-#: monday/teacher.py:958
+#: monday/teacher.py:962
 #, python-format
 msgid "Создана работа из %(n)s вопросов — задайте название и опубликуйте."
 msgstr "Created a work of %(n)s questions — give it a title and publish."
 
-#: monday/teacher.py:965
+#: monday/teacher.py:969
 #, python-format
 msgid "Добавлено в «%(t)s»: %(n)s. Уже были: %(k)s."
 msgstr "Added to “%(t)s”: %(n)s. Already there: %(k)s."
 
-#: monday/teacher.py:965 monday/templates/teacher/bank.html:36
+#: monday/teacher.py:969 monday/templates/teacher/bank.html:36
 msgid "без названия"
 msgstr "untitled"
 
-#: monday/teacher.py:1001 monday/templates/partials/macros.html:147
+#: monday/teacher.py:1005 monday/templates/partials/macros.html:147
 #: monday/templates/teacher/question_edit.html:23
 msgid "Колонка А"
 msgstr "Column A"
 
-#: monday/teacher.py:1002 monday/templates/partials/macros.html:148
+#: monday/teacher.py:1006 monday/templates/partials/macros.html:148
 #: monday/templates/teacher/question_edit.html:24
 msgid "Колонка Б"
 msgstr "Column B"
 
-#: monday/teacher.py:1012
+#: monday/teacher.py:1016
 #, python-format
 msgid "Текст вопроса — до %(n)s слов (сейчас %(w)s). Длинный текст вынесите в блок «Текст для чтения»."
 msgstr "Question text — up to %(n)s words (now %(w)s). Move long text to the “Reading text” block."
 
-#: monday/teacher.py:1017
+#: monday/teacher.py:1021
 msgid "Ссылка на видео должна начинаться с https://"
 msgstr "The video link must start with https://"
 
-#: monday/teacher.py:1021
+#: monday/teacher.py:1025
 msgid "Отметьте хотя бы один экзамен."
 msgstr "Tick at least one exam."
 
-#: monday/teacher.py:1045
+#: monday/teacher.py:1049
 msgid "Нужно минимум два варианта ответа."
 msgstr "At least two answer options are needed."
 
-#: monday/teacher.py:1047
+#: monday/teacher.py:1051
 msgid "Отметьте верный вариант."
 msgstr "Mark the correct option."
 
-#: monday/teacher.py:1059
+#: monday/teacher.py:1063
 msgid "Верный ответ должен быть числом: целым, дробью (3/4) или десятичным (0,75)."
 msgstr "The correct answer must be a number: integer, fraction (3/4) or decimal (0.75)."
 
-#: monday/teacher.py:1070
+#: monday/teacher.py:1074
 msgid "Изображение: только PNG, JPG или WEBP."
 msgstr "Image: PNG, JPG or WEBP only."
 
-#: monday/teacher.py:1079
+#: monday/teacher.py:1081
 msgid "Добавьте текст вопроса или изображение."
 msgstr "Add question text or an image."
 
-#: monday/teacher.py:1123
+#: monday/teacher.py:1125
 msgid "Вопрос отправлен на проверку методисту. После одобрения он появится в банке."
 msgstr "The question was sent to a methodologist for review. It will appear in the bank after approval."
 
-#: monday/teacher.py:1125
+#: monday/teacher.py:1127
 msgid "Вопрос опубликован в банке."
 msgstr "Question published to the bank."
 
-#: monday/teacher.py:1152
+#: monday/teacher.py:1154
 msgid "Вопрос сохранён. Уже опубликованные работы не меняются — переопубликуйте их, чтобы включить правку."
 msgstr "Question saved. Already published works don't change — republish them to include the edit."
 
-#: monday/teacher.py:1165
+#: monday/teacher.py:1167
 msgid "На вопрос уже отвечали ученики, поэтому он скрыт (перенесён в черновики), а не удалён."
 msgstr "Students have already answered this question, so it was hidden (moved to drafts) instead of deleted."
 
-#: monday/teacher.py:1168 monday/templates/student/journal_review.html:91
+#: monday/teacher.py:1170 monday/templates/student/journal_review.html:91
 msgid "Вопрос удалён."
 msgstr "Question deleted."
 
@@ -2384,6 +2384,7 @@ msgstr "Block"
 
 #: monday/templates/admin/index.html:199
 #: monday/templates/teacher/_picker_list.html:29
+#: monday/templates/teacher/questions.html:61
 msgid "Страницы"
 msgstr "Pages"
 
@@ -3469,6 +3470,7 @@ msgstr "Teacher's video"
 #: monday/templates/student/journal_review.html:96
 #: monday/templates/teacher/_picker_list.html:30
 #: monday/templates/teacher/question_edit.html:38
+#: monday/templates/teacher/questions.html:62
 msgid "Назад"
 msgstr "Back"
 
@@ -3502,6 +3504,7 @@ msgstr "unanswered"
 #: monday/templates/student/attempt.html:164
 #: monday/templates/student/bank_play.html:86
 #: monday/templates/student/journal_review.html:107
+#: monday/templates/teacher/questions.html:64
 msgid "Далее"
 msgstr "Next"
 
@@ -6368,6 +6371,11 @@ msgstr "whole topic"
 msgid "Любой статус"
 msgstr "Any status"
 
+#: monday/templates/teacher/questions.html:40
+#, python-format
+msgid "страница %(p)s из %(n)s"
+msgstr "page %(p)s of %(n)s"
+
 #: monday/templates/teacher/questions.html:47
 msgid "б."
 msgstr "pt."
@@ -6390,11 +6398,11 @@ msgstr "Edit"
 msgid "Удалить вопрос?"
 msgstr "Delete the question?"
 
-#: monday/templates/teacher/questions.html:60
+#: monday/templates/teacher/questions.html:68
 msgid "Вопросов нет"
 msgstr "No questions"
 
-#: monday/templates/teacher/questions.html:60
+#: monday/templates/teacher/questions.html:68
 msgid "Создайте первый вопрос — форма займёт пару минут."
 msgstr "Create your first question — the form takes a couple of minutes."
 

@@ -15,11 +15,20 @@ from config import Config  # noqa: E402
 
 def make_app():
     tmp = tempfile.mkdtemp()
+    # TEST_DATABASE_URL=postgresql+psycopg://… runs the whole suite on PostgreSQL (the database is wiped first)
+    pg = os.environ.get("TEST_DATABASE_URL")
+    if pg:
+        import sqlalchemy
+        eng = sqlalchemy.create_engine(pg)
+        with eng.begin() as conn:
+            conn.execute(sqlalchemy.text("DROP SCHEMA public CASCADE; CREATE SCHEMA public"))
+        eng.dispose()
 
     class TestConfig(Config):
         TESTING = True
         WTF_CSRF_ENABLED = False
-        SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(tmp, "test.db")
+        SQLALCHEMY_DATABASE_URI = pg or "sqlite:///" + os.path.join(tmp, "test.db")
+        SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True} if pg else {}
         UPLOAD_FOLDER = os.path.join(tmp, "uploads")
         SERVER_NAME = "localhost"
         DATA_FIXES = False  # the flows below use the demo collections; test_data_fixes runs the fixes itself
@@ -713,6 +722,9 @@ def test_profile_photo_and_name():
 
 
 def test_old_database_gets_new_columns():
+    import pytest
+    if os.environ.get("TEST_DATABASE_URL"):
+        pytest.skip("edits the SQLite file directly")
     import sqlite3
     from sqlalchemy import inspect
     from monday.extensions import db
@@ -974,7 +986,7 @@ def test_questions_translated_for_student():
     from monday.extensions import db
     from monday.models import Attempt, Question, User
     with APP.app_context():  # a session on a seed question with a known pattern (compilation questions may have none)
-        q = Question.query.filter(Question.source.is_(None), Question.text.like("Найдите%")).first()
+        q = Question.query.filter(Question.source.is_(None), Question.text.like("Найдите%")).order_by(Question.id).first()
         u = User.query.filter_by(email="student@monday.kg").first()
         att = Attempt(user=u, mode="franklin", plan=[q.id], position=0, total=1)
         db.session.add(att)

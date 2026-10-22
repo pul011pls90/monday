@@ -31,6 +31,7 @@ def create_app(config_object=Config, *, seed_if_empty=True):
 
     db.init_app(app)
     csrf.init_app(app)
+    _register_speed(app)
     babel.init_app(app, locale_selector=select_locale)
 
     # names of the shared skill map are stored in Russian; show them in the page's language
@@ -115,8 +116,11 @@ def create_app(config_object=Config, *, seed_if_empty=True):
         db.create_all()
         _check_schema()
         if seed_if_empty and not User.query.first():
-            from .seed import seed_demo
-            seed_demo()
+            if app.config.get("SEED_DEMO", True):
+                from .seed import seed_demo
+                seed_demo()
+            else:
+                _bootstrap_admin(app)
         from .taxonomy import ensure_taxonomy
         ensure_taxonomy()  # move an older skill map onto the master map (once per version)
         from .packs import ensure_packs
@@ -310,3 +314,72 @@ def _register_cli(app):
         for pid in ([pack_id] if pack_id else available()):
             q, w = import_pack(pid, publish=not draft)
             click.echo(f"{pid}: " + (f"{q} questions, {w} collections" if q else "already imported"))
+
+
+def _bootstrap_admin(app):
+    """Production: an empty database gets one admin (ADMIN_EMAIL / ADMIN_PASSWORD) instead of the demo data."""
+    from .models import User
+    email, password = app.config.get("ADMIN_EMAIL"), app.config.get("ADMIN_PASSWORD")
+    if not email or not password:
+        app.logger.warning("Empty database and no ADMIN_EMAIL/ADMIN_PASSWORD: no admin created.")
+        return
+    admin = User(email=email.strip().lower(), name="Admin", role="admin", is_approved=True)
+    admin.set_password(password)
+    db.session.add(admin)
+    db.session.commit()
+
+
+def _register_speed(app):
+    """Fewer and smaller requests per page.
+
+    - Static files get ?v=<file version> in their URLs and are cached by browsers for a year:
+      no more re-checking ~15 files on every page (a round trip each).
+    - HTML, CSS and JS go out gzip-compressed (about 5x smaller).
+    """
+    import hashlib
+
+    from flask_compress import Compress
+    app.config.setdefault("COMPRESS_MIMETYPES", ["text/html", "text/css", "application/javascript", "text/javascript",
+                                                 "application/json", "image/svg+xml", "text/plain"])
+    app.config.setdefault("COMPRESS_MIN_SIZE", 600)
+    app.config.setdefault("COMPRESS_ALGORITHM", ["gzip"])
+    Compress(app)
+
+    versions = {}
+
+    def version(filename):
+        path = os.path.join(app.static_folder, filename)
+        try:
+            stamp = os.stat(path).st_mtime_ns
+        except OSError:
+            return None
+        cached = versions.get(filename)
+        if cached and cached[0] == stamp:
+            return cached[1]
+        with open(path, "rb") as f:
+            v = hashlib.md5(f.read()).hexdigest()[:10]
+        versions[filename] = (stamp, v)
+        return v
+
+    @app.url_defaults
+    def _static_version(endpoint, values):
+        if endpoint == "static" and "filename" in values and "v" not in values:
+            v = version(values["filename"])
+            if v:
+                values["v"] = v
+
+    @app.after_request
+    def _cache_headers(resp):
+        if request.endpoint in ("static", "uploaded_file"):
+            resp.cache_control.no_cache = None
+        if request.endpoint == "static" and request.args.get("v"):
+            resp.cache_control.public = True
+            resp.cache_control.max_age = 31536000
+            resp.cache_control.immutable = True
+        elif request.endpoint == "static":  # fonts and images referenced from CSS (no version in the URL)
+            resp.cache_control.public = True
+            resp.cache_control.max_age = 604800
+        elif request.endpoint == "uploaded_file":
+            resp.cache_control.private = True
+            resp.cache_control.max_age = 86400
+        return resp

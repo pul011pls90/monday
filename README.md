@@ -162,12 +162,34 @@ pybabel update -i translations/messages.pot -d translations
 English already has the navigation translated as a working example. Question content
 has its own `language` field, so teachers can write questions in any language.
 
-## Moving to production later
+## Production (Render, Frankfurt)
 
-- Database: set `DATABASE_URL` to PostgreSQL (Supabase works) — no code changes.
-- Secret key: set `MONDAY_SECRET_KEY` (locally one is generated in `instance/`).
-- Run with a production server, e.g. `pip install gunicorn && gunicorn "app:app"`.
-- Keep `instance/` out of git — it holds the database, uploads and the secret key.
+`render.production.yaml` creates a paid, always-on setup next to the free demo:
+
+| Part | Plan | Price now |
+|---|---|---|
+| Web service `monday-app`, Frankfurt | `0.5c-512mb` (for Monday-test peaks: `1c-2g`) | $7 (or $25) |
+| PostgreSQL `monday-db`, Frankfurt | `0.1c-256mb`, 1 GB included | $6 |
+| Disk for photos `/var/data` | 5 GB | ~$1.25 |
+
+1. Render → **New → Blueprint** → this repository → Blueprint path **`render.production.yaml`**.
+2. Render asks for `ADMIN_EMAIL` and `ADMIN_PASSWORD` once: that becomes the first admin. No demo accounts are created
+   (`SEED_DEMO=0`); the skill map and the content packs are imported on the first start.
+3. Add the new address (and your domain, if any) to the Desmos key's allowed sites.
+
+What the production settings change:
+- `DATABASE_URL` → PostgreSQL (data survives restarts and deploys); `UPLOAD_FOLDER` → the persistent disk.
+- `MONDAY_TEST_ALWAYS_OPEN=0` → the Monday test opens only on Mondays 19:00–24:00.
+- `COOKIE_SECURE=1` → sign-in cookies only over HTTPS.
+- `gunicorn.conf.py`: 2 workers × 4 threads, the app is prepared once before the workers start.
+
+Checked before release: the whole test suite runs on PostgreSQL
+(`TEST_DATABASE_URL=postgresql+psycopg://… pytest`), every page was crawled on PostgreSQL, and a load test
+(50 students, 25 pages at once) gave ~60 pages/s on 2 CPU cores with no errors.
+
+Speed: static files are cached by browsers for a year (their URLs carry a version), pages are compressed
+(a 100 KB page travels as ~6 KB), menu links are fetched when the pointer rests on them, and uploaded photos
+are shrunk to ~200 KB (iPhone HEIC included).
 
 ## Not built yet (space left for it)
 
@@ -180,6 +202,6 @@ Tesla interactive graphs, Monday Report sharing image, payments, mobile app wrap
 2. On render.com: **New → Blueprint**, pick the repository. `render.yaml` sets everything up.
 3. After the first deploy the site lives at `https://monday-xxxx.onrender.com` with the demo accounts.
 
-Free plan notes: the site sleeps after ~15 minutes without visitors (the first visit then takes ~50 s),
-and the database is rebuilt from demo data on each restart. Add the Render address to the Desmos key's
+Free plan notes: the site sleeps after ~15 minutes without visitors (the first visit then takes about a minute),
+and the database is rebuilt from demo data on each restart — use it for demos only, never for real students. Add the Render address to the Desmos key's
 allowed sites at desmos.com/my-api.

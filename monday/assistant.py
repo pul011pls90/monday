@@ -83,10 +83,8 @@ def _save_image(file):
     ext = os.path.splitext(secure_filename(file.filename))[1].lower()
     if ext not in (".png", ".jpg", ".jpeg", ".webp"):
         return None
-    name = f"{uuid.uuid4().hex}{ext}"
-    os.makedirs(current_app.config["UPLOAD_FOLDER"], exist_ok=True)
-    file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], name))
-    return name
+    from .images import store_image
+    return store_image(file, uuid.uuid4().hex, kind="figure")
 
 
 @bp.route("/import/save", methods=["POST"])

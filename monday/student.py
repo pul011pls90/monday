@@ -18,7 +18,7 @@ from .models import Assignment, Attempt, AttemptAnswer, ContentNode, Question, S
 from .services import (answer_item, build_custom_plan, ladder_next, countdown_label, current_module, current_monday_work, grade_version_attempt,
                        homework_state, is_correct, seconds_left, version_layout, latest_attempt, mistake_breakdown, monday_ranking, mondays_left,
                        next_monday_test_start, open_mistakes, pick_practice_questions, progress_summary,
-                       recommended_mode, skill_map, student_assignments, student_pool, user_rank, week_start)
+                       recommended_mode, skill_map, student_assignments, student_pool, pool_index, user_rank, week_start)
 
 bp = Blueprint("student", __name__)
 
@@ -201,7 +201,7 @@ def skills():
         if subs:
             filtered.append({**t, "subtopics": subs, "items": [i for s in subs for i in s["items"]]})
     topics = filtered
-    have = Counter(q.skill_id for q in student_pool(exam))
+    have = Counter(sid for _i, sid, _d in pool_index(exam))
     for t in topics:
         for i in t["items"]:
             i["n"] = have.get(i["skill"].id, 0)
@@ -228,12 +228,14 @@ def sessions():
     recent = (Attempt.query.filter(Attempt.user_id == current_user.id, Attempt.mode.in_(list(MODES.keys())))
               .order_by(Attempt.started_at.desc()).limit(8).all())
     exam = _exam()
+    tmap = skill_map(current_user.id, exam)
+    topic_of = {i["skill"].id: t["node"].id for t in tmap for i in t["items"]}
     have = Counter()
-    for q in student_pool(exam):
-        if q.skill and q.skill.topic_node:
-            have[(q.skill.topic_node.id, q.difficulty or 2)] += 1
+    for _i, sid, d in pool_index(exam):
+        if sid in topic_of:
+            have[(topic_of[sid], d)] += 1
     topics = []
-    for t in skill_map(current_user.id, exam):
+    for t in tmap:
         n = {d: have[(t["node"].id, d)] for d in (1, 2, 3)}
         if sum(n.values()):
             topics.append({"id": t["node"].id, "name": t["name"], "n": n})
@@ -777,8 +779,8 @@ def attempt_photo(attempt_id):
         return jsonify(ok=False, reason="type", message=_("Нужна фотография: JPG, PNG, WEBP или HEIC.")), 400
     folder = os.path.join(current_app.config["UPLOAD_FOLDER"], "solutions")
     os.makedirs(folder, exist_ok=True)
-    name = f"solutions/a{att.id}_{idx}_{_secrets.token_hex(6)}.{ext}"
-    f.save(os.path.join(current_app.config["UPLOAD_FOLDER"], name))
+    from .images import store_image
+    name = store_image(f, f"solutions/a{att.id}_{idx}_{_secrets.token_hex(6)}", kind="photo")
     draft = dict(att.draft or {})
     draft[f"p{idx}"] = name
     draft[f"q{idx}"] = "photo"
@@ -1299,9 +1301,8 @@ def formulas():
                 if upload and upload.filename:
                     ext = secure_filename(upload.filename).rsplit(".", 1)[-1].lower() if "." in upload.filename else ""
                     if ext in current_app.config["ALLOWED_IMAGE_EXTENSIONS"]:
-                        name = f"sheet-{current_user.id}-{uuid.uuid4().hex[:10]}.{ext}"
-                        upload.save(os.path.join(current_app.config["UPLOAD_FOLDER"], name))
-                        entry.image_path = name
+                        from .images import store_image
+                        entry.image_path = store_image(upload, f"sheet-{current_user.id}-{uuid.uuid4().hex[:10]}", kind="figure")
                     else:
                         flash(_("Картинка: только PNG, JPG или WEBP."), "error")
                 db.session.add(entry)

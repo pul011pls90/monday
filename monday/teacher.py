@@ -764,11 +764,11 @@ def tree():
     gaps_only = request.args.get("gaps") == "1"
     nodes = visible_nodes(current_user, include_archived=show_archived)
     counts, mine = {}, {}
-    for q in Question.query.filter(Question.status == "published").all():
-        if exam is None or exam in (q.exams or []):
-            counts[q.skill_id] = counts.get(q.skill_id, 0) + 1
-    for q in Question.query.filter_by(author_id=current_user.id).all():
-        mine[q.skill_id] = mine.get(q.skill_id, 0) + 1
+    for sid, exams in db.session.query(Question.skill_id, Question.exams).filter(Question.status == "published"):
+        if exam is None or exam in (exams or []):
+            counts[sid] = counts.get(sid, 0) + 1
+    for (sid,) in db.session.query(Question.skill_id).filter(Question.author_id == current_user.id):
+        mine[sid] = mine.get(sid, 0) + 1
     by_parent = {}
     for n in nodes:
         by_parent.setdefault(n.parent_id, []).append(n)
@@ -905,8 +905,12 @@ def questions():
     if q:
         items = [x for x in items if q in (x.text or "").lower()
                  or any(q in (b.get("text") or "").lower() for b in (x.material or []))]
-    return render_template("teacher/questions.html", items=items, mine=mine, exam=exam, node_id=node_id,
-                           status=status, q=q, tree=content_tree(current_user))
+    per = 50
+    total = len(items)
+    pages = max(1, (total + per - 1) // per)
+    page = max(1, min(pages, request.args.get("page", 1, type=int)))
+    return render_template("teacher/questions.html", items=items[(page - 1) * per:page * per], total=total, page=page,
+                           pages=pages, mine=mine, exam=exam, node_id=node_id, status=status, q=q, tree=content_tree(current_user))
 
 
 # --------------------------------------------------------------------------- question bank (pick questions into works)
@@ -1069,10 +1073,8 @@ def _fill_question(qn, form, files):
         if not _allowed_image(upload.filename):
             errors.append(_("Изображение: только PNG, JPG или WEBP."))
         else:
-            ext = secure_filename(upload.filename).rsplit(".", 1)[-1].lower()
-            name = f"q-{uuid.uuid4().hex[:12]}.{ext}"
-            upload.save(os.path.join(current_app.config["UPLOAD_FOLDER"], name))
-            qn.image_path = name
+            from .images import store_image
+            qn.image_path = store_image(upload, f"q-{uuid.uuid4().hex[:12]}", kind="figure")
     if form.get("remove_image") == "1":
         qn.image_path = None
     if not qn.text and not qn.image_path:

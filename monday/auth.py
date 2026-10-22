@@ -222,9 +222,8 @@ def set_avatar():
     if ext not in current_app.config["ALLOWED_IMAGE_EXTENSIONS"]:
         flash(_("Фото: только PNG, JPG или WEBP."), "error")
         return redirect(nxt)
-    name = f"avatar-{current_user.id}-{uuid.uuid4().hex[:8]}.{ext}"
-    upload.save(os.path.join(current_app.config["UPLOAD_FOLDER"], name))
-    current_user.avatar_path = name
+    from .images import store_image
+    current_user.avatar_path = store_image(upload, f"avatar-{current_user.id}-{uuid.uuid4().hex[:8]}", kind="avatar")
     db.session.commit()
     flash(_("Фото обновлено."), "success")
     return redirect(nxt)
