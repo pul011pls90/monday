@@ -271,14 +271,14 @@
   /* -------------------------------------------------------------- 6. sphere of numbers */
   function numSphere() {
     if (!state.pts) {
-      const n = Math.round(380 * density), pts = [];
+      const n = small ? 400 : 650, pts = [];
       for (let i = 0; i < n; i++) {
         const y = 1 - (i + .5) / n * 2, r = Math.sqrt(1 - y * y), a = i * Math.PI * (3 - Math.sqrt(5));
         pts.push({ x: Math.cos(a) * r, y, z: Math.sin(a) * r, d: String(Math.floor(Math.random() * 10)), next: rnd(0, 6), flip: -1 });
       }
       state.pts = pts;
     }
-    const R = Math.min(W, H) * .4, cx = W / 2, cy = H / 2;
+    const R = Math.min(W, H) * .28, cx = W / 2, cy = H / 2;
     const rot = t * .35, tilt = .35 + Math.sin(t * .2) * .1;
     const cr = Math.cos(rot), sr = Math.sin(rot), ct = Math.cos(tilt), st = Math.sin(tilt);
     const out = state.pts.map((p) => {
@@ -296,7 +296,7 @@
       ctx.fillStyle = l > .25 ? C.pale : C.paper;
       const pop = p.pop ? Math.max(0, 1 - (t - p.pop) / .5) : 0;
       if (pop) ctx.fillStyle = C.pale;
-      ctx.font = `${k > .75 ? 600 : 400} ${Math.round((7 + 12 * k ** 2 + l * 8) * (1 + pop * .8))}px ${MONO}`;
+      ctx.font = `${k > .75 ? 600 : 400} ${Math.round((5 + 9 * k ** 2 + l * 6) * (1 + pop * .8))}px ${MONO}`;
       ctx.fillText(p.d, p.x, p.y);
     }
     ctx.globalAlpha = 1;
@@ -326,14 +326,33 @@
         if (k >= TOPICS.length) break;
         if (labelled.every((q) => Math.hypot(q[0] - L.c[0], q[1] - L.c[1]) > 22)) { L.topic = TOPICS[k++]; labelled.push(L.c); }
       }
-      state.clouds = Array.from({ length: 7 }, () => ({ x: rnd(-.2, 1.1), y: rnd(.05, .9), s: rnd(.08, .16), v: rnd(.006, .016), puffs: Array.from({ length: 6 }, () => [rnd(-1, 1), rnd(-.35, .35), rnd(.45, .9)]) }));
+      // pixel clouds: blobs on the map's own grid, drifting right
+      const blob = () => { const w = Math.round(rnd(9, 17)), h = Math.round(rnd(3, 6)), cells = [];
+        for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) {
+          const nx = (c - w / 2) / (w / 2), ny = (r - h / 2) / (h / 2), edge = nx * nx + ny * ny * 1.4 + rnd(-.25, .25);
+          if (edge < 1) cells.push([c, r, clamp(1 - edge, .25, 1)]);
+        } return { cells, w, h }; };
+      state.clouds = Array.from({ length: small ? 4 : 6 }, () => ({ x: rnd(-.1, 1), y: rnd(.04, .8), v: rnd(.005, .012), ...blob() }));
     }
+    // one light fades out and a new city lights up every ~25 s (no sudden reload)
+    if (!state.swapAt) state.swapAt = t + 25;
+    if (t > state.swapAt && state.lights.length > 2) {
+      state.swapAt = t + 22 + rnd(0, 8);
+      const used = new Set(state.lights.map((L) => L.c.join()));
+      const free = CITIES.slice(1).filter((c) => !used.has(c.join()));
+      const i = 1 + Math.floor(Math.random() * (state.lights.length - 1));
+      const old = state.lights[i];
+      if (free.length && !old.dying) { old.dying = t; state.lights.push({ c: free[Math.floor(Math.random() * free.length)], born: t + 1.2, tw: rnd(0, TAU), topic: old.topic }); }
+    }
+    state.lights = state.lights.filter((L) => !L.dying || t - L.dying < 1.2);
     // faint graticule
     ctx.strokeStyle = "rgba(201,211,255,.08)"; ctx.lineWidth = 1;
     for (let k = 1; k < 4; k++) { ctx.beginPath(); ctx.ellipse(W / 2, H / 2, W * .6 * k / 3, H * .7, 0, 0, TAU); ctx.stroke(); }
     ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
     // cloud shadow sampler
-    const shade = (x, y) => { let v = 0; for (const c of state.clouds) { const cx = c.x * W, cy = c.y * H, r = c.s * W; for (const [dx, dy, k] of c.puffs) { const d = Math.hypot(x - (cx + dx * r), y - (cy + dy * r)) / (r * k); if (d < 1) v = Math.max(v, 1 - d); } } return v; };
+    const cloudGrid = new Map();
+    for (const c of state.clouds) { const c0 = Math.round(c.x * cols), r0 = Math.round(c.y * rows); for (const [dc, dr, a] of c.cells) cloudGrid.set((r0 + dr) * 1000 + c0 + dc, a); }
+    const shade = (x, y) => cloudGrid.get(Math.round((y - oy - cell / 2) / cell) * 1000 + Math.round((x - ox - cell / 2) / cell)) || 0;
     // land dots
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
       if (WORLD[r][c] !== "#") continue;
@@ -346,7 +365,7 @@
     // arcs from the hub
     const hub = at(...state.lights[0].c);
     state.lights.slice(1).forEach((L) => {
-      const p = clamp((t - L.born) / 1.6, 0, 1); if (!p) return;
+      const p = clamp((t - L.born) / 1.6, 0, 1); if (!p || L.dying) return;
       const [x, y] = at(...L.c), mx = (hub[0] + x) / 2, my = Math.min(hub[1], y) - Math.hypot(x - hub[0], y - hub[1]) * .28;
       ctx.globalAlpha = .38; ctx.strokeStyle = C.mist; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(...hub);
@@ -357,7 +376,7 @@
     });
     // lights
     state.lights.forEach((L, i) => {
-      const p = clamp((t - L.born) / .6, 0, 1); if (!p) return;
+      const p = clamp((t - L.born) / .6, 0, 1) * (L.dying ? clamp(1 - (t - L.dying) / 1.2, 0, 1) : 1); if (!p) return;
       const [x, y] = at(...L.c), tw = .65 + .35 * Math.sin(t * 2.4 + L.tw), rad = cell * (i ? 2.6 : 3.6) * p * tw;
       const g = ctx.createRadialGradient(x, y, 0, x, y, rad);
       g.addColorStop(0, "rgba(255,255,255,.95)"); g.addColorStop(.25, "rgba(201,211,255,.55)"); g.addColorStop(1, "rgba(143,166,255,0)");
@@ -365,18 +384,17 @@
       ctx.fillStyle = C.paper; ctx.beginPath(); ctx.arc(x, y, cell * .45, 0, TAU); ctx.fill();
       if (L.topic && p === 1) { ctx.globalAlpha = .85; ctx.font = `500 ${Math.max(10, cell * 1.3)}px ${MONO}`; ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillText(L.topic, x + cell * 1.6, y - cell * 1.2); }
     });
-    // clouds drift over the map
+    // pixel clouds drift over the map
     for (const c of state.clouds) {
-      c.x += c.v * (playing ? 1 : 0) * speed / 60; if (c.x > 1.25) { c.x = -.25; c.y = rnd(.05, .9); }
-      const cx = c.x * W, cy = c.y * H, r = c.s * W;
-      for (const [dx, dy, k] of c.puffs) {
-        const g = ctx.createRadialGradient(cx + dx * r, cy + dy * r, 0, cx + dx * r, cy + dy * r, r * k);
-        g.addColorStop(0, "rgba(232,238,255,.16)"); g.addColorStop(1, "rgba(232,238,255,0)");
-        ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx + dx * r, cy + dy * r, r * k, 0, TAU); ctx.fill();
+      c.x += c.v * (playing ? 1 : 0) * speed / 60; if (c.x > 1.15) { c.x = -.2; c.y = rnd(.04, .8); }
+      const c0 = Math.round(c.x * cols), r0 = Math.round(c.y * rows);
+      for (const [dc, dr, a] of c.cells) {
+        ctx.globalAlpha = .34 * a; ctx.fillStyle = C.paper;
+        ctx.fillRect(ox + (c0 + dc) * cell + 1, oy + (r0 + dr) * cell + 1, cell - 2, cell - 2);
       }
     }
     ctx.globalAlpha = 1;
-    return state.lights.length + " огней · клик — новые";
+    return state.lights.length + " огней";
   }
 
   const DRAW = [mountains, field, dragon, spiral, piScene, numSphere, worldMap];
@@ -404,12 +422,12 @@
   stage.addEventListener("pointermove", (e) => { const r = cv.getBoundingClientRect(), sh = W > 900 && [1, 2, 4, 5].includes(cur) ? W * .2 : 0; ptr.x = e.clientX - r.left - sh; ptr.y = e.clientY - r.top; });
   stage.addEventListener("pointerleave", () => { ptr.x = ptr.y = -1e4; });
   cv.addEventListener("click", (e) => {
+    if (cur === 3 || cur === 6) return;   // dead click: the spiral and the world map ignore clicks
     const r = cv.getBoundingClientRect(), sh = W > 900 && [1, 2, 4, 5].includes(cur) ? W * .2 : 0;
     ptr.px = e.clientX - r.left - sh; ptr.py = e.clientY - r.top; ptr.pulse = t;
     if (cur === 2 && state.t0 !== undefined) state.t0 -= 2;
     if (cur === 4) t += 14 * .62 - (t % 14);
     if (cur === 5 && state.pts) state.pts.forEach((q) => { q.flip = t + (q.y + 1) * .35 + Math.random() * .1; });
-    if (cur === 6) state.lights = null;
     if (reduce) draw();
   });
   new ResizeObserver(() => { resize(); if (reduce) draw(); }).observe(stage);
