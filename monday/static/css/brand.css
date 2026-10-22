@@ -1422,3 +1422,10 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 .is-pix canvas { display: block; }
 .is-pix .pix-rest { font-size: .42em; font-weight: 600; letter-spacing: .02em; opacity: .85; }
 .home-ring__value.is-pix { justify-content: center; }
+/* the right column matches the ranking's height: the school duel stretches to fill it */
+@media (min-width: 1001px) {
+  .rk-grid { align-items: stretch; }
+  .rk-side { grid-template-rows: auto 1fr; }
+  .rk-duel { align-content: space-between; grid-template-rows: auto auto 1fr auto auto; }
+  .rk-duel__bar { align-self: center; }
+}
