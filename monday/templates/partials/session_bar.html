@@ -16,6 +16,7 @@
   {% endif %}
   <div class="row session-bar__right" style="gap:8px">
     {% if counter %}<span class="small session-bar__counter" style="font-weight:700">{{ counter }}</span>{% endif %}
+    {% if deadline %}<span class="timer timer--soft" data-deadline="{{ deadline }}" aria-live="off">--:--</span>{% endif %}
     {% if timer_seconds is not none %}<span class="timer" data-timer="{{ timer_seconds }}" data-form="test-form" aria-live="off">--:--</span>{% endif %}
     <form method="post" action="{{ url_for('auth.toggle_theme') }}" data-theme-toggle>
       {{ ui.csrf() }}<input type="hidden" name="next" value="{{ request.full_path }}">

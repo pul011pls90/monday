@@ -2,31 +2,72 @@
 {% block title %}{{ _("Итоги сессии") }}{% endblock %}
 {% block page_class %}page--narrow{% endblock %}
 {% block content %}
+{% set n = answers|length %}
+{% set shown = (score|round(1)|string).replace('.0', '').replace('.', ',') %}
 <section class="hero" style="align-items:center">
-  {% set n = att.answers|length %}
-  {{ ui.dot_ring(att.score ~ '/' ~ n, (att.score / n) if n else 0, _("верно")) }}
+  {{ ui.dot_ring(shown ~ '/' ~ n, (score / n) if n else 0, _("верно")) }}
   <div class="stack-sm">
     <div class="eyebrow">{{ mode.name if mode else '' }} · {{ _("сессия завершена") }}</div>
-    <div class="hero__unit">{% if n and att.score == n %}{{ _("Чисто. Ни одной ошибки.") }}{% elif n and att.score * 2 >= n %}{{ _("Неплохо. Ошибки уже в журнале.") }}{% else %}{{ _("Это и есть тренировка — ошибки ждут в журнале.") }}{% endif %}</div>
-    <div class="hero-muted">{{ att.time_used|duration }}</div>
+    <div class="hero__unit">{% if n and score == n %}{{ _("Чисто. Ни одной ошибки.") }}{% elif n and score * 2 >= n %}{{ _("Неплохо. Ошибки уже в журнале.") }}{% else %}{{ _("Это и есть тренировка — ошибки ждут в журнале.") }}{% endif %}</div>
+    <div class="hero-muted">{{ att.time_used|duration }}{% if cfg.minutes %} · {{ _("лимит %(m)s мин", m=cfg.minutes) }}{% endif %}{% if hinted %} · {{ _("с подсказкой: %(n)s (по половине балла)", n=hinted) }}{% endif %}</div>
   </div>
 </section>
-<div class="list">
-  {% for a in att.answers %}
-    {% set item = a.question.snapshot() if a.question else None %}
-    <div class="list__row" style="grid-template-columns: 32px minmax(0,1fr) auto">
-      <span class="ic" style="color:{{ 'var(--ok)' if a.is_correct else 'var(--bad)' }}">{% include 'icons/' ~ ('check' if a.is_correct else 'x') ~ '.svg' %}</span>
-      <div class="stack-sm" style="gap:2px">
-        <span class="math">{{ item.text if item and item.text else _("Задача с рисунком") }}</span>
-        <span class="small muted">{{ a.skill.name if a.skill }}</span>
-      </div>
-      {% if not a.is_correct %}<span class="tag tag--bad">{{ MISTAKE_REASONS.get(a.mistake_reason, _("в журнале")) }}</span>{% endif %}
-    </div>
+
+{% if n %}
+<section class="sd-levels" aria-label="{{ _('По сложности') }}">
+  {% for d, name in ((1, _("Лёгкие")), (2, _("Средние")), (3, _("Сложные"))) %}{% set lv = levels.get(d) %}
+  <div class="sd-level{{ ' is-empty' if not lv }}">
+    <span class="small muted">{{ name }}</span>
+    <b class="num">{% if lv %}{{ lv.ok }}/{{ lv.n }}{% else %}—{% endif %}</b>
+    <span class="sd-bar"><i style="width: {{ ((100 * lv.ok / lv.n) if lv else 0)|round|int }}%"></i></span>
+  </div>
   {% endfor %}
+  {% if cfg.level == 'ladder' %}
+  <div class="sd-level sd-level--top">
+    <span class="small muted">{{ _("Лестница") }}</span>
+    <b>{{ _("дошёл до ступени %(n)s из 3", n=cfg.top or 1) }}</b>
+    <span class="sd-steps">{% for k in range(1, 4) %}<i class="{{ 'is-on' if k <= (cfg.top or 1) }}"></i>{% endfor %}</span>
+  </div>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if next_skill %}
+<section class="card card--tight sd-next">
+  <div><span class="eyebrow">{{ _("Что подтянуть дальше") }}</span><b>{{ next_skill.name }}</b><span class="small muted">{{ _("больше всего ошибок в этой сессии") }}</span></div>
+  <form method="post" action="{{ url_for('student.start_session', mode='franklin') }}">{{ ui.csrf() }}<input type="hidden" name="skill_id" value="{{ next_skill.id }}">
+    <button class="btn btn--secondary" type="submit">{{ ui.icon('play', 16) }}{{ _("Тренировать · 5 мин") }}</button></form>
+</section>
+{% endif %}
+
+<div class="row" style="flex-wrap:wrap">
+  {% if wrong %}<form method="post" action="{{ url_for('student.session_retry', attempt_id=att.id) }}">{{ ui.csrf() }}<button class="btn btn--primary" type="submit">{{ ui.icon('retry', 16) }}{{ _("Повторить ошибки (%(n)s)", n=wrong|length) }}</button></form>{% endif %}
+  <form method="post" action="{{ url_for('student.session_again', attempt_id=att.id) }}">{{ ui.csrf() }}<button class="btn {{ 'btn--secondary' if wrong else 'btn--primary' }}" type="submit">{{ _("Ещё раз с теми же настройками") if mode_key == 'custom' else _("Ещё одна сессия") }}</button></form>
+  <a class="btn btn--ghost" href="{{ url_for('student.sessions') }}">{{ _("Своя сессия") }}</a>
+  <a class="btn btn--ghost" href="{{ url_for('student.journal') }}">{{ _("Журнал ошибок") }}</a>
 </div>
-<div class="row">
-  <form method="post" action="{{ url_for('student.start_session', mode=mode_key) }}">{{ ui.csrf() }}<button class="btn btn--primary" type="submit">{{ _("Ещё одна сессия") }}</button></form>
-  <a class="btn btn--secondary" href="{{ url_for('student.journal') }}">{{ _("Разобрать ошибки") }}</a>
-  <a class="btn btn--ghost" href="{{ url_for('student.home') }}">{{ _("На главную") }}</a>
+
+<div class="list sd-list">
+  {% for a in answers %}
+    {% set item = a.question.snapshot()|loc if a.question else None %}
+    <details class="sd-row"{% if cfg.explain == 'end' and not a.is_correct %} open{% endif %}>
+      <summary>
+        <span class="ic" style="color:{{ 'var(--ok)' if a.is_correct else 'var(--bad)' }}">{% include 'icons/' ~ ('check' if a.is_correct else 'x') ~ '.svg' %}</span>
+        <span class="stack-sm" style="gap:2px;min-width:0">
+          <span class="math sd-row__text">{{ item.text if item and item.text else _("Задача с рисунком") }}</span>
+          <span class="small muted">{{ a.skill.name if a.skill }} · {{ DIFFICULTIES[(a.question.difficulty if a.question else 2) or 2] }}{% if a.hint_used %} · {{ _("с подсказкой") }}{% endif %}</span>
+        </span>
+        {% if not a.is_correct %}<span class="tag tag--bad">{{ MISTAKE_REASONS.get(a.mistake_reason, _("в журнале")) }}</span>{% endif %}
+        <span class="bank-topic__chev">{{ ui.icon('chevron-down', 18) }}</span>
+      </summary>
+      {% if item %}
+      <div class="sd-row__body">
+        <div class="small"><b>{{ _("Твой ответ:") }}</b> {{ ui.answer_text(item, a.given) }} · <b>{{ _("Верный:") }}</b> <span class="math">{{ ui.correct_text(item) }}</span></div>
+        {% if item.explanation %}<div class="explain__text math">{{ item.explanation }}</div>{% endif %}
+        {{ ui.report_button(a.question_id) }}
+      </div>
+      {% endif %}
+    </details>
+  {% endfor %}
 </div>
 {% endblock %}

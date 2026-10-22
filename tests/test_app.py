@@ -1198,3 +1198,44 @@ def test_error_report_flow_and_teacher_map():
     ok(t, "/teacher/tree?exam=ORT", contains=["Только пробелы", "tm-count"])
     ok(t, "/teacher/tree?exam=SAT&gaps=1")
     ok(t, "/teacher/reports")
+
+
+def test_custom_session_builder_ladder_hint_retry():
+    """«Своя сессия»: ladder picks the next question as you go, hints count as half, retry repeats the mistakes."""
+    from monday.models import Attempt, User
+    s = login(client(), "student11@monday.kg", "student123")
+    ok(s, "/sessions", contains=["Своя сессия", "Лестница", "Сохранить как мой режим"])
+    r = s.post("/sessions/custom", data={"minutes": "10", "count": "4", "level": "ladder", "topics": "all", "explain": "now"})
+    assert r.status_code == 302 and "/sessions/" in r.headers["Location"]
+    url = r.headers["Location"]
+    with APP.app_context():
+        uid = User.query.filter_by(email="student11@monday.kg").first().id
+        att = Attempt.query.filter_by(user_id=uid, mode="custom").order_by(Attempt.id.desc()).first()
+        assert len(att.plan) == 1 and att.draft["cfg"]["count"] == 4
+    ok(s, url, contains=["Ступень", "Подсказка", "Закончить сессию сейчас"])
+    s.post(url, data={"action": "hint"})
+    assert "hint-box" in s.get(url).data.decode()
+    for _i in range(4):
+        s.post(url, data={"action": "answer", "given": "999999"})
+        r = s.post(url, data={"action": "next"})
+    assert "/done" in r.headers["Location"]
+    with APP.app_context():
+        att = Attempt.query.filter_by(user_id=uid, mode="custom").order_by(Attempt.id.desc()).first()
+        assert att.finished_at and len(att.plan) == 4 and att.answers[0].hint_used
+        assert len(set(att.plan)) == 4  # the ladder never repeats a question
+        att_id = att.id
+    ok(s, f"/sessions/{att_id}/done", contains=["Повторить ошибки", "Лёгкие", "дошёл до ступени"])
+    r = s.post(f"/sessions/{att_id}/retry")
+    assert r.status_code == 302 and "/sessions/" in r.headers["Location"]
+    # explanations at the end: answering moves straight to the next question
+    r = s.post("/sessions/custom", data={"minutes": "0", "count": "2", "level": "hard", "topics": "weak", "explain": "end"})
+    url = r.headers["Location"]
+    s.post(url, data={"action": "answer", "given": "1"})
+    r = s.post(url, data={"action": "answer", "given": "1"})
+    assert "/done" in r.headers["Location"]
+    # presets and the daily goal
+    s.post("/sessions/presets", data={"name": "Утро", "minutes": "5", "count": "3", "level": "easy", "topics": "all"})
+    ok(s, "/sessions", contains=["Утро"])
+    s.post("/sessions/presets", data={"action": "delete", "index": "0"})
+    s.post("/goal", data={"minutes": "30", "next": "/home"})
+    ok(s, "/home", contains=["из 30 мин сегодня"])

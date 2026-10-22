@@ -1,7 +1,7 @@
 """Student side: home, skills, sessions, collections, tests, homework, journal, Monday test, profile."""
 import re
 from collections import Counter, defaultdict
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from flask import Blueprint, abort, current_app, flash, jsonify, redirect, render_template, request, url_for
 from flask_babel import gettext as _
@@ -11,11 +11,11 @@ from sqlalchemy import or_
 from .models import local_date, local_midnight_utc, local_now, today as local_today  # noqa: F401
 from .access import student_required
 from .auth import link_invite_code
-from .constants import EXAMS, MISTAKE_REASONS, MODES
+from .constants import EXAMS, MISTAKE_REASONS, MODES, PACE, SESSION_LEVELS, SESSION_MINUTES
 from .extensions import db
 from .models import utcnow
-from .models import Assignment, Attempt, AttemptAnswer, Question, Skill, StudentProfile, StudentRecord, Work
-from .services import (answer_item, countdown_label, current_module, current_monday_work, grade_version_attempt,
+from .models import Assignment, Attempt, AttemptAnswer, ContentNode, Question, Skill, StudentProfile, StudentRecord, Work
+from .services import (answer_item, build_custom_plan, ladder_next, countdown_label, current_module, current_monday_work, grade_version_attempt,
                        homework_state, is_correct, seconds_left, version_layout, latest_attempt, mistake_breakdown, monday_ranking, mondays_left,
                        next_monday_test_start, open_mistakes, pick_practice_questions, progress_summary,
                        recommended_mode, skill_map, student_assignments, student_pool, user_rank, week_start)
@@ -117,7 +117,7 @@ def home():
         monday_start=start, breakdown=breakdown, week_mistakes=week_mistakes, assignments=assignments[:3],
         my_place=my_place, strip=_monday_strip(left), task=_todays_task(p.exam, summary),
         portrait=skill_map(current_user.id, p.exam), facts=_daily_facts(len(MODES)), daily=_daily_block(),
-        replies=_report_replies(),
+        replies=_report_replies(), practice=_practice_goal(),
     )
 
 
@@ -227,7 +227,38 @@ def skills():
 def sessions():
     recent = (Attempt.query.filter(Attempt.user_id == current_user.id, Attempt.mode.in_(list(MODES.keys())))
               .order_by(Attempt.started_at.desc()).limit(8).all())
-    return render_template("student/sessions.html", recent=recent, facts=_daily_facts(len(MODES)))
+    exam = _exam()
+    have = Counter()
+    for q in student_pool(exam):
+        if q.skill and q.skill.topic_node:
+            have[(q.skill.topic_node.id, q.difficulty or 2)] += 1
+    topics = []
+    for t in skill_map(current_user.id, exam):
+        n = {d: have[(t["node"].id, d)] for d in (1, 2, 3)}
+        if sum(n.values()):
+            topics.append({"id": t["node"].id, "name": t["name"], "n": n})
+    totals = {d: sum(t["n"][d] for t in topics) for d in (1, 2, 3)}
+    return render_template("student/sessions.html", recent=recent, facts=_daily_facts(len(MODES)), topics=topics,
+                           totals=totals, presets=current_user.profile.session_presets or [], practice=_practice_goal(),
+                           PACE=PACE, SESSION_MINUTES=SESSION_MINUTES)
+
+
+def _practice_goal(days=14):
+    """Minutes practised per day (finished sessions, tests, homework) and the streak of days that met the goal."""
+    p = current_user.profile
+    goal = p.daily_goal or 15
+    since = utcnow() - timedelta(days=days + 1)
+    per_day = Counter()
+    for a in Attempt.query.filter(Attempt.user_id == current_user.id, Attempt.finished_at.isnot(None),
+                                  Attempt.finished_at >= since).all():
+        per_day[local_date(a.finished_at)] += (a.time_used or 0) / 60
+    today = local_today()
+    streak, day = 0, today if per_day[today] >= goal else today - timedelta(days=1)
+    while per_day[day] >= goal:
+        streak += 1
+        day -= timedelta(days=1)
+    week = [{"day": today - timedelta(days=k), "min": round(per_day[today - timedelta(days=k)])} for k in range(6, -1, -1)]
+    return {"goal": goal, "today": round(per_day[today]), "streak": streak, "week": week}
 
 
 @bp.route("/sessions/start/<mode>", methods=["POST"])
@@ -256,6 +287,83 @@ def _own_attempt(attempt_id):
     return att
 
 
+def _session_cfg(att):
+    import copy
+    # a deep copy: the ladder pops ids from nested lists, and an in-place change would not be saved
+    return copy.deepcopy((att.draft or {}).get("cfg") or {}) if att.mode == "custom" else {}
+
+
+def _finish_session(att):
+    att.finished_at = utcnow()
+    att.duration_sec = int((att.finished_at - att.started_at).total_seconds())
+    cfg = _session_cfg(att)
+    if cfg.get("minutes"):
+        att.duration_sec = min(att.duration_sec, cfg["minutes"] * 60 + 59)
+    att.total = len(att.answers)
+    db.session.commit()
+    return redirect(url_for("student.session_done", attempt_id=att.id))
+
+
+def _advance(att, idx, cfg):
+    """Go to the next question; ladder sessions choose it now. Returns a response when the session ends."""
+    if cfg.get("level") == "ladder":
+        nxt = ladder_next(att, cfg)
+        att.draft = {"cfg": cfg}
+        if nxt is None:
+            return _finish_session(att)
+        att.plan = list(att.plan) + [nxt]
+    elif idx + 1 >= len(att.plan):
+        return _finish_session(att)
+    att.position = idx + 1
+    db.session.commit()
+    return None
+
+
+def _hint_text(question):
+    """A first step from the explanation that does not give the answer away.
+
+    Takes the first sentence, cut into clauses (", ", "; ", ": " outside $…$), and keeps clauses until one
+    would reveal the answer. If even the first clause reveals it, the hint names the skill instead.
+    """
+    text = question.explanation or ""
+    answer = str(question.correct or "")
+    if question.answer_type == "choice" and (question.options or []):
+        try:
+            answer = question.options[int(question.correct)]
+        except (ValueError, IndexError):
+            pass
+    answer = answer.strip("$ ").replace(".", ",") if answer else ""
+    clauses, cur, depth = [], "", 0
+    for k, ch in enumerate(text):
+        cur += ch
+        if ch == "$":
+            depth ^= 1
+        elif depth == 0 and ch in ".!?" and (k + 1 == len(text) or text[k + 1] == " ") and len(cur) > 20:
+            clauses.append(cur)
+            break
+        elif depth == 0 and ch in ",;:" and k + 1 < len(text) and text[k + 1] == " ":
+            clauses.append(cur)
+            cur = ""
+    else:
+        if cur:
+            clauses.append(cur)
+
+    def reveals(t):
+        plain = t.replace(".", ",")
+        return bool(answer) and (answer in plain or answer.replace(",", ".") in t)
+
+    kept = []
+    for c in clauses:
+        if reveals("".join(kept) + c):
+            break
+        kept.append(c)
+    hint = "".join(kept).strip().rstrip(",;:.")
+    if len(hint) < 12:
+        name = question.skill.name if question.skill else ""
+        return _("Вспомни тему «%(n)s»: какое свойство или формула здесь работает?", n=name) if name else None
+    return hint + "…"
+
+
 @bp.route("/sessions/<int:attempt_id>", methods=["GET", "POST"])
 @student_required
 def session_play(attempt_id):
@@ -264,46 +372,160 @@ def session_play(attempt_id):
         return redirect(url_for("student.attempt_run", attempt_id=att.id))
     if att.finished_at:
         return redirect(url_for("student.session_done", attempt_id=att.id))
+    cfg = _session_cfg(att)
     idx = att.position
     question = db.session.get(Question, att.plan[idx])
     answer = next((a for a in att.answers if a.index == idx), None)
+    hints = set(cfg.get("hints") or [])
 
     if request.method == "POST":
         action = request.form.get("action")
-        if action == "answer" and answer is None:
+        if action == "finish":
+            return _finish_session(att)
+        if action == "hint" and answer is None and cfg:
+            hints.add(idx)
+            cfg["hints"] = sorted(hints)
+            att.draft = {"cfg": cfg}
+            db.session.commit()
+        elif action == "answer" and answer is None:
             given = request.form.get("given", "").strip()
             if not given:
                 flash(_("Выберите или введите ответ."), "error")
                 return redirect(url_for("student.session_play", attempt_id=att.id))
             ok = is_correct(question, given)
             answer = AttemptAnswer(attempt=att, index=idx, question=question, skill_id=question.skill_id, given=given,
-                                   is_correct=ok, explanation_text=request.form.get("explanation_text") or None)
+                                   is_correct=ok, explanation_text=request.form.get("explanation_text") or None,
+                                   hint_used=idx in hints)
             att.score += ok
             db.session.add(answer)
             db.session.commit()
+            if cfg.get("explain") == "end":  # explanations wait for the results page
+                done = _advance(att, idx, cfg)
+                if done:
+                    return done
         elif action == "next" and answer is not None:
-            if idx + 1 >= len(att.plan):
-                att.finished_at = utcnow()
-                att.duration_sec = int((att.finished_at - att.started_at).total_seconds())
-                db.session.commit()
-                return redirect(url_for("student.session_done", attempt_id=att.id))
-            att.position = idx + 1
-            db.session.commit()
+            done = _advance(att, idx, cfg)
+            if done:
+                return done
         elif action == "reason" and answer is not None and not answer.is_correct:
             reason = request.form.get("reason")
             answer.mistake_reason = reason if reason in MISTAKE_REASONS else None
             db.session.commit()
         return redirect(url_for("student.session_play", attempt_id=att.id))
 
+    deadline = None
+    if cfg.get("minutes"):
+        deadline = int((att.started_at.replace(tzinfo=timezone.utc).timestamp() + cfg["minutes"] * 60) * 1000)
     return render_template("student/session.html", att=att, idx=idx, question=question, answer=answer,
-                           mode=MODES[att.mode], mode_key=att.mode)
+                           mode=MODES[att.mode], mode_key=att.mode, cfg=cfg, deadline=deadline,
+                           hint=_hint_text(question) if idx in hints else None,
+                           total=max(cfg.get("count") or 0, len(att.plan)))
 
 
 @bp.route("/sessions/<int:attempt_id>/done")
 @student_required
 def session_done(attempt_id):
     att = _own_attempt(attempt_id)
-    return render_template("student/session_done.html", att=att, mode=MODES.get(att.mode), mode_key=att.mode)
+    cfg = _session_cfg(att)
+    answers = sorted(att.answers, key=lambda a: a.index)
+    levels = {}
+    for a in answers:
+        d = (a.question.difficulty if a.question else 2) or 2
+        lv = levels.setdefault(d, {"ok": 0, "n": 0})
+        lv["n"] += 1
+        lv["ok"] += bool(a.is_correct)
+    hinted = sum(1 for a in answers if a.hint_used and a.is_correct)
+    score = sum(1 for a in answers if a.is_correct) - hinted * 0.5
+    wrong = [a for a in answers if not a.is_correct]
+    weak = Counter(a.skill_id for a in wrong if a.skill_id)
+    next_skill = db.session.get(ContentNode, weak.most_common(1)[0][0]) if weak else None
+    return render_template("student/session_done.html", att=att, mode=MODES.get(att.mode), mode_key=att.mode, cfg=cfg,
+                           answers=answers, levels=levels, hinted=hinted, score=score, wrong=wrong, next_skill=next_skill)
+
+
+def _read_session_cfg(form):
+    count = max(1, min(30, form.get("count", type=int) or 10))
+    minutes = form.get("minutes", type=int)
+    minutes = 0 if minutes in (None, 0) else max(1, min(120, minutes))
+    level = form.get("level") if form.get("level") in SESSION_LEVELS else "ladder"
+    raw = form.get("topics", "weak")
+    if raw == "pick":
+        topics = [int(x) for x in form.getlist("topic") if x.isdigit()] or "weak"
+    else:
+        topics = raw if raw in ("weak", "all", "mistakes") else "weak"
+    exam = form.get("exam") if form.get("exam") in EXAMS else _exam()
+    return {"count": count, "minutes": minutes, "level": level, "topics": topics,
+            "explain": "end" if form.get("explain") == "end" else "now", "exam": exam}
+
+
+def _start_custom(cfg):
+    questions, cfg = build_custom_plan(current_user, cfg)
+    if not questions:
+        flash(_("Под эти настройки нет вопросов — выбери другие темы или сложность."), "error")
+        return redirect(url_for("student.sessions"))
+    att = Attempt(user=current_user, mode="custom", plan=[q.id for q in questions], position=0,
+                  total=cfg.get("count") or len(questions), draft={"cfg": cfg})
+    db.session.add(att)
+    db.session.commit()
+    return redirect(url_for("student.session_play", attempt_id=att.id))
+
+
+@bp.route("/sessions/custom", methods=["POST"])
+@student_required
+def session_custom():
+    return _start_custom(_read_session_cfg(request.form))
+
+
+@bp.route("/sessions/<int:attempt_id>/again", methods=["POST"])
+@student_required
+def session_again(attempt_id):
+    """Same settings once more (custom), or the same mode."""
+    att = _own_attempt(attempt_id)
+    if att.mode != "custom":
+        return start_session(att.mode)
+    cfg = {k: v for k, v in _session_cfg(att).items() if k in ("count", "minutes", "level", "topics", "explain", "exam")}
+    return _start_custom(cfg)
+
+
+@bp.route("/sessions/<int:attempt_id>/retry", methods=["POST"])
+@student_required
+def session_retry(attempt_id):
+    """Only the questions answered wrong, in a new session."""
+    att = _own_attempt(attempt_id)
+    ids = [a.question_id for a in sorted(att.answers, key=lambda a: a.index) if not a.is_correct and a.question_id]
+    if not ids:
+        return redirect(url_for("student.session_done", attempt_id=att.id))
+    return _start_custom({"ids": ids, "count": len(ids), "minutes": 0, "level": "mix", "topics": "all", "explain": "now",
+                          "exam": _exam()})
+
+
+@bp.route("/sessions/presets", methods=["POST"])
+@student_required
+def session_presets():
+    p = current_user.profile
+    presets = list(p.session_presets or [])
+    if request.form.get("action") == "delete":
+        k = request.form.get("index", type=int)
+        if k is not None and 0 <= k < len(presets):
+            presets.pop(k)
+    else:
+        name = (request.form.get("name") or "").strip()[:40] or _("Мой режим")
+        cfg = _read_session_cfg(request.form)
+        presets = [x for x in presets if x.get("name") != name][-5:] + [{"name": name, "cfg": cfg}]
+        flash(_("Режим «%(n)s» сохранён.", n=name), "success")
+    p.session_presets = presets[-6:]
+    db.session.commit()
+    return redirect(url_for("student.sessions"))
+
+
+@bp.route("/goal", methods=["POST"])
+@student_required
+def set_goal():
+    minutes = request.form.get("minutes", type=int)
+    if minutes in (5, 10, 15, 20, 30, 45, 60):
+        current_user.profile.daily_goal = minutes
+        db.session.commit()
+    return redirect(request.form.get("next") or url_for("student.home"))
 
 
 # --------------------------------------------------------------------------- collections & tests

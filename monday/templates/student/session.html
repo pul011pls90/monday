@@ -5,14 +5,15 @@
 {% block body_class %}{{ 'has-figure-question' if item.image_path or item.material }}{% endblock %}
 {% block body %}
 {% set steps = [] %}
-{% for i in range(att.plan|length) %}
+{% for i in range(total) %}
   {% set a = att.answers|selectattr('index', 'equalto', i)|first %}
   {% if a %}{% set _d = steps.append('is-done' if a.is_correct else 'is-wrong') %}
   {% elif i == idx %}{% set _d = steps.append('is-current') %}
   {% else %}{% set _d = steps.append('') %}{% endif %}
 {% endfor %}
-{% with close_url=url_for("student.sessions"), label=mode.name ~ " · ~" ~ mode.approx ~ " " ~ _("мин"), dot_color=None,
-        counter=_("Вопрос %(n)s из %(t)s", n=idx+1, t=att.plan|length), timer_seconds=None %}
+{% set level_names = {'ladder': _('лестница'), 'easy': _('лёгкие'), 'medium': _('средние'), 'hard': _('сложные'), 'mix': _('вперемешку')} %}
+{% with close_url=url_for("student.sessions"), label=(mode.name ~ " · " ~ (cfg.minutes ~ " " ~ _("мин") if cfg.minutes else _("без лимита")) ~ " · " ~ level_names.get(cfg.level, '')) if cfg else (mode.name ~ " · ~" ~ mode.approx ~ " " ~ _("мин")), dot_color=None,
+        counter=_("Вопрос %(n)s из %(t)s", n=idx+1, t=total), timer_seconds=None, deadline=deadline %}
   {% include "partials/session_bar.html" %}
 {% endwith %}
 
@@ -22,6 +23,8 @@
     {% if question.skill %}<span class="tag tag--line">{{ question.skill.name }}</span>{% endif %}
     <span class="tag tag--line">{{ DIFFICULTIES[question.difficulty] }}</span>
     {% if question.skill and question.skill.subtopic %}<span class="tag tag--line">{{ question.skill.topic }} · {{ question.skill.subtopic }}</span>{% endif %}
+    {% if cfg.level == 'ladder' %}<span class="tag tag--soft">{{ _("Ступень %(n)s из 3", n=question.difficulty or 2) }}</span>{% endif %}
+    {% if not answer %}<span class="tag tag--line q-clock" data-qclock="{{ att.id }}-{{ idx }}" title="{{ _('Время на этом вопросе') }}">{{ ui.icon('timer', 14) }}<span class="num">0:00</span></span>{% endif %}
     <span class="spacer"></span>{{ ui.report_button(question.id, 'right') }}
   </div>
 
@@ -42,8 +45,10 @@
     {% endif %}
 
     {% if not answer %}
-      <div class="row" style="justify-content:flex-end">
-        <button class="btn btn--primary btn--lg" type="submit" name="action" value="answer">{{ _("Проверить") }}</button>
+      {% if hint %}<div class="hint-box">{{ ui.icon('bulb', 18) }}<div><b>{{ _("Подсказка") }}</b><div class="math">{{ hint }}</div></div></div>{% endif %}
+      <div class="row" style="justify-content:flex-end;gap:10px">
+        {% if cfg and not hint and question.explanation %}<button class="btn btn--ghost" type="submit" name="action" value="hint" formnovalidate title="{{ _('Верный ответ с подсказкой засчитывается как половина') }}">{{ ui.icon('bulb', 16) }}{{ _("Подсказка") }}</button>{% endif %}
+        <button class="btn btn--primary btn--lg" type="submit" name="action" value="answer">{{ _("Ответить") if cfg.explain == 'end' else _("Проверить") }}</button>
       </div>
     {% endif %}
   </form>
@@ -81,9 +86,17 @@
       {{ ui.csrf() }}
       <a class="btn btn--secondary" href="{{ url_for('student.journal') }}">{{ _("Открыть журнал") }}</a>
       <button class="btn btn--primary btn--lg" type="submit" name="action" value="next">
-        {{ _("Следующий вопрос") if idx + 1 < att.plan|length else _("Завершить сессию") }} {{ ui.icon('arrow-right', 18) }}
+        {{ _("Следующий вопрос") if idx + 1 < total else _("Завершить сессию") }} {{ ui.icon('arrow-right', 18) }}
       </button>
     </form>
+  {% endif %}
+  {% if cfg %}
+  <div class="time-up" data-time-up hidden>
+    <div><b>{{ _("Время вышло") }}</b><span class="small">{{ _("Можешь закончить сейчас или дорешать — время запишется.") }}</span></div>
+    <form method="post" data-ajax>{{ ui.csrf() }}<button class="btn btn--primary" type="submit" name="action" value="finish">{{ _("Завершить и посмотреть итоги") }}</button></form>
+  </div>
+  <form method="post" class="row" style="justify-content:center" data-ajax>{{ ui.csrf() }}
+    <button class="btn btn--ghost btn--sm" type="submit" name="action" value="finish">{{ _("Закончить сессию сейчас") }}</button></form>
   {% endif %}
 </main>
 {% endblock %}

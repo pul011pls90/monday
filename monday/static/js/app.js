@@ -815,3 +815,81 @@ document.addEventListener("click", async (e) => {
   try { await fetch(b.dataset.action, { method: "POST", body, headers: { "X-Requested-With": "fetch" } }); } catch (_err) { /* ignore */ }
   if (card) card.remove();
 });
+
+// practice sessions: soft time limit in the header, a clock per question, «время вышло» banner.
+// The header and the question are replaced after every answer, so look the elements up on each tick.
+(() => {
+  let clockKey = null, clockStart = 0;
+  const fmt = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+  const tick = () => {
+    const dl = document.querySelector("[data-deadline]");
+    if (dl) {
+      const left = Math.round((parseInt(dl.dataset.deadline, 10) - Date.now()) / 1000);
+      dl.textContent = left > 0 ? fmt(left) : "0:00";
+      dl.classList.toggle("is-low", left <= 60);
+      const up = document.querySelector("[data-time-up]");
+      if (up) up.hidden = left > 0;
+    }
+    const qc = document.querySelector("[data-qclock]");
+    if (qc) {
+      if (qc.dataset.qclock !== clockKey) { clockKey = qc.dataset.qclock; clockStart = Date.now(); }
+      const out = qc.querySelector(".num");
+      if (out) out.textContent = fmt(Math.floor((Date.now() - clockStart) / 1000));
+    }
+  };
+  if (document.querySelector("[data-deadline], [data-qclock]")) { tick(); setInterval(tick, 1000); }
+})();
+
+// «Своя сессия»: presets, the question counter, topic picker and the pace hint
+(() => {
+  const box = document.querySelector("[data-sb]");
+  if (!box) return;
+  const form = box.querySelector("#sb-form");
+  const range = form.querySelector("[data-sb-count]");
+  const out = form.querySelector("[data-sb-count-out]");
+  const pace = form.querySelector("[data-sb-pace]");
+  const topics = form.querySelector("[data-sb-topics]");
+  const P = JSON.parse(pace.dataset.pace);
+  const need = { ladder: P["2"], easy: P["1"], medium: P["2"], hard: P["3"], mix: Math.round((P["1"] + P["2"] + P["3"]) / 3) };
+  const val = (name) => { const el = form.querySelector(`input[name=${name}]:checked`); return el ? el.value : null; };
+  const set = (name, v) => { const el = form.querySelector(`input[name=${name}][value="${v}"]`); if (el) el.checked = true; };
+  const human = (s) => (s < 60 ? pace.dataset.tSec.replace("{n}", s) : pace.dataset.tMin.replace("{m}", Math.floor(s / 60)).replace("{s}", s % 60));
+  const update = () => {
+    out.textContent = range.value;
+    topics.hidden = val("topics") !== "pick";
+    const note = form.querySelector("[data-sb-ladder-note]");
+    if (note) note.hidden = val("level") !== "ladder";
+    const minutes = parseInt(val("minutes") || "0", 10), count = parseInt(range.value, 10);
+    const text = pace.querySelector("[data-sb-pace-text]"), fix = pace.querySelector("[data-sb-fix]");
+    fix.innerHTML = "";
+    pace.className = "sb__pace";
+    if (!minutes) { text.textContent = pace.dataset.tFree; return; }
+    const per = Math.round((minutes * 60) / count), n = need[val("level")] || P["2"];
+    if (per >= n) { text.textContent = pace.dataset.tOk.replace("{s}", human(per)); pace.classList.add("is-ok"); return; }
+    if (per >= n * 0.6) { text.textContent = pace.dataset.tTight.replace("{s}", human(per)); pace.classList.add("is-tight"); return; }
+    pace.classList.add("is-bad");
+    text.textContent = pace.dataset.tBad.replace("{need}", human(n)).replace("{s}", human(per));
+    const fitCount = Math.max(1, Math.floor((minutes * 60) / n));
+    const opts = [...form.querySelectorAll("input[name=minutes]")].map((i) => parseInt(i.value, 10)).filter((m) => m > 0);
+    const fitMin = opts.find((m) => (m * 60) / count >= n);
+    const btn = (label, fn) => { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = label; b.onclick = () => { fn(); update(); }; fix.appendChild(b); };
+    btn(pace.dataset.tFixCount.replace("{n}", fitCount), () => { range.value = fitCount; });
+    if (fitMin) btn(pace.dataset.tFixMin.replace("{m}", fitMin), () => set("minutes", fitMin));
+  };
+  box.querySelectorAll("[data-sb-preset]").forEach((b) => b.addEventListener("click", () => {
+    const c = JSON.parse(b.dataset.sbPreset);
+    if (c.minutes !== undefined) set("minutes", c.minutes);
+    if (c.count) range.value = c.count;
+    if (c.level) set("level", c.level);
+    if (Array.isArray(c.topics)) {
+      set("topics", "pick");
+      form.querySelectorAll("input[name=topic]").forEach((cb) => { cb.checked = c.topics.includes(parseInt(cb.value, 10)); });
+    } else if (c.topics) set("topics", c.topics);
+    if (c.explain) set("explain", c.explain);
+    box.querySelectorAll("[data-sb-preset]").forEach((x) => x.classList.toggle("is-active", x === b));
+    update();
+  }));
+  form.addEventListener("input", update);
+  form.addEventListener("change", update);
+  update();
+})();
