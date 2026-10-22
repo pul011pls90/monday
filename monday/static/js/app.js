@@ -709,3 +709,60 @@ document.addEventListener("click", (e) => {
   b.classList.toggle("is-open", open);
   b.classList.toggle("tag", !open); b.classList.toggle("tag--line", !open);
 }, true);
+
+/* ---------- pixel numbers: scores, percents and stats drawn in a 5×7 dot-matrix font ----------
+   window.MondayPixel(canvas, text, cell, lit, unlit) draws text into a canvas;
+   every .home-ring__value, .stat-value and [data-pixnum] is drawn this way automatically:
+   the numeric part becomes dots, words after it ("мин") stay text, screen readers keep the text. */
+(function () {
+  "use strict";
+  const FONT = {
+    0: ["01110", "10001", "10001", "10001", "10001", "10001", "01110"], 1: ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
+    2: ["01110", "10001", "00001", "00010", "00100", "01000", "11111"], 3: ["11110", "00001", "00001", "01110", "00001", "00001", "11110"],
+    4: ["00010", "00110", "01010", "10010", "11111", "00010", "00010"], 5: ["11111", "10000", "11110", "00001", "00001", "10001", "01110"],
+    6: ["00110", "01000", "10000", "11110", "10001", "10001", "01110"], 7: ["11111", "00001", "00010", "00100", "01000", "01000", "01000"],
+    8: ["01110", "10001", "10001", "01110", "10001", "10001", "01110"], 9: ["01110", "10001", "10001", "01111", "00001", "00010", "01100"],
+    "/": ["00001", "00010", "00010", "00100", "01000", "01000", "10000"], "#": ["01010", "11111", "01010", "01010", "01010", "11111", "01010"],
+    "%": ["11001", "11010", "00010", "00100", "01000", "01011", "10011"], "+": ["00000", "00100", "00100", "11111", "00100", "00100", "00000"],
+    "-": ["00000", "00000", "00000", "11111", "00000", "00000", "00000"], "–": ["00000", "00000", "00000", "11111", "00000", "00000", "00000"],
+    ".": ["00", "00", "00", "00", "00", "11", "11"], ",": ["00", "00", "00", "00", "11", "01", "10"], " ": ["00", "00", "00", "00", "00", "00", "00"],
+  };
+  window.MondayPixel = (cv, text, cell = 6, lit = "rgba(255,255,255,.88)", unlit = "rgba(255,255,255,.07)") => {
+    if (!cv) return;
+    const gap = Math.max(1, Math.round(cell / 5)), dpr = Math.min(2, window.devicePixelRatio || 1);
+    const chars = [...String(text)].filter((ch) => FONT[ch]);
+    const w = Math.max(1, chars.reduce((s, ch) => s + (FONT[ch][0].length + 1) * cell, 0) - cell), h = 7 * cell;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + "px"; cv.style.height = h + "px";
+    const ctx = cv.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+    let x0 = 0;
+    for (const ch of chars) {
+      const g = FONT[ch];
+      g.forEach((row, r) => [...row].forEach((b, c) => {
+        if (b !== "1" && !unlit) return;
+        ctx.fillStyle = b === "1" ? lit : unlit;
+        ctx.fillRect(x0 + c * cell, r * cell, cell - gap, cell - gap);
+      }));
+      x0 += (g[0].length + 1) * cell;
+    }
+  };
+  const NUM = /^[0-9%/#+\-–.,\s]*[0-9][0-9%/#+\-–.,]*/;
+  const rgba = (color, a) => { const m = color.match(/[\d.]+/g) || [0, 0, 0]; return `rgba(${m[0]},${m[1]},${m[2]},${a})`; };
+  function pixelize(el) {
+    if (!el.dataset.pixSrc) {
+      const text = el.textContent.trim(), m = text.match(NUM);
+      if (!m) return;
+      el.dataset.pixSrc = m[0].trim(); el.dataset.pixRest = text.slice(m[0].length).trim();
+      el.setAttribute("aria-label", text); el.classList.add("is-pix");
+      el.innerHTML = `<canvas aria-hidden="true"></canvas>${el.dataset.pixRest ? `<span class="pix-rest" aria-hidden="true">${el.dataset.pixRest.replace(/[&<>]/g, "")}</span>` : ""}`;
+    }
+    const cs = getComputedStyle(el), size = parseFloat(el.dataset.pixSize || cs.fontSize) || 24;
+    const cell = Math.max(2, Math.round(size / 8));
+    window.MondayPixel(el.querySelector("canvas"), el.dataset.pixSrc, cell, cs.color, rgba(cs.color, .05));
+  }
+  const all = () => document.querySelectorAll(".home-ring__value, .stat-value, [data-pixnum]").forEach(pixelize);
+  all();
+  // colours follow the theme: redraw when it changes
+  new MutationObserver(all).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  window.MondayPixelize = all;
+})();
