@@ -31,7 +31,7 @@
       <span class="mh__status">{{ _("До старта · пн, 19:00") }}</span>
       <div class="mh__count" data-countdown data-seconds="{{ seconds_left }}" role="timer" aria-label="{{ _('До старта') }}">
         {% for key, label in [('d', _('дн')), ('h', _('ч')), ('m', _('мин')), ('s', _('сек'))] %}
-          <div class="mh__cell"><b class="num" data-{{ key }}>–</b><span>{{ label }}</span></div>
+          <div class="mh__cell"><canvas class="mh__pix" data-pix="{{ key }}" aria-hidden="true"></canvas><b class="sr-only" data-{{ key }}>–</b><span>{{ label }}</span></div>
         {% endfor %}
       </div>
     {% endif %}
