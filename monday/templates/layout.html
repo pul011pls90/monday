@@ -29,6 +29,7 @@
     {% else %}
       <a class="rail__logo" href="{{ url_for('student.home') }}" aria-label="Monday">M</a>
       {% set items = [
+        ('student.monday', 'calendar', _('Тест'), ['student.monday']),
         ('student.home', 'home', _('Главная'), ['student.home']),
         ('student.skills', 'skills', _('Навыки'), ['student.skills']),
         ('student.sessions', 'bolt', _('Сессии'), ['student.sessions', 'student.session_play', 'student.session_done']),
@@ -37,13 +38,12 @@
         ('student.homework', 'homework', _('Домашка'), ['student.homework', 'student.homework_detail']),
         ('student.journal', 'journal', _('Журнал'), ['student.journal']),
         ('student.formulas', 'list', _('Формулы'), ['student.formulas']),
-        ('student.monday', 'calendar', _('Тест'), ['student.monday']),
       ] %}
-      {% set primary = ['student.home', 'student.skills', 'student.sessions', 'bank.index', 'student.homework'] %}
+      {% set primary = ['student.monday', 'student.home', 'student.sessions', 'bank.index', 'student.homework'] %}
     {% endif %}
     {% for endpoint, ic, label, active in items %}
-      <a class="rail__item{{ ' is-active' if ep in active }}{{ ' rail__item--extra' if endpoint not in primary }}" href="{{ url_for(endpoint) }}"{{ ' aria-current=page' if ep in active }}>
-        {{ ui.icon(ic, 22) }}<span>{{ label }}</span>
+      <a class="rail__item{{ ' is-active' if ep in active }}{{ ' rail__item--extra' if endpoint not in primary }}{{ ' rail__item--key' if endpoint == 'student.monday' }}" href="{{ url_for(endpoint) }}"{{ ' aria-current=page' if ep in active }}>
+        {{ ui.icon(ic, 22) }}<span>{{ label }}</span>{% if endpoint == 'student.monday' and monday_live() %}<i class="rail__live" title="{{ _('Тест идёт сейчас') }}"></i>{% endif %}
       </a>
     {% endfor %}
     <div class="spacer"></div>

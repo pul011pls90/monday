@@ -819,6 +819,9 @@ def _upcoming_monday_work(exam):
     return Work.query.filter_by(kind="monday", status="published", exam=exam, week_start=upcoming_start).first()
 
 
+MOSAIC_PICTURES = ["rocket", "mountain", "bulb", "stopwatch", "target", "pi", "crown"]  # Mon … Sun
+
+
 def monday_window_open():
     if current_app.config.get("MONDAY_TEST_ALWAYS_OPEN"):
         return True
@@ -857,7 +860,8 @@ def monday():
         my_place=my_place, my_attempt=my_attempt, scope=scope, countdown=countdown_label(start - local_now()),
         start=start, window_open=monday_window_open(), already_taken=already_taken,
         duel={"mine": (p.school, mine), "rival": rival} if mine is not None and rival else None,
-        week_number=len(prev_two),
+        week_number=max(1, len(prev_two)), seconds_left=max(0, int((start - local_now()).total_seconds())),
+        picture=MOSAIC_PICTURES[local_today().weekday()],
     )
 
 
