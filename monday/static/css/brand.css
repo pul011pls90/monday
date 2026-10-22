@@ -1265,7 +1265,7 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 
 /* ================================================================ Monday test hero (mosaic) */
 .mh { --mosaic-1: #ffffff; --mosaic-2: #8fa6ff; --mosaic-3: #3e52c4;
-  position: relative; isolation: isolate; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .9fr);
+  position: relative; isolation: isolate; overflow: hidden; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.2fr);
   gap: clamp(16px, 3vw, 48px); align-items: center; padding: clamp(24px, 3.4vw, 52px); border-radius: 28px;
   background: radial-gradient(120% 140% at 85% 20%, #1d2fa8 0%, #0c1872 45%, #070f4d 100%); color: #fff;
   box-shadow: 0 30px 70px rgba(12, 24, 114, .35); }
@@ -1276,7 +1276,7 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 .mh__top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .mh__top .eyebrow { color: rgba(255, 255, 255, .78); }
 .mh__week { padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .3); font-size: 12px; font-weight: 700; }
-.mh__title { font-size: clamp(32px, 4.3vw, 68px); line-height: .98; margin: 0; letter-spacing: -.02em; }
+.mh__title { font-size: clamp(28px, 3.1vw, 54px); overflow-wrap: anywhere; line-height: .98; margin: 0; letter-spacing: -.02em; }
 .mh__status { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
   background: rgba(255, 255, 255, .1); font-size: 13px; font-weight: 700; }
 .mh__status--live { background: #fff; color: #0c1872; }
@@ -1295,12 +1295,19 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 .btn--light:disabled { background: rgba(255, 255, 255, .16); color: rgba(255, 255, 255, .7); border-color: transparent; cursor: default; }
 .mh.is-live .btn--light { box-shadow: 0 0 0 6px rgba(255, 255, 255, .12); }
 .mh__art { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; }
-.mh__canvas { width: 100%; max-width: 380px; aspect-ratio: 1; display: block; cursor: pointer; touch-action: manipulation; }
-.mh__greet { font-size: 15px; font-weight: 600; color: rgba(255, 255, 255, .88); text-align: center; min-height: 1.4em; }
+.mh__stage { position: relative; width: 100%; aspect-ratio: 16 / 10; max-width: 100%; border-radius: 20px; overflow: hidden; background: #0c1872;
+  border: 1px solid rgba(201, 211, 255, .14); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .03); }
+.mh__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: pointer; touch-action: manipulation; }
+.mh__badge { position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 999px;
+  background: rgba(7, 15, 77, .72); font: 600 11px/1 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: .06em; text-transform: uppercase; pointer-events: none; }
+.mh__badge i { width: 8px; height: 8px; border-radius: 50%; background: #e5484d; animation: mh-pulse 1.6s infinite; }
+.mh__score { position: absolute; top: 12px; right: 12px; display: grid; gap: 2px; padding: 10px 14px; border-radius: 14px; background: rgba(7, 15, 77, .78); text-align: right; pointer-events: none; }
+.mh__score b { font: 700 26px/1 'IBM Plex Mono', ui-monospace, monospace; }
+.mh__score span { font: 500 11px/1.2 'IBM Plex Mono', ui-monospace, monospace; color: rgba(201, 211, 255, .85); }
+.mh__greet { align-self: stretch; text-align: left !important; font-size: 15px; font-weight: 600; color: rgba(255, 255, 255, .88); text-align: center; min-height: 1.4em; }
 @media (max-width: 900px) {
   .mh { grid-template-columns: 1fr; }
   .mh__art { order: -1; }
-  .mh__canvas { max-width: 280px; }
   .mh__cell { min-width: 0; flex: 1; }
 }
 

@@ -1,22 +1,21 @@
 {% extends "layout.html" %}
-{% block scripts %}<script defer src="{{ url_for('static', filename='js/mosaic.js') }}"></script>{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/scenes.js') }}"></script>{% endblock %}
 {% block title %}{{ _("Тест понедельника") }}{% endblock %}
 {% block content %}
 {% set p = current_user.profile %}
 {% set first = (current_user.name or '').split()[0] if current_user.name else '' %}
-{% set lines = {
-  'rocket': _("Взлетаем, %(n)s! До старта всё ближе.", n=first),
-  'mountain': _("Ещё одна вершина ждёт тебя, %(n)s.", n=first),
-  'bulb': _("Новая идея на этой неделе, %(n)s?", n=first),
-  'stopwatch': _("20 минут. 10 задач. Ты готов, %(n)s?", n=first),
-  'target': _("Целься в 10 из 10, %(n)s.", n=first),
-  'pi': _("Бесконечность — тоже число, %(n)s.", n=first),
-  'crown': _("Корона недели свободна, %(n)s.", n=first),
-} %}
-{% if already_taken %}{% set today_line = _("%(s)s из %(t)s — следующий старт через неделю, %(n)s.", s=already_taken.score, t=already_taken.total, n=first) %}
-{% elif upcoming and window_open %}{% set today_line = _("Тест открыт. Взлетаем, %(n)s!", n=first) %}
-{% else %}{% set today_line = lines[picture] %}{% endif %}
-{% set _upd = lines.update({picture: today_line}) %}
+{% set lines = [
+  _("Новая неделя — новая вершина, %(n)s.", n=first),
+  _("Каждая задача — силовая линия к цели, %(n)s.", n=first),
+  _("Маленькие шаги складываются в большие формы, %(n)s.", n=first),
+  _("Формулы летят навстречу. Лови их, %(n)s.", n=first),
+  _("Бесконечность — тоже число, %(n)s.", n=first),
+  _("Мир из чисел. Твой ход, %(n)s.", n=first),
+  _("Весь мир решает этот тест вместе с тобой, %(n)s.", n=first),
+] %}
+{% if already_taken %}{% set scene_mode = 'after' %}{% set today_line = _("%(s)s из %(t)s — следующий старт через неделю, %(n)s.", s=already_taken.score, t=already_taken.total, n=first) %}
+{% elif upcoming and window_open %}{% set scene_mode = 'live' %}{% set today_line = _("Тест открыт. Вперёд, %(n)s!", n=first) %}
+{% else %}{% set scene_mode = 'before' %}{% set today_line = lines[scene] %}{% endif %}
 <section class="mh{{ ' is-live' if upcoming and window_open and not already_taken }}" aria-labelledby="mh-title">
   <div class="mh__text">
     <div class="mh__top">
@@ -48,9 +47,12 @@
     </div>
   </div>
   <figure class="mh__art">
-    <canvas class="mh__canvas" data-mosaic data-picture="{{ picture }}" aria-hidden="true"></canvas>
-    <figcaption class="mh__greet" data-mosaic-greet>{{ today_line }}</figcaption>
-    <script type="application/json" data-mosaic-lines>{{ lines|tojson }}</script>
+    <div class="mh__stage">
+      <canvas class="mh__canvas" data-scene="{{ scene }}" data-mode="{{ scene_mode }}" data-topics='{{ weak_topics|tojson }}' aria-hidden="true"></canvas>
+      {% if scene_mode == 'live' %}<span class="mh__badge"><i></i>{{ _("Идёт сейчас") }}</span>{% endif %}
+      {% if scene_mode == 'after' %}<span class="mh__score"><b class="num">{{ already_taken.score }}/{{ already_taken.total }}</b><span>{{ _("твой результат") }}</span></span>{% endif %}
+    </div>
+    <figcaption class="mh__greet">{{ today_line }}</figcaption>
   </figure>
 </section>
 {% if config.MONDAY_TEST_ALWAYS_OPEN and current_user.is_admin %}<p class="small muted">{{ _("Демо-режим: тест открыт в любой день. Отключается настройкой MONDAY_TEST_ALWAYS_OPEN=0.") }}</p>{% endif %}
