@@ -46,14 +46,10 @@
       {% endif %}
     </div>
   </div>
-  <figure class="mh__art">
-    <div class="mh__stage">
-      <canvas class="mh__canvas" data-scene="{{ scene }}" data-mode="{{ scene_mode }}" data-topics='{{ weak_topics|tojson }}' aria-hidden="true"></canvas>
-      {% if scene_mode == 'live' %}<span class="mh__badge"><i></i>{{ _("Идёт сейчас") }}</span>{% endif %}
-      {% if scene_mode == 'after' %}<span class="mh__score"><b class="num">{{ already_taken.score }}/{{ already_taken.total }}</b><span>{{ _("твой результат") }}</span></span>{% endif %}
-    </div>
-    <figcaption class="mh__greet">{{ today_line }}</figcaption>
-  </figure>
+  <canvas class="mh__canvas" data-scene="{{ scene }}" data-mode="{{ scene_mode }}" data-topics='{{ weak_topics|tojson }}' data-lines='{{ lines|tojson }}'{% if config.MONDAY_TEST_ALWAYS_OPEN %} data-cycle="{{ scene_cycle|join(',') }}"{% endif %} aria-hidden="true"></canvas>
+  {% if scene_mode == 'live' %}<span class="mh__badge"><i></i>{{ _("Идёт сейчас") }}</span>{% endif %}
+  {% if scene_mode == 'after' %}<span class="mh__score"><b class="num">{{ already_taken.score }}/{{ already_taken.total }}</b><span>{{ _("твой результат") }}</span></span>{% endif %}
+  <p class="mh__greet" data-scene-greet>{{ today_line }}</p>
 </section>
 {% if config.MONDAY_TEST_ALWAYS_OPEN and current_user.is_admin %}<p class="small muted">{{ _("Демо-режим: тест открыт в любой день. Отключается настройкой MONDAY_TEST_ALWAYS_OPEN=0.") }}</p>{% endif %}
 

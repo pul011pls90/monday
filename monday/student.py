@@ -819,6 +819,10 @@ def _upcoming_monday_work(exam):
     return Work.query.filter_by(kind="monday", status="published", exam=exam, week_start=upcoming_start).first()
 
 
+# scene per weekday (Mon … Sun); the π scene (4) is hidden for now — too heavy, Friday shows the mountains
+SCENE_FOR_DAY = [0, 1, 2, 3, 0, 5, 6]
+
+
 def _weak_topics(user_id, limit=6):
     """Skills with the most open mistakes in the journal (labels on the Sunday world map)."""
     from sqlalchemy import func
@@ -869,7 +873,7 @@ def monday():
         start=start, window_open=monday_window_open(), already_taken=already_taken,
         duel={"mine": (p.school, mine), "rival": rival} if mine is not None and rival else None,
         week_number=max(1, len(prev_two)), seconds_left=max(0, int((start - local_now()).total_seconds())),
-        scene=request.args.get("scene", local_today().weekday(), type=int) % 7, weak_topics=_weak_topics(current_user.id),
+        scene_cycle=sorted(set(SCENE_FOR_DAY)), scene=SCENE_FOR_DAY[request.args.get("scene", local_today().weekday(), type=int) % 7], weak_topics=_weak_topics(current_user.id),
     )
 
 

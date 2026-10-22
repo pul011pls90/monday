@@ -26,7 +26,8 @@
   const speed = 1, density = small ? .7 : 1;
   let playing = !reduce, t = reduce ? 6 : 0, last = performance.now(), lastDraw = 0, visible = true;
   const ptr = { x: -1e4, y: -1e4, on: 0, pulse: -1e4, px: 0, py: 0 };
-  const cur = Math.max(0, Math.min(6, parseInt(cv.dataset.scene, 10) || 0));
+  let cur = Math.max(0, Math.min(6, parseInt(cv.dataset.scene, 10) || 0));
+  let SHIFT = 0;
   let state = {};
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -36,7 +37,7 @@
 
   function resize() {
     const r = stage.getBoundingClientRect();
-    dpr = Math.min(2, window.devicePixelRatio || 1);
+    dpr = Math.min(1.5, window.devicePixelRatio || 1);
     W = r.width; H = r.height;
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -174,12 +175,11 @@
     // labels in IBM Plex Mono
     const n = state.n + 1, f = Math.max(11, Math.min(15, W / 60));
     ctx.font = `500 ${f}px ${MONO}`; ctx.fillStyle = C.mist; ctx.textBaseline = "top";
-    ctx.fillText(`ИТЕРАЦИЯ ${String(n).padStart(2, "0")} / ${MAX}`, 22, 20);
-    ctx.fillText(`отрезков: 2^${n} = ${2 ** n}`, 22, 20 + f * 1.6);
+    const rx = W - SHIFT - 24, ry = 64;   // top right, under the "live" badge, clear of the greeting
     ctx.textAlign = "right";
-    ctx.fillText("X → X+YF+", W - 22, 20);
-    ctx.fillText("Y → −FX−Y", W - 22, 20 + f * 1.6);
-    ctx.fillText("угол 90°", W - 22, 20 + f * 3.2);
+    ctx.fillText(`ИТЕРАЦИЯ ${String(n).padStart(2, "0")} / ${MAX}`, rx, ry);
+    ctx.fillText(`отрезков: 2^${n} = ${2 ** n}`, rx, ry + f * 1.6);
+    ctx.fillText("X → X+YF+   Y → −FX−Y   угол 90°", rx, ry + f * 3.2);
     ctx.textAlign = "left";
     return "кривая дракона";
   }
@@ -271,7 +271,7 @@
   /* -------------------------------------------------------------- 6. sphere of numbers */
   function numSphere() {
     if (!state.pts) {
-      const n = Math.round(520 * density), pts = [];
+      const n = Math.round(380 * density), pts = [];
       for (let i = 0; i < n; i++) {
         const y = 1 - (i + .5) / n * 2, r = Math.sqrt(1 - y * y), a = i * Math.PI * (3 - Math.sqrt(5));
         pts.push({ x: Math.cos(a) * r, y, z: Math.sin(a) * r, d: String(Math.floor(Math.random() * 10)), next: rnd(0, 6), flip: -1 });
@@ -381,11 +381,15 @@
 
   const DRAW = [mountains, field, dragon, spiral, piScene, numSphere, worldMap];
   function draw() {
-    ctx.globalAlpha = 1; ctx.fillStyle = C.navy; ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = 1; ctx.clearRect(0, 0, W, H);
+    // the scene is the hero's background: centred objects move to the right half so the text stays readable
+    const shift = SHIFT = W > 900 && [1, 2, 4, 5].includes(cur) ? W * .2 : 0;
+    ctx.save(); ctx.translate(shift, 0);
     DRAW[cur]();
+    ctx.restore();
     if (MODE[mode].veil) { ctx.globalAlpha = MODE[mode].veil; ctx.fillStyle = C.ink; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
   }
-  const FRAME = small ? 1000 / 30 : 0;
+  const FRAME = 1000 / 30;   // an ambient background: 30 fps is plenty and keeps laptops cool
   function loop(now) {
     const dt = Math.min(.05, (now - last) / 1000); last = now;
     ptr.on += ((ptr.x > -1e3 ? 1 : 0) - ptr.on) * .12;
@@ -396,10 +400,12 @@
     if (playing) t += dt * speed * MODE[mode].speed;
     draw();
   }
-  cv.addEventListener("pointermove", (e) => { const r = cv.getBoundingClientRect(); ptr.x = e.clientX - r.left; ptr.y = e.clientY - r.top; });
-  cv.addEventListener("pointerleave", () => { ptr.x = ptr.y = -1e4; });
+  // the canvas sits under the text, so the hero tracks the cursor
+  stage.addEventListener("pointermove", (e) => { const r = cv.getBoundingClientRect(), sh = W > 900 && [1, 2, 4, 5].includes(cur) ? W * .2 : 0; ptr.x = e.clientX - r.left - sh; ptr.y = e.clientY - r.top; });
+  stage.addEventListener("pointerleave", () => { ptr.x = ptr.y = -1e4; });
   cv.addEventListener("click", (e) => {
-    const r = cv.getBoundingClientRect(); ptr.px = e.clientX - r.left; ptr.py = e.clientY - r.top; ptr.pulse = t;
+    const r = cv.getBoundingClientRect(), sh = W > 900 && [1, 2, 4, 5].includes(cur) ? W * .2 : 0;
+    ptr.px = e.clientX - r.left - sh; ptr.py = e.clientY - r.top; ptr.pulse = t;
     if (cur === 2 && state.t0 !== undefined) state.t0 -= 2;
     if (cur === 4) t += 14 * .62 - (t % 14);
     if (cur === 5 && state.pts) state.pts.forEach((q) => { q.flip = t + (q.y + 1) * .35 + Math.random() * .1; });
@@ -408,6 +414,23 @@
   });
   new ResizeObserver(() => { resize(); if (reduce) draw(); }).observe(stage);
   new IntersectionObserver((e) => { visible = e[0].isIntersecting; last = performance.now(); }).observe(stage);
+  // demo: every scene plays for 20 s, then the hero fades to the next one
+  const cycle = (cv.dataset.cycle || "").split(",").filter(Boolean).map(Number);
+  const greetEl = document.querySelector("[data-scene-greet]");
+  let lines = [];
+  try { lines = JSON.parse(cv.dataset.lines || "[]"); } catch (e) { lines = []; }
+  if (cycle.length > 1 && !reduce) {
+    let k = Math.max(0, cycle.indexOf(cur));
+    setInterval(() => {
+      cv.classList.add("is-fading"); if (greetEl && mode === "before") greetEl.classList.add("is-fading");
+      setTimeout(() => {
+        k = (k + 1) % cycle.length; cur = cycle[k]; state = {}; t = 0;
+        if (greetEl && mode === "before" && lines[cur]) greetEl.textContent = lines[cur];
+        draw();
+        cv.classList.remove("is-fading"); if (greetEl) greetEl.classList.remove("is-fading");
+      }, 1400);
+    }, 20000);
+  }
   resize();
   if (reduce) draw(); else requestAnimationFrame(loop);
 })();
