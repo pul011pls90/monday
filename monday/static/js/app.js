@@ -611,3 +611,78 @@
   if (m) window.addEventListener("load", () => setTimeout(() => { fit(); toCard(); }, 50));
 })();
 
+
+/* journal: a test's mistakes stay folded behind "Смотреть вопросы" */
+(() => {
+  document.querySelectorAll("[data-jr-show]").forEach((btn) => btn.addEventListener("click", () => {
+    const list = btn.closest(".jr-group").querySelector(".jr-list");
+    list.hidden = false; btn.parentElement.hidden = true;
+  }));
+  const target = location.hash && document.querySelector(location.hash);
+  if (target && target.closest(".jr-list")) {
+    const group = target.closest(".jr-group");
+    group.open = true; target.closest(".jr-list").hidden = false;
+    const intro = group.querySelector(".jr-group__intro"); if (intro) intro.hidden = true;
+    target.scrollIntoView({ block: "center" });
+  }
+})();
+
+/* formula sheets: math keyboard, live preview, several formulas at once, "add to this section" */
+(() => {
+  const renderInto = (input) => {
+    const box = input.parentElement.querySelector("[data-math-preview]");
+    if (!box) return;
+    const v = input.value.trim();
+    box.textContent = v ? (v.includes("$") ? v : `$${v}$`) : "";
+    if (window.MondayRenderMath) window.MondayRenderMath(box);
+  };
+  const wireRow = (row) => {
+    const input = row.querySelector("[data-math-input]");
+    if (!input) return;
+    input.addEventListener("input", () => renderInto(input));
+    row.querySelectorAll("[data-snip]").forEach((b) => b.addEventListener("mousedown", (e) => e.preventDefault()));
+    row.querySelectorAll("[data-snip]").forEach((b) => b.addEventListener("click", () => {
+      const snip = b.dataset.snip, mark = snip.indexOf("‸");
+      const text = snip.replace("‸", "");
+      const s = input.selectionStart ?? input.value.length, e = input.selectionEnd ?? s;
+      const picked = input.value.slice(s, e);
+      // selected text goes inside the braces: x → \sqrt{x}
+      const put = mark >= 0 && picked ? text.slice(0, mark) + picked + text.slice(mark) : text;
+      input.value = input.value.slice(0, s) + put + input.value.slice(e);
+      const caret = s + (mark >= 0 ? mark + picked.length : put.length);
+      input.focus(); input.setSelectionRange(caret, caret);
+      renderInto(input);
+    }));
+    renderInto(input);
+  };
+  document.querySelectorAll("[data-formula-add]").forEach((form) => {
+    const rows = form.querySelector("[data-rows]");
+    const tpl = rows.querySelector("[data-row]").cloneNode(true);
+    rows.querySelectorAll("[data-row]").forEach(wireRow);
+    const sync = () => {
+      const all = rows.querySelectorAll("[data-row]");
+      all.forEach((r) => { r.querySelector("[data-row-del]").hidden = all.length < 2; });
+    };
+    form.querySelector("[data-row-add]").addEventListener("click", () => {
+      const row = tpl.cloneNode(true);
+      row.querySelectorAll("input").forEach((i) => { i.value = ""; });
+      row.querySelector("[data-math-preview]").textContent = "";
+      rows.appendChild(row); wireRow(row); sync();
+      row.querySelector("input[name=topic]").focus();
+    });
+    rows.addEventListener("click", (e) => {
+      const del = e.target.closest("[data-row-del]");
+      if (del) { del.closest("[data-row]").remove(); sync(); }
+    });
+    sync();
+  });
+  document.querySelectorAll("[data-add-to]").forEach((btn) => btn.addEventListener("click", () => {
+    const box = document.getElementById(`add-${btn.dataset.addTo}`);
+    if (!box) return;
+    box.open = true;
+    const br = box.querySelector("[data-branch-input]");
+    br.value = btn.dataset.branch;
+    box.scrollIntoView({ block: "start", behavior: "smooth" });
+    const topic = box.querySelector("input[name=topic]"); if (topic) topic.focus({ preventScroll: true });
+  }));
+})();
