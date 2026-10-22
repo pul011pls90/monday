@@ -153,7 +153,7 @@
   <div class="stack-sm" style="gap:4px">
     <h2 style="font-size:18px">{{ _("Лабораторный журнал") }}</h2>
     {% if week_mistakes %}
-      <p class="text-2">{{ _("На этой неделе %(c)s из %(n)s ошибок — невнимательность, а не незнание темы.", c=breakdown.get('careless', 0), n=week_mistakes) }}</p>
+      <p class="text-2">{{ _("Ошибок на этой неделе: %(n)s. Из них %(c)s — невнимательность, а не незнание темы.", c=breakdown.get('careless', 0), n=week_mistakes) }}</p>
     {% else %}
       <p class="text-2">{{ _("На этой неделе ошибок пока нет.") }}</p>
     {% endif %}

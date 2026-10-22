@@ -971,7 +971,10 @@ def test_questions_translated_for_student():
     assert translate_string("Совсем новая фраза", "ru", "en") is None   # unknown: left for the online translator
     c = login(client(), "student@monday.kg", "student123")
     c.post("/prefs/lang", data={"lang": "en", "next": "/home"})
-    body = c.post("/sessions/start/franklin", follow_redirects=True).data.decode()
+    from monday.models import Question
+    with APP.app_context():  # a skill with the seed's own questions (compilation top-ups may not have a known pattern)
+        sid = Question.query.filter(Question.source.is_(None), Question.text.like("Найдите%")).first().skill_id
+    body = c.post("/sessions/start/franklin", data={"skill_id": sid}, follow_redirects=True).data.decode()
     assert "Show original" in body and "/prefs/original" in body
     c.get("/prefs/original?next=/home")
     body = c.get("/sessions").data.decode()
@@ -1126,3 +1129,23 @@ def test_mistakes_review_page():
     assert "/bank/" in r.headers["Location"]
     other = login(client(), "student2@monday.kg", "student123")
     assert other.get(page).status_code == 404
+
+
+def test_scan_fixes_goal_time_skills():
+    """Goal follows the exam scale, test time never exceeds the limit, thin skills borrow compilation questions."""
+    from monday.models import Attempt, WorkVersion
+    from monday.services import student_pool
+    c = login(client(), "student11@monday.kg", "student123")
+    r = c.post("/profile", data={"action": "profile", "name": "Тест Студент", "exam": "ORT", "goal_score": "900"},
+               follow_redirects=True)
+    assert "от 0 до 245" in r.data.decode()
+    with APP.app_context():
+        from monday.models import User
+        assert User.query.filter_by(email="student11@monday.kg").first().profile.goal_score != 900
+        v = WorkVersion.query.filter(WorkVersion.time_limit_min.isnot(None)).first()
+        a = Attempt(user_id=1, mode="collection", work_version=v, duration_sec=v.time_limit_min * 60 + 9999)
+        assert a.time_used == v.time_limit_min * 60
+        own = [q for q in student_pool("ORT") if "ORT" in (q.exams or [])]
+        assert len(student_pool("ORT")) > len(own)
+        assert all(q.answer_type != "written" for q in student_pool("ORT"))
+    ok(c, "/skills", contains=["Развернуть всё", "sk-ring"])

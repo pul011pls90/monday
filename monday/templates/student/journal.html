@@ -8,7 +8,7 @@
 
 <div class="grid grid-2">
   <section class="card" aria-labelledby="why-h">
-    <div class="card__head"><h2 id="why-h" style="font-size:20px">{{ _("Почему ты теряешь баллы") }}</h2><span class="small" style="color:var(--accent);font-weight:600">{{ _("%(n)s ошибок за неделю", n=week_total) }}</span></div>
+    <div class="card__head"><h2 id="why-h" style="font-size:20px">{{ _("Почему ты теряешь баллы") }}</h2><span class="small" style="color:var(--accent);font-weight:600">{{ week_total }} {{ week_total|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }} {{ _("за неделю") }}</span></div>
     {% set colors = {'careless': '#2B60E5', 'gap': '#153893', 'misread': '#7FA3F3', 'time': '#BBCFF4', None: 'var(--surface-3)'} %}
     {% if week_total %}
       <div class="split-bar" role="img" aria-label="{% for k, label in MISTAKE_REASONS.items() %}{{ label }} {{ breakdown.get(k, 0) }}; {% endfor %}">

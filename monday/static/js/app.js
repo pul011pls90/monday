@@ -745,3 +745,31 @@ document.addEventListener("click", (e) => {
     }
   };
 })();
+
+// goal score: its allowed range follows the chosen exam
+(() => {
+  const goal = document.querySelector("[data-goal-for]");
+  if (!goal) return;
+  const form = goal.form, hint = form.querySelector("[data-goal-hint]");
+  const tpl = hint ? hint.textContent.replace(/\d+/, "{a}").replace(/\d+(?!.*\d)/, "{b}") : "";
+  const sync = () => {
+    const el = form.querySelector("select[name=exam]");
+    const src = el ? el.selectedOptions[0] : form.querySelector("input[name=exam]:checked");
+    if (!src || !src.dataset.max) return;
+    goal.min = src.dataset.min; goal.max = src.dataset.max;
+    if (hint) hint.textContent = tpl.replace("{a}", src.dataset.min).replace("{b}", src.dataset.max);
+  };
+  form.addEventListener("change", (e) => { if (e.target.name === "exam") sync(); });
+})();
+
+// skills map: expand / collapse every topic at once
+(() => {
+  const btn = document.querySelector("[data-skills-all]");
+  const tree = document.querySelector("[data-skills-tree]");
+  if (!btn || !tree) return;
+  const all = () => [...tree.querySelectorAll("details")];
+  const label = () => { btn.textContent = all().every((d) => d.open) ? btn.dataset.close : btn.dataset.open; };
+  btn.addEventListener("click", () => { const open = !all().every((d) => d.open); all().forEach((d) => { d.open = open; }); label(); });
+  tree.addEventListener("toggle", label, true);
+  label();
+})();

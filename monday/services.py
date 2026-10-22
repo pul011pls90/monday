@@ -5,7 +5,7 @@ here so pages stay thin and the rules are in one place.
 """
 import random
 import re
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
 from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal, InvalidOperation
 from fractions import Fraction
@@ -259,6 +259,9 @@ def grade_version_attempt(attempt, version, form):
     attempt.draft = {}
     attempt.finished_at = utcnow()
     attempt.duration_sec = int((attempt.finished_at - attempt.started_at).total_seconds())
+    limit = attempt.work_version.time_limit_min if attempt.work_version else None
+    if limit:  # a tab left open past the limit does not count as time spent (rankings sort by it)
+        attempt.duration_sec = min(attempt.duration_sec, limit * 60)
     return attempt
 
 
@@ -421,13 +424,47 @@ def answer_item(answer):
     return None
 
 
+TOP_UP = 5  # a skill with fewer of the exam's own questions borrows from compilations of other exams
+TOP_UP_MAX = 10
+
+
+def exam_language(exam):
+    return "en" if exam in ("SAT", "CSCA") else "ru"
+
+
+def student_pool(exam, questions=None):
+    """Practice questions of an exam, never written ones.
+
+    A skill with fewer than TOP_UP of the exam's own questions is topped up (to TOP_UP_MAX) with
+    compilation questions of the same skill from other exams, in the exam's language.
+    """
+    if questions is None:
+        questions = Question.query.filter(Question.status == "published").all()
+    base = [q for q in questions if q.answer_type != "written"]
+    if not exam:
+        return base
+    own = [q for q in base if exam in (q.exams or [])]
+    have = Counter(q.skill_id for q in own)
+    lang = exam_language(exam)
+    extra = []
+    thin = {sid for sid in {q.skill_id for q in base} if have[sid] < TOP_UP}
+    for q in sorted(base, key=lambda q: (q.difficulty or 2, q.id)):
+        if (q.skill_id in thin and q.source and exam not in (q.exams or [])
+                and (q.language or "ru") == lang and have[q.skill_id] < TOP_UP_MAX):
+            extra.append(q)
+            have[q.skill_id] += 1
+    return own + extra
+
+
 def pick_practice_questions(user, mode, skill_id=None):
     exam = user.profile.exam if user.profile else None
     count = MODES[mode]["count"]
-    base = Question.query.filter(Question.status == "published", Question.answer_type != "written")
-    pool = [q for q in base.all() if not exam or exam in (q.exams or [])] or base.all()
+    pool = student_pool(exam) or student_pool(None)
     if skill_id:
         focused = [q for q in pool if q.skill_id == skill_id]
+        if not focused:  # nothing on the node itself: practise its subtopic instead of random questions
+            node = db.session.get(ContentNode, skill_id)
+            focused = [q for q in pool if node and q.skill and q.skill.parent_id == node.parent_id]
         if focused:
             rng = random.Random()
             picked = rng.sample(focused, min(count, len(focused)))

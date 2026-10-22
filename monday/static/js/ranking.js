@@ -97,7 +97,7 @@
   // pixel numbers in the "last test" card
   const drawLast = () => document.querySelectorAll("[data-pixtext]").forEach((c) => {
     const cs = getComputedStyle(c.parentElement), ink = cs.color, acc = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#2747d8";
-    window.MondayPixel && window.MondayPixel(c, c.dataset.pixtext, 5, c.hasAttribute("data-accent") ? acc : ink, fade(ink, .07));
+    window.MondayPixel && window.MondayPixel(c, c.dataset.pixtext, +c.dataset.cell || 5, c.dataset.ink || (c.hasAttribute("data-accent") ? acc : ink), fade(ink, .07));
   });
   drawLast();
   // redraw the pixel numbers when the theme changes

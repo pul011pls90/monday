@@ -35,7 +35,7 @@
   <div class="grid grid-3">
     <div><div class="stat-value num">{{ last.score }} / {{ last.total }}</div><div class="stat-label">{{ _("верно") }}</div></div>
     <div><div class="stat-value num">{{ last.percent }}%</div><div class="stat-label">{{ _("точность") }}</div></div>
-    <div><div class="stat-value num">{{ last.duration_sec|duration }}</div><div class="stat-label">{{ _("время") }}</div></div>
+    <div><div class="stat-value num">{{ last.time_used|duration }}</div><div class="stat-label">{{ _("время") }}</div></div>
   </div>
   {% if a.checked_at %}
     <div class="card card--inverse card--tight">

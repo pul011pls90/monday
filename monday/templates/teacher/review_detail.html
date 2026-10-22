@@ -21,7 +21,7 @@
 {% endif %}
 <div class="grid grid-3">
   <div class="card card--tight"><div class="stat-value num">{{ last.score }} / {{ last.total }}</div><div class="stat-label">{{ _("верно") }} · {{ last.percent }}%</div></div>
-  <div class="card card--tight"><div class="stat-value num">{{ last.duration_sec|duration }}</div><div class="stat-label">{{ _("время, из %(n)s мин", n=last.work_version.time_limit_min) }}</div></div>
+  <div class="card card--tight"><div class="stat-value num">{{ last.time_used|duration }}</div><div class="stat-label">{{ _("время, из %(n)s мин", n=last.work_version.time_limit_min) }}</div></div>
   <div class="card card--tight"><div class="stat-value">v{{ last.work_version.number }}</div><div class="stat-label">{{ _("сдано") }} {{ last.finished_at|dt }}</div></div>
 </div>
 

@@ -15,7 +15,7 @@ from .access import student_required
 from .constants import EXAMS, FORMAT_FOR_EXAM, TEST_FORMATS
 from .extensions import db
 from .models import Attempt, AttemptAnswer, BankState, Question, ReferenceSheet
-from .services import content_tree, display_answer, is_correct
+from .services import content_tree, display_answer, is_correct, student_pool
 from .content_i18n import localize
 from .taxonomy import exam_view, keyset
 
@@ -78,8 +78,7 @@ def _pool(user, exam):
         for s in t["subtopics"]:
             for n in s["nodes"]:
                 order[n.id] = len(order)
-    qs = [q for q in Question.query.filter(Question.status == "published").all()
-          if q.skill_id in order and q.answer_type != "written" and (not exam or exam in (q.exams or []))]
+    qs = [q for q in student_pool(exam) if q.skill_id in order]
     qs.sort(key=lambda q: (order[q.skill_id], q.difficulty or 2, q.id))
     return tree, qs
 
@@ -143,7 +142,7 @@ def index():
     stats = {
         "total": len(rows), "answered": answered, "marked": marked,
         "percent": round(100 * answered / len(rows)) if rows else 0,
-        "time": clock(seconds),
+        "time": clock(seconds) if seconds else "—",
     }
     active = any(f.values())
     return render_template("student/bank.html", exam=exam, f=f, active=active, topics=topics, stats=stats,
