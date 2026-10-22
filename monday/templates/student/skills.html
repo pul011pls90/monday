@@ -31,11 +31,11 @@
 </div>
 
 {% if topics %}
-<div class="bank-tree skills-tree" data-skills-tree>
+<div class="sk-grid" data-skills-tree>
   {% for t in topics %}
     {% set pct = ((100 * t.mastered / t.counted) if t.counted else 0)|round|int %}
     <div class="bank-topic sk-topic{{ ' is-weak' if t.node.id == highlight }}">
-      <details {{ 'open' if q or t.node.id == highlight }}>
+      <details {{ 'open' if q }}>
         <summary>
           <span class="sk-ring" style="--p: {{ pct }}" aria-label="{{ _('Освоено %(m)s из %(n)s', m=t.mastered, n=t.counted) }}"><span class="num">{{ t.mastered }}/{{ t.counted }}</span></span>
           <span class="bank-topic__text">
