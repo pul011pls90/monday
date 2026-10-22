@@ -893,3 +893,33 @@ document.addEventListener("click", async (e) => {
   form.addEventListener("change", update);
   update();
 })();
+
+// Faster page switches: when the pointer rests on (or a finger touches) a menu link, the page is fetched
+// in advance, so the click shows it at once. Only menu links and links marked data-prefetch — never tests
+// or anything that changes data on GET.
+(() => {
+  const done = new Set();
+  const sel = ".rail a[href], .nav-drawer a[href], .bottom-nav a[href], a[data-prefetch]";
+  const skip = /\/(logout|attempts|sessions\/\d|bank\/s\/|daily\/play|prefs\/|uploads\/)/;
+  let timer = null;
+  const prefetch = (a) => {
+    const url = new URL(a.href, location.href);
+    if (url.origin !== location.origin || skip.test(url.pathname) || url.href === location.href) return;
+    if (done.has(url.href) || done.size > 30) return;
+    done.add(url.href);
+    const l = document.createElement("link");
+    l.rel = "prefetch"; l.href = url.href; l.as = "document";
+    document.head.appendChild(l);
+  };
+  document.addEventListener("pointerover", (e) => {
+    const a = e.target.closest && e.target.closest(sel);
+    if (!a) return;
+    clearTimeout(timer);
+    timer = setTimeout(() => prefetch(a), 60);
+  }, { passive: true });
+  document.addEventListener("pointerout", () => clearTimeout(timer), { passive: true });
+  document.addEventListener("touchstart", (e) => {
+    const a = e.target.closest && e.target.closest(sel);
+    if (a) prefetch(a);
+  }, { passive: true });
+})();

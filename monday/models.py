@@ -221,7 +221,7 @@ class Question(db.Model):
     weight = db.Column(db.Integer, nullable=False, default=1)  # marks
     answer_type = db.Column(db.String(8), default="choice")  # choice | number (free input) | written (full solution)
     options = db.Column(JSONText, default=list)  # list of strings (choice)
-    correct = db.Column(db.String(64), nullable=False)  # option index, or the value as text
+    correct = db.Column(db.Text, nullable=False)  # option index, the value as text, or a written answer
     input_formats = db.Column(JSONText, default=lambda: ["whole", "fraction", "decimal"])
     precision = db.Column(db.Integer)  # free input: accepted rounding (1 = tenths, 2 = hundredths)
     explanation = db.Column(db.Text, default="")
@@ -619,3 +619,23 @@ class Report(db.Model):
     handled_by = db.relationship("User", foreign_keys=[handled_by_id])
     question = db.relationship("Question")
     node = db.relationship("ContentNode")
+
+
+# Safety net for PostgreSQL, which (unlike SQLite) rejects a string longer than its column:
+# anything typed into a limited field (an answer, a school name…) is cut to fit instead of failing the request.
+from sqlalchemy import String as _String, event as _event, inspect as _inspect  # noqa: E402
+from sqlalchemy.orm import Session as _Session  # noqa: E402
+
+
+@_event.listens_for(_Session, "before_flush")
+def _fit_strings(session, _ctx, _instances):
+    for obj in list(session.new) + list(session.dirty):
+        mapper = _inspect(obj).mapper
+        for col in mapper.columns:
+            limit = getattr(col.type, "length", None) if isinstance(col.type, _String) else None
+            if not limit:
+                continue
+            key = mapper.get_property_by_column(col).key
+            value = getattr(obj, key, None)
+            if isinstance(value, str) and len(value) > limit:
+                setattr(obj, key, value[:limit])

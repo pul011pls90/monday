@@ -19,17 +19,32 @@ def _secret_key():
         return f.read().strip()
 
 
+def _database_url():
+    """DATABASE_URL (Render gives postgres://…, SQLAlchemy wants postgresql+psycopg://…), else local SQLite."""
+    url = os.environ.get("DATABASE_URL", "")
+    if not url:
+        return "sqlite:///" + os.path.join(INSTANCE_DIR, "monday.db")
+    for old in ("postgres://", "postgresql://"):
+        if url.startswith(old):
+            return "postgresql+psycopg://" + url[len(old):]
+    return url
+
+
 class Config:
     SECRET_KEY = _secret_key()
 
     # SQLite for local development. For production set DATABASE_URL,
     # e.g. postgresql://user:pass@host:5432/monday (Supabase works too).
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL", "sqlite:///" + os.path.join(INSTANCE_DIR, "monday.db")
-    )
+    SQLALCHEMY_DATABASE_URI = _database_url()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Postgres on a small plan: a few pooled connections, checked before use (the server may drop idle ones)
+    SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True, "pool_recycle": 280} if not SQLALCHEMY_DATABASE_URI.startswith("sqlite") else {}
 
-    UPLOAD_FOLDER = os.path.join(INSTANCE_DIR, "uploads")
+    # Uploaded photos and figures. On Render this points at the persistent disk (e.g. /var/data/uploads).
+    UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER") or os.path.join(INSTANCE_DIR, "uploads")
+    # Photos are shrunk on upload: longest side and JPEG quality (a phone photo goes from ~3 MB to ~200 KB).
+    PHOTO_MAX_SIDE = 1600
+    PHOTO_QUALITY = 78
     MAX_CONTENT_LENGTH = 8 * 1024 * 1024  # 8 MB per upload
     ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 
@@ -65,6 +80,13 @@ class Config:
     IMPORT_PACKS = os.environ.get("IMPORT_PACKS", "1") == "1"
     DATA_FIXES = os.environ.get("DATA_FIXES", "1") == "1"  # one-time fixes in monday/cleanup.py
     PUBLISH_PACKS = os.environ.get("PUBLISH_PACKS", "1") == "1"
+
+    # Production: no demo accounts in an empty database; the first admin comes from these two variables.
+    SEED_DEMO = os.environ.get("SEED_DEMO", "1") == "1"
+    ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "")
+    ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
+    SESSION_COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "0") == "1"  # 1 behind HTTPS (Render)
+    REMEMBER_COOKIE_SECURE = SESSION_COOKIE_SECURE
 
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"

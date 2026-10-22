@@ -37,7 +37,7 @@
   </div>
 </form>
 
-<p class="small muted">{{ items|length }} {{ items|length|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}</p>
+<p class="small muted">{{ total }} {{ total|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}{% if pages > 1 %} · {{ _("страница %(p)s из %(n)s", p=page, n=pages) }}{% endif %}</p>
 {% if items %}
 <div class="list">
   {% for q in items %}
@@ -56,6 +56,14 @@
     </div>
   {% endfor %}
 </div>
+{% if pages > 1 %}
+{% set args = request.args.to_dict() %}
+<nav class="row pager" style="justify-content:center;gap:8px;margin-top:16px" aria-label="{{ _('Страницы') }}">
+  {% if page > 1 %}{% set _x = args.update(page=page - 1) %}<a class="btn btn--secondary btn--sm" href="{{ url_for('teacher.questions', **args) }}">{{ ui.icon('arrow-left', 16) }}{{ _("Назад") }}</a>{% endif %}
+  <span class="small muted">{{ page }} / {{ pages }}</span>
+  {% if page < pages %}{% set _y = args.update(page=page + 1) %}<a class="btn btn--secondary btn--sm" href="{{ url_for('teacher.questions', **args) }}">{{ _("Далее") }}{{ ui.icon('arrow-right', 16) }}</a>{% endif %}
+</nav>
+{% endif %}
 {% else %}
 <div class="empty"><h3>{{ _("Вопросов нет") }}</h3><p>{{ _("Создайте первый вопрос — форма займёт пару минут.") }}</p></div>
 {% endif %}
