@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block scripts %}<script defer src="{{ url_for('static', filename='js/scenes.js') }}"></script>{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/scenes.js') }}"></script><script defer src="{{ url_for('static', filename='js/ranking.js') }}"></script>{% endblock %}
 {% block title %}{{ _("Тест понедельника") }}{% endblock %}
 {% block content %}
 {% set p = current_user.profile %}
@@ -53,60 +53,59 @@
 </section>
 {% if config.MONDAY_TEST_ALWAYS_OPEN and current_user.is_admin %}<p class="small muted">{{ _("Демо-режим: тест открыт в любой день. Отключается настройкой MONDAY_TEST_ALWAYS_OPEN=0.") }}</p>{% endif %}
 
-<div class="grid grid-2">
-  <section class="card card--flush" aria-labelledby="rank-h">
-    <div class="card__head" style="background:var(--accent-soft);color:var(--accent-ink);padding:18px 24px">
-      <h2 id="rank-h" style="font-size:18px">{{ _("Рейтинг прошлой недели") }}</h2>
-      <div class="chips" role="group" aria-label="{{ _('Уровень') }}">
+<div class="rk-grid">
+  <section class="card rk" data-rank aria-labelledby="rank-h"
+           data-scope="{{ scope if scope in ('country', 'region', 'school') else 'country' }}"
+           data-t-you="{{ _('Ты') }}" data-t-more="{{ _('ещё %(n)s участников', n='{n}') }}" data-t-new="{{ _('новый') }}"
+           data-t-gap="{{ _('до #%(p)s — %(n)s зад.', p='{p}', n='{n}') }}" data-t-gaptime="{{ _('до #%(p)s — решить быстрее', p='{p}') }}"
+           data-t-top="{{ _('Ты первый!') }}" data-t-empty="{{ _('В этом рейтинге пока нет результатов.') }}"
+           data-t-notin="{{ _('Тебя нет в этом рейтинге — пройди тест в понедельник.') }}">
+    <div class="rk__head">
+      <h2 id="rank-h">{{ _("Рейтинг прошлой недели") }}</h2>
+      <div class="seg-switch" role="tablist" aria-label="{{ _('Уровень') }}">
         {% for key, label in [('country', _('Страна')), ('region', _('Область')), ('school', _('Школа'))] %}
-          <a class="chip{{ ' is-active' if scope == key }}" style="min-height:34px;padding:0 12px;font-size:13px" href="{{ url_for('student.monday', scope=key) }}">{{ label }}</a>
+          <a role="tab" class="seg-switch__opt" data-scope-link="{{ key }}" href="{{ url_for('student.monday', scope=key) }}" aria-selected="{{ 'true' if scope == key else 'false' }}">{{ label }}</a>
         {% endfor %}
+        <span class="seg-switch__thumb" aria-hidden="true"></span>
       </div>
     </div>
-    <div style="padding:6px 24px 18px">
-      {% if rows %}
-      <ol class="leader">
-        {% for a in rows %}
-          <li><span class="leader__place">{{ loop.index }}</span><span class="spacer" style="flex:1;font-weight:600">{{ a.user.name.split()[0] }} · {{ a.user.profile.region if a.user.profile }}</span><b class="num">{{ a.score }} / {{ a.total }}</b></li>
-        {% endfor %}
-        {% if total > rows|length %}<li class="muted"><span class="leader__place">…</span>{{ _("ещё %(n)s участников", n=total - rows|length) }}</li>{% endif %}
-        {% if my_place %}
-          <li class="leader__me"><span class="leader__place">#{{ my_place }}</span><span style="flex:1;font-weight:700">{{ _("Ты") }} · {{ p.region or '' }}</span><b class="num">{{ my_attempt.score }} / {{ my_attempt.total }}</b></li>
-        {% endif %}
-      </ol>
-      {% else %}
-        <p class="text-2" style="padding:18px 0">{{ _("В этом рейтинге пока нет результатов.") }}</p>
-      {% endif %}
-    </div>
+    <div class="rk__podium" data-podium></div>
+    <ol class="rk__list" data-rk-list></ol>
+    <p class="rk__more small muted" data-rk-more></p>
+    <div class="rk__me" data-rk-me></div>
+    <script type="application/json" data-rank-data>{{ ranks|tojson }}</script>
   </section>
 
-  <div class="stack" style="gap:16px">
-    <section class="card" aria-labelledby="last-h">
-      <h2 id="last-h" style="font-size:18px">{{ _("Твой прошлый тест") }}</h2>
+  <div class="rk-side">
+    <section class="card rk-last" aria-labelledby="last-h">
+      <h2 id="last-h">{{ _("Твой прошлый тест") }}</h2>
       {% if my_attempt %}
-      <div class="grid grid-3">
-        <div><div class="stat-value num">{{ my_attempt.score }}/{{ my_attempt.total }}</div><div class="stat-label">{{ _("верно") }}</div></div>
-        <div><div class="stat-value num">{{ (my_attempt.duration_sec // 60) if my_attempt.duration_sec else '—' }} {{ _("мин") }}</div><div class="stat-label">{{ _("из %(n)s", n=previous.time_limit_min) }}</div></div>
-        <div><div class="stat-value num" style="color:var(--accent)">#{{ my_place }}</div><div class="stat-label">{{ _("место") }}</div></div>
+      <div class="rk-last__stats">
+        <div><canvas data-pixtext="{{ my_attempt.score }}/{{ my_attempt.total }}" aria-hidden="true"></canvas><span class="sr-only">{{ my_attempt.score }}/{{ my_attempt.total }}</span><div class="stat-label">{{ _("верно") }}</div></div>
+        <div><canvas data-pixtext="{{ (my_attempt.duration_sec // 60) if my_attempt.duration_sec else 0 }}" aria-hidden="true"></canvas><span class="sr-only">{{ (my_attempt.duration_sec // 60) if my_attempt.duration_sec else 0 }}</span><div class="stat-label">{{ _("мин из %(n)s", n=previous.time_limit_min) }}</div></div>
+        <div><canvas data-pixtext="#{{ country_place }}" data-accent aria-hidden="true"></canvas><span class="sr-only">#{{ country_place }}</span><div class="stat-label">{{ _("место") }}</div></div>
       </div>
-      <a href="{{ url_for('student.attempt_result', attempt_id=my_attempt.id) }}" style="font-weight:700">{{ _("Разбор и ошибки") }} →</a>
+      {% if strip %}<div class="rk-strip" role="img" aria-label="{{ _('Ответы: %(n)s верно из %(t)s', n=strip|select|list|length, t=strip|length) }}">{% for ok in strip %}<i class="{{ 'is-ok' if ok else 'is-bad' }}" style="--d:{{ loop.index0 }}"></i>{% endfor %}</div>{% endif %}
+      <a href="{{ url_for('student.attempt_result', attempt_id=my_attempt.id) }}" class="rk-link">{{ _("Разбор и ошибки") }} →</a>
       {% else %}
       <p class="text-2">{{ _("Ты не участвовал на прошлой неделе. Ближайший тест — в понедельник в 19:00.") }}</p>
       {% endif %}
     </section>
 
-    <section class="card card--inverse" aria-labelledby="duel-h">
+    <section class="card card--inverse rk-duel" aria-labelledby="duel-h" data-duel>
       <div class="eyebrow">{{ _("Дуэль школ") }}</div>
       {% if duel %}
-        <h2 id="duel-h" style="font-size:20px">{{ duel.mine[0] }} vs {{ duel.rival[0] }}</h2>
-        {% set a = duel.mine[1] %}{% set b = duel.rival[1] %}
-        <div class="split-bar" role="img" aria-label="{{ _('Средний балл: %(a)s против %(b)s', a='%.1f'|format(a), b='%.1f'|format(b)) }}" style="height:10px">
-          <span style="flex:{{ a }};background:var(--accent)"></span><span style="flex:{{ b }};background:var(--muted)"></span>
+        {% set a = duel.mine[1] %}{% set b = duel.rival[1] %}{% set n = 30 %}{% set left = ((n * a / (a + b)) if (a + b) else n / 2)|round|int %}
+        <div class="rk-duel__names" id="duel-h"><b>{{ duel.mine[0] }}</b><span>vs</span><b>{{ duel.rival[0] }}</b></div>
+        <div class="rk-duel__bar{{ ' is-lead' if a > b else (' is-behind' if a < b else '') }}" role="img" aria-label="{{ _('Средний балл: %(a)s против %(b)s', a='%.1f'|format(a), b='%.1f'|format(b)) }}">
+          {% for i in range(n) %}<i class="{{ 'is-mine' if i < left else 'is-rival' }}" style="--d:{{ i if i < left else n - 1 - i }}"></i>{% endfor %}
         </div>
-        <div class="row row--between small" style="font-weight:600"><span>{{ _("Средний") }} {{ '%.1f'|format(a) }}</span><span>{{ _("Средний") }} {{ '%.1f'|format(b) }}</span></div>
+        <div class="rk-duel__avg"><span>{{ _("Средний") }} {{ '%.1f'|format(a) }}</span><span>{{ _("Средний") }} {{ '%.1f'|format(b) }}</span></div>
+        <p class="rk-duel__verdict">{% if a > b %}{{ _("Твоя школа впереди на %(d)s", d=('%.1f'|format(a - b)).replace('.', ',')) }}{% elif a < b %}{{ _("Твоя школа отстаёт на %(d)s", d=('%.1f'|format(b - a)).replace('.', ',')) }}{% else %}{{ _("Пока ничья") }}{% endif %}</p>
       {% else %}
         <h2 id="duel-h" style="font-size:20px">{{ _("Укажи школу в профиле") }}</h2>
         <p>{{ _("Тогда твоя школа будет соревноваться с другими каждую неделю.") }}</p>
+        <a class="btn btn--light btn--sm" href="{{ url_for('student.profile') }}">{{ _("Открыть профиль") }}</a>
       {% endif %}
     </section>
   </div>

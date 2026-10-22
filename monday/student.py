@@ -823,6 +823,23 @@ def _upcoming_monday_work(exam):
 SCENE_FOR_DAY = [0, 1, 2, 3, 0, 5, 6]
 
 
+def _rank_payload(rows, old_places, me_id):
+    """Ranking rows for the page: top 10 + the student's own row, movement and the gap to the next place."""
+    out = []
+    for i, a in enumerate(rows, 1):
+        pr = a.user.profile
+        out.append({"id": a.user_id, "place": i, "name": (a.user.name or "—").split()[0], "region": (pr.region if pr else "") or "",
+                    "score": a.score or 0, "total": a.total or 10,
+                    "delta": ((old_places[a.user_id] - i) if a.user_id in old_places else None) if old_places else False,
+                    "me": a.user_id == me_id})
+    me = next((r for r in out if r["me"]), None)
+    gap = None
+    if me and me["place"] > 1:
+        above = out[me["place"] - 2]
+        gap = {"place": above["place"], "tasks": above["score"] - me["score"]}
+    return {"top": out[:10], "me": me, "count": len(out), "gap": gap}
+
+
 def _weak_topics(user_id, limit=6):
     """Skills with the most open mistakes in the journal (labels on the Sunday world map)."""
     from sqlalchemy import func
@@ -867,8 +884,18 @@ def monday():
     already_taken = upcoming and Attempt.query.filter(
         Attempt.user_id == current_user.id,
         Attempt.work_version_id.in_([v.id for v in upcoming.versions])).filter(Attempt.finished_at.isnot(None)).first()
+    # ranking for all three scopes at once (switching needs no reload), movement vs the week before
+    older = next((w for w in prev_two if previous and w.week_start and previous.week_start and w.week_start < previous.week_start), None)
+    old_places = {a.user_id: i for i, a in enumerate(monday_ranking(older, limit=None), 1)} if older else {}
+    ranks = {}
+    for key, value in (("country", None), ("region", p.region), ("school", p.school)):
+        lst = all_rows if key == "country" else (monday_ranking(previous, key, value, limit=None) if value else [])
+        ranks[key] = _rank_payload(lst, old_places, current_user.id)
+    country_place, _ca = user_rank(all_rows, current_user.id)
+    strip = [bool(x.is_correct) for x in sorted(my_attempt.answers, key=lambda x: x.index)] if my_attempt else []
     return render_template(
         "student/monday.html", previous=previous, upcoming=upcoming, rows=rows[:10], total=len(rows),
+        ranks=ranks, country_place=country_place, strip=strip,
         my_place=my_place, my_attempt=my_attempt, scope=scope, countdown=countdown_label(start - local_now()),
         start=start, window_open=monday_window_open(), already_taken=already_taken,
         duel={"mine": (p.school, mine), "rival": rival} if mine is not None and rival else None,
