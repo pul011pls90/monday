@@ -4,14 +4,113 @@
 <div class="page-head">
   <div class="page-head__text">
     <h1>{{ _("Сессии") }}</h1>
-    <p>{{ _("Пять режимов — от пяти минут в дороге до получаса на сложные задачи. Выбери по времени и настроению.") }}</p>
+    <p>{{ _("Собери свою сессию: сколько минут, сколько вопросов, какая сложность. Или возьми готовый режим.") }}</p>
   </div>
+  {{ ui.goal_chip(practice) }}
 </div>
+{{ ui.flashes() }}
+
+{% set builtin = [
+  ('franklin', {'minutes': 5, 'count': 5, 'level': 'ladder', 'topics': 'weak', 'explain': 'now'}),
+  ('feynman', {'minutes': 15, 'count': 4, 'level': 'medium', 'topics': 'weak', 'explain': 'now'}),
+  ('darwin', {'minutes': 20, 'count': 6, 'level': 'mix', 'topics': 'mistakes', 'explain': 'now'}),
+  ('einstein', {'minutes': 30, 'count': 5, 'level': 'hard', 'topics': 'all', 'explain': 'now'}),
+] %}
+
+<section class="card sb" aria-labelledby="sb-h" data-sb>
+  <div class="sb__head">
+    <h2 id="sb-h">{{ _("Своя сессия") }}</h2>
+    <div class="chips sb__presets" role="group" aria-label="{{ _('Готовые настройки') }}">
+      {% for key, c in builtin %}<button type="button" class="chip" data-sb-preset='{{ c|tojson }}'>{{ ui.mode_dot(key) }}{{ MODES[key].name }}</button>{% endfor %}
+      {% for pr in presets %}
+        <span class="chip chip--own"><button type="button" data-sb-preset='{{ pr.cfg|tojson }}'>{{ ui.icon('bookmark', 14) }}{{ pr.name }}</button>
+          <form method="post" action="{{ url_for('student.session_presets') }}">{{ ui.csrf() }}<input type="hidden" name="action" value="delete"><input type="hidden" name="index" value="{{ loop.index0 }}">
+            <button type="submit" aria-label="{{ _('Удалить режим %(n)s', n=pr.name) }}" title="{{ _('Удалить') }}">×</button></form></span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <form method="post" action="{{ url_for('student.session_custom') }}" class="sb__form" id="sb-form">
+    {{ ui.csrf() }}
+    <fieldset class="sb__row">
+      <legend>{{ _("Время") }}</legend>
+      <div class="seg">
+        {% for m in SESSION_MINUTES %}<label><input type="radio" name="minutes" value="{{ m }}" {{ 'checked' if m == 15 }}><span>{{ m }} {{ _("мин") }}</span></label>{% endfor %}
+        <label><input type="radio" name="minutes" value="0"><span>{{ _("без лимита") }}</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset class="sb__row">
+      <legend>{{ _("Вопросов") }} <output class="sb__count num" data-sb-count-out>10</output></legend>
+      <input class="sb__range" type="range" name="count" min="1" max="30" value="10" data-sb-count aria-label="{{ _('Сколько вопросов') }}">
+      <div class="sb__ticks small muted" aria-hidden="true"><span>1</span><span>10</span><span>20</span><span>30</span></div>
+    </fieldset>
+
+    <fieldset class="sb__row">
+      <legend>{{ _("Сложность") }}</legend>
+      <div class="seg">
+        <label><input type="radio" name="level" value="ladder" checked><span>{{ _("Лестница") }}<small>{{ _("от лёгких к сложным") }}</small></span></label>
+        <label><input type="radio" name="level" value="easy"><span>{{ _("Лёгкие") }}<small class="num">{{ totals[1] }}</small></span></label>
+        <label><input type="radio" name="level" value="medium"><span>{{ _("Средние") }}<small class="num">{{ totals[2] }}</small></span></label>
+        <label><input type="radio" name="level" value="hard"><span>{{ _("Сложные") }}<small class="num">{{ totals[3] }}</small></span></label>
+        <label><input type="radio" name="level" value="mix"><span>{{ _("Вперемешку") }}<small>{{ _("по возрастанию") }}</small></span></label>
+      </div>
+      <p class="small muted sb__note" data-sb-ladder-note>{{ _("Лестница: начинаешь с лёгкой задачи. Два верных ответа подряд — уровень выше, ошибка — уровень ниже.") }}</p>
+    </fieldset>
+
+    <fieldset class="sb__row">
+      <legend>{{ _("Темы") }}</legend>
+      <div class="seg">
+        <label><input type="radio" name="topics" value="weak" checked><span>{{ _("Слабые") }}</span></label>
+        <label><input type="radio" name="topics" value="all"><span>{{ _("Все") }}</span></label>
+        <label><input type="radio" name="topics" value="mistakes"><span>{{ _("Ошибки из журнала") }}</span></label>
+        <label><input type="radio" name="topics" value="pick" data-sb-pick><span>{{ _("Выбрать") }}</span></label>
+      </div>
+      <div class="sb__topics" data-sb-topics hidden>
+        {% for t in topics %}<label class="check-chip"><input type="checkbox" name="topic" value="{{ t.id }}"><span>{{ t.name }} <small class="num muted">{{ t.n[1] + t.n[2] + t.n[3] }}</small></span></label>{% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset class="sb__row">
+      <legend>{{ _("Объяснение") }}</legend>
+      <div class="seg">
+        <label><input type="radio" name="explain" value="now" checked><span>{{ _("Сразу после ответа") }}</span></label>
+        <label><input type="radio" name="explain" value="end"><span>{{ _("В конце, как на экзамене") }}</span></label>
+      </div>
+    </fieldset>
+
+    <div class="sb__pace" data-sb-pace aria-live="polite"
+         data-pace='{{ PACE|tojson }}'
+         data-t-free="{{ _('Без лимита — решай в своём темпе.') }}"
+         data-t-ok="{{ _('≈ {s} на вопрос — успеешь спокойно.') }}"
+         data-t-tight="{{ _('≈ {s} на вопрос — придётся поторопиться.') }}"
+         data-t-bad="{{ _('Слишком мало времени: на такой вопрос нужно около {need}, а выходит {s}.') }}"
+         data-t-fix-count="{{ _('Взять {n} вопр.') }}" data-t-fix-min="{{ _('Поставить {m} мин') }}"
+         data-t-sec="{{ _('{n} с') }}" data-t-min="{{ _('{m} мин {s} с') }}">
+      <span data-sb-pace-text></span>
+      <span class="sb__fix" data-sb-fix></span>
+    </div>
+
+    <div class="sb__actions">
+      <button class="btn btn--primary btn--lg" type="submit">{{ ui.icon('play', 18) }}{{ _("Начать") }}</button>
+      <details class="sb__save">
+        <summary class="btn btn--secondary">{{ ui.icon('bookmark', 16) }}{{ _("Сохранить как мой режим") }}</summary>
+        <div class="sb__save-panel">
+          <label class="label" for="preset-name">{{ _("Название") }}</label>
+          <input class="input" id="preset-name" name="name" maxlength="40" placeholder="{{ _('Например, «Утро: 10 лёгких»') }}" form="sb-form">
+          <button class="btn btn--primary btn--sm" type="submit" form="sb-form" formaction="{{ url_for('student.session_presets') }}">{{ _("Сохранить") }}</button>
+        </div>
+      </details>
+    </div>
+  </form>
+</section>
+
+<h2>{{ _("Быстрый старт") }}</h2>
 {{ ui.time_cards(facts) }}
 
 <h2>{{ _("Как устроены режимы") }}</h2>
 <div class="grid grid-2">
-  {% for key, m in MODES.items() %}
+  {% for key, m in MODES.items() if not m.builder %}
   <div class="card card--tight">
     <div class="row">{{ ui.mode_dot(key) }}<b>{{ m.name }}</b><span class="muted small">~{{ m.approx }} {{ _("мин") }}</span></div>
     <p class="text-2 small">

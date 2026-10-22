@@ -456,6 +456,104 @@ def student_pool(exam, questions=None):
     return own + extra
 
 
+def build_custom_plan(user, cfg):
+    """Questions for «Своя сессия».
+
+    cfg: {exam, count (1–30), minutes (0 = no limit), level: ladder|easy|medium|hard|mix,
+          topics: "weak" | "all" | "mistakes" | [topic node ids], explain: now|end, ids: [...] (repeat a set)}
+    Ladder: the plan starts with one easy question; the next ones are chosen as the student goes
+    (two right in a row → one level up, a mistake → one level down). The level pools are kept in cfg.
+    Returns (questions, cfg).
+    """
+    exam = cfg.get("exam") or (user.profile.exam if user.profile else None)
+    pool = student_pool(exam) or student_pool(None)
+    if cfg.get("ids"):
+        by_id = {q.id: q for q in Question.query.filter(Question.id.in_(cfg["ids"])).all()}
+        qs = [by_id[i] for i in cfg["ids"] if i in by_id]
+        cfg["count"] = len(qs)
+        cfg["level"] = "mix"
+        return qs, cfg
+    topics = cfg.get("topics") or "weak"
+    stats = skill_stats(user.id)
+    if topics == "weak":
+        weak = {sid for sid, st in stats.items() if st["state"] != "mastered"}
+        focused = [q for q in pool if q.skill_id in weak]
+        pool = focused if len(focused) >= cfg["count"] else focused + [q for q in pool if q.skill_id not in weak]
+    elif topics == "mistakes":
+        open_ids = {a.skill_id for a in open_mistakes(user.id)}
+        pool = [q for q in pool if q.skill_id in open_ids] or pool
+    elif isinstance(topics, list) and topics:
+        wanted = set(topics)
+        pool = [q for q in pool if q.skill and q.skill.topic_node and q.skill.topic_node.id in wanted]
+    # the same question may exist twice (e.g. a compilation and a teacher's copy): keep one
+    uniq, texts = [], set()
+    for q in pool:
+        key = (q.text or "").strip(), str(q.correct)
+        if key not in texts:
+            texts.add(key)
+            uniq.append(q)
+    pool = uniq
+    # questions the student has not answered yet come first
+    seen = {qid for (qid,) in db.session.query(AttemptAnswer.question_id).join(Attempt).filter(Attempt.user_id == user.id).all()}
+    rng = random.Random()
+    rng.shuffle(pool)
+    pool.sort(key=lambda q: q.id in seen)
+    level = cfg.get("level", "ladder")
+    want = {"easy": {1}, "medium": {2}, "hard": {3}}.get(level)
+    if want:
+        exact = [q for q in pool if (q.difficulty or 2) in want]
+        near = [q for q in pool if (q.difficulty or 2) not in want and abs((q.difficulty or 2) - min(want)) == 1]
+        pool = exact + near
+    n = cfg["count"]
+    if level == "ladder":
+        levels = {d: [q.id for q in pool if (q.difficulty or 2) == d] for d in (1, 2, 3)}
+        start = next((d for d in (1, 2, 3) if levels[d]), None)
+        if start is None:
+            return [], cfg
+        first = levels[start].pop(0)
+        cfg["pools"] = {str(d): ids for d, ids in levels.items()}
+        cfg["cur"] = start
+        cfg["top"] = start
+        return [db.session.get(Question, first)], cfg
+    picked, skills = [], Counter()
+    for q in pool:  # spread across skills: at most a third of the session from one skill
+        if len(picked) >= n:
+            break
+        if skills[q.skill_id] < max(1, n // 3):
+            picked.append(q)
+            skills[q.skill_id] += 1
+    for q in pool:
+        if len(picked) >= n:
+            break
+        if q not in picked:
+            picked.append(q)
+    if level == "mix":
+        picked.sort(key=lambda q: q.difficulty or 2)
+    return picked, cfg
+
+
+def ladder_next(att, cfg):
+    """Ladder sessions: the id of the next question (or None when the session is over)."""
+    if len(att.plan) >= cfg.get("count", 0):
+        return None
+    answers = sorted(att.answers, key=lambda a: a.index)
+    cur = int(cfg.get("cur", 1))
+    if answers and not answers[-1].is_correct:
+        cur, cfg["run"] = max(1, cur - 1), 0
+    elif answers:
+        cfg["run"] = int(cfg.get("run", 0)) + 1
+        if cfg["run"] >= 2:  # two right in a row → one level up
+            cur, cfg["run"] = min(3, cur + 1), 0
+    pools = cfg.get("pools", {})
+    for d in sorted((1, 2, 3), key=lambda d: (abs(d - cur), -d)):
+        ids = pools.get(str(d)) or []
+        if ids:
+            cfg["cur"] = d
+            cfg["top"] = max(int(cfg.get("top", d)), d)
+            return ids.pop(0)
+    return None
+
+
 def pick_practice_questions(user, mode, skill_id=None, exam=None):
     """exam: the map the student trains from ("all" = any exam); default is the student's own exam."""
     if exam == "all":

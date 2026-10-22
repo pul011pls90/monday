@@ -107,6 +107,8 @@ class StudentProfile(db.Model):
     region = db.Column(db.String(64))
     school = db.Column(db.String(120))
     onboarded = db.Column(db.Boolean, default=False)
+    daily_goal = db.Column(db.Integer, default=15)  # minutes of practice a day (streak on the home page)
+    session_presets = db.Column(JSONText, default=list)  # «мои режимы»: [{"name": .., "cfg": {..}}]
 
     user = db.relationship("User", back_populates="profile")
 
@@ -440,6 +442,7 @@ class AttemptAnswer(db.Model):
     points_by = db.Column(db.String(8))  # self | teacher
     photo_path = db.Column(db.String(255))  # written answers: photo of the solution (inside uploads)
     resolved = db.Column(db.Boolean, default=False)
+    hint_used = db.Column(db.Boolean, default=False)  # custom sessions: a hint was opened (counts as half)
     answered_at = db.Column(db.DateTime, default=utcnow)
 
     attempt = db.relationship("Attempt", back_populates="answers")

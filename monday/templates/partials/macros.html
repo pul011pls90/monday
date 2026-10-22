@@ -243,7 +243,7 @@
 {# The five session modes as time cards in shades of the brand blue, each with a fact of the day. #}
 {% macro time_cards(facts) -%}
 <div class="time-cards">
-  {% for key, m in MODES.items() %}
+  {% for key, m in MODES.items() if not m.builder %}
     {% set n = loop.index %}
     {% if m.ready %}<form method="post" action="{{ url_for('student.start_session', mode=key) }}" class="time-card-wrap">{{ csrf() }}<button type="submit" class="time-card shade-{{ n }}">
     {% else %}<div class="time-card-wrap"><div class="time-card shade-{{ n }} is-soon">{% endif %}
@@ -311,4 +311,22 @@
   </div>
 </details>
 {% endif %}
+{%- endmacro %}
+
+
+{# Daily practice goal: minutes today, streak, goal picker. g = student._practice_goal() #}
+{% macro goal_chip(g) -%}
+<div class="goal" aria-label="{{ _('Цель дня') }}">
+  <div class="goal__ring" style="--p: {{ [100, (100 * g.today / g.goal)|round|int]|min }}"><span class="num">{{ g.today }}</span></div>
+  <div class="goal__text">
+    <b>{{ _("%(m)s из %(g)s мин сегодня", m=g.today, g=g.goal) }}</b>
+    <span class="small muted">{% if g.streak %}{{ _("Серия: %(n)s", n=g.streak) }} {{ g.streak|plural_ru(_("день"), _("дня"), _("дней")) }}{% else %}{{ _("Начни серию сегодня") }}{% endif %}</span>
+  </div>
+  <form method="post" action="{{ url_for('student.set_goal') }}" class="goal__set">{{ csrf() }}<input type="hidden" name="next" value="{{ request.path }}">
+    <label class="sr-only" for="goal-min">{{ _("Цель в минутах") }}</label>
+    <select class="select select--sm" id="goal-min" name="minutes" onchange="this.form.submit()">
+      {% for m in (5, 10, 15, 20, 30, 45, 60) %}<option value="{{ m }}" {{ 'selected' if m == g.goal }}>{{ _("цель %(m)s мин", m=m) }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
 {%- endmacro %}

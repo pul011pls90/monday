@@ -23,7 +23,14 @@ MODES = {
     "tesla": {"name": _l("Тесла"), "approx": 15, "time": _l("15 мин"), "desc": _l("графики и фигуры руками"), "color": "orange", "count": 0, "ready": False},
     "darwin": {"name": _l("Дарвин"), "approx": 20, "time": _l("15–20 мин"), "desc": _l("расследуй свои ошибки"), "color": "red", "count": 6, "ready": True},
     "einstein": {"name": _l("Эйнштейн"), "approx": 30, "time": _l("20–30 мин"), "desc": _l("сложные задачи, два способа"), "color": "purple", "count": 5, "ready": True},
+    # built in «Своя сессия»: time, number of questions, difficulty and topics chosen by the student
+    "custom": {"name": _l("Своя сессия"), "approx": 10, "time": _l("сколько захочешь"), "desc": _l("время, число вопросов и сложность — твои"), "color": "blue", "count": 10, "ready": True, "builder": True},
 }
+
+# Comfortable time for one question, by difficulty (seconds): drives the pace hint in «Своя сессия».
+PACE = {1: 40, 2: 75, 3: 150}
+SESSION_MINUTES = (5, 10, 15, 20, 30, 45)
+SESSION_LEVELS = ("ladder", "easy", "medium", "hard", "mix")
 
 WORK_KINDS = {
     "collection": _l("Сборник"),

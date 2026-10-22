@@ -120,8 +120,9 @@
 
 {# ------------------------------------------------------------ time cards, each with a fact of the day #}
 <section class="section" aria-labelledby="time-h">
-  <div class="section__head"><h2 id="time-h">{{ _("Сколько у тебя времени?") }}</h2><span class="small muted">{{ _("Факты меняются каждый день") }}</span></div>
+  <div class="section__head"><h2 id="time-h">{{ _("Сколько у тебя времени?") }}</h2>{{ ui.goal_chip(practice) }}</div>
   {{ ui.time_cards(facts) }}
+  <a class="sb-link" href="{{ url_for('student.sessions') }}">{{ ui.icon('settings', 16) }}{{ _("Своя сессия: выбери время, число вопросов и сложность") }}{{ ui.icon('arrow-right', 16) }}</a>
 </section>
 
 {# ------------------------------------------------------------ homework + Monday test #}
