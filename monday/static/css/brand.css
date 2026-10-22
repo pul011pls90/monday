@@ -1424,3 +1424,17 @@ body.has-rv-foot .page { padding-bottom: 110px; }
   .rk-duel { align-content: space-between; grid-template-rows: auto auto 1fr auto auto; }
   .rk-duel__bar { align-self: center; }
 }
+
+/* podium place: a solid badge on top of the column, readable in both themes */
+.rk-col__bar em { top: -14px; bottom: auto; left: 50%; transform: translate(-50%, 0); display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--surface); color: var(--text); border: 2px solid currentColor; font-size: 15px; text-shadow: none; box-shadow: 0 4px 12px rgba(7, 15, 77, .18); z-index: 1; }
+.rk-col--1 .rk-col__bar em { color: #c8930d; }
+.rk-col--2 .rk-col__bar em { color: #7d8597; }
+.rk-col--3 .rk-col__bar em { color: #b06a3b; }
+.rk-col__bar { margin-top: 18px; }
+/* dark theme: empty score dots dim, the 1st-place shine softer */
+[data-theme="dark"] .rk-dots i:not(.is-on) { background: rgba(255, 255, 255, .14); }
+[data-theme="dark"] .rk-dots i.is-on { background: #6f86ff; }
+[data-theme="dark"] .rk-col__bar { background: rgba(143, 166, 255, .08); }
+[data-theme="dark"] .rk-col--1 .rk-col__bar::after { opacity: .35; }
+[data-theme="dark"] .rk-strip i { background: rgba(255, 255, 255, .12); }

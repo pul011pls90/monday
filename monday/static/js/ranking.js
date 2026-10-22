@@ -16,6 +16,7 @@
   const T = card.dataset;
   const podium = card.querySelector("[data-podium]"), list = card.querySelector("[data-rk-list]");
   const more = card.querySelector("[data-rk-more]"), meBox = card.querySelector("[data-rk-me]");
+  const fade = (color, a) => { const m = color.match(/[\d.]+/g) || [0, 0, 0]; return `rgba(${m[0]},${m[1]},${m[2]},${a})`; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const delta = (d) => d === false ? "" : d === null || d === undefined ? `<span class="rk-delta rk-delta--new">${esc(T.tNew)}</span>`
     : d > 0 ? `<span class="rk-delta rk-delta--up">▲${d}</span>` : d < 0 ? `<span class="rk-delta rk-delta--down">▼${-d}</span>` : `<span class="rk-delta">–</span>`;
@@ -36,7 +37,8 @@
         <div class="rk-col__bar" style="--cols:${cols}">${sq}<em>${r.place}</em></div>
       </div>`;
     }).join("");
-    podium.querySelectorAll("[data-score]").forEach((c) => window.MondayPixel && window.MondayPixel(c, c.dataset.score, 3, "rgba(12,24,114,.9)", "rgba(12,24,114,.08)"));
+    const ink = getComputedStyle(card).color;   // follows the light / dark theme
+    podium.querySelectorAll("[data-score]").forEach((c) => window.MondayPixel && window.MondayPixel(c, c.dataset.score, 3, ink, fade(ink, .1)));
   }
   function renderList(top) {
     list.innerHTML = top.slice(3).map((r, i) => `
@@ -93,7 +95,13 @@
 
   render(card.dataset.scope, false);
   // pixel numbers in the "last test" card
-  document.querySelectorAll("[data-pixtext]").forEach((c) => window.MondayPixel && window.MondayPixel(c, c.dataset.pixtext, 5, c.hasAttribute("data-accent") ? "rgba(39,71,216,.95)" : "rgba(12,24,114,.92)", "rgba(12,24,114,.06)"));
+  const drawLast = () => document.querySelectorAll("[data-pixtext]").forEach((c) => {
+    const cs = getComputedStyle(c.parentElement), ink = cs.color, acc = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#2747d8";
+    window.MondayPixel && window.MondayPixel(c, c.dataset.pixtext, 5, c.hasAttribute("data-accent") ? acc : ink, fade(ink, .07));
+  });
+  drawLast();
+  // redraw the pixel numbers when the theme changes
+  new MutationObserver(() => { drawLast(); render(card.dataset.scope, false); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   // play the entrance once, when the cards scroll into view
   const play = (el) => el.classList.add("is-in");
   if (reduce || !("IntersectionObserver" in window)) { document.querySelectorAll(".rk, .rk-last, .rk-duel").forEach(play); return; }
