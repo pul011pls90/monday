@@ -31,7 +31,7 @@
   <div class="table-wrap"><table class="table">
     <thead><tr><th>{{ _("Дата") }}</th><th>{{ _("Результат") }}</th><th>{{ _("Время") }}</th><th></th></tr></thead>
     <tbody>{% for a in done %}
-      <tr><td>{{ a.finished_at|dt }}</td><td class="t-strong num">{{ a.score }} / {{ a.total }} · {{ a.percent }}%</td><td class="num">{{ a.duration_sec|duration }}</td>
+      <tr><td>{{ a.finished_at|dt }}</td><td class="t-strong num">{{ a.score }} / {{ a.total }} · {{ a.percent }}%</td><td class="num">{{ a.time_used|duration }}</td>
       <td style="text-align:right"><a href="{{ url_for('student.attempt_result', attempt_id=a.id) }}">{{ _("Разбор") }}</a></td></tr>
     {% endfor %}</tbody>
   </table></div>

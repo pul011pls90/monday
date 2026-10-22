@@ -8,7 +8,7 @@
   <div class="stack-sm">
     <div class="eyebrow">{{ mode.name if mode else '' }} · {{ _("сессия завершена") }}</div>
     <div class="hero__unit">{% if n and att.score == n %}{{ _("Чисто. Ни одной ошибки.") }}{% elif n and att.score * 2 >= n %}{{ _("Неплохо. Ошибки уже в журнале.") }}{% else %}{{ _("Это и есть тренировка — ошибки ждут в журнале.") }}{% endif %}</div>
-    <div class="hero-muted">{{ att.duration_sec|duration }}</div>
+    <div class="hero-muted">{{ att.time_used|duration }}</div>
   </div>
 </section>
 <div class="list">

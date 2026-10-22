@@ -1,6 +1,6 @@
 """Student side: home, skills, sessions, collections, tests, homework, journal, Monday test, profile."""
 import re
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
 
 from flask import Blueprint, abort, current_app, flash, jsonify, redirect, render_template, request, url_for
@@ -18,7 +18,7 @@ from .models import Assignment, Attempt, AttemptAnswer, Question, Skill, Student
 from .services import (answer_item, countdown_label, current_module, current_monday_work, grade_version_attempt,
                        homework_state, is_correct, seconds_left, version_layout, latest_attempt, mistake_breakdown, monday_ranking, mondays_left,
                        next_monday_test_start, open_mistakes, pick_practice_questions, progress_summary,
-                       recommended_mode, skill_map, student_assignments, user_rank, week_start)
+                       recommended_mode, skill_map, student_assignments, student_pool, user_rank, week_start)
 
 bp = Blueprint("student", __name__)
 
@@ -50,7 +50,7 @@ def onboarding():
             return render_template("student/onboarding.html", profile=profile), 400
         profile.exam = exam
         profile.exam_date = _parse_date(request.form.get("exam_date"))
-        profile.goal_score = _parse_int(request.form.get("goal_score"))
+        profile.goal_score = _goal_for(exam, request.form.get("goal_score"), profile.goal_score)
         profile.region = request.form.get("region", "").strip() or None
         profile.school = request.form.get("school", "").strip() or None
         profile.country = EXAMS[exam]["country"] and str(EXAMS[exam]["country"])
@@ -80,6 +80,16 @@ def _parse_int(value):
         return int(value) if value not in (None, "") else None
     except ValueError:
         return None
+
+
+def _goal_for(exam, raw, old=None):
+    """Goal score checked against the exam's scale; an impossible goal is refused with a message."""
+    goal = _parse_int(raw)
+    e = EXAMS.get(exam)
+    if goal is None or not e or e["min"] <= goal <= e["max"]:
+        return goal
+    flash(_("Целевой балл для %(exam)s — от %(a)s до %(b)s.", exam=e["label"], a=e["min"], b=e["max"]), "error")
+    return old if old is not None and e["min"] <= old <= e["max"] else None
 
 
 # --------------------------------------------------------------------------- home
@@ -179,6 +189,17 @@ def skills():
         if subs:
             filtered.append({**t, "subtopics": subs, "items": [i for s in subs for i in s["items"]]})
     topics = filtered
+    have = Counter(q.skill_id for q in student_pool(exam))
+    for t in topics:
+        for i in t["items"]:
+            i["n"] = have.get(i["skill"].id, 0)
+        t["n"] = sum(i["n"] for i in t["items"] if i["state"] != "outside")
+        counted = [i for i in t["items"] if i["state"] != "outside"]
+        t["mastered"] = sum(1 for i in counted if i["state"] == "mastered")
+        t["counted"] = len(counted)
+        target = ([i for i in counted if i["state"] == "progress" and i["n"]] or [i for i in counted if i["state"] == "new" and i["n"]]
+                  or [i for i in counted if i["n"]])
+        t["target"] = target[0]["skill"].id if target else None
     summary = progress_summary(current_user.id, exam)
     highlight = summary["weak"][0]["skill"].topic_node.id if summary["weak"] and summary["weak"][0]["skill"].topic_node else None
     return render_template("student/skills.html", topics=topics, summary=summary, scope=scope, q=q, exam=exam,
@@ -900,7 +921,7 @@ def monday():
         my_place=my_place, my_attempt=my_attempt, scope=scope, countdown=countdown_label(start - local_now()),
         start=start, window_open=monday_window_open(), already_taken=already_taken,
         duel={"mine": (p.school, mine), "rival": rival} if mine is not None and rival else None,
-        week_number=max(1, len(prev_two)), seconds_left=max(0, int((start - local_now()).total_seconds())),
+        week_number=max(1, sum(1 for w in prev_two if w.week_start and w.week_start <= start.date())), seconds_left=max(0, int((start - local_now()).total_seconds())),
         scene_cycle=sorted(set(SCENE_FOR_DAY)), scene=SCENE_FOR_DAY[request.args.get("scene", local_today().weekday(), type=int) % 7], weak_topics=_weak_topics(current_user.id),
     )
 
@@ -941,7 +962,7 @@ def profile():
             if exam in EXAMS:
                 p.exam = exam
             p.exam_date = _parse_date(request.form.get("exam_date")) or p.exam_date
-            p.goal_score = _parse_int(request.form.get("goal_score"))
+            p.goal_score = _goal_for(p.exam, request.form.get("goal_score"), p.goal_score)
             p.grade = request.form.get("grade", "").strip() or None
             p.region = request.form.get("region", "").strip() or None
             p.school = request.form.get("school", "").strip() or None

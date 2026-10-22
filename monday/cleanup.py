@@ -63,9 +63,24 @@ def mark_pack_sources():
             q.source = pack_id
 
 
+def fix_goals_and_times():
+    """Goals outside the exam's scale are cleared; test times are capped at the test's limit."""
+    from .constants import EXAMS
+    from .models import StudentProfile
+    for p in StudentProfile.query.filter(StudentProfile.goal_score.isnot(None)).all():
+        e = EXAMS.get(p.exam)
+        if e and not e["min"] <= p.goal_score <= e["max"]:
+            p.goal_score = None
+    for a in Attempt.query.filter(Attempt.duration_sec.isnot(None), Attempt.work_version_id.isnot(None)).all():
+        limit = a.work_version.time_limit_min if a.work_version else None
+        if limit and a.duration_sec > limit * 60:
+            a.duration_sec = limit * 60
+
+
 def run_fixes():
     if not current_app.config.get("DATA_FIXES", True):
         return
     _once("demo-collections-removed", remove_demo_collections)
     _once("demo-student-renamed", rename_demo_student)
     _once("question-source", mark_pack_sources)
+    _once("goals-times-capped", fix_goals_and_times)

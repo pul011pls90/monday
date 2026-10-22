@@ -417,6 +417,14 @@ class Attempt(db.Model):
     def percent(self):
         return round(100 * self.score / self.total) if self.total else 0
 
+    @property
+    def time_used(self):
+        """Seconds spent, never more than the test's time limit (an open tab does not count)."""
+        if not self.duration_sec:
+            return self.duration_sec
+        limit = self.work_version.time_limit_min if self.work_version else None
+        return min(self.duration_sec, limit * 60) if limit else self.duration_sec
+
 
 class AttemptAnswer(db.Model):
     id = db.Column(db.Integer, primary_key=True)

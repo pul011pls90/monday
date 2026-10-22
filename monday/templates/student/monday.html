@@ -82,7 +82,7 @@
       {% if my_attempt %}
       <div class="rk-last__stats">
         <div><canvas data-pixtext="{{ my_attempt.score }}/{{ my_attempt.total }}" aria-hidden="true"></canvas><span class="sr-only">{{ my_attempt.score }}/{{ my_attempt.total }}</span><div class="stat-label">{{ _("верно") }}</div></div>
-        <div><canvas data-pixtext="{{ (my_attempt.duration_sec // 60) if my_attempt.duration_sec else 0 }}" aria-hidden="true"></canvas><span class="sr-only">{{ (my_attempt.duration_sec // 60) if my_attempt.duration_sec else 0 }}</span><div class="stat-label">{{ _("мин из %(n)s", n=previous.time_limit_min) }}</div></div>
+        <div><canvas data-pixtext="{{ (my_attempt.time_used // 60) if my_attempt.time_used else 0 }}" aria-hidden="true"></canvas><span class="sr-only">{{ (my_attempt.time_used // 60) if my_attempt.time_used else 0 }}</span><div class="stat-label">{{ _("мин из %(n)s", n=previous.time_limit_min) }}</div></div>
         <div><canvas data-pixtext="#{{ country_place }}" data-accent aria-hidden="true"></canvas><span class="sr-only">#{{ country_place }}</span><div class="stat-label">{{ _("место") }}</div></div>
       </div>
       {% if strip %}<div class="rk-strip" role="img" aria-label="{{ _('Ответы: %(n)s верно из %(t)s', n=strip|select|list|length, t=strip|length) }}">{% for ok in strip %}<i class="{{ 'is-ok' if ok else 'is-bad' }}" style="--d:{{ loop.index0 }}"></i>{% endfor %}</div>{% endif %}
@@ -97,10 +97,15 @@
       {% if duel %}
         {% set a = duel.mine[1] %}{% set b = duel.rival[1] %}{% set n = 30 %}{% set left = ((n * a / (a + b)) if (a + b) else n / 2)|round|int %}
         <div class="rk-duel__names" id="duel-h"><b>{{ duel.mine[0] }}</b><span>vs</span><b>{{ duel.rival[0] }}</b></div>
+        {% set fa = ('%.1f'|format(a)).replace('.', ',') %}{% set fb = ('%.1f'|format(b)).replace('.', ',') %}
+        <div class="rk-duel__score">
+          <div><canvas data-pixtext="{{ fa }}" data-ink="#8fa6ff" data-cell="8" aria-hidden="true"></canvas><span class="sr-only">{{ fa }}</span><div class="rk-duel__lbl">{{ _("средний балл") }}</div></div>
+          <span class="rk-duel__vs">vs</span>
+          <div><canvas data-pixtext="{{ fb }}" data-cell="8" aria-hidden="true"></canvas><span class="sr-only">{{ fb }}</span><div class="rk-duel__lbl">{{ _("средний балл") }}</div></div>
+        </div>
         <div class="rk-duel__bar{{ ' is-lead' if a > b else (' is-behind' if a < b else '') }}" role="img" aria-label="{{ _('Средний балл: %(a)s против %(b)s', a='%.1f'|format(a), b='%.1f'|format(b)) }}">
           {% for i in range(n) %}<i class="{{ 'is-mine' if i < left else 'is-rival' }}" style="--d:{{ i if i < left else n - 1 - i }}"></i>{% endfor %}
         </div>
-        <div class="rk-duel__avg"><span>{{ _("Средний") }} {{ '%.1f'|format(a) }}</span><span>{{ _("Средний") }} {{ '%.1f'|format(b) }}</span></div>
         <p class="rk-duel__verdict">{% if a > b %}{{ _("Твоя школа впереди на %(d)s", d=('%.1f'|format(a - b)).replace('.', ',')) }}{% elif a < b %}{{ _("Твоя школа отстаёт на %(d)s", d=('%.1f'|format(b - a)).replace('.', ',')) }}{% else %}{{ _("Пока ничья") }}{% endif %}</p>
       {% else %}
         <h2 id="duel-h" style="font-size:20px">{{ _("Укажи школу в профиле") }}</h2>

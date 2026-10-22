@@ -23,7 +23,7 @@
     <div class="exam-grid" role="radiogroup" aria-label="{{ _('Экзамен') }}">
       {% for code, e in EXAMS.items() %}
       <label class="exam-option">
-        <input type="radio" name="exam" value="{{ code }}" {{ 'checked' if (profile.exam or 'ORT') == code }} required>
+        <input type="radio" name="exam" value="{{ code }}" data-min="{{ e.min }}" data-max="{{ e.max }}" {{ 'checked' if (profile.exam or 'ORT') == code }} required>
         <span><b>{{ e.label }}</b><small>{{ e.country }} · {{ e.note }}</small></span>
       </label>
       {% endfor %}
@@ -36,7 +36,8 @@
       </div>
       <div class="field">
         <label for="goal_score">{{ _("Целевой балл") }}</label>
-        <input class="input" type="number" id="goal_score" name="goal_score" min="0" max="1600" placeholder="{{ _('Например, 190') }}" value="{{ profile.goal_score or '' }}">
+        {% set ex = EXAMS.get(profile.exam or 'ORT') %}<input class="input" type="number" id="goal_score" name="goal_score" min="{{ ex.min }}" max="{{ ex.max }}" value="{{ profile.goal_score or '' }}" data-goal-for="exam">
+        <span class="field__hint" data-goal-hint>{{ _("от %(a)s до %(b)s", a=ex.min, b=ex.max) }}</span>
       </div>
       <div class="field">
         <label for="language">{{ _("Язык объяснений") }}</label>
