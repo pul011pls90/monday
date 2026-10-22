@@ -1,28 +1,61 @@
 {% extends "layout.html" %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/scenes.js') }}"></script>{% endblock %}
 {% block title %}{{ _("Тест понедельника") }}{% endblock %}
 {% block content %}
 {% set p = current_user.profile %}
-<section class="hero" style="flex-direction:column;align-items:stretch;gap:28px">
-  <div class="row row--between" style="flex-wrap:wrap;gap:8px">
-    <span class="eyebrow">{{ _("Ритуал недели · трек %(exam)s", exam=p.exam|exam_label) }}</span>
-    <span class="tag" style="background:var(--accent-strong)">{{ _("Неделя %(n)s", n=week_number) }}</span>
-  </div>
-  <h1 class="display" style="font-size:clamp(26px, 7.4vw, 64px);line-height:1.05">{{ _("Тест") }}<br>{{ _("понедельника") }}</h1>
-  <div class="row row--between" style="align-items:flex-end;gap:24px">
-    <div class="row" style="gap:32px;align-items:flex-end">
-      <div><div class="stat-value num" style="font-size:40px">{% if countdown %}{{ _("%(d)s д %(h)s ч", d=countdown[0], h=countdown[1]) }}{% else %}{{ _("Сейчас") }}{% endif %}</div><div class="hero-muted small">{{ _("до старта · пн, 19:00") }}</div></div>
-      <div><div class="stat-value" style="font-size:40px">{{ upcoming.time_limit_min if upcoming else 20 }} {{ _("мин") }}</div><div class="hero-muted small">{{ _("%(n)s задач, одинаковых для всех", n=upcoming.current_version.question_count if upcoming else 10) }}</div></div>
+{% set first = (current_user.name or '').split()[0] if current_user.name else '' %}
+{% set lines = [
+  _("Новая неделя — новая вершина, %(n)s.", n=first),
+  _("Каждая задача — силовая линия к цели, %(n)s.", n=first),
+  _("Маленькие шаги складываются в большие формы, %(n)s.", n=first),
+  _("Формулы летят навстречу. Лови их, %(n)s.", n=first),
+  _("Бесконечность — тоже число, %(n)s.", n=first),
+  _("Мир из чисел. Твой ход, %(n)s.", n=first),
+  _("Весь мир решает этот тест вместе с тобой, %(n)s.", n=first),
+] %}
+{% if already_taken %}{% set scene_mode = 'after' %}{% set today_line = _("%(s)s из %(t)s — следующий старт через неделю, %(n)s.", s=already_taken.score, t=already_taken.total, n=first) %}
+{% elif upcoming and window_open %}{% set scene_mode = 'live' %}{% set today_line = _("Тест открыт. Вперёд, %(n)s!", n=first) %}
+{% else %}{% set scene_mode = 'before' %}{% set today_line = lines[scene] %}{% endif %}
+<section class="mh{{ ' is-live' if upcoming and window_open and not already_taken }}" aria-labelledby="mh-title">
+  <div class="mh__text">
+    <div class="mh__top">
+      <span class="eyebrow">{{ _("Ритуал недели · трек %(exam)s", exam=p.exam|exam_label) }}</span>
+      <span class="mh__week">{{ _("Неделя %(n)s", n=week_number) }}</span>
     </div>
+    <h1 class="mh__title display" id="mh-title">{{ _("Тест") }}<br>{{ _("понедельника") }}</h1>
     {% if already_taken %}
-      <a class="btn btn--primary btn--lg" href="{{ url_for('student.attempt_result', attempt_id=already_taken.id) }}">{{ _("Мой результат") }}</a>
+      <span class="mh__status mh__status--done">{{ ui.icon('check', 14) }}{{ _("Ты уже прошёл этот тест") }}</span>
     {% elif upcoming and window_open %}
-      <form method="post" action="{{ url_for('student.monday_start') }}">{{ ui.csrf() }}<button class="btn btn--primary btn--lg" type="submit">{{ _("Начать тест") }}</button></form>
+      <span class="mh__status mh__status--live"><i></i>{{ _("Идёт сейчас") }}</span>
     {% else %}
-      <button class="btn btn--primary btn--lg" type="button" disabled>{{ _("Откроется в понедельник") }}</button>
+      <span class="mh__status">{{ _("До старта · пн, 19:00") }}</span>
+      <div class="mh__count" data-countdown data-seconds="{{ seconds_left }}" role="timer" aria-label="{{ _('До старта') }}">
+        {% for key, label in [('d', _('дн')), ('h', _('ч')), ('m', _('мин')), ('s', _('сек'))] %}
+          <div class="mh__cell"><b class="num" data-{{ key }}>–</b><span>{{ label }}</span></div>
+        {% endfor %}
+      </div>
     {% endif %}
+    <p class="mh__meta">{{ _("%(m)s минут · %(n)s задач, одинаковых для всех", m=upcoming.time_limit_min if upcoming else 20, n=upcoming.current_version.question_count if upcoming else 10) }}</p>
+    <div class="mh__cta">
+      {% if already_taken %}
+        <a class="btn btn--light btn--lg" href="{{ url_for('student.attempt_result', attempt_id=already_taken.id) }}">{{ _("Мой результат") }} {{ ui.icon('arrow-right', 18) }}</a>
+      {% elif upcoming and window_open %}
+        <form method="post" action="{{ url_for('student.monday_start') }}">{{ ui.csrf() }}<button class="btn btn--light btn--lg" type="submit">{{ _("Начать тест") }} {{ ui.icon('arrow-right', 18) }}</button></form>
+      {% else %}
+        <button class="btn btn--light btn--lg" type="button" disabled>{{ _("Откроется в понедельник") }}</button>
+      {% endif %}
+    </div>
   </div>
+  <figure class="mh__art">
+    <div class="mh__stage">
+      <canvas class="mh__canvas" data-scene="{{ scene }}" data-mode="{{ scene_mode }}" data-topics='{{ weak_topics|tojson }}' aria-hidden="true"></canvas>
+      {% if scene_mode == 'live' %}<span class="mh__badge"><i></i>{{ _("Идёт сейчас") }}</span>{% endif %}
+      {% if scene_mode == 'after' %}<span class="mh__score"><b class="num">{{ already_taken.score }}/{{ already_taken.total }}</b><span>{{ _("твой результат") }}</span></span>{% endif %}
+    </div>
+    <figcaption class="mh__greet">{{ today_line }}</figcaption>
+  </figure>
 </section>
-{% if config.MONDAY_TEST_ALWAYS_OPEN %}<p class="small muted">{{ _("Демо-режим: тест открыт в любой день. Отключается настройкой MONDAY_TEST_ALWAYS_OPEN=0.") }}</p>{% endif %}
+{% if config.MONDAY_TEST_ALWAYS_OPEN and current_user.is_admin %}<p class="small muted">{{ _("Демо-режим: тест открыт в любой день. Отключается настройкой MONDAY_TEST_ALWAYS_OPEN=0.") }}</p>{% endif %}
 
 <div class="grid grid-2">
   <section class="card card--flush" aria-labelledby="rank-h">

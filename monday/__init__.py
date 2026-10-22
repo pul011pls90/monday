@@ -167,6 +167,13 @@ def _register_template_helpers(app):
 
     from .models import utcnow
 
+    def _monday_live():
+        from .student import monday_window_open
+        try:
+            return monday_window_open()
+        except Exception:
+            return False
+
     @app.context_processor
     def inject_globals():
         if current_user.is_authenticated:
@@ -179,6 +186,7 @@ def _register_template_helpers(app):
             "CURRENT_LANG": select_locale(),
             "EXAMS": EXAMS,
             "MODES": MODES,
+            "monday_live": _monday_live,
             "TEST_FORMATS": TEST_FORMATS, "BIG_TEST_QUESTIONS": BIG_TEST_QUESTIONS, "QUESTION_TAGS": QUESTION_TAGS,
             "WORK_KINDS": WORK_KINDS,
             "WORK_CATEGORIES": WORK_CATEGORIES,

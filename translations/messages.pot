@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-21 18:10-0700\n"
+"POT-Creation-Date: 2026-10-21 19:15-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,40 +17,40 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: monday/__init__.py:222
+#: monday/__init__.py:230
 #, python-format
 msgid "%(h)s ч %(m)s мин"
 msgstr ""
 
-#: monday/__init__.py:224
+#: monday/__init__.py:232
 #, python-format
 msgid "%(h)s ч"
 msgstr ""
 
-#: monday/__init__.py:225 monday/__init__.py:235
+#: monday/__init__.py:233 monday/__init__.py:243
 #, python-format
 msgid "%(m)s мин"
 msgstr ""
 
-#: monday/__init__.py:233
+#: monday/__init__.py:241
 #, python-format
 msgid "%(m)s мин %(s)s с"
 msgstr ""
 
-#: monday/__init__.py:236
+#: monday/__init__.py:244
 #, python-format
 msgid "%(s)s с"
 msgstr ""
 
-#: monday/__init__.py:258
+#: monday/__init__.py:266
 msgid "Нет доступа к этой странице."
 msgstr ""
 
-#: monday/__init__.py:262
+#: monday/__init__.py:270
 msgid "Такой страницы нет."
 msgstr ""
 
-#: monday/__init__.py:266
+#: monday/__init__.py:274
 msgid "Файл слишком большой (максимум 8 МБ)."
 msgstr ""
 
@@ -409,7 +409,7 @@ msgstr ""
 
 #: monday/constants.py:31 monday/templates/student/attempt.html:25
 #: monday/templates/student/home.html:142
-#: monday/templates/student/monday.html:2
+#: monday/templates/student/monday.html:3
 #: monday/templates/teacher/dashboard.html:185
 msgid "Тест понедельника"
 msgstr ""
@@ -449,7 +449,7 @@ msgid "Лёгкий"
 msgstr ""
 
 #: monday/constants.py:41 monday/templates/student/bank.html:5
-#: monday/templates/student/monday.html:77
+#: monday/templates/student/monday.html:110
 #: monday/templates/teacher/_picker.html:4
 msgid "Средний"
 msgstr ""
@@ -1267,43 +1267,43 @@ msgstr ""
 msgid "Для этих тем пока нет вопросов в банке."
 msgstr ""
 
-#: monday/student.py:870
+#: monday/student.py:882
 msgid "Тест понедельника откроется в понедельник в 19:00."
 msgstr ""
 
-#: monday/student.py:908
+#: monday/student.py:920
 msgid "Профиль сохранён."
 msgstr ""
 
-#: monday/student.py:914 monday/teacher.py:1128
+#: monday/student.py:926 monday/teacher.py:1128
 msgid "Текущий пароль неверный."
 msgstr ""
 
-#: monday/student.py:916 monday/teacher.py:1130
+#: monday/student.py:928 monday/teacher.py:1130
 msgid "Новый пароль должен быть не короче 8 символов."
 msgstr ""
 
-#: monday/student.py:920 monday/teacher.py:1134
+#: monday/student.py:932 monday/teacher.py:1134
 msgid "Пароль изменён."
 msgstr ""
 
-#: monday/student.py:953
+#: monday/student.py:965
 msgid "Назови лист, например «CSCA формулы»."
 msgstr ""
 
-#: monday/student.py:960
+#: monday/student.py:972
 msgid "Лист создан. Добавь первую формулу."
 msgstr ""
 
-#: monday/student.py:974
+#: monday/student.py:986
 msgid "Лист удалён."
 msgstr ""
 
-#: monday/student.py:991 monday/student.py:1009
+#: monday/student.py:1003 monday/student.py:1021
 msgid "Укажи название и формулу или картинку."
 msgstr ""
 
-#: monday/student.py:1004
+#: monday/student.py:1016
 msgid "Картинка: только PNG, JPG или WEBP."
 msgstr ""
 
@@ -1639,7 +1639,7 @@ msgstr ""
 msgid "Проверка"
 msgstr ""
 
-#: monday/templates/layout.html:16 monday/templates/layout.html:35
+#: monday/templates/layout.html:16 monday/templates/layout.html:36
 msgid "Банк"
 msgstr ""
 
@@ -1668,33 +1668,38 @@ msgstr ""
 msgid "Мои вопросы"
 msgstr ""
 
-#: monday/templates/layout.html:32 monday/templates/student/home.html:2
+#: monday/templates/layout.html:32 monday/templates/student/monday.html:25
+#: monday/templates/teacher/works.html:90
+msgid "Тест"
+msgstr ""
+
+#: monday/templates/layout.html:33 monday/templates/student/home.html:2
 msgid "Главная"
 msgstr ""
 
-#: monday/templates/layout.html:33
+#: monday/templates/layout.html:34
 msgid "Навыки"
 msgstr ""
 
-#: monday/templates/layout.html:34 monday/templates/student/sessions.html:2
+#: monday/templates/layout.html:35 monday/templates/student/sessions.html:2
 #: monday/templates/student/sessions.html:6
 msgid "Сессии"
 msgstr ""
 
-#: monday/templates/layout.html:36 monday/templates/student/collections.html:2
+#: monday/templates/layout.html:37 monday/templates/student/collections.html:2
 #: monday/templates/student/collections.html:5
 msgid "Сборники"
 msgstr ""
 
-#: monday/templates/layout.html:37 monday/templates/teacher/dashboard.html:15
+#: monday/templates/layout.html:38 monday/templates/teacher/dashboard.html:15
 msgid "Домашка"
 msgstr ""
 
-#: monday/templates/layout.html:38
+#: monday/templates/layout.html:39
 msgid "Журнал"
 msgstr ""
 
-#: monday/templates/layout.html:39 monday/templates/partials/tool_panes.html:5
+#: monday/templates/layout.html:40 monday/templates/partials/tool_panes.html:5
 #: monday/templates/partials/tool_panes.html:6
 #: monday/templates/student/attempt.html:35
 #: monday/templates/student/bank_play.html:34
@@ -1703,9 +1708,8 @@ msgstr ""
 msgid "Формулы"
 msgstr ""
 
-#: monday/templates/layout.html:40 monday/templates/student/monday.html:10
-#: monday/templates/teacher/works.html:90
-msgid "Тест"
+#: monday/templates/layout.html:46
+msgid "Тест идёт сейчас"
 msgstr ""
 
 #: monday/templates/layout.html:59 monday/templates/layout.html:64
@@ -1818,7 +1822,7 @@ msgid "Цель"
 msgstr ""
 
 #: monday/templates/admin/_panel_body.html:25
-#: monday/templates/student/monday.html:32
+#: monday/templates/student/monday.html:65
 #: monday/templates/student/onboarding.html:52
 #: monday/templates/student/profile.html:21
 msgid "Школа"
@@ -2155,8 +2159,8 @@ msgstr ""
 #: monday/templates/admin/index.html:111
 #: monday/templates/partials/macros.html:251
 #: monday/templates/student/journal.html:29
-#: monday/templates/student/monday.html:14
-#: monday/templates/student/monday.html:60
+#: monday/templates/student/monday.html:33
+#: monday/templates/student/monday.html:93
 #: monday/templates/student/session.html:14
 #: monday/templates/student/sessions.html:16
 #: monday/templates/teacher/bank.html:24
@@ -3430,7 +3434,7 @@ msgstr ""
 #: monday/templates/student/bank_play.html:80
 #: monday/templates/student/daily.html:58
 #: monday/templates/student/homework_detail.html:36
-#: monday/templates/student/monday.html:59
+#: monday/templates/student/monday.html:92
 #: monday/templates/student/session_done.html:7
 #: monday/templates/teacher/dashboard.html:200
 #: monday/templates/teacher/review_detail.html:23
@@ -3878,7 +3882,7 @@ msgstr ""
 
 #: monday/templates/student/collections.html:44
 #: monday/templates/student/collections.html:56
-#: monday/templates/student/monday.html:19
+#: monday/templates/student/monday.html:43
 #: monday/templates/student/work_detail.html:23
 msgid "Начать тест"
 msgstr ""
@@ -4127,7 +4131,7 @@ msgid "понедельник"
 msgstr ""
 
 #: monday/templates/student/home.html:17
-#: monday/templates/student/monday.html:10
+#: monday/templates/student/monday.html:25
 msgid "понедельника"
 msgstr ""
 
@@ -4292,7 +4296,6 @@ msgid ""
 msgstr ""
 
 #: monday/templates/student/home.html:145
-#: monday/templates/student/monday.html:13
 #, python-format
 msgid "%(d)s д %(h)s ч"
 msgstr ""
@@ -4584,109 +4587,179 @@ msgstr ""
 msgid "Под эти фильтры ничего не подходит."
 msgstr ""
 
-#: monday/templates/student/monday.html:7
-#, python-format
-msgid "Ритуал недели · трек %(exam)s"
-msgstr ""
-
 #: monday/templates/student/monday.html:8
 #, python-format
-msgid "Неделя %(n)s"
+msgid "Новая неделя — новая вершина, %(n)s."
+msgstr ""
+
+#: monday/templates/student/monday.html:9
+#, python-format
+msgid "Каждая задача — силовая линия к цели, %(n)s."
+msgstr ""
+
+#: monday/templates/student/monday.html:10
+#, python-format
+msgid "Маленькие шаги складываются в большие формы, %(n)s."
+msgstr ""
+
+#: monday/templates/student/monday.html:11
+#, python-format
+msgid "Формулы летят навстречу. Лови их, %(n)s."
+msgstr ""
+
+#: monday/templates/student/monday.html:12
+#, python-format
+msgid "Бесконечность — тоже число, %(n)s."
 msgstr ""
 
 #: monday/templates/student/monday.html:13
-msgid "Сейчас"
-msgstr ""
-
-#: monday/templates/student/monday.html:13
-msgid "до старта · пн, 19:00"
+#, python-format
+msgid "Мир из чисел. Твой ход, %(n)s."
 msgstr ""
 
 #: monday/templates/student/monday.html:14
 #, python-format
-msgid "%(n)s задач, одинаковых для всех"
+msgid "Весь мир решает этот тест вместе с тобой, %(n)s."
+msgstr ""
+
+#: monday/templates/student/monday.html:16
+#, python-format
+msgid "%(s)s из %(t)s — следующий старт через неделю, %(n)s."
 msgstr ""
 
 #: monday/templates/student/monday.html:17
+#, python-format
+msgid "Тест открыт. Вперёд, %(n)s!"
+msgstr ""
+
+#: monday/templates/student/monday.html:22
+#, python-format
+msgid "Ритуал недели · трек %(exam)s"
+msgstr ""
+
+#: monday/templates/student/monday.html:23
+#, python-format
+msgid "Неделя %(n)s"
+msgstr ""
+
+#: monday/templates/student/monday.html:27
+msgid "Ты уже прошёл этот тест"
+msgstr ""
+
+#: monday/templates/student/monday.html:29
+#: monday/templates/student/monday.html:52
+msgid "Идёт сейчас"
+msgstr ""
+
+#: monday/templates/student/monday.html:31
+msgid "До старта · пн, 19:00"
+msgstr ""
+
+#: monday/templates/student/monday.html:32
+msgid "До старта"
+msgstr ""
+
+#: monday/templates/student/monday.html:33
+msgid "дн"
+msgstr ""
+
+#: monday/templates/student/monday.html:33
+msgid "ч"
+msgstr ""
+
+#: monday/templates/student/monday.html:33
+msgid "сек"
+msgstr ""
+
+#: monday/templates/student/monday.html:38
+#, python-format
+msgid "%(m)s минут · %(n)s задач, одинаковых для всех"
+msgstr ""
+
+#: monday/templates/student/monday.html:41
 msgid "Мой результат"
 msgstr ""
 
-#: monday/templates/student/monday.html:21
+#: monday/templates/student/monday.html:45
 msgid "Откроется в понедельник"
 msgstr ""
 
-#: monday/templates/student/monday.html:25
+#: monday/templates/student/monday.html:53
+msgid "твой результат"
+msgstr ""
+
+#: monday/templates/student/monday.html:58
 msgid ""
 "Демо-режим: тест открыт в любой день. Отключается настройкой "
 "MONDAY_TEST_ALWAYS_OPEN=0."
 msgstr ""
 
-#: monday/templates/student/monday.html:30
+#: monday/templates/student/monday.html:63
 msgid "Рейтинг прошлой недели"
 msgstr ""
 
-#: monday/templates/student/monday.html:31
+#: monday/templates/student/monday.html:64
 msgid "Уровень"
 msgstr ""
 
-#: monday/templates/student/monday.html:32
+#: monday/templates/student/monday.html:65
 msgid "Страна"
 msgstr ""
 
-#: monday/templates/student/monday.html:32
+#: monday/templates/student/monday.html:65
 msgid "Область"
 msgstr ""
 
-#: monday/templates/student/monday.html:43
+#: monday/templates/student/monday.html:76
 #, python-format
 msgid "ещё %(n)s участников"
 msgstr ""
 
-#: monday/templates/student/monday.html:45
+#: monday/templates/student/monday.html:78
 msgid "Ты"
 msgstr ""
 
-#: monday/templates/student/monday.html:49
+#: monday/templates/student/monday.html:82
 msgid "В этом рейтинге пока нет результатов."
 msgstr ""
 
-#: monday/templates/student/monday.html:56
+#: monday/templates/student/monday.html:89
 msgid "Твой прошлый тест"
 msgstr ""
 
-#: monday/templates/student/monday.html:60
+#: monday/templates/student/monday.html:93
 #, python-format
 msgid "из %(n)s"
 msgstr ""
 
-#: monday/templates/student/monday.html:61
+#: monday/templates/student/monday.html:94
 msgid "место"
 msgstr ""
 
-#: monday/templates/student/monday.html:63
+#: monday/templates/student/monday.html:96
 msgid "Разбор и ошибки"
 msgstr ""
 
-#: monday/templates/student/monday.html:65
+#: monday/templates/student/monday.html:98
 msgid ""
 "Ты не участвовал на прошлой неделе. Ближайший тест — в понедельник в "
 "19:00."
 msgstr ""
 
-#: monday/templates/student/monday.html:70
+#: monday/templates/student/monday.html:103
 msgid "Дуэль школ"
 msgstr ""
 
-#: monday/templates/student/monday.html:74
+#: monday/templates/student/monday.html:107
 #, python-format
 msgid "Средний балл: %(a)s против %(b)s"
 msgstr ""
 
-#: monday/templates/student/monday.html:79
+#: monday/templates/student/monday.html:112
 msgid "Укажи школу в профиле"
 msgstr ""
 
-#: monday/templates/student/monday.html:80
+#: monday/templates/student/monday.html:113
 msgid "Тогда твоя школа будет соревноваться с другими каждую неделю."
 msgstr ""
 

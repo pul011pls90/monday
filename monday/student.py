@@ -819,6 +819,17 @@ def _upcoming_monday_work(exam):
     return Work.query.filter_by(kind="monday", status="published", exam=exam, week_start=upcoming_start).first()
 
 
+def _weak_topics(user_id, limit=6):
+    """Skills with the most open mistakes in the journal (labels on the Sunday world map)."""
+    from sqlalchemy import func
+    from .models import ContentNode
+    rows = (db.session.query(ContentNode.name, func.count(AttemptAnswer.id))
+            .join(AttemptAnswer, AttemptAnswer.skill_id == ContentNode.id).join(Attempt, AttemptAnswer.attempt_id == Attempt.id)
+            .filter(Attempt.user_id == user_id, AttemptAnswer.is_correct.is_(False), AttemptAnswer.resolved.is_(False))
+            .group_by(ContentNode.name).order_by(func.count(AttemptAnswer.id).desc()).limit(limit).all())
+    return [name.lower() for name, _n in rows]
+
+
 def monday_window_open():
     if current_app.config.get("MONDAY_TEST_ALWAYS_OPEN"):
         return True
@@ -857,7 +868,8 @@ def monday():
         my_place=my_place, my_attempt=my_attempt, scope=scope, countdown=countdown_label(start - local_now()),
         start=start, window_open=monday_window_open(), already_taken=already_taken,
         duel={"mine": (p.school, mine), "rival": rival} if mine is not None and rival else None,
-        week_number=len(prev_two),
+        week_number=max(1, len(prev_two)), seconds_left=max(0, int((start - local_now()).total_seconds())),
+        scene=request.args.get("scene", local_today().weekday(), type=int) % 7, weak_topics=_weak_topics(current_user.id),
     )
 
 

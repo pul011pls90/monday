@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Monday VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-21 18:10-0700\n"
+"POT-Creation-Date: 2026-10-21 19:15-0700\n"
 "PO-Revision-Date: 2026-10-17 13:27-0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: kk\n"
@@ -18,40 +18,40 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: monday/__init__.py:222
+#: monday/__init__.py:230
 #, python-format
 msgid "%(h)s ч %(m)s мин"
 msgstr "%(h)s сағ %(m)s мин"
 
-#: monday/__init__.py:224
+#: monday/__init__.py:232
 #, python-format
 msgid "%(h)s ч"
 msgstr "%(h)s сағ"
 
-#: monday/__init__.py:225 monday/__init__.py:235
+#: monday/__init__.py:233 monday/__init__.py:243
 #, python-format
 msgid "%(m)s мин"
 msgstr "%(m)s мин"
 
-#: monday/__init__.py:233
+#: monday/__init__.py:241
 #, python-format
 msgid "%(m)s мин %(s)s с"
 msgstr "%(m)s мин %(s)s с"
 
-#: monday/__init__.py:236
+#: monday/__init__.py:244
 #, python-format
 msgid "%(s)s с"
 msgstr "%(s)s с"
 
-#: monday/__init__.py:258
+#: monday/__init__.py:266
 msgid "Нет доступа к этой странице."
 msgstr "Бұл бетке кіруге рұқсат жоқ."
 
-#: monday/__init__.py:262
+#: monday/__init__.py:270
 msgid "Такой страницы нет."
 msgstr "Мұндай бет жоқ."
 
-#: monday/__init__.py:266
+#: monday/__init__.py:274
 msgid "Файл слишком большой (максимум 8 МБ)."
 msgstr "Файл тым үлкен (ең көбі 8 МБ)."
 
@@ -396,7 +396,7 @@ msgid "Домашнее задание"
 msgstr "Үй тапсырмасы"
 
 #: monday/constants.py:31 monday/templates/student/attempt.html:25 monday/templates/student/home.html:142
-#: monday/templates/student/monday.html:2 monday/templates/teacher/dashboard.html:185
+#: monday/templates/student/monday.html:3 monday/templates/teacher/dashboard.html:185
 msgid "Тест понедельника"
 msgstr "Дүйсенбі тесті"
 
@@ -432,7 +432,7 @@ msgstr "Жарияланған"
 msgid "Лёгкий"
 msgstr "Жеңіл"
 
-#: monday/constants.py:41 monday/templates/student/bank.html:5 monday/templates/student/monday.html:77
+#: monday/constants.py:41 monday/templates/student/bank.html:5 monday/templates/student/monday.html:110
 #: monday/templates/teacher/_picker.html:4
 msgid "Средний"
 msgstr "Орташа"
@@ -1230,43 +1230,43 @@ msgstr "«Уақыт жетпеді» себебі қойылды: %(n)s."
 msgid "Для этих тем пока нет вопросов в банке."
 msgstr "Бұл тақырыптар бойынша банкте әзірге сұрақ жоқ."
 
-#: monday/student.py:870
+#: monday/student.py:882
 msgid "Тест понедельника откроется в понедельник в 19:00."
 msgstr "Дүйсенбі тесті дүйсенбі күні сағат 19:00-де ашылады."
 
-#: monday/student.py:908
+#: monday/student.py:920
 msgid "Профиль сохранён."
 msgstr "Профиль сақталды."
 
-#: monday/student.py:914 monday/teacher.py:1128
+#: monday/student.py:926 monday/teacher.py:1128
 msgid "Текущий пароль неверный."
 msgstr "Ағымдағы құпиясөз қате."
 
-#: monday/student.py:916 monday/teacher.py:1130
+#: monday/student.py:928 monday/teacher.py:1130
 msgid "Новый пароль должен быть не короче 8 символов."
 msgstr "Жаңа құпиясөз кемінде 8 таңбадан тұруы керек."
 
-#: monday/student.py:920 monday/teacher.py:1134
+#: monday/student.py:932 monday/teacher.py:1134
 msgid "Пароль изменён."
 msgstr "Құпиясөз өзгертілді."
 
-#: monday/student.py:953
+#: monday/student.py:965
 msgid "Назови лист, например «CSCA формулы»."
 msgstr "Парақты ата, мысалы «CSCA формулалары»."
 
-#: monday/student.py:960
+#: monday/student.py:972
 msgid "Лист создан. Добавь первую формулу."
 msgstr "Парақ құрылды. Алғашқы формуланы қос."
 
-#: monday/student.py:974
+#: monday/student.py:986
 msgid "Лист удалён."
 msgstr "Парақ жойылды."
 
-#: monday/student.py:991 monday/student.py:1009
+#: monday/student.py:1003 monday/student.py:1021
 msgid "Укажи название и формулу или картинку."
 msgstr "Атауын және формуланы немесе суретті көрсет."
 
-#: monday/student.py:1004
+#: monday/student.py:1016
 msgid "Картинка: только PNG, JPG или WEBP."
 msgstr "Сурет: тек PNG, JPG немесе WEBP."
 
@@ -1583,7 +1583,7 @@ msgstr "Карта"
 msgid "Проверка"
 msgstr "Тексеру"
 
-#: monday/templates/layout.html:16 monday/templates/layout.html:35
+#: monday/templates/layout.html:16 monday/templates/layout.html:36
 msgid "Банк"
 msgstr "Банк"
 
@@ -1609,39 +1609,43 @@ msgstr "Жүктеу"
 msgid "Мои вопросы"
 msgstr "Менің сұрақтарым"
 
-#: monday/templates/layout.html:32 monday/templates/student/home.html:2
+#: monday/templates/layout.html:32 monday/templates/student/monday.html:25 monday/templates/teacher/works.html:90
+msgid "Тест"
+msgstr "Тест"
+
+#: monday/templates/layout.html:33 monday/templates/student/home.html:2
 msgid "Главная"
 msgstr "Басты бет"
 
-#: monday/templates/layout.html:33
+#: monday/templates/layout.html:34
 msgid "Навыки"
 msgstr "Дағдылар"
 
-#: monday/templates/layout.html:34 monday/templates/student/sessions.html:2 monday/templates/student/sessions.html:6
+#: monday/templates/layout.html:35 monday/templates/student/sessions.html:2 monday/templates/student/sessions.html:6
 msgid "Сессии"
 msgstr "Сессиялар"
 
-#: monday/templates/layout.html:36 monday/templates/student/collections.html:2 monday/templates/student/collections.html:5
+#: monday/templates/layout.html:37 monday/templates/student/collections.html:2 monday/templates/student/collections.html:5
 msgid "Сборники"
 msgstr "Жинақтар"
 
-#: monday/templates/layout.html:37 monday/templates/teacher/dashboard.html:15
+#: monday/templates/layout.html:38 monday/templates/teacher/dashboard.html:15
 msgid "Домашка"
 msgstr "Үй жұмысы"
 
-#: monday/templates/layout.html:38
+#: monday/templates/layout.html:39
 msgid "Журнал"
 msgstr "Журнал"
 
-#: monday/templates/layout.html:39 monday/templates/partials/tool_panes.html:5 monday/templates/partials/tool_panes.html:6
+#: monday/templates/layout.html:40 monday/templates/partials/tool_panes.html:5 monday/templates/partials/tool_panes.html:6
 #: monday/templates/student/attempt.html:35 monday/templates/student/bank_play.html:34
 #: monday/templates/student/formulas.html:2 monday/templates/student/formulas.html:6
 msgid "Формулы"
 msgstr "Формулалар"
 
-#: monday/templates/layout.html:40 monday/templates/student/monday.html:10 monday/templates/teacher/works.html:90
-msgid "Тест"
-msgstr "Тест"
+#: monday/templates/layout.html:46
+msgid "Тест идёт сейчас"
+msgstr "Тест қазір жүріп жатыр"
 
 #: monday/templates/layout.html:59 monday/templates/layout.html:64
 msgid "Ещё разделы"
@@ -1732,7 +1736,7 @@ msgstr "Емтихан"
 msgid "Цель"
 msgstr "Мақсат"
 
-#: monday/templates/admin/_panel_body.html:25 monday/templates/student/monday.html:32
+#: monday/templates/admin/_panel_body.html:25 monday/templates/student/monday.html:65
 #: monday/templates/student/onboarding.html:52 monday/templates/student/profile.html:21
 msgid "Школа"
 msgstr "Мектеп"
@@ -2039,7 +2043,7 @@ msgid "вопросов"
 msgstr "сұрақ"
 
 #: monday/templates/admin/index.html:111 monday/templates/partials/macros.html:251 monday/templates/student/journal.html:29
-#: monday/templates/student/monday.html:14 monday/templates/student/monday.html:60 monday/templates/student/session.html:14
+#: monday/templates/student/monday.html:33 monday/templates/student/monday.html:93 monday/templates/student/session.html:14
 #: monday/templates/student/sessions.html:16 monday/templates/teacher/bank.html:24
 #: monday/templates/teacher/work_edit.html:98
 msgid "мин"
@@ -3191,7 +3195,7 @@ msgstr "Артқа"
 
 #: monday/templates/student/_review_steps.html:54 monday/templates/student/bank_play.html:80
 #: monday/templates/student/daily.html:58 monday/templates/student/homework_detail.html:36
-#: monday/templates/student/monday.html:59 monday/templates/student/session_done.html:7
+#: monday/templates/student/monday.html:92 monday/templates/student/session_done.html:7
 #: monday/templates/teacher/dashboard.html:200 monday/templates/teacher/review_detail.html:23
 #: monday/templates/teacher/review_detail.html:37
 msgid "верно"
@@ -3596,7 +3600,7 @@ msgid "По твоему экзамену и слабым темам"
 msgstr "Емтиханың мен әлсіз тақырыптарың бойынша"
 
 #: monday/templates/student/collections.html:44 monday/templates/student/collections.html:56
-#: monday/templates/student/monday.html:19 monday/templates/student/work_detail.html:23
+#: monday/templates/student/monday.html:43 monday/templates/student/work_detail.html:23
 msgid "Начать тест"
 msgstr "Тестті бастау"
 
@@ -3826,7 +3830,7 @@ msgstr "Сәлем, %(name)s"
 msgid "понедельник"
 msgstr "дүйсенбі"
 
-#: monday/templates/student/home.html:17 monday/templates/student/monday.html:10
+#: monday/templates/student/home.html:17 monday/templates/student/monday.html:25
 msgid "понедельника"
 msgstr "дүйсенбі"
 
@@ -3980,7 +3984,7 @@ msgstr "Апта рәсімі"
 msgid "Понедельник, 19:00 · 20 минут · одинаковые задачи для всех на треке %(exam)s"
 msgstr "Дүйсенбі, 19:00 · 20 минут · %(exam)s бағытындағы барлығына бірдей есептер"
 
-#: monday/templates/student/home.html:145 monday/templates/student/monday.html:13
+#: monday/templates/student/home.html:145
 #, python-format
 msgid "%(d)s д %(h)s ч"
 msgstr "%(d)s күн %(h)s сағ"
@@ -4254,105 +4258,174 @@ msgstr "талданды"
 msgid "Под эти фильтры ничего не подходит."
 msgstr "Бұл сүзгілерге ештеңе сәйкес келмейді."
 
-#: monday/templates/student/monday.html:7
+#: monday/templates/student/monday.html:8
+#, python-format
+msgid "Новая неделя — новая вершина, %(n)s."
+msgstr "Жаңа апта — жаңа шың, %(n)s."
+
+#: monday/templates/student/monday.html:9
+#, python-format
+msgid "Каждая задача — силовая линия к цели, %(n)s."
+msgstr "Әр есеп — мақсатқа апаратын күш сызығы, %(n)s."
+
+#: monday/templates/student/monday.html:10
+#, python-format
+msgid "Маленькие шаги складываются в большие формы, %(n)s."
+msgstr "Кішкентай қадамдар үлкен пішіндерге айналады, %(n)s."
+
+#: monday/templates/student/monday.html:11
+#, python-format
+msgid "Формулы летят навстречу. Лови их, %(n)s."
+msgstr "Формулалар саған қарай ұшып келеді. Ұстап ал, %(n)s."
+
+#: monday/templates/student/monday.html:12
+#, python-format
+msgid "Бесконечность — тоже число, %(n)s."
+msgstr "Шексіздік те — сан, %(n)s."
+
+#: monday/templates/student/monday.html:13
+#, python-format
+msgid "Мир из чисел. Твой ход, %(n)s."
+msgstr "Сандардан тұратын әлем. Сенің жүрісің, %(n)s."
+
+#: monday/templates/student/monday.html:14
+#, python-format
+msgid "Весь мир решает этот тест вместе с тобой, %(n)s."
+msgstr "Бүкіл әлем бұл тестті сенімен бірге шешуде, %(n)s."
+
+#: monday/templates/student/monday.html:16
+#, python-format
+msgid "%(s)s из %(t)s — следующий старт через неделю, %(n)s."
+msgstr "%(t)s ішінен %(s)s — келесі старт бір аптадан кейін, %(n)s."
+
+#: monday/templates/student/monday.html:17
+#, python-format
+msgid "Тест открыт. Вперёд, %(n)s!"
+msgstr "Тест ашық. Алға, %(n)s!"
+
+#: monday/templates/student/monday.html:22
 #, python-format
 msgid "Ритуал недели · трек %(exam)s"
 msgstr "Апта рәсімі · %(exam)s бағыты"
 
-#: monday/templates/student/monday.html:8
+#: monday/templates/student/monday.html:23
 #, python-format
 msgid "Неделя %(n)s"
 msgstr "%(n)s-апта"
 
-#: monday/templates/student/monday.html:13
-msgid "Сейчас"
-msgstr "Қазір"
+#: monday/templates/student/monday.html:27
+msgid "Ты уже прошёл этот тест"
+msgstr "Сен бұл тестті тапсырдың"
 
-#: monday/templates/student/monday.html:13
-msgid "до старта · пн, 19:00"
-msgstr "басталуына дейін · дс, 19:00"
+#: monday/templates/student/monday.html:29 monday/templates/student/monday.html:52
+msgid "Идёт сейчас"
+msgstr "Қазір жүріп жатыр"
 
-#: monday/templates/student/monday.html:14
+#: monday/templates/student/monday.html:31
+msgid "До старта · пн, 19:00"
+msgstr "Старт · дс, 19:00"
+
+#: monday/templates/student/monday.html:32
+msgid "До старта"
+msgstr "Стартқа дейін"
+
+#: monday/templates/student/monday.html:33
+msgid "дн"
+msgstr "күн"
+
+#: monday/templates/student/monday.html:33
+msgid "ч"
+msgstr "сағ"
+
+#: monday/templates/student/monday.html:33
+msgid "сек"
+msgstr "сек"
+
+#: monday/templates/student/monday.html:38
 #, python-format
-msgid "%(n)s задач, одинаковых для всех"
-msgstr "Барлығына бірдей %(n)s есеп"
+msgid "%(m)s минут · %(n)s задач, одинаковых для всех"
+msgstr "%(m)s минут · бәріне бірдей %(n)s есеп"
 
-#: monday/templates/student/monday.html:17
+#: monday/templates/student/monday.html:41
 msgid "Мой результат"
 msgstr "Менің нәтижем"
 
-#: monday/templates/student/monday.html:21
+#: monday/templates/student/monday.html:45
 msgid "Откроется в понедельник"
 msgstr "Дүйсенбіде ашылады"
 
-#: monday/templates/student/monday.html:25
+#: monday/templates/student/monday.html:53
+msgid "твой результат"
+msgstr "сенің нәтижең"
+
+#: monday/templates/student/monday.html:58
 msgid "Демо-режим: тест открыт в любой день. Отключается настройкой MONDAY_TEST_ALWAYS_OPEN=0."
 msgstr "Демо-режим: тест кез келген күні ашық. MONDAY_TEST_ALWAYS_OPEN=0 баптауымен өшіріледі."
 
-#: monday/templates/student/monday.html:30
+#: monday/templates/student/monday.html:63
 msgid "Рейтинг прошлой недели"
 msgstr "Өткен аптаның рейтингі"
 
-#: monday/templates/student/monday.html:31
+#: monday/templates/student/monday.html:64
 msgid "Уровень"
 msgstr "Деңгей"
 
-#: monday/templates/student/monday.html:32
+#: monday/templates/student/monday.html:65
 msgid "Страна"
 msgstr "Ел"
 
-#: monday/templates/student/monday.html:32
+#: monday/templates/student/monday.html:65
 msgid "Область"
 msgstr "Облыс"
 
-#: monday/templates/student/monday.html:43
+#: monday/templates/student/monday.html:76
 #, python-format
 msgid "ещё %(n)s участников"
 msgstr "тағы %(n)s қатысушы"
 
-#: monday/templates/student/monday.html:45
+#: monday/templates/student/monday.html:78
 msgid "Ты"
 msgstr "Сен"
 
-#: monday/templates/student/monday.html:49
+#: monday/templates/student/monday.html:82
 msgid "В этом рейтинге пока нет результатов."
 msgstr "Бұл рейтингте әзірге нәтиже жоқ."
 
-#: monday/templates/student/monday.html:56
+#: monday/templates/student/monday.html:89
 msgid "Твой прошлый тест"
 msgstr "Сенің өткен тестің"
 
-#: monday/templates/student/monday.html:60
+#: monday/templates/student/monday.html:93
 #, python-format
 msgid "из %(n)s"
 msgstr "%(n)s ішінен"
 
-#: monday/templates/student/monday.html:61
+#: monday/templates/student/monday.html:94
 msgid "место"
 msgstr "орын"
 
-#: monday/templates/student/monday.html:63
+#: monday/templates/student/monday.html:96
 msgid "Разбор и ошибки"
 msgstr "Талдау және қателер"
 
-#: monday/templates/student/monday.html:65
+#: monday/templates/student/monday.html:98
 msgid "Ты не участвовал на прошлой неделе. Ближайший тест — в понедельник в 19:00."
 msgstr "Өткен аптада қатыспадың. Жақын тест — дүйсенбі сағат 19:00-де."
 
-#: monday/templates/student/monday.html:70
+#: monday/templates/student/monday.html:103
 msgid "Дуэль школ"
 msgstr "Мектептер дуэлі"
 
-#: monday/templates/student/monday.html:74
+#: monday/templates/student/monday.html:107
 #, python-format
 msgid "Средний балл: %(a)s против %(b)s"
 msgstr "Орташа ұпай: %(a)s қарсы %(b)s"
 
-#: monday/templates/student/monday.html:79
+#: monday/templates/student/monday.html:112
 msgid "Укажи школу в профиле"
 msgstr "Профильде мектебіңді көрсет"
 
-#: monday/templates/student/monday.html:80
+#: monday/templates/student/monday.html:113
 msgid "Тогда твоя школа будет соревноваться с другими каждую неделю."
 msgstr "Сонда мектебің басқалармен апта сайын жарысады."
 
@@ -6744,4 +6817,25 @@ msgstr "Бұл жұмыста толық жауапты тапсырма жоқ"
 
 #~ msgid "Ошибки"
 #~ msgstr "Қателер"
+
+#~ msgid "Взлетаем, %(n)s! До старта всё ближе."
+#~ msgstr ""
+
+#~ msgid "Ещё одна вершина ждёт тебя, %(n)s."
+#~ msgstr ""
+
+#~ msgid "Новая идея на этой неделе, %(n)s?"
+#~ msgstr ""
+
+#~ msgid "20 минут. 10 задач. Ты готов, %(n)s?"
+#~ msgstr ""
+
+#~ msgid "Целься в 10 из 10, %(n)s."
+#~ msgstr ""
+
+#~ msgid "Корона недели свободна, %(n)s."
+#~ msgstr ""
+
+#~ msgid "Тест открыт. Взлетаем, %(n)s!"
+#~ msgstr ""
 
