@@ -95,3 +95,11 @@ TEST_FORMATS = {
     "csca": {"label": "CSCA", "nav": "grid", "calculator": True, "modules": 1},
 }
 FORMAT_FOR_EXAM = {"SAT": "sat", "ORT": "ort", "ENT": "ent", "EGE": "ege", "OGE": "oge", "CSCA": "csca"}
+
+REPORT_KINDS = {
+    "answer": _l("Неверный ответ"),
+    "typo": _l("Опечатка или ошибка в формуле"),
+    "unclear": _l("Непонятное условие"),
+    "other": _l("Другое"),
+    "node": _l("Правка карты"),
+}

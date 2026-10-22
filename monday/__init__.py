@@ -61,6 +61,8 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     app.register_blueprint(assistant.bp)
     app.register_blueprint(assistant.review_bp)
     app.register_blueprint(teacher.bp)
+    from . import reports
+    app.register_blueprint(reports.bp)
     app.register_blueprint(admin.bp)
     from . import content_i18n
     app.register_blueprint(content_i18n.bp)
@@ -163,7 +165,7 @@ def _register_template_helpers(app):
     from .constants import BIG_TEST_QUESTIONS, TEST_FORMATS
     from .taxonomy import TAGS as QUESTION_TAGS
     from .constants import (DIFFICULTIES, EXAMS, HOMEWORK_STATES, MISTAKE_REASONS, MODES, QUESTION_STATUSES,
-                            WEEKDAYS, WORK_CATEGORIES, WORK_KINDS, WORK_STATUSES)
+                            REPORT_KINDS, WEEKDAYS, WORK_CATEGORIES, WORK_KINDS, WORK_STATUSES)
 
     from .models import utcnow
 
@@ -173,6 +175,13 @@ def _register_template_helpers(app):
             return monday_window_open()
         except Exception:
             return False
+
+    def _open_reports():
+        from .reports import open_count
+        try:
+            return open_count(current_user)
+        except Exception:
+            return 0
 
     @app.context_processor
     def inject_globals():
@@ -194,6 +203,8 @@ def _register_template_helpers(app):
             "QUESTION_STATUSES": QUESTION_STATUSES,
             "DIFFICULTIES": DIFFICULTIES,
             "MISTAKE_REASONS": MISTAKE_REASONS,
+            "REPORT_KINDS": REPORT_KINDS,
+            "open_reports": _open_reports,
             "HOMEWORK_STATES": HOMEWORK_STATES,
             "WEEKDAYS": WEEKDAYS,
             "now": utcnow(),

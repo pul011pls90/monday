@@ -117,7 +117,15 @@ def home():
         monday_start=start, breakdown=breakdown, week_mistakes=week_mistakes, assignments=assignments[:3],
         my_place=my_place, strip=_monday_strip(left), task=_todays_task(p.exam, summary),
         portrait=skill_map(current_user.id, p.exam), facts=_daily_facts(len(MODES)), daily=_daily_block(),
+        replies=_report_replies(),
     )
+
+
+def _report_replies():
+    """Answers to the student's error reports that they have not dismissed yet."""
+    from .models import Report
+    return (Report.query.filter(Report.author_id == current_user.id, Report.status != "open", Report.seen.is_(False))
+            .order_by(Report.handled_at.desc()).limit(3).all())
 
 
 def _daily_block():

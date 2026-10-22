@@ -767,14 +767,51 @@ document.addEventListener("click", (e) => {
   const btn = document.querySelector("[data-skills-all]");
   const tree = document.querySelector("[data-skills-tree]");
   if (!btn || !tree) return;
-  const all = () => [...tree.querySelectorAll("details")];
+  const all = () => [...tree.querySelectorAll(".sk-topic > details")];
   const label = () => { btn.textContent = all().every((d) => d.open) ? btn.dataset.close : btn.dataset.open; };
   btn.addEventListener("click", () => { const open = !all().every((d) => d.open); all().forEach((d) => { d.open = open; }); label(); });
   tree.addEventListener("toggle", (e) => {
-    const tile = e.target.closest(".sk-topic");
-    if (tile) tile.classList.toggle("is-open", e.target.open);
+    const tile = e.target.parentElement;
+    if (!tile || !tile.classList.contains("sk-topic")) return;  // nested popovers (edit boxes) are not tiles
+    tile.classList.toggle("is-open", e.target.open);
     if (e.target.open && !all().every((d) => d.open)) e.target.scrollIntoView({ block: "nearest", behavior: "smooth" });
     label();
   }, true);
   label();
 })();
+
+// «Сообщить об ошибке»: send the report without leaving the question
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-report-send]");
+  if (!btn) return;
+  const box = btn.closest("[data-report-form]");
+  const status = box.querySelector("[data-report-status]");
+  const kind = box.querySelector("input[type=radio]:checked");
+  const body = new FormData();
+  body.append("csrf_token", box.dataset.csrf);
+  body.append("question_id", box.dataset.question);
+  body.append("kind", kind ? kind.value : "other");
+  body.append("message", box.querySelector("textarea").value);
+  btn.disabled = true;
+  try {
+    const r = await fetch(box.dataset.action, { method: "POST", body, headers: { "X-Requested-With": "fetch" } });
+    const j = await r.json();
+    status.textContent = j.message || "";
+    status.className = "small " + (j.ok ? "qr__ok" : "qr__err");
+    if (j.ok) {
+      box.querySelector("textarea").value = "";
+      setTimeout(() => { const d = box.closest("details"); if (d) d.open = false; status.textContent = ""; btn.disabled = false; }, 1800);
+    } else btn.disabled = false;
+  } catch (_err) { btn.disabled = false; }
+});
+// a reply to a report on the home page: dismiss it
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-report-seen]");
+  if (!b) return;
+  e.preventDefault();
+  const card = b.closest("[data-report-card]");
+  const body = new FormData();
+  body.append("csrf_token", b.dataset.csrf);
+  try { await fetch(b.dataset.action, { method: "POST", body, headers: { "X-Requested-With": "fetch" } }); } catch (_err) { /* ignore */ }
+  if (card) card.remove();
+});

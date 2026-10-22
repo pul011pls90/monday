@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-22 00:51-0700\n"
+"POT-Creation-Date: 2026-10-22 01:18-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,40 +17,40 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: monday/__init__.py:230
+#: monday/__init__.py:241
 #, python-format
 msgid "%(h)s ч %(m)s мин"
 msgstr ""
 
-#: monday/__init__.py:232
+#: monday/__init__.py:243
 #, python-format
 msgid "%(h)s ч"
 msgstr ""
 
-#: monday/__init__.py:233 monday/__init__.py:243
+#: monday/__init__.py:244 monday/__init__.py:254
 #, python-format
 msgid "%(m)s мин"
 msgstr ""
 
-#: monday/__init__.py:241
+#: monday/__init__.py:252
 #, python-format
 msgid "%(m)s мин %(s)s с"
 msgstr ""
 
-#: monday/__init__.py:244
+#: monday/__init__.py:255
 #, python-format
 msgid "%(s)s с"
 msgstr ""
 
-#: monday/__init__.py:266
+#: monday/__init__.py:277
 msgid "Нет доступа к этой странице."
 msgstr ""
 
-#: monday/__init__.py:270
+#: monday/__init__.py:281
 msgid "Такой страницы нет."
 msgstr ""
 
-#: monday/__init__.py:274
+#: monday/__init__.py:285
 msgid "Файл слишком большой (максимум 8 МБ)."
 msgstr ""
 
@@ -279,12 +279,12 @@ msgstr ""
 #: monday/templates/student/_review_steps.html:27
 #: monday/templates/student/daily.html:50
 #: monday/templates/student/journal_review.html:63
-#: monday/templates/student/session.html:58
+#: monday/templates/student/session.html:59
 msgid "Учитель не добавил объяснение."
 msgstr ""
 
-#: monday/bank.py:259 monday/daily.py:122 monday/student.py:268
-#: monday/templates/student/bank_play.html:47
+#: monday/bank.py:259 monday/daily.py:122 monday/student.py:276
+#: monday/templates/student/bank_play.html:48
 #: monday/templates/student/daily.html:29
 msgid "Выберите или введите ответ."
 msgstr ""
@@ -397,7 +397,7 @@ msgstr ""
 msgid "сложные задачи, два способа"
 msgstr ""
 
-#: monday/constants.py:29 monday/student.py:701 monday/student.py:771
+#: monday/constants.py:29 monday/student.py:709 monday/student.py:779
 #: monday/templates/teacher/works.html:10
 msgid "Сборник"
 msgstr ""
@@ -408,7 +408,7 @@ msgid "Домашнее задание"
 msgstr ""
 
 #: monday/constants.py:31 monday/templates/student/attempt.html:25
-#: monday/templates/student/home.html:142
+#: monday/templates/student/home.html:150
 #: monday/templates/student/monday.html:3
 #: monday/templates/teacher/dashboard.html:185
 msgid "Тест понедельника"
@@ -613,6 +613,26 @@ msgstr ""
 
 #: monday/constants.py:89
 msgid "Обычный"
+msgstr ""
+
+#: monday/constants.py:100
+msgid "Неверный ответ"
+msgstr ""
+
+#: monday/constants.py:101
+msgid "Опечатка или ошибка в формуле"
+msgstr ""
+
+#: monday/constants.py:102
+msgid "Непонятное условие"
+msgstr ""
+
+#: monday/constants.py:103
+msgid "Другое"
+msgstr ""
+
+#: monday/constants.py:104
+msgid "Правка карты"
 msgstr ""
 
 #: monday/content_names.py:9
@@ -1179,6 +1199,22 @@ msgstr ""
 msgid "Окружности"
 msgstr ""
 
+#: monday/reports.py:56
+msgid "Опишите, что не так."
+msgstr ""
+
+#: monday/reports.py:68
+msgid "Спасибо! Учитель посмотрит и исправит."
+msgstr ""
+
+#: monday/reports.py:116
+msgid "Ответ отправлен ученику."
+msgstr ""
+
+#: monday/reports.py:116
+msgid "Сообщение отклонено, ученик увидит ответ."
+msgstr ""
+
 #: monday/services.py:123
 msgid "или"
 msgstr ""
@@ -1192,48 +1228,48 @@ msgstr ""
 msgid "Целевой балл для %(exam)s — от %(a)s до %(b)s."
 msgstr ""
 
-#: monday/student.py:229
+#: monday/student.py:237
 msgid "Этот режим скоро появится."
 msgstr ""
 
-#: monday/student.py:236
+#: monday/student.py:244
 msgid "Пока нет вопросов для этого режима."
 msgstr ""
 
-#: monday/student.py:457 monday/templates/student/attempt.html:52
+#: monday/student.py:465 monday/templates/student/attempt.html:52
 msgid "Ответьте хотя бы на один вопрос, чтобы сдать работу."
 msgstr ""
 
-#: monday/student.py:466
+#: monday/student.py:474
 msgid "Домашнее задание сдано. Учитель увидит результат."
 msgstr ""
 
-#: monday/student.py:483
+#: monday/student.py:491
 #, python-format
 msgid "Модуль %(n)s завершён. Ответы в нём больше не меняются."
 msgstr ""
 
-#: monday/student.py:547
+#: monday/student.py:555
 msgid "Нужна фотография: JPG, PNG, WEBP или HEIC."
 msgstr ""
 
-#: monday/student.py:573
+#: monday/student.py:581
 msgid "Это задание уже оценил учитель."
 msgstr ""
 
-#: monday/student.py:645
+#: monday/student.py:653
 msgid "Это задание уже проверено."
 msgstr ""
 
-#: monday/student.py:692 monday/student.py:715
+#: monday/student.py:700 monday/student.py:723
 msgid "Задача"
 msgstr ""
 
-#: monday/student.py:697 monday/student.py:768
+#: monday/student.py:705 monday/student.py:776
 msgid "Сессия"
 msgstr ""
 
-#: monday/student.py:700 monday/student.py:771
+#: monday/student.py:708 monday/student.py:779
 #: monday/templates/teacher/assign.html:16
 #: monday/templates/teacher/review.html:18
 #: monday/templates/teacher/review.html:35
@@ -1241,361 +1277,361 @@ msgstr ""
 msgid "Работа"
 msgstr ""
 
-#: monday/student.py:709 monday/student.py:713
+#: monday/student.py:717 monday/student.py:721
 #: monday/templates/partials/macros.html:169
 #: monday/templates/student/_review_steps.html:18
 #: monday/templates/student/journal_review.html:52
-#: monday/templates/student/journal_review.html:101
+#: monday/templates/student/journal_review.html:102
 #: monday/templates/student/result.html:41
 #, python-format
 msgid "Вопрос %(n)s"
 msgstr ""
 
-#: monday/student.py:713 monday/templates/student/_review_steps.html:15
+#: monday/student.py:721 monday/templates/student/_review_steps.html:15
 #: monday/templates/student/_review_steps.html:18
-#: monday/templates/student/_review_steps.html:47
+#: monday/templates/student/_review_steps.html:48
 #, python-format
 msgid "Модуль %(k)s"
 msgstr ""
 
-#: monday/student.py:749
+#: monday/student.py:757
 msgid "В этой работе нет ошибок."
 msgstr ""
 
-#: monday/student.py:791
+#: monday/student.py:799
 #, python-format
 msgid "Причина «Не хватило времени» поставлена: %(n)s."
 msgstr ""
 
-#: monday/student.py:807
+#: monday/student.py:815
 msgid "Для этих тем пока нет вопросов в банке."
 msgstr ""
 
-#: monday/student.py:942
+#: monday/student.py:950
 msgid "Тест понедельника откроется в понедельник в 19:00."
 msgstr ""
 
-#: monday/student.py:980
+#: monday/student.py:988
 msgid "Профиль сохранён."
 msgstr ""
 
-#: monday/student.py:986 monday/teacher.py:1128
+#: monday/student.py:994 monday/teacher.py:1192
 msgid "Текущий пароль неверный."
 msgstr ""
 
-#: monday/student.py:988 monday/teacher.py:1130
+#: monday/student.py:996 monday/teacher.py:1194
 msgid "Новый пароль должен быть не короче 8 символов."
 msgstr ""
 
-#: monday/student.py:992 monday/teacher.py:1134
+#: monday/student.py:1000 monday/teacher.py:1198
 msgid "Пароль изменён."
 msgstr ""
 
-#: monday/student.py:1025
+#: monday/student.py:1033
 msgid "Назови лист, например «CSCA формулы»."
 msgstr ""
 
-#: monday/student.py:1032
+#: monday/student.py:1040
 msgid "Лист создан. Добавь первую формулу."
 msgstr ""
 
-#: monday/student.py:1046
+#: monday/student.py:1054
 msgid "Лист удалён."
 msgstr ""
 
-#: monday/student.py:1063 monday/student.py:1081
+#: monday/student.py:1071 monday/student.py:1089
 msgid "Укажи название и формулу или картинку."
 msgstr ""
 
-#: monday/student.py:1076
+#: monday/student.py:1084
 msgid "Картинка: только PNG, JPG или WEBP."
 msgstr ""
 
-#: monday/teacher.py:106
+#: monday/teacher.py:111
 msgid "Выберите навык: тема → подтема → навык."
 msgstr ""
 
-#: monday/teacher.py:109
+#: monday/teacher.py:114
 msgid "Для новой темы укажите и подтему, и навык."
 msgstr ""
 
-#: monday/teacher.py:111
+#: monday/teacher.py:116
 msgid "Для новой подтемы укажите и навык."
 msgstr ""
 
-#: monday/teacher.py:117
+#: monday/teacher.py:122
 msgid "Выберите тему для новой подтемы."
 msgstr ""
 
-#: monday/teacher.py:123
+#: monday/teacher.py:128
 msgid "Выберите подтему для нового навыка."
 msgstr ""
 
-#: monday/teacher.py:175
+#: monday/teacher.py:180
 msgid "На этот вопрос уже отвечали — убрать нельзя."
 msgstr ""
 
-#: monday/teacher.py:179
+#: monday/teacher.py:184
 msgid "Вопрос дня убран."
 msgstr ""
 
-#: monday/teacher.py:252
+#: monday/teacher.py:257
 msgid "Укажите имя ученика."
 msgstr ""
 
-#: monday/teacher.py:255
+#: monday/teacher.py:260
 msgid "Время урока в формате ЧЧ:ММ, например 16:00."
 msgstr ""
 
-#: monday/teacher.py:258
+#: monday/teacher.py:263
 msgid "Неизвестный экзамен."
 msgstr ""
 
-#: monday/teacher.py:291
+#: monday/teacher.py:296
 #, python-format
 msgid "Ученик добавлен. Отправьте ему код %(code)s, чтобы подключить его аккаунт."
 msgstr ""
 
-#: monday/teacher.py:351
+#: monday/teacher.py:356
 msgid "Оценка сохранена."
 msgstr ""
 
-#: monday/teacher.py:366
+#: monday/teacher.py:371
 msgid "Изменения сохранены."
 msgstr ""
 
-#: monday/teacher.py:375
+#: monday/teacher.py:380
 msgid "Ученик уже подключён — новый код не нужен."
 msgstr ""
 
-#: monday/teacher.py:379
+#: monday/teacher.py:384
 #, python-format
 msgid "Новый код: %(code)s. Старый больше не работает."
 msgstr ""
 
-#: monday/teacher.py:391
+#: monday/teacher.py:396
 msgid "Аккаунт отвязан. Строка в таблице сохранена."
 msgstr ""
 
-#: monday/teacher.py:401
+#: monday/teacher.py:406
 msgid "Ученик удалён из таблицы. Его аккаунт и результаты сохранены."
 msgstr ""
 
-#: monday/teacher.py:562
+#: monday/teacher.py:567
 msgid "Укажите название."
 msgstr ""
 
-#: monday/teacher.py:565
+#: monday/teacher.py:570
 msgid "Добавьте хотя бы один вопрос перед публикацией."
 msgstr ""
 
-#: monday/teacher.py:577
+#: monday/teacher.py:582
 msgid "Большой тест отправлен администратору. Ученики увидят его после одобрения."
 msgstr ""
 
-#: monday/teacher.py:581
+#: monday/teacher.py:586
 #, python-format
 msgid "Опубликована версия %(n)s. Старые результаты учеников сохранены."
 msgstr ""
 
-#: monday/teacher.py:583
+#: monday/teacher.py:588
 msgid "Работа опубликована."
 msgstr ""
 
-#: monday/teacher.py:586 monday/teacher.py:1063
+#: monday/teacher.py:591 monday/teacher.py:1127
 msgid "Черновик сохранён."
 msgstr ""
 
-#: monday/teacher.py:597
+#: monday/teacher.py:602
 msgid "Работа перенесена в архив. Ученики её больше не видят."
 msgstr ""
 
-#: monday/teacher.py:600
+#: monday/teacher.py:605
 msgid "Работа снова опубликована."
 msgstr ""
 
-#: monday/teacher.py:610
+#: monday/teacher.py:615
 #, python-format
 msgid "%(t)s (копия)"
 msgstr ""
 
-#: monday/teacher.py:616
+#: monday/teacher.py:621
 msgid "Создана копия-черновик."
 msgstr ""
 
-#: monday/teacher.py:625
+#: monday/teacher.py:630
 msgid "Опубликованные работы нельзя удалить — перенесите их в архив."
 msgstr ""
 
-#: monday/teacher.py:629
+#: monday/teacher.py:634
 msgid "Черновик удалён."
 msgstr ""
 
-#: monday/teacher.py:645
+#: monday/teacher.py:650
 msgid "Выберите опубликованную работу."
 msgstr ""
 
-#: monday/teacher.py:650
+#: monday/teacher.py:655
 msgid "Выберите хотя бы одного ученика."
 msgstr ""
 
-#: monday/teacher.py:658
+#: monday/teacher.py:663
 msgid "Неверная дата сдачи."
 msgstr ""
 
-#: monday/teacher.py:665
+#: monday/teacher.py:670
 #, python-format
 msgid "Задание выдано: %(n)s уч."
 msgstr ""
 
-#: monday/teacher.py:667
+#: monday/teacher.py:672
 #, python-format
 msgid ""
 "Ещё не подключены к Monday: %(names)s. Они увидят задание после ввода "
 "кода."
 msgstr ""
 
-#: monday/teacher.py:731
+#: monday/teacher.py:736
 msgid "Задание снова открыто для проверки."
 msgstr ""
 
-#: monday/teacher.py:735
+#: monday/teacher.py:740
 msgid "Проверено. Ученик увидит ваш комментарий."
 msgstr ""
 
-#: monday/teacher.py:775
+#: monday/teacher.py:837
 msgid "Введите название (минимум 2 символа)."
 msgstr ""
 
-#: monday/teacher.py:780
+#: monday/teacher.py:842
 msgid "Неверное место в дереве."
 msgstr ""
 
-#: monday/teacher.py:785
+#: monday/teacher.py:847
 #, python-format
 msgid "Добавлено: %(name)s."
 msgstr ""
 
-#: monday/teacher.py:785
+#: monday/teacher.py:847
 msgid "Видно вам и вашим ученикам."
 msgstr ""
 
-#: monday/teacher.py:799
+#: monday/teacher.py:861
 #, python-format
 msgid "«%(name)s» перенесено в архив. Результаты учеников сохранены."
 msgstr ""
 
-#: monday/teacher.py:802
+#: monday/teacher.py:864
 msgid "Восстановлено."
 msgstr ""
 
-#: monday/teacher.py:815 monday/teacher.py:1125
+#: monday/teacher.py:877 monday/teacher.py:1189
 msgid "Сохранено."
 msgstr ""
 
-#: monday/teacher.py:872
+#: monday/teacher.py:934
 msgid "Отметьте хотя бы один вопрос."
 msgstr ""
 
-#: monday/teacher.py:881
+#: monday/teacher.py:943
 #, python-format
 msgid "Вопросов дня на %(d)s: добавлено %(n)s."
 msgstr ""
 
-#: monday/teacher.py:883
+#: monday/teacher.py:945
 #, python-format
 msgid "Не добавлено %(n)s: в день не больше 3 вопросов, повторы пропускаются."
 msgstr ""
 
-#: monday/teacher.py:891
+#: monday/teacher.py:953
 #, python-format
 msgid "Новая работа · %(n)s вопр."
 msgstr ""
 
-#: monday/teacher.py:896
+#: monday/teacher.py:958
 #, python-format
 msgid "Создана работа из %(n)s вопросов — задайте название и опубликуйте."
 msgstr ""
 
-#: monday/teacher.py:903
+#: monday/teacher.py:965
 #, python-format
 msgid "Добавлено в «%(t)s»: %(n)s. Уже были: %(k)s."
 msgstr ""
 
-#: monday/teacher.py:903 monday/templates/teacher/bank.html:36
+#: monday/teacher.py:965 monday/templates/teacher/bank.html:36
 msgid "без названия"
 msgstr ""
 
-#: monday/teacher.py:939 monday/templates/partials/macros.html:147
+#: monday/teacher.py:1001 monday/templates/partials/macros.html:147
 #: monday/templates/teacher/question_edit.html:23
 msgid "Колонка А"
 msgstr ""
 
-#: monday/teacher.py:940 monday/templates/partials/macros.html:148
+#: monday/teacher.py:1002 monday/templates/partials/macros.html:148
 #: monday/templates/teacher/question_edit.html:24
 msgid "Колонка Б"
 msgstr ""
 
-#: monday/teacher.py:950
+#: monday/teacher.py:1012
 #, python-format
 msgid ""
 "Текст вопроса — до %(n)s слов (сейчас %(w)s). Длинный текст вынесите в "
 "блок «Текст для чтения»."
 msgstr ""
 
-#: monday/teacher.py:955
+#: monday/teacher.py:1017
 msgid "Ссылка на видео должна начинаться с https://"
 msgstr ""
 
-#: monday/teacher.py:959
+#: monday/teacher.py:1021
 msgid "Отметьте хотя бы один экзамен."
 msgstr ""
 
-#: monday/teacher.py:983
+#: monday/teacher.py:1045
 msgid "Нужно минимум два варианта ответа."
 msgstr ""
 
-#: monday/teacher.py:985
+#: monday/teacher.py:1047
 msgid "Отметьте верный вариант."
 msgstr ""
 
-#: monday/teacher.py:997
+#: monday/teacher.py:1059
 msgid ""
 "Верный ответ должен быть числом: целым, дробью (3/4) или десятичным "
 "(0,75)."
 msgstr ""
 
-#: monday/teacher.py:1008
+#: monday/teacher.py:1070
 msgid "Изображение: только PNG, JPG или WEBP."
 msgstr ""
 
-#: monday/teacher.py:1017
+#: monday/teacher.py:1079
 msgid "Добавьте текст вопроса или изображение."
 msgstr ""
 
-#: monday/teacher.py:1059
+#: monday/teacher.py:1123
 msgid ""
 "Вопрос отправлен на проверку методисту. После одобрения он появится в "
 "банке."
 msgstr ""
 
-#: monday/teacher.py:1061
+#: monday/teacher.py:1125
 msgid "Вопрос опубликован в банке."
 msgstr ""
 
-#: monday/teacher.py:1088
+#: monday/teacher.py:1152
 msgid ""
 "Вопрос сохранён. Уже опубликованные работы не меняются — переопубликуйте "
 "их, чтобы включить правку."
 msgstr ""
 
-#: monday/teacher.py:1101
+#: monday/teacher.py:1165
 msgid ""
 "На вопрос уже отвечали ученики, поэтому он скрыт (перенесён в черновики),"
 " а не удалён."
 msgstr ""
 
-#: monday/teacher.py:1104 monday/templates/student/journal_review.html:90
+#: monday/teacher.py:1168 monday/templates/student/journal_review.html:91
 msgid "Вопрос удалён."
 msgstr ""
 
@@ -1643,7 +1679,7 @@ msgstr ""
 msgid "Проверка"
 msgstr ""
 
-#: monday/templates/layout.html:16 monday/templates/layout.html:36
+#: monday/templates/layout.html:16 monday/templates/layout.html:37
 msgid "Банк"
 msgstr ""
 
@@ -1652,85 +1688,90 @@ msgstr ""
 msgid "Вопросы"
 msgstr ""
 
-#: monday/templates/admin/index.html:31 monday/templates/layout.html:19
+#: monday/templates/layout.html:18 monday/templates/teacher/reports.html:2
+#: monday/templates/teacher/reports.html:6
+msgid "Исправления"
+msgstr ""
+
+#: monday/templates/admin/index.html:31 monday/templates/layout.html:20
 msgid "Модерация"
 msgstr ""
 
 #: monday/templates/admin/_panel_body.html:69
 #: monday/templates/admin/index.html:2 monday/templates/auth/welcome.html:114
-#: monday/templates/layout.html:20
+#: monday/templates/layout.html:21
 msgid "Админ"
 msgstr ""
 
-#: monday/templates/layout.html:25
+#: monday/templates/layout.html:26
 msgid "Загрузка"
 msgstr ""
 
 #: monday/templates/assistant/mine.html:2
-#: monday/templates/assistant/mine.html:7 monday/templates/layout.html:26
+#: monday/templates/assistant/mine.html:7 monday/templates/layout.html:27
 #: monday/templates/teacher/bank.html:10
 msgid "Мои вопросы"
 msgstr ""
 
-#: monday/templates/layout.html:32 monday/templates/student/monday.html:25
+#: monday/templates/layout.html:33 monday/templates/student/monday.html:25
 #: monday/templates/teacher/works.html:90
 msgid "Тест"
 msgstr ""
 
-#: monday/templates/layout.html:33 monday/templates/student/home.html:2
+#: monday/templates/layout.html:34 monday/templates/student/home.html:2
 msgid "Главная"
 msgstr ""
 
-#: monday/templates/layout.html:34
+#: monday/templates/layout.html:35
 msgid "Навыки"
 msgstr ""
 
-#: monday/templates/layout.html:35 monday/templates/student/sessions.html:2
+#: monday/templates/layout.html:36 monday/templates/student/sessions.html:2
 #: monday/templates/student/sessions.html:6
 msgid "Сессии"
 msgstr ""
 
-#: monday/templates/layout.html:37 monday/templates/student/collections.html:2
+#: monday/templates/layout.html:38 monday/templates/student/collections.html:2
 #: monday/templates/student/collections.html:5
 msgid "Сборники"
 msgstr ""
 
-#: monday/templates/layout.html:38 monday/templates/teacher/dashboard.html:15
+#: monday/templates/layout.html:39 monday/templates/teacher/dashboard.html:15
 msgid "Домашка"
 msgstr ""
 
-#: monday/templates/layout.html:39
+#: monday/templates/layout.html:40
 msgid "Журнал"
 msgstr ""
 
-#: monday/templates/layout.html:40 monday/templates/partials/tool_panes.html:5
+#: monday/templates/layout.html:41 monday/templates/partials/tool_panes.html:5
 #: monday/templates/partials/tool_panes.html:6
 #: monday/templates/student/attempt.html:35
-#: monday/templates/student/bank_play.html:34
+#: monday/templates/student/bank_play.html:35
 #: monday/templates/student/formulas.html:2
 #: monday/templates/student/formulas.html:6
 msgid "Формулы"
 msgstr ""
 
-#: monday/templates/layout.html:46
+#: monday/templates/layout.html:47
 msgid "Тест идёт сейчас"
 msgstr ""
 
-#: monday/templates/layout.html:59 monday/templates/layout.html:64
+#: monday/templates/layout.html:60 monday/templates/layout.html:65
 msgid "Ещё разделы"
 msgstr ""
 
-#: monday/templates/admin/index.html:215 monday/templates/layout.html:62
+#: monday/templates/admin/index.html:215 monday/templates/layout.html:63
 #: monday/templates/partials/tool_panes.html:6
 #: monday/templates/partials/tool_panes.html:33
 msgid "Закрыть"
 msgstr ""
 
-#: monday/templates/layout.html:76
+#: monday/templates/layout.html:77
 msgid "Меню"
 msgstr ""
 
-#: monday/templates/layout.html:77
+#: monday/templates/layout.html:78
 #: monday/templates/student/journal_review.html:4
 #: monday/templates/student/result.html:5
 #: monday/templates/student/work_detail.html:4
@@ -1738,26 +1779,26 @@ msgid "математика"
 msgstr ""
 
 #: monday/templates/assistant/home.html:3
-#: monday/templates/assistant/mine.html:3 monday/templates/layout.html:77
+#: monday/templates/assistant/mine.html:3 monday/templates/layout.html:78
 msgid "Кабинет учителя"
 msgstr ""
 
 #: monday/templates/assistant/home.html:3
-#: monday/templates/assistant/mine.html:3 monday/templates/layout.html:77
+#: monday/templates/assistant/mine.html:3 monday/templates/layout.html:78
 msgid "Кабинет ассистента"
 msgstr ""
 
-#: monday/templates/layout.html:82
+#: monday/templates/layout.html:83
 #: monday/templates/partials/session_bar.html:22
 #: monday/templates/student/onboarding.html:12
 msgid "Сменить тему"
 msgstr ""
 
-#: monday/templates/layout.html:86 monday/templates/teacher/account.html:17
+#: monday/templates/layout.html:87 monday/templates/teacher/account.html:17
 msgid "Настройки"
 msgstr ""
 
-#: monday/templates/layout.html:87
+#: monday/templates/layout.html:88
 #: monday/templates/partials/session_bar.html:24
 #: monday/templates/teacher/account.html:2
 #: monday/templates/teacher/students.html:27
@@ -1816,6 +1857,7 @@ msgstr ""
 #: monday/templates/teacher/_picker.html:14
 #: monday/templates/teacher/_record_form.html:15
 #: monday/templates/teacher/questions.html:18
+#: monday/templates/teacher/tree.html:58
 #: monday/templates/teacher/work_edit.html:37
 #: monday/templates/teacher/works.html:111
 msgid "Экзамен"
@@ -1881,18 +1923,19 @@ msgid "Вопросов"
 msgstr ""
 
 #: monday/templates/admin/_panel_body.html:41
-#: monday/templates/student/home.html:106
+#: monday/templates/student/home.html:114
 msgid "освоено"
 msgstr ""
 
 #: monday/templates/admin/_panel_body.html:42
-#: monday/templates/student/home.html:29
+#: monday/templates/student/home.html:37
 msgid "прогноз"
 msgstr ""
 
 #: monday/templates/admin/_panel_body.html:43
 #: monday/templates/admin/index.html:65 monday/templates/student/skills.html:44
 #: monday/templates/teacher/dashboard.html:172
+#: monday/templates/teacher/tree.html:83
 msgid "навыков"
 msgstr ""
 
@@ -1913,7 +1956,7 @@ msgstr ""
 
 #: monday/templates/admin/_panel_body.html:57
 #: monday/templates/student/daily.html:3 monday/templates/student/daily.html:7
-#: monday/templates/student/daily.html:14 monday/templates/student/home.html:49
+#: monday/templates/student/daily.html:14 monday/templates/student/home.html:57
 #: monday/templates/teacher/dashboard.html:50
 #: monday/templates/teacher/student_detail.html:120
 msgid "Вопросы дня"
@@ -2075,10 +2118,12 @@ msgid ""
 msgstr ""
 
 #: monday/templates/admin/index.html:65 monday/templates/student/skills.html:44
+#: monday/templates/teacher/tree.html:83
 msgid "навык"
 msgstr ""
 
 #: monday/templates/admin/index.html:65 monday/templates/student/skills.html:44
+#: monday/templates/teacher/tree.html:83
 msgid "навыка"
 msgstr ""
 
@@ -2137,31 +2182,31 @@ msgstr ""
 
 #: monday/templates/admin/index.html:111
 #: monday/templates/partials/macros.html:70
-#: monday/templates/student/bank.html:86 monday/templates/student/home.html:53
+#: monday/templates/student/bank.html:86 monday/templates/student/home.html:61
 #: monday/templates/student/skills.html:44
 #: monday/templates/student/work_detail.html:15
 #: monday/templates/teacher/questions.html:40
-#: monday/templates/teacher/tree.html:87
+#: monday/templates/teacher/tree.html:83
 msgid "вопрос"
 msgstr ""
 
 #: monday/templates/admin/index.html:111
 #: monday/templates/partials/macros.html:70
-#: monday/templates/student/bank.html:86 monday/templates/student/home.html:53
+#: monday/templates/student/bank.html:86 monday/templates/student/home.html:61
 #: monday/templates/student/skills.html:44
 #: monday/templates/student/work_detail.html:15
 #: monday/templates/teacher/questions.html:40
-#: monday/templates/teacher/tree.html:87
+#: monday/templates/teacher/tree.html:83
 msgid "вопроса"
 msgstr ""
 
 #: monday/templates/admin/index.html:111
 #: monday/templates/partials/macros.html:70
-#: monday/templates/student/bank.html:86 monday/templates/student/home.html:53
+#: monday/templates/student/bank.html:86 monday/templates/student/home.html:61
 #: monday/templates/student/skills.html:44
 #: monday/templates/student/work_detail.html:15
 #: monday/templates/teacher/questions.html:40
-#: monday/templates/teacher/tree.html:87
+#: monday/templates/teacher/tree.html:83
 msgid "вопросов"
 msgstr ""
 
@@ -2200,7 +2245,7 @@ msgid "ответ:"
 msgstr ""
 
 #: monday/templates/admin/index.html:120
-#: monday/templates/teacher/question_edit.html:209
+#: monday/templates/teacher/question_edit.html:211
 #: monday/templates/teacher/work_edit.html:111
 msgid "Опубликовать"
 msgstr ""
@@ -2493,7 +2538,7 @@ msgid "Исправить"
 msgstr ""
 
 #: monday/templates/assistant/mine.html:30
-#: monday/templates/student/journal_review.html:109
+#: monday/templates/student/journal_review.html:110
 #: monday/templates/teacher/review.html:48
 #: monday/templates/teacher/works.html:145
 msgid "Здесь пусто"
@@ -2576,7 +2621,7 @@ msgstr ""
 #: monday/templates/student/bank.html:11
 #: monday/templates/student/bank_play.html:24
 #: monday/templates/teacher/_picker.html:5
-#: monday/templates/teacher/question_edit.html:143
+#: monday/templates/teacher/question_edit.html:145
 msgid "Тип ответа"
 msgstr ""
 
@@ -2601,8 +2646,8 @@ msgstr ""
 
 #: monday/templates/assistant/preview.html:51
 #: monday/templates/student/bank_play.html:22
-#: monday/templates/teacher/question_edit.html:64
-#: monday/templates/teacher/tree.html:99
+#: monday/templates/teacher/question_edit.html:66
+#: monday/templates/teacher/tree.html:105
 msgid "Навык"
 msgstr ""
 
@@ -2614,7 +2659,7 @@ msgstr ""
 #: monday/templates/student/bank.html:11
 #: monday/templates/student/bank_play.html:23
 #: monday/templates/teacher/_picker.html:4
-#: monday/templates/teacher/question_edit.html:86
+#: monday/templates/teacher/question_edit.html:88
 msgid "Сложность"
 msgstr ""
 
@@ -2628,7 +2673,7 @@ msgstr ""
 
 #: monday/templates/assistant/preview.html:67
 #: monday/templates/assistant/preview.html:68
-#: monday/templates/teacher/question_edit.html:195
+#: monday/templates/teacher/question_edit.html:197
 msgid "Так увидит ученик"
 msgstr ""
 
@@ -2641,7 +2686,7 @@ msgid "В черновики"
 msgstr ""
 
 #: monday/templates/assistant/preview.html:80
-#: monday/templates/teacher/question_edit.html:209
+#: monday/templates/teacher/question_edit.html:211
 msgid "Отправить на проверку"
 msgstr ""
 
@@ -2673,6 +2718,7 @@ msgstr ""
 #: monday/templates/student/collections.html:26
 #: monday/templates/student/journal_review.html:25
 #: monday/templates/student/skills.html:18
+#: monday/templates/teacher/tree.html:59
 msgid "Все"
 msgstr ""
 
@@ -2691,7 +2737,7 @@ msgid "Одобрить"
 msgstr ""
 
 #: monday/templates/assistant/review.html:30
-#: monday/templates/teacher/tree.html:6
+#: monday/templates/teacher/tree.html:17
 msgid "Изменить"
 msgstr ""
 
@@ -2747,7 +2793,7 @@ msgid "Нажми на точки — они соберут слово."
 msgstr ""
 
 #: monday/templates/auth/welcome.html:29
-#: monday/templates/teacher/question_edit.html:91
+#: monday/templates/teacher/question_edit.html:93
 msgid "Язык"
 msgstr ""
 
@@ -2872,22 +2918,22 @@ msgid "Советуем"
 msgstr ""
 
 #: monday/templates/partials/macros.html:45
-#: monday/templates/student/session.html:61
+#: monday/templates/student/session.html:62
 msgid "Скоро"
 msgstr ""
 
 #: monday/templates/partials/macros.html:80
-#: monday/templates/teacher/question_edit.html:200
+#: monday/templates/teacher/question_edit.html:202
 msgid "целое число (12)"
 msgstr ""
 
 #: monday/templates/partials/macros.html:81
-#: monday/templates/teacher/question_edit.html:200
+#: monday/templates/teacher/question_edit.html:202
 msgid "дробь (3/4)"
 msgstr ""
 
 #: monday/templates/partials/macros.html:82
-#: monday/templates/teacher/question_edit.html:200
+#: monday/templates/teacher/question_edit.html:202
 msgid "десятичное число (0,75)"
 msgstr ""
 
@@ -2897,12 +2943,12 @@ msgid "Можно ввести: %(kinds)s."
 msgstr ""
 
 #: monday/templates/partials/macros.html:83
-#: monday/templates/teacher/question_edit.html:201
+#: monday/templates/teacher/question_edit.html:203
 msgid "Округлите до десятых."
 msgstr ""
 
 #: monday/templates/partials/macros.html:83
-#: monday/templates/teacher/question_edit.html:201
+#: monday/templates/teacher/question_edit.html:203
 msgid "Округлите до сотых."
 msgstr ""
 
@@ -2935,12 +2981,12 @@ msgstr ""
 #: monday/templates/partials/macros.html:126
 #: monday/templates/student/_review_steps.html:22
 #: monday/templates/student/journal_review.html:58
-#: monday/templates/teacher/question_edit.html:202
+#: monday/templates/teacher/question_edit.html:204
 msgid "Ваш ответ"
 msgstr ""
 
 #: monday/templates/partials/macros.html:110
-#: monday/templates/student/bank_play.html:46
+#: monday/templates/student/bank_play.html:47
 #: monday/templates/student/daily.html:28
 msgid "Верный ответ:"
 msgstr ""
@@ -2958,20 +3004,20 @@ msgstr ""
 
 #: monday/templates/partials/macros.html:170
 #: monday/templates/student/attempt.html:133
-#: monday/templates/student/bank_play.html:55
+#: monday/templates/student/bank_play.html:56
 msgid "балл"
 msgstr ""
 
 #: monday/templates/partials/macros.html:170
 #: monday/templates/student/attempt.html:133
-#: monday/templates/student/bank_play.html:55
-#: monday/templates/teacher/question_edit.html:203
+#: monday/templates/student/bank_play.html:56
+#: monday/templates/teacher/question_edit.html:205
 msgid "балла"
 msgstr ""
 
 #: monday/templates/partials/macros.html:170
 #: monday/templates/student/attempt.html:133
-#: monday/templates/student/bank_play.html:55
+#: monday/templates/student/bank_play.html:56
 #: monday/templates/student/result.html:9
 msgid "баллов"
 msgstr ""
@@ -3039,6 +3085,28 @@ msgstr ""
 
 #: monday/templates/partials/macros.html:295
 msgid "Свернуть"
+msgstr ""
+
+#: monday/templates/partials/macros.html:303
+msgid "Сообщить об ошибке"
+msgstr ""
+
+#: monday/templates/partials/macros.html:305
+msgid "Что не так с вопросом?"
+msgstr ""
+
+#: monday/templates/partials/macros.html:309
+msgid "Подробнее: что именно не так (необязательно)"
+msgstr ""
+
+#: monday/templates/partials/macros.html:309
+#: monday/templates/teacher/review_detail.html:45
+#: monday/templates/teacher/review_detail.html:46
+msgid "Комментарий"
+msgstr ""
+
+#: monday/templates/partials/macros.html:310
+msgid "Отправить"
 msgstr ""
 
 #: monday/templates/partials/profile_head.html:5
@@ -3321,7 +3389,7 @@ msgstr ""
 
 #: monday/templates/partials/tool_panes.html:103
 #: monday/templates/student/attempt.html:36
-#: monday/templates/student/bank_play.html:35
+#: monday/templates/student/bank_play.html:36
 msgid "Калькулятор"
 msgstr ""
 
@@ -3352,7 +3420,7 @@ msgid "Ширина калькулятора"
 msgstr ""
 
 #: monday/templates/student/_review_steps.html:7
-#: monday/templates/student/daily.html:49 monday/templates/student/home.html:61
+#: monday/templates/student/daily.html:49 monday/templates/student/home.html:69
 #: monday/templates/student/result.html:35
 #: monday/templates/student/work_detail.html:35
 msgid "Разбор"
@@ -3360,7 +3428,7 @@ msgstr ""
 
 #: monday/templates/student/_review_steps.html:15
 #: monday/templates/student/attempt.html:157
-#: monday/templates/student/bank_play.html:74
+#: monday/templates/student/bank_play.html:75
 #: monday/templates/student/daily.html:58
 msgid "из"
 msgstr ""
@@ -3399,8 +3467,8 @@ msgstr ""
 
 #: monday/templates/student/_review_steps.html:23
 #: monday/templates/student/journal_review.html:59
-#: monday/templates/teacher/question_edit.html:153
-#: monday/templates/teacher/question_edit.html:166
+#: monday/templates/teacher/question_edit.html:155
+#: monday/templates/teacher/question_edit.html:168
 msgid "Верный ответ"
 msgstr ""
 
@@ -3411,36 +3479,37 @@ msgstr ""
 
 #: monday/templates/student/_review_steps.html:25
 #: monday/templates/student/bank_play.html:15
-#: monday/templates/student/bank_play.html:62
+#: monday/templates/student/bank_play.html:63
 #: monday/templates/student/journal_review.html:61
 #: monday/templates/student/result.html:50
-#: monday/templates/student/session.html:57
-#: monday/templates/teacher/question_edit.html:189
+#: monday/templates/student/session.html:58
+#: monday/templates/teacher/question_edit.html:191
+#: monday/templates/teacher/reports.html:39
 msgid "Объяснение"
 msgstr ""
 
 #: monday/templates/student/_review_steps.html:28
-#: monday/templates/student/bank_play.html:46
-#: monday/templates/student/bank_play.html:65
+#: monday/templates/student/bank_play.html:47
+#: monday/templates/student/bank_play.html:66
 #: monday/templates/student/journal_review.html:64
 #: monday/templates/student/result.html:52
-#: monday/templates/student/session.html:60
+#: monday/templates/student/session.html:61
 msgid "Видео учителя"
 msgstr ""
 
-#: monday/templates/student/_review_steps.html:42
+#: monday/templates/student/_review_steps.html:43
 #: monday/templates/student/attempt.html:94
 #: monday/templates/student/attempt.html:155
-#: monday/templates/student/bank_play.html:71
 #: monday/templates/student/bank_play.html:72
-#: monday/templates/student/journal_review.html:95
+#: monday/templates/student/bank_play.html:73
+#: monday/templates/student/journal_review.html:96
 #: monday/templates/teacher/_picker_list.html:30
-#: monday/templates/teacher/question_edit.html:37
+#: monday/templates/teacher/question_edit.html:38
 msgid "Назад"
 msgstr ""
 
-#: monday/templates/student/_review_steps.html:54
-#: monday/templates/student/bank_play.html:80
+#: monday/templates/student/_review_steps.html:55
+#: monday/templates/student/bank_play.html:81
 #: monday/templates/student/daily.html:58
 #: monday/templates/student/homework_detail.html:36
 #: monday/templates/student/monday.html:84
@@ -3451,24 +3520,24 @@ msgstr ""
 msgid "верно"
 msgstr ""
 
-#: monday/templates/student/_review_steps.html:54
+#: monday/templates/student/_review_steps.html:55
 #: monday/templates/student/journal.html:11
 #: monday/templates/student/journal.html:55
 #: monday/templates/student/journal.html:68
 msgid "ошибка"
 msgstr ""
 
-#: monday/templates/student/_review_steps.html:54
+#: monday/templates/student/_review_steps.html:55
 #: monday/templates/student/attempt.html:159
-#: monday/templates/student/journal_review.html:103
+#: monday/templates/student/journal_review.html:104
 msgid "без ответа"
 msgstr ""
 
-#: monday/templates/student/_review_steps.html:57
+#: monday/templates/student/_review_steps.html:58
 #: monday/templates/student/attempt.html:162
 #: monday/templates/student/attempt.html:164
-#: monday/templates/student/bank_play.html:85
-#: monday/templates/student/journal_review.html:106
+#: monday/templates/student/bank_play.html:86
+#: monday/templates/student/journal_review.html:107
 msgid "Далее"
 msgstr ""
 
@@ -3567,12 +3636,12 @@ msgid ""
 msgstr ""
 
 #: monday/templates/student/attempt.html:131
-#: monday/templates/student/bank_play.html:52
+#: monday/templates/student/bank_play.html:53
 msgid "Отметить для проверки"
 msgstr ""
 
 #: monday/templates/student/attempt.html:132
-#: monday/templates/student/bank_play.html:53
+#: monday/templates/student/bank_play.html:54
 msgid "Исключить"
 msgstr ""
 
@@ -3600,7 +3669,7 @@ msgid "отвечен"
 msgstr ""
 
 #: monday/templates/student/attempt.html:159
-#: monday/templates/student/bank_play.html:80
+#: monday/templates/student/bank_play.html:81
 #: monday/templates/teacher/dashboard.html:32
 msgid "на проверку"
 msgstr ""
@@ -3653,7 +3722,7 @@ msgstr ""
 
 #: monday/templates/student/bank.html:6
 #: monday/templates/student/journal_review.html:27
-#: monday/templates/student/journal_review.html:99
+#: monday/templates/student/journal_review.html:100
 msgid "Без ответа"
 msgstr ""
 
@@ -3780,14 +3849,14 @@ msgid "Детали"
 msgstr ""
 
 #: monday/templates/student/bank_play.html:20
-#: monday/templates/teacher/question_edit.html:54
-#: monday/templates/teacher/tree.html:55
+#: monday/templates/teacher/question_edit.html:56
+#: monday/templates/teacher/tree.html:119
 msgid "Тема"
 msgstr ""
 
 #: monday/templates/student/bank_play.html:21
-#: monday/templates/teacher/question_edit.html:59
-#: monday/templates/teacher/tree.html:106
+#: monday/templates/teacher/question_edit.html:61
+#: monday/templates/teacher/tree.html:108
 msgid "Подтема"
 msgstr ""
 
@@ -3800,55 +3869,55 @@ msgstr ""
 msgid "Время на вопрос"
 msgstr ""
 
-#: monday/templates/student/bank_play.html:32
+#: monday/templates/student/bank_play.html:33
 msgid "Время на этом вопросе"
 msgstr ""
 
-#: monday/templates/student/bank_play.html:45
+#: monday/templates/student/bank_play.html:46
 #: monday/templates/student/daily.html:28
 #: monday/templates/student/daily.html:41
-#: monday/templates/student/session.html:53
+#: monday/templates/student/session.html:54
 msgid "Верно!"
 msgstr ""
 
-#: monday/templates/student/bank_play.html:45
+#: monday/templates/student/bank_play.html:46
 msgid "Неверно. Попробуй ещё раз или открой объяснение."
 msgstr ""
 
-#: monday/templates/student/bank_play.html:54
+#: monday/templates/student/bank_play.html:55
 msgid "Сколько раз ты проверял ответ"
 msgstr ""
 
-#: monday/templates/student/bank_play.html:54
+#: monday/templates/student/bank_play.html:55
 msgid "Попытки"
 msgstr ""
 
-#: monday/templates/student/bank_play.html:74
+#: monday/templates/student/bank_play.html:75
 msgid "Проверено в сессии:"
 msgstr ""
 
-#: monday/templates/student/bank_play.html:75
+#: monday/templates/student/bank_play.html:76
 #: monday/templates/student/daily.html:35
 #, python-format
 msgid "Вопрос %(k)s из %(n)s"
 msgstr ""
 
-#: monday/templates/student/bank_play.html:80
+#: monday/templates/student/bank_play.html:81
 msgid "неверно"
 msgstr ""
 
-#: monday/templates/student/bank_play.html:80
+#: monday/templates/student/bank_play.html:81
 msgid "не решён"
 msgstr ""
 
-#: monday/templates/student/bank_play.html:84
-#: monday/templates/student/session.html:45
+#: monday/templates/student/bank_play.html:85
+#: monday/templates/student/session.html:46
 #: monday/templates/teacher/review.html:43
 #: monday/templates/teacher/student_detail.html:137
 msgid "Проверить"
 msgstr ""
 
-#: monday/templates/student/bank_play.html:86
+#: monday/templates/student/bank_play.html:87
 msgid "Завершить"
 msgstr ""
 
@@ -3940,11 +4009,11 @@ msgstr ""
 msgid "Итог"
 msgstr ""
 
-#: monday/templates/student/daily.html:21 monday/templates/student/home.html:60
+#: monday/templates/student/daily.html:21 monday/templates/student/home.html:68
 msgid "Дней подряд с ответом на вопрос дня"
 msgstr ""
 
-#: monday/templates/student/daily.html:21 monday/templates/student/home.html:60
+#: monday/templates/student/daily.html:21 monday/templates/student/home.html:68
 msgid "Серия:"
 msgstr ""
 
@@ -3985,8 +4054,8 @@ msgid "Ошибки уже в Журнале — к ним можно верну
 msgstr ""
 
 #: monday/templates/student/daily.html:61
-#: monday/templates/student/home.html:161
-#: monday/templates/student/session.html:81
+#: monday/templates/student/home.html:169
+#: monday/templates/student/session.html:82
 msgid "Открыть журнал"
 msgstr ""
 
@@ -4068,7 +4137,7 @@ msgid "Все формулы ниже попадут в этот раздел. �
 msgstr ""
 
 #: monday/templates/student/formulas.html:68
-#: monday/templates/teacher/tree.html:10
+#: monday/templates/teacher/tree.html:21
 #: monday/templates/teacher/work_edit.html:34
 #: monday/templates/teacher/works.html:111
 msgid "Название"
@@ -4096,11 +4165,11 @@ msgstr ""
 
 #: monday/templates/student/formulas.html:83
 #: monday/templates/student/profile.html:23
-#: monday/templates/student/session.html:75
+#: monday/templates/student/session.html:76
 #: monday/templates/teacher/account.html:23
-#: monday/templates/teacher/question_edit.html:209
+#: monday/templates/teacher/question_edit.html:211
 #: monday/templates/teacher/student_detail.html:148
-#: monday/templates/teacher/tree.html:16
+#: monday/templates/teacher/tree.html:27
 msgid "Сохранить"
 msgstr ""
 
@@ -4120,109 +4189,121 @@ msgid ""
 "туда то, что легко забыть."
 msgstr ""
 
-#: monday/templates/student/home.html:4 monday/templates/student/home.html:123
+#: monday/templates/student/home.html:4 monday/templates/student/home.html:131
 #: monday/templates/student/homework.html:2
 #: monday/templates/student/homework.html:6
 #: monday/templates/teacher/student_detail.html:129
 msgid "Домашние задания"
 msgstr ""
 
-#: monday/templates/student/home.html:9
+#: monday/templates/student/home.html:10
+msgid "Ты сообщил об ошибке — вопрос исправлен."
+msgstr ""
+
+#: monday/templates/student/home.html:10
+msgid "Ты сообщил об ошибке — учитель проверил: в вопросе всё верно."
+msgstr ""
+
+#: monday/templates/student/home.html:12
+msgid "Понятно"
+msgstr ""
+
+#: monday/templates/student/home.html:17
 msgid "Обратный отсчёт"
 msgstr ""
 
-#: monday/templates/student/home.html:13
+#: monday/templates/student/home.html:21
 #, python-format
 msgid "Привет, %(name)s"
 msgstr ""
 
-#: monday/templates/student/home.html:17
+#: monday/templates/student/home.html:25
 msgid "понедельник"
 msgstr ""
 
-#: monday/templates/student/home.html:17
+#: monday/templates/student/home.html:25
 #: monday/templates/student/monday.html:25
 msgid "понедельника"
 msgstr ""
 
-#: monday/templates/student/home.html:17
+#: monday/templates/student/home.html:25
 msgid "понедельников"
 msgstr ""
 
-#: monday/templates/student/home.html:18
+#: monday/templates/student/home.html:26
 msgid "до экзамена. Этот — твой."
 msgstr ""
 
-#: monday/templates/student/home.html:22
+#: monday/templates/student/home.html:30
 msgid "Укажи дату экзамена — и начнём отсчёт"
 msgstr ""
 
-#: monday/templates/student/home.html:23
+#: monday/templates/student/home.html:31
 #: monday/templates/student/monday.html:113
 msgid "Открыть профиль"
 msgstr ""
 
-#: monday/templates/student/home.html:29
+#: monday/templates/student/home.html:37
 #: monday/templates/teacher/student_detail.html:10
 #: monday/templates/teacher/student_detail.html:40
 msgid "цель"
 msgstr ""
 
-#: monday/templates/student/home.html:30
+#: monday/templates/student/home.html:38
 #, python-format
 msgid "Прогноз %(p)s, цель %(g)s"
 msgstr ""
 
-#: monday/templates/student/home.html:34
+#: monday/templates/student/home.html:42
 msgid "Понедельники до экзамена"
 msgstr ""
 
-#: monday/templates/student/home.html:37
+#: monday/templates/student/home.html:45
 msgid "тест понедельника"
 msgstr ""
 
-#: monday/templates/student/home.html:37
+#: monday/templates/student/home.html:45
 msgid "эта неделя"
 msgstr ""
 
-#: monday/templates/student/home.html:40
+#: monday/templates/student/home.html:48
 msgid "экзамен"
 msgstr ""
 
-#: monday/templates/student/home.html:51
+#: monday/templates/student/home.html:59
 msgid "Готово на сегодня — посмотри разбор"
 msgstr ""
 
-#: monday/templates/student/home.html:52
+#: monday/templates/student/home.html:60
 msgid "Monday подобрал вопрос на сегодня"
 msgstr ""
 
-#: monday/templates/student/home.html:53
+#: monday/templates/student/home.html:61
 #, python-format
 msgid "%(t)s выбрал %(n)s %(w)s на сегодня"
 msgstr ""
 
-#: monday/templates/student/home.html:55
+#: monday/templates/student/home.html:63
 #, python-format
 msgid "Один ответ, сразу разбор · ~%(m)s мин"
 msgstr ""
 
-#: monday/templates/student/home.html:55
+#: monday/templates/student/home.html:63
 #, python-format
 msgid "Верно: %(ok)s из %(n)s"
 msgstr ""
 
-#: monday/templates/student/home.html:57
+#: monday/templates/student/home.html:65
 #, python-format
 msgid "Отвечено %(a)s из %(n)s"
 msgstr ""
 
-#: monday/templates/student/home.html:61
+#: monday/templates/student/home.html:69
 #: monday/templates/student/homework_detail.html:24
 msgid "Начать"
 msgstr ""
 
-#: monday/templates/student/home.html:61
+#: monday/templates/student/home.html:69
 #: monday/templates/student/homework.html:38
 #: monday/templates/student/homework_detail.html:28
 #: monday/templates/student/onboarding.html:65
@@ -4230,118 +4311,118 @@ msgstr ""
 msgid "Продолжить"
 msgstr ""
 
-#: monday/templates/student/home.html:68
+#: monday/templates/student/home.html:76
 msgid "Задача на сегодня"
 msgstr ""
 
-#: monday/templates/student/home.html:72
+#: monday/templates/student/home.html:80
 #, python-format
 msgid ""
 "Точность %(a)s%% — здесь больше всего баллов до цели. Пять задач, около "
 "пяти минут."
 msgstr ""
 
-#: monday/templates/student/home.html:73
+#: monday/templates/student/home.html:81
 msgid "Новая тема на твоём маршруте. Начни с пяти задач — займёт минут пять."
 msgstr ""
 
-#: monday/templates/student/home.html:78
+#: monday/templates/student/home.html:86
 msgid "Начать · ~5 мин"
 msgstr ""
 
-#: monday/templates/student/home.html:81
+#: monday/templates/student/home.html:89
 msgid "Всё освоено"
 msgstr ""
 
-#: monday/templates/student/home.html:82
+#: monday/templates/student/home.html:90
 msgid "Возьми полный вариант в Сборниках и проверь себя на время."
 msgstr ""
 
-#: monday/templates/student/home.html:83
+#: monday/templates/student/home.html:91
 msgid "К сборникам"
 msgstr ""
 
-#: monday/templates/student/home.html:88
+#: monday/templates/student/home.html:96
 msgid "Ты в точках"
 msgstr ""
 
-#: monday/templates/student/home.html:107
+#: monday/templates/student/home.html:115
 msgid "в процессе"
 msgstr ""
 
-#: monday/templates/student/home.html:108
+#: monday/templates/student/home.html:116
 msgid "новое"
 msgstr ""
 
-#: monday/templates/student/home.html:115
+#: monday/templates/student/home.html:123
 msgid "Сколько у тебя времени?"
 msgstr ""
 
-#: monday/templates/student/home.html:115
+#: monday/templates/student/home.html:123
 msgid "Факты меняются каждый день"
 msgstr ""
 
-#: monday/templates/student/home.html:124
+#: monday/templates/student/home.html:132
 #: monday/templates/student/homework_detail.html:6
 msgid "Все задания"
 msgstr ""
 
-#: monday/templates/student/home.html:130
+#: monday/templates/student/home.html:138
 #: monday/templates/student/homework.html:34
 msgid "до"
 msgstr ""
 
-#: monday/templates/student/home.html:136
+#: monday/templates/student/home.html:144
 msgid "Новых заданий нет. Можно спокойно взять сессию выше."
 msgstr ""
 
-#: monday/templates/student/home.html:141
+#: monday/templates/student/home.html:149
 msgid "Ритуал недели"
 msgstr ""
 
-#: monday/templates/student/home.html:143
+#: monday/templates/student/home.html:151
 #, python-format
 msgid ""
 "Понедельник, 19:00 · 20 минут · одинаковые задачи для всех на треке "
 "%(exam)s"
 msgstr ""
 
-#: monday/templates/student/home.html:145
+#: monday/templates/student/home.html:153
 #, python-format
 msgid "%(d)s д %(h)s ч"
 msgstr ""
 
-#: monday/templates/student/home.html:145
+#: monday/templates/student/home.html:153
 msgid "Идёт"
 msgstr ""
 
-#: monday/templates/student/home.html:145
+#: monday/templates/student/home.html:153
 msgid "до старта"
 msgstr ""
 
-#: monday/templates/student/home.html:146
+#: monday/templates/student/home.html:154
 msgid "твоё место в прошлый раз"
 msgstr ""
 
-#: monday/templates/student/home.html:148
+#: monday/templates/student/home.html:156
 msgid "Подробнее"
 msgstr ""
 
-#: monday/templates/student/home.html:154
+#: monday/templates/student/home.html:162
 #: monday/templates/student/journal.html:2
 #: monday/templates/student/journal.html:5
 #: monday/templates/student/journal_review.html:9
 msgid "Лабораторный журнал"
 msgstr ""
 
-#: monday/templates/student/home.html:156
+#: monday/templates/student/home.html:164
 #, python-format
 msgid ""
 "Ошибок на этой неделе: %(n)s. Из них %(c)s — невнимательность, а не "
 "незнание темы."
 msgstr ""
 
-#: monday/templates/student/home.html:158
+#: monday/templates/student/home.html:166
 msgid "На этой неделе ошибок пока нет."
 msgstr ""
 
@@ -4493,6 +4574,7 @@ msgid "Записи"
 msgstr ""
 
 #: monday/templates/student/journal.html:42
+#: monday/templates/teacher/reports.html:10
 msgid "Открытые"
 msgstr ""
 
@@ -4519,6 +4601,8 @@ msgid "Показать более ранние дни"
 msgstr ""
 
 #: monday/templates/student/journal.html:86
+#: monday/templates/teacher/reports.html:67
+#: monday/templates/teacher/tree.html:124
 msgid "Пусто"
 msgstr ""
 
@@ -4541,7 +4625,7 @@ msgid "Разобрано"
 msgstr ""
 
 #: monday/templates/student/journal_review.html:26
-#: monday/templates/student/journal_review.html:99
+#: monday/templates/student/journal_review.html:100
 msgid "Неверные"
 msgstr ""
 
@@ -4574,24 +4658,24 @@ msgstr ""
 msgid "Понял, дальше"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:97
+#: monday/templates/student/journal_review.html:98
 #, python-format
 msgid "Ошибка %(n)s из %(m)s"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:99
+#: monday/templates/student/journal_review.html:100
 msgid "Все ошибки"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:103
+#: monday/templates/student/journal_review.html:104
 msgid "открыта"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:103
+#: monday/templates/student/journal_review.html:104
 msgid "разобрана"
 msgstr ""
 
-#: monday/templates/student/journal_review.html:109
+#: monday/templates/student/journal_review.html:110
 msgid "Под эти фильтры ничего не подходит."
 msgstr ""
 
@@ -4979,6 +5063,8 @@ msgid ""
 msgstr ""
 
 #: monday/templates/student/result.html:46
+#: monday/templates/teacher/reports.html:37
+#: monday/templates/teacher/reports.html:59
 #: monday/templates/teacher/written_review.html:16
 msgid "Ответ:"
 msgstr ""
@@ -4988,45 +5074,45 @@ msgstr ""
 msgid "Вопрос %(n)s из %(t)s"
 msgstr ""
 
-#: monday/templates/student/session.html:27
+#: monday/templates/student/session.html:28
 msgid "Поверни телефон — рисунок и ответы поместятся рядом."
 msgstr ""
 
-#: monday/templates/student/session.html:37
+#: monday/templates/student/session.html:38
 msgid "Объясни решение своими словами"
 msgstr ""
 
-#: monday/templates/student/session.html:38
+#: monday/templates/student/session.html:39
 msgid "Как ты рассуждал? Какое свойство применил?"
 msgstr ""
 
-#: monday/templates/student/session.html:39
+#: monday/templates/student/session.html:40
 msgid ""
 "Объяснение сохранится. Позже его проверит ИИ-наставник и подскажет, где "
 "пробел."
 msgstr ""
 
-#: monday/templates/student/session.html:53
+#: monday/templates/student/session.html:54
 msgid "Не совсем. Верный ответ:"
 msgstr ""
 
-#: monday/templates/student/session.html:61
+#: monday/templates/student/session.html:62
 msgid "Проверка черновика по фото — скоро"
 msgstr ""
 
-#: monday/templates/student/session.html:69
+#: monday/templates/student/session.html:70
 msgid "Почему ошибка? Это попадёт в журнал."
 msgstr ""
 
-#: monday/templates/student/session.html:71
+#: monday/templates/student/session.html:72
 msgid "Не знаю"
 msgstr ""
 
-#: monday/templates/student/session.html:83
+#: monday/templates/student/session.html:84
 msgid "Следующий вопрос"
 msgstr ""
 
-#: monday/templates/student/session.html:83
+#: monday/templates/student/session.html:84
 msgid "Завершить сессию"
 msgstr ""
 
@@ -5168,10 +5254,12 @@ msgid "Новый"
 msgstr ""
 
 #: monday/templates/student/skills.html:31
+#: monday/templates/teacher/tree.html:66
 msgid "Развернуть всё"
 msgstr ""
 
 #: monday/templates/student/skills.html:31
+#: monday/templates/teacher/tree.html:66
 msgid "Свернуть всё"
 msgstr ""
 
@@ -5251,7 +5339,7 @@ msgid "Дата"
 msgstr ""
 
 #: monday/templates/teacher/_picker.html:3
-#: monday/templates/teacher/question_edit.html:94
+#: monday/templates/teacher/question_edit.html:96
 msgid "Тип задачи"
 msgstr ""
 
@@ -5414,8 +5502,8 @@ msgid "Раскрыть"
 msgstr ""
 
 #: monday/templates/teacher/_picker_tree.html:21
-#: monday/templates/teacher/tree.html:48 monday/templates/teacher/tree.html:65
-#: monday/templates/teacher/tree.html:77 monday/templates/teacher/tree.html:85
+#: monday/templates/teacher/tree.html:71 monday/templates/teacher/tree.html:82
+#: monday/templates/teacher/tree.html:92 monday/templates/teacher/tree.html:97
 msgid "моё"
 msgstr ""
 
@@ -5554,9 +5642,9 @@ msgid "Вставить тест целиком"
 msgstr ""
 
 #: monday/templates/teacher/bank.html:12
-#: monday/templates/teacher/question_edit.html:40
+#: monday/templates/teacher/question_edit.html:41
 #: monday/templates/teacher/questions.html:7
-#: monday/templates/teacher/tree.html:43
+#: monday/templates/teacher/tree.html:54
 #: monday/templates/teacher/work_edit.html:91
 msgid "Новый вопрос"
 msgstr ""
@@ -5832,27 +5920,29 @@ msgstr ""
 
 #: monday/templates/teacher/question_edit.html:9
 #: monday/templates/teacher/question_edit.html:17
-#: monday/templates/teacher/question_edit.html:116
+#: monday/templates/teacher/question_edit.html:118
 msgid "Заголовок"
 msgstr ""
 
 #: monday/templates/teacher/question_edit.html:9
 #: monday/templates/teacher/question_edit.html:20
-#: monday/templates/teacher/question_edit.html:114
+#: monday/templates/teacher/question_edit.html:116
 msgid "Текст для чтения"
 msgstr ""
 
 #: monday/templates/teacher/question_edit.html:9
-#: monday/templates/teacher/question_edit.html:115
+#: monday/templates/teacher/question_edit.html:117
 msgid "Две колонки"
 msgstr ""
 
 #: monday/templates/teacher/question_edit.html:11
+#: monday/templates/teacher/tree.html:9
 #: monday/templates/teacher/work_edit.html:102
 msgid "Выше"
 msgstr ""
 
 #: monday/templates/teacher/question_edit.html:12
+#: monday/templates/teacher/tree.html:10
 #: monday/templates/teacher/work_edit.html:102
 msgid "Ниже"
 msgstr ""
@@ -5893,239 +5983,240 @@ msgstr ""
 msgid "Правая колонка"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:38
+#: monday/templates/teacher/question_edit.html:39
 msgid "Комментарий проверяющего:"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:40
+#: monday/templates/teacher/question_edit.html:41
+#: monday/templates/teacher/reports.html:31
 #, python-format
 msgid "Вопрос #%(id)s"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:41
+#: monday/templates/teacher/question_edit.html:42
 msgid ""
 "Один шаблон для банка вопросов, домашних заданий и тестов. Формулы "
 "пишутся между знаками $…$, например $\\log_2 8$."
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:52
+#: monday/templates/teacher/question_edit.html:54
 msgid "1 · Место в карте"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:71
+#: monday/templates/teacher/question_edit.html:73
 msgid ""
 "Нужной ветки нет? Напишите администратору — карту тем меняют только "
 "учителя и админ."
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:74
+#: monday/templates/teacher/question_edit.html:76
 msgid "Нужной ветки нет — добавить новую"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:76
-#: monday/templates/teacher/tree.html:53
+#: monday/templates/teacher/question_edit.html:78
+#: monday/templates/teacher/tree.html:117
 msgid "Новая тема"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:76
-#: monday/templates/teacher/question_edit.html:77
+#: monday/templates/teacher/question_edit.html:78
+#: monday/templates/teacher/question_edit.html:79
 msgid "или выберите выше"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:77
-#: monday/templates/teacher/tree.html:104
+#: monday/templates/teacher/question_edit.html:79
+#: monday/templates/teacher/tree.html:108
 msgid "Новая подтема"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:78
-#: monday/templates/teacher/tree.html:99
+#: monday/templates/teacher/question_edit.html:80
+#: monday/templates/teacher/tree.html:105
 msgid "Новый навык"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:78
+#: monday/templates/teacher/question_edit.html:80
 msgid "Например: Уравнения с модулем"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:80
+#: monday/templates/teacher/question_edit.html:82
 msgid ""
 "Новый навык попадёт в выбранную подтему, новая подтема — в выбранную "
 "тему. Ваши ветки видите вы и ваши ученики; ★ отмечает ваши навыки."
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:83
+#: monday/templates/teacher/question_edit.html:85
 msgid "Экзамены"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:88
+#: monday/templates/teacher/question_edit.html:90
 msgid "Баллы за вопрос"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:90
+#: monday/templates/teacher/question_edit.html:92
 msgid "Важность: влияет на оценку и прогресс."
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:94
+#: monday/templates/teacher/question_edit.html:96
 msgid "— для фильтров; если не отметить, Monday определит сам"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:100
+#: monday/templates/teacher/question_edit.html:102
 msgid "2 · Материал слева — необязательно"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:101
+#: monday/templates/teacher/question_edit.html:103
 msgid ""
 "Рисунок, текст для чтения или колонки. Если материал есть, ученик видит "
 "его слева, а вопрос и ответы — справа. Без материала вопрос стоит по "
 "центру."
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:105
+#: monday/templates/teacher/question_edit.html:107
 msgid "Рисунок — чертёж, график, таблица"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:106
+#: monday/templates/teacher/question_edit.html:108
 msgid "PNG, JPG или WEBP, от 1600 px по ширине"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:109
+#: monday/templates/teacher/question_edit.html:111
 msgid "Удалить текущий рисунок"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:118
+#: monday/templates/teacher/question_edit.html:120
 msgid "Блоки добавляются с включённым JavaScript."
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:125
+#: monday/templates/teacher/question_edit.html:127
 msgid "3 · Вопрос"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:127
+#: monday/templates/teacher/question_edit.html:129
 #: monday/templates/teacher/questions.html:17
 msgid "Текст вопроса"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:134
+#: monday/templates/teacher/question_edit.html:136
 msgid "Например: Найдите значение выражения $\\log_2 48 - \\log_2 3$"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:137
+#: monday/templates/teacher/question_edit.html:139
 #, python-format
 msgid "До %(n)s слов. Длинное условие вынесите в «Текст для чтения»."
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:142
+#: monday/templates/teacher/question_edit.html:144
 msgid "4 · Ответ"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:144
+#: monday/templates/teacher/question_edit.html:146
 msgid "Варианты ответа"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:145
+#: monday/templates/teacher/question_edit.html:147
 msgid "Свободный ввод"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:155
+#: monday/templates/teacher/question_edit.html:157
 msgid "Вариант"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:160
+#: monday/templates/teacher/question_edit.html:162
 msgid "Отметьте кружком верный вариант. Пустые варианты не сохраняются."
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:161
+#: monday/templates/teacher/question_edit.html:163
 msgid "Ещё вариант"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:168
+#: monday/templates/teacher/question_edit.html:170
 msgid "Целое (12), дробь (3/4) или десятичное (0,75)."
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:169
+#: monday/templates/teacher/question_edit.html:171
 msgid "Округление"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:171
+#: monday/templates/teacher/question_edit.html:173
 msgid "Только точный ответ"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:172
+#: monday/templates/teacher/question_edit.html:174
 msgid "Засчитывать до десятых"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:173
+#: monday/templates/teacher/question_edit.html:175
 msgid "Засчитывать до сотых"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:175
+#: monday/templates/teacher/question_edit.html:177
 msgid "Например, при ответе 25/6 и «до десятых» засчитается 4,2."
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:177
+#: monday/templates/teacher/question_edit.html:179
 msgid "Ученик может ввести"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:179
+#: monday/templates/teacher/question_edit.html:181
 msgid "Целое число"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:179
+#: monday/templates/teacher/question_edit.html:181
 msgid "Дробь"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:179
+#: monday/templates/teacher/question_edit.html:181
 msgid "Десятичное число"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:183
+#: monday/templates/teacher/question_edit.html:185
 msgid "Под полем ввода ученик увидит подсказку с этими форматами."
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:188
+#: monday/templates/teacher/question_edit.html:190
 msgid "5 · Объяснение и видео"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:190
+#: monday/templates/teacher/question_edit.html:192
 msgid "Ссылка на видео (YouTube)"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:194
+#: monday/templates/teacher/question_edit.html:196
 msgid "Предпросмотр"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:200
+#: monday/templates/teacher/question_edit.html:202
 msgid "Можно ввести:"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:202
+#: monday/templates/teacher/question_edit.html:204
 msgid "две колонки"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:202
+#: monday/templates/teacher/question_edit.html:204
 msgid "по центру"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:206
+#: monday/templates/teacher/question_edit.html:208
 msgid ""
 "Вопрос уйдёт на проверку методисту. Если что-то не так, он вернётся с "
 "комментарием."
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:206
+#: monday/templates/teacher/question_edit.html:208
 msgid ""
 "Вопрос сразу попадает в банк. Проверку администратора проходят только "
 "большие сборники."
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:209
+#: monday/templates/teacher/question_edit.html:211
 msgid "Сохранить и одобрить"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:211
+#: monday/templates/teacher/question_edit.html:213
 msgid "Сохранить и создать ещё"
 msgstr ""
 
-#: monday/templates/teacher/question_edit.html:212
+#: monday/templates/teacher/question_edit.html:214
 #: monday/templates/teacher/work_edit.html:112
 msgid "Сохранить черновик"
 msgstr ""
@@ -6185,6 +6276,65 @@ msgstr ""
 
 #: monday/templates/teacher/questions.html:60
 msgid "Создайте первый вопрос — форма займёт пару минут."
+msgstr ""
+
+#: monday/templates/teacher/reports.html:7
+msgid ""
+"Ученики сообщают об ошибках в вопросах. Откройте вопрос, исправьте его и "
+"ответьте — ученик увидит ответ на главной."
+msgstr ""
+
+#: monday/templates/teacher/reports.html:11
+msgid "Закрытые"
+msgstr ""
+
+#: monday/templates/teacher/reports.html:25
+#: monday/templates/teacher/reports.html:55
+msgid "Исправлено"
+msgstr ""
+
+#: monday/templates/teacher/reports.html:25
+msgid "Отклонено"
+msgstr ""
+
+#: monday/templates/teacher/reports.html:31
+msgid "из сборника"
+msgstr ""
+
+#: monday/templates/teacher/reports.html:42
+msgid "Карта:"
+msgstr ""
+
+#: monday/templates/teacher/reports.html:48
+msgid "Ответ ученику"
+msgstr ""
+
+#: monday/templates/teacher/reports.html:49
+msgid "Ответ ученику (необязательно): что исправили"
+msgstr ""
+
+#: monday/templates/teacher/reports.html:51
+msgid "Открыть в редакторе"
+msgstr ""
+
+#: monday/templates/teacher/reports.html:52
+msgid "Вопрос из общего банка — исправит администратор."
+msgstr ""
+
+#: monday/templates/teacher/reports.html:54
+msgid "Ошибки нет"
+msgstr ""
+
+#: monday/templates/teacher/reports.html:61
+msgid "Открыть снова"
+msgstr ""
+
+#: monday/templates/teacher/reports.html:67
+msgid "Новых сообщений об ошибках нет."
+msgstr ""
+
+#: monday/templates/teacher/reports.html:67
+msgid "Здесь будут закрытые сообщения."
 msgstr ""
 
 #: monday/templates/teacher/review.html:5
@@ -6272,11 +6422,6 @@ msgstr ""
 
 #: monday/templates/teacher/review_detail.html:30
 msgid "Ответы"
-msgstr ""
-
-#: monday/templates/teacher/review_detail.html:45
-#: monday/templates/teacher/review_detail.html:46
-msgid "Комментарий"
 msgstr ""
 
 #: monday/templates/teacher/review_detail.html:47
@@ -6525,92 +6670,119 @@ msgid ""
 "WhatsApp или Telegram."
 msgstr ""
 
-#: monday/templates/teacher/tree.html:2 monday/templates/teacher/tree.html:40
+#: monday/templates/teacher/tree.html:2 monday/templates/teacher/tree.html:51
 msgid "Карта способностей"
 msgstr ""
 
-#: monday/templates/teacher/tree.html:12
+#: monday/templates/teacher/tree.html:23
 msgid "Важность (1–5)"
 msgstr ""
 
-#: monday/templates/teacher/tree.html:18
+#: monday/templates/teacher/tree.html:29
 msgid "Вернуть из архива"
 msgstr ""
 
-#: monday/templates/teacher/tree.html:20
+#: monday/templates/teacher/tree.html:31
 #: monday/templates/teacher/works.html:131
 msgid "В архив"
 msgstr ""
 
-#: monday/templates/teacher/tree.html:41
+#: monday/templates/teacher/tree.html:52
+#, python-format
 msgid ""
-"Тема → подтема → навык. Вопросы, домашние задания и тесты привязываются к"
-" навыку, поэтому новые ветки можно добавлять в любой момент — прогресс "
-"учеников не ломается."
+"Тема → подтема → навык. Красная метка — навык, где меньше %(n)s вопросов:"
+" нажмите «+», чтобы добавить вопрос прямо туда."
 msgstr ""
 
-#: monday/templates/teacher/tree.html:47
-msgid "общее"
+#: monday/templates/teacher/tree.html:62
+msgid "Только пробелы"
 msgstr ""
 
-#: monday/templates/teacher/tree.html:47
-msgid "общее дерево Monday — правит администратор"
-msgstr ""
-
-#: monday/templates/teacher/tree.html:48
-msgid "ваши ветки — видите вы и ваши ученики"
-msgstr ""
-
-#: monday/templates/teacher/tree.html:49
+#: monday/templates/teacher/tree.html:65
 msgid "Скрыть архив"
 msgstr ""
 
-#: monday/templates/teacher/tree.html:49
+#: monday/templates/teacher/tree.html:65
 msgid "Показать архив"
 msgstr ""
 
-#: monday/templates/teacher/tree.html:54
-msgid ""
-"Главная ветка, например «Геометрия». Потом добавьте в неё подтемы и "
-"навыки — карточки появятся ниже."
+#: monday/templates/teacher/tree.html:70
+msgid "общее"
 msgstr ""
 
-#: monday/templates/teacher/tree.html:55
-msgid "Название темы"
+#: monday/templates/teacher/tree.html:70
+msgid "общая карта Monday — правит администратор"
 msgstr ""
 
-#: monday/templates/teacher/tree.html:58
-msgid "Перейти к теме"
+#: monday/templates/teacher/tree.html:71
+msgid "ваши ветки — видите вы и ваши ученики"
 msgstr ""
 
-#: monday/templates/teacher/tree.html:66
+#: monday/templates/teacher/tree.html:80
+msgid "пробел"
+msgstr ""
+
+#: monday/templates/teacher/tree.html:80
+msgid "пробела"
+msgstr ""
+
+#: monday/templates/teacher/tree.html:80
+msgid "пробелов"
+msgstr ""
+
+#: monday/templates/teacher/tree.html:82
 msgid "архив"
 msgstr ""
 
-#: monday/templates/teacher/tree.html:87
+#: monday/templates/teacher/tree.html:98
 #, python-format
 msgid "мои: %(n)s"
 msgstr ""
 
-#: monday/templates/teacher/tree.html:87
+#: monday/templates/teacher/tree.html:98
 #, python-format
 msgid "важность %(w)s"
 msgstr ""
 
-#: monday/templates/teacher/tree.html:91
+#: monday/templates/teacher/tree.html:99
+msgid "Открыть вопросы навыка"
+msgstr ""
+
+#: monday/templates/teacher/tree.html:99
+msgid "мало"
+msgstr ""
+
+#: monday/templates/teacher/tree.html:100
 msgid "Вопрос в этот навык"
 msgstr ""
 
-#: monday/templates/teacher/tree.html:96
+#: monday/templates/teacher/tree.html:100
+#, python-format
+msgid "Вопрос в этот навык: %(n)s"
+msgstr ""
+
+#: monday/templates/teacher/tree.html:103
 msgid "Пока нет навыков."
 msgstr ""
 
-#: monday/templates/teacher/tree.html:105
-msgid "Например: «Площади фигур» в теме «Геометрия»."
+#: monday/templates/teacher/tree.html:118
+msgid "Главная ветка, например «Геометрия». Потом добавьте подтемы и навыки."
 msgstr ""
 
-#: monday/templates/teacher/tree.html:106
-msgid "Название подтемы"
+#: monday/templates/teacher/tree.html:119
+msgid "Название темы"
+msgstr ""
+
+#: monday/templates/teacher/tree.html:124
+msgid "Пробелов нет"
+msgstr ""
+
+#: monday/templates/teacher/tree.html:124
+msgid "В каждом навыке этого экзамена достаточно вопросов."
+msgstr ""
+
+#: monday/templates/teacher/tree.html:124
+msgid "Добавьте первую тему."
 msgstr ""
 
 #: monday/templates/teacher/work_edit.html:2

@@ -56,8 +56,13 @@ def _own_question(question_id):
 def _after_question_save():
     if current_user.is_assistant:
         return redirect(url_for("assistant.mine"))
-    if request.form.get("back") == "review" and current_user.can_review:
+    back = request.form.get("back")
+    if back == "review" and current_user.can_review:
         return redirect(url_for("review.queue"))
+    if back == "reports":
+        return redirect(url_for("reports.inbox"))
+    if back == "tree":
+        return redirect(url_for("teacher.tree", exam=request.form.get("exam_view") or None, open=request.form.get("open_topic") or None))
     return redirect(url_for("teacher.questions"))
 
 
@@ -746,22 +751,79 @@ def review_detail(assignment_id):
 # --------------------------------------------------------------------------- abilities map (content tree)
 
 
+GAP = 5  # a skill with fewer questions than this (for the chosen exam) is a gap to fill
+
+
 @bp.route("/tree")
 @teacher_required
 def tree():
+    """The map as tiles (like the students see it) with an exam filter, question counts and gaps."""
     show_archived = request.args.get("archived") == "1" and current_user.is_admin
+    view = request.args.get("exam") if request.args.get("exam") in EXAMS else "all"
+    exam = None if view == "all" else view
+    gaps_only = request.args.get("gaps") == "1"
     nodes = visible_nodes(current_user, include_archived=show_archived)
-    counts = {}
+    counts, mine = {}, {}
     for q in Question.query.filter(Question.status == "published").all():
-        counts[q.skill_id] = counts.get(q.skill_id, 0) + 1
-    mine = {}
+        if exam is None or exam in (q.exams or []):
+            counts[q.skill_id] = counts.get(q.skill_id, 0) + 1
     for q in Question.query.filter_by(author_id=current_user.id).all():
         mine[q.skill_id] = mine.get(q.skill_id, 0) + 1
     by_parent = {}
     for n in nodes:
         by_parent.setdefault(n.parent_id, []).append(n)
-    return render_template("teacher/tree.html", by_parent=by_parent, counts=counts, mine=mine,
+
+    def show_node(n):
+        if exam and not n.in_exam(exam):
+            return False
+        return not gaps_only or counts.get(n.id, 0) < GAP
+
+    topics = []
+    for t in by_parent.get(None, []):
+        if t.level != "topic":
+            continue
+        subs = []
+        for s in by_parent.get(t.id, []):
+            kids = by_parent.get(s.id, [])
+            shown = [n for n in kids if show_node(n)]
+            if shown or (not kids and not gaps_only):
+                subs.append({"node": s, "skills": shown})
+        if not subs and (exam or gaps_only) and by_parent.get(t.id):
+            continue
+        skills = [n for s in subs for n in s["skills"]]
+        topics.append({"node": t, "subs": subs, "skills": len(skills),
+                       "questions": sum(counts.get(n.id, 0) for n in skills),
+                       "gaps": sum(1 for n in skills if counts.get(n.id, 0) < GAP)})
+    return render_template("teacher/tree.html", topics=topics, counts=counts, mine=mine, view=view, exam=exam,
+                           gaps_only=gaps_only, gap=GAP, open_id=request.args.get("open", type=int),
                            can_edit=_can_edit_node, show_archived=show_archived)
+
+
+@bp.route("/tree/<int:node_id>/move", methods=["POST"])
+@teacher_required
+def tree_move(node_id):
+    """Move an entry one place up or down among its siblings."""
+    node = db.session.get(ContentNode, node_id)
+    if not _can_edit_node(node):
+        abort(403)
+    siblings = (ContentNode.query.filter(ContentNode.parent_id == node.parent_id, ContentNode.level == node.level)
+                .order_by(ContentNode.position, ContentNode.id).all())
+    for i, n in enumerate(siblings):
+        n.position = i * 10
+    k = siblings.index(node)
+    j = k - 1 if request.form.get("dir") == "up" else k + 1
+    if 0 <= j < len(siblings):
+        siblings[k].position, siblings[j].position = siblings[j].position, siblings[k].position
+    db.session.commit()
+    return redirect(_tree_back(node))
+
+
+def _tree_back(node):
+    topic = node
+    while topic.parent is not None:
+        topic = topic.parent
+    return url_for("teacher.tree", exam=request.form.get("view") or None, gaps=request.form.get("gaps") or None,
+                   open=topic.id, _anchor=f"n{node.id}")
 
 
 @bp.route("/tree/add", methods=["POST"])
@@ -784,7 +846,7 @@ def tree_add():
     db.session.commit()
     flash(_("Добавлено: %(name)s.", name=node.name) + ("" if current_user.is_admin else " " + _("Видно вам и вашим ученикам.")),
           "success")
-    return redirect(url_for("teacher.tree", _anchor=f"n{node.parent_id or node.id}"))
+    return redirect(_tree_back(node))
 
 
 @bp.route("/tree/<int:node_id>/edit", methods=["POST"])
@@ -814,7 +876,7 @@ def tree_edit(node_id):
             node.exams = exams
         flash(_("Сохранено."), "success")
     db.session.commit()
-    return redirect(url_for("teacher.tree", _anchor=f"n{node.parent_id or node.id}"))
+    return redirect(_tree_back(node))
 
 
 # --------------------------------------------------------------------------- question bank
@@ -1042,7 +1104,9 @@ def _needs_review(work):
 @bp.route("/questions/new", methods=["GET", "POST"])
 @staff_required
 def question_new():
-    qn = Question(author_id=current_user.id, exams=["ORT"], difficulty=2, answer_type="choice", weight=1,
+    preset = request.args.get("exam")
+    qn = Question(author_id=current_user.id, exams=[preset if preset in EXAMS else "ORT"], difficulty=2 if not request.args.get("hard") else 3,
+                  answer_type="choice", weight=1,
                   options=["", "", "", ""], correct="0", language="ru", material=[],
                   input_formats=list(INPUT_FORMATS), skill_id=request.args.get("node", type=int))
     if request.method == "POST":

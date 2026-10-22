@@ -294,3 +294,21 @@
 {% macro more_chips(n) -%}
 <span class="chip-more__rest" hidden>{{ caller() }}</span><button type="button" class="tag tag--line chip-more" data-chip-more data-open="+{{ n }}" data-close="{{ _('Свернуть') }}" aria-expanded="false">+{{ n }}</button>
 {%- endmacro %}
+
+
+{# «Сообщить об ошибке»: a small popover under any question. No <form> (it may sit inside an answer form); app.js posts it. #}
+{% macro report_button(question_id, align='left') -%}
+{% if question_id and current_user.is_authenticated %}
+<details class="qr qr--{{ align }}" data-report>
+  <summary class="qr__btn" title="{{ _('Сообщить об ошибке') }}">{{ icon('flag', 15) }}<span>{{ _("Сообщить об ошибке") }}</span></summary>
+  <div class="qr__panel" data-report-form data-action="{{ url_for('reports.create') }}" data-csrf="{{ csrf_token() }}" data-question="{{ question_id }}">
+    <b class="qr__title">{{ _("Что не так с вопросом?") }}</b>
+    <div class="qr__opts" role="radiogroup">
+      {% for k, v in REPORT_KINDS.items() if k != 'node' %}<label class="qr__opt"><input type="radio" name="qr-kind-{{ question_id }}" value="{{ k }}" {{ 'checked' if loop.first }}><span>{{ v }}</span></label>{% endfor %}
+    </div>
+    <textarea class="input qr__msg" rows="2" maxlength="2000" placeholder="{{ _('Подробнее: что именно не так (необязательно)') }}" aria-label="{{ _('Комментарий') }}"></textarea>
+    <div class="row" style="gap:10px"><button class="btn btn--primary btn--sm" type="button" data-report-send>{{ _("Отправить") }}</button><span class="small" data-report-status></span></div>
+  </div>
+</details>
+{% endif %}
+{%- endmacro %}

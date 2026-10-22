@@ -33,7 +33,8 @@
 {% set node = qn.skill %}
 {% set sel_topic = node.topic_node.id if node and node.topic_node else None %}
 {% set sel_sub = node.subtopic_node.id if node and node.subtopic_node else None %}
-{% set back_url = url_for('assistant.mine') if current_user.is_assistant else (url_for('review.queue') if request.args.get('back') == 'review' else url_for('teacher.questions')) %}
+{% set back = request.args.get('back') or request.form.get('back') %}
+{% set back_url = url_for('assistant.mine') if current_user.is_assistant else (url_for('review.queue') if back == 'review' else (url_for('reports.inbox') if back == 'reports' else (url_for('teacher.tree', exam=request.args.get('exam') or request.form.get('exam_view') or None, open=request.args.get('open') or request.form.get('open_topic') or None) if back == 'tree' else url_for('teacher.questions')))) %}
 <a href="{{ back_url }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Назад") }}</a>
 {% if qn.review_note and qn.status != 'published' %}<div class="flash flash--info">{{ ui.icon('inbox', 18) }} <span><b>{{ _("Комментарий проверяющего:") }}</b> {{ qn.review_note }}</span></div>{% endif %}
 <div class="page-head__text">
@@ -42,7 +43,8 @@
 </div>
 
 <form method="post" enctype="multipart/form-data" data-question-editor>
-  {% if request.args.get('back') == 'review' %}<input type="hidden" name="back" value="review">{% endif %}
+  {% if back in ('review', 'reports', 'tree') %}<input type="hidden" name="back" value="{{ back }}">{% endif %}
+  {% if back == 'tree' %}<input type="hidden" name="exam_view" value="{{ request.args.get('exam') or request.form.get('exam_view') or '' }}"><input type="hidden" name="open_topic" value="{{ request.args.get('open') or request.form.get('open_topic') or '' }}">{% endif %}
   {{ ui.csrf() }}
   <script type="application/json" id="tree-data">{{ tree|tojson }}</script>
   <div class="grid" style="grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);align-items:start;gap:28px">
