@@ -35,14 +35,17 @@
     </div>
   </div>
 
-  {% for branch, entries in sh.entries|groupby('branch') %}
-    {% if branch %}<div class="sheet-view__branch">{{ branch }}</div>{% endif %}
+  {% for branch, entries in sh.entries|branch_groups %}
+    <div class="sheet-view__branch row row--between">
+      <span>{{ branch or _("Без раздела") }}</span>
+      <button type="button" class="link-btn small" data-add-to="{{ sh.id }}" data-branch="{{ branch }}">{{ ui.icon('plus', 12) }} {{ _("Добавить в раздел") }}</button>
+    </div>
     <div class="sheet-view__grid sheet-view__grid--page">
       {% for e in entries %}
         <div class="sheet-entry">
           {% if e.image_path %}<img src="{{ url_for('uploaded_file', filename=e.image_path) }}" alt="" data-lightbox>{% endif %}
           <div class="sheet-entry__topic">{{ e.topic }}</div>
-          {% if e.formula %}<div class="sheet-entry__formula math">{{ e.formula }}</div>{% endif %}
+          {% if e.formula %}<div class="sheet-entry__formula math">{{ e.formula|math_wrap }}</div>{% endif %}
           <form method="post" class="sheet-entry__del">{{ ui.csrf() }}<input type="hidden" name="action" value="delete_entry"><input type="hidden" name="entry_id" value="{{ e.id }}">
             <button type="submit" aria-label="{{ _('Удалить') }}">{{ ui.icon('x', 12) }}</button></form>
         </div>
@@ -52,18 +55,34 @@
     <p class="text-2 small">{{ _("Пока пусто. Добавь формулу ниже.") }}</p>
   {% endfor %}
 
-  <details class="disclosure" {{ 'open' if not sh.entries }}>
-    <summary>{{ _("Добавить формулу") }}</summary>
-    <form method="post" enctype="multipart/form-data" class="grid grid-2" style="margin-top:12px">
+  <details class="disclosure" id="add-{{ sh.id }}" {{ 'open' if not sh.entries }}>
+    <summary>{{ _("Добавить формулы") }}</summary>
+    <form method="post" enctype="multipart/form-data" class="stack formula-add" style="margin-top:12px" data-formula-add>
       {{ ui.csrf() }}<input type="hidden" name="action" value="add_entry"><input type="hidden" name="sheet_id" value="{{ sh.id }}">
-      <div class="field"><label for="br{{ sh.id }}">{{ _("Раздел") }}</label>
-        <input class="input" id="br{{ sh.id }}" name="branch" list="branches{{ sh.id }}" placeholder="{{ _('Геометрия') }}">
-        <datalist id="branches{{ sh.id }}">{% for b in sh.entries|map(attribute='branch')|unique %}{% if b %}<option value="{{ b }}">{% endif %}{% endfor %}</datalist></div>
-      <div class="field"><label for="tp{{ sh.id }}">{{ _("Название") }}</label><input class="input" id="tp{{ sh.id }}" name="topic" required placeholder="{{ _('Площадь трапеции') }}"></div>
-      <div class="field"><label for="fm{{ sh.id }}">{{ _("Формула") }} <span class="muted" style="font-weight:400">{{ _("— между знаками") }} <code>$…$</code></span></label>
-        <input class="input input--mono" id="fm{{ sh.id }}" name="formula" placeholder="$S = \frac{a+b}{2} \cdot h$"></div>
-      <div class="field"><label for="im{{ sh.id }}">{{ _("Картинка — необязательно") }}</label>{{ ui.file_input('image', 'im' ~ sh.id) }}</div>
-      <div class="span-all"><button class="btn btn--primary" type="submit">{{ _("Добавить") }}</button></div>
+      <div class="field" style="max-width:420px"><label for="br{{ sh.id }}">{{ _("Раздел") }}</label>
+        <input class="input" id="br{{ sh.id }}" name="branch" list="branches{{ sh.id }}" placeholder="{{ _('Геометрия') }}" data-branch-input>
+        <datalist id="branches{{ sh.id }}">{% for b, _e in sh.entries|branch_groups %}{% if b %}<option value="{{ b }}">{% endif %}{% endfor %}</datalist>
+        <span class="field__hint">{{ _("Все формулы ниже попадут в этот раздел. Можно выбрать уже существующий.") }}</span></div>
+      <div class="stack" data-rows>
+        <div class="formula-row" data-row>
+          <div class="field"><label>{{ _("Название") }}</label><input class="input" name="topic" placeholder="{{ _('Площадь трапеции') }}"></div>
+          <div class="field formula-row__math"><label>{{ _("Формула") }}</label>
+            <div class="mathkb" data-mathkb>
+              {% for label, snip in [('x²', '^{2}'), ('xⁿ', '^{‸}'), ('x₁', '_{‸}'), ('√', '\\sqrt{‸}'), ('ⁿ√', '\\sqrt[‸]{}'), ('a⁄b', '\\frac{‸}{}'), ('π', '\\pi '), ('·', '\\cdot '), ('×', '\\times '), ('±', '\\pm '), ('≤', '\\le '), ('≥', '\\ge '), ('≠', '\\ne '), ('°', '^\\circ'), ('α', '\\alpha '), ('β', '\\beta '), ('sin', '\\sin '), ('cos', '\\cos '), ('tg', '\\tan '), ('log', '\\log_{‸}'), ('|x|', '|{‸}|'), ('∞', '\\infty ')] %}
+                <button type="button" data-snip="{{ snip }}" title="{{ snip }}">{{ label }}</button>
+              {% endfor %}
+            </div>
+            <input class="input input--mono" name="formula" placeholder="S = \frac{a+b}{2} \cdot h" autocomplete="off" data-math-input>
+            <div class="formula-row__preview math" data-math-preview aria-live="polite"></div></div>
+          <div class="field"><label>{{ _("Картинка — необязательно") }}</label><input class="input input--file" type="file" name="image" accept="image/png,image/jpeg,image/webp"></div>
+          <button type="button" class="icon-btn icon-btn--sm formula-row__del" data-row-del aria-label="{{ _('Убрать строку') }}" hidden>{{ ui.icon('x', 12) }}</button>
+        </div>
+      </div>
+      <div class="row" style="gap:10px">
+        <button type="button" class="btn btn--secondary btn--sm" data-row-add>{{ ui.icon('plus', 14) }}{{ _("Ещё формула") }}</button>
+        <button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button>
+      </div>
+      <p class="small muted no-math" style="margin:0">{{ _("Кнопки над полем вставляют степени, корни, дроби и знаки. Знаки $…$ ставить не нужно.") }}</p>
     </form>
   </details>
 </section>

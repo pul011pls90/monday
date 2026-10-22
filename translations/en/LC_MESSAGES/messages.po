@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Monday VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-21 09:19-0700\n"
+"POT-Creation-Date: 2026-10-21 17:52-0700\n"
 "PO-Revision-Date: 2026-10-17 13:27-0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -18,40 +18,40 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: monday/__init__.py:207
+#: monday/__init__.py:222
 #, python-format
 msgid "%(h)s ч %(m)s мин"
 msgstr "%(h)s h %(m)s min"
 
-#: monday/__init__.py:209
+#: monday/__init__.py:224
 #, python-format
 msgid "%(h)s ч"
 msgstr "%(h)s h"
 
-#: monday/__init__.py:210 monday/__init__.py:220
+#: monday/__init__.py:225 monday/__init__.py:235
 #, python-format
 msgid "%(m)s мин"
 msgstr "%(m)s min"
 
-#: monday/__init__.py:218
+#: monday/__init__.py:233
 #, python-format
 msgid "%(m)s мин %(s)s с"
 msgstr "%(m)s min %(s)s s"
 
-#: monday/__init__.py:221
+#: monday/__init__.py:236
 #, python-format
 msgid "%(s)s с"
 msgstr "%(s)s s"
 
-#: monday/__init__.py:243
+#: monday/__init__.py:258
 msgid "Нет доступа к этой странице."
 msgstr "You don't have access to this page."
 
-#: monday/__init__.py:247
+#: monday/__init__.py:262
 msgid "Такой страницы нет."
 msgstr "This page doesn't exist."
 
-#: monday/__init__.py:251
+#: monday/__init__.py:266
 msgid "Файл слишком большой (максимум 8 МБ)."
 msgstr "The file is too large (8 MB max)."
 
@@ -832,7 +832,7 @@ msgstr "Exponential equations"
 msgid "Логарифмические и показательные неравенства"
 msgstr "Logarithmic and exponential inequalities"
 
-#: monday/content_names.py:71 monday/templates/student/formulas.html:60
+#: monday/content_names.py:71 monday/templates/student/formulas.html:63
 msgid "Геометрия"
 msgstr "Geometry"
 
@@ -1189,7 +1189,7 @@ msgstr "Your teacher has already marked this task."
 msgid "Это задание уже проверено."
 msgstr "This assignment has already been checked."
 
-#: monday/student.py:663 monday/student.py:686 monday/templates/student/journal.html:75
+#: monday/student.py:663 monday/student.py:686 monday/templates/student/journal.html:82
 msgid "Задача"
 msgstr "Problem"
 
@@ -1246,11 +1246,11 @@ msgstr "Sheet created. Add the first formula."
 msgid "Лист удалён."
 msgstr "Sheet deleted."
 
-#: monday/student.py:889
+#: monday/student.py:900 monday/student.py:918
 msgid "Укажи название и формулу или картинку."
 msgstr "Enter a title and a formula or a picture."
 
-#: monday/student.py:901
+#: monday/student.py:913
 msgid "Картинка: только PNG, JPG или WEBP."
 msgstr "Picture: PNG, JPG or WEBP only."
 
@@ -2055,7 +2055,7 @@ msgid "Опубликовать"
 msgstr "Publish"
 
 #: monday/templates/admin/index.html:121 monday/templates/assistant/mine.html:24 monday/templates/student/homework.html:38
-#: monday/templates/student/journal.html:90 monday/templates/teacher/review.html:43
+#: monday/templates/student/journal.html:97 monday/templates/teacher/review.html:43
 #: monday/templates/teacher/student_detail.html:137 monday/templates/teacher/students.html:40
 msgid "Открыть"
 msgstr "Open"
@@ -2259,7 +2259,7 @@ msgstr "Test text or JSON"
 msgid "До 80 вопросов за раз. Формулы — между знаками $…$."
 msgstr "Up to 80 questions at a time. Formulas go between $…$ signs."
 
-#: monday/templates/assistant/home.html:33 monday/templates/student/journal.html:90
+#: monday/templates/assistant/home.html:33 monday/templates/student/journal.html:97
 msgid "Разобрать"
 msgstr "Parse"
 
@@ -2929,7 +2929,7 @@ msgid "Не вводите знаки: процент, запятую, долл�
 msgstr "Don't enter symbols such as a percent sign, comma, dollar sign or spaces."
 
 #: monday/templates/partials/tool_panes.html:46 monday/templates/partials/tool_panes.html:91
-#: monday/templates/student/journal.html:79 monday/templates/teacher/review_detail.html:37
+#: monday/templates/student/journal.html:86 monday/templates/teacher/review_detail.html:37
 msgid "Ответ"
 msgstr "Answer"
 
@@ -3178,7 +3178,7 @@ msgid "верно"
 msgstr "correct"
 
 #: monday/templates/student/_review_steps.html:54 monday/templates/student/journal.html:55
-#: monday/templates/student/journal.html:68
+#: monday/templates/student/journal.html:69
 msgid "ошибка"
 msgstr "wrong"
 
@@ -3712,54 +3712,76 @@ msgstr "Delete the sheet with all its formulas?"
 msgid "Удалить лист"
 msgstr "Delete sheet"
 
-#: monday/templates/student/formulas.html:47 monday/templates/teacher/questions.html:53
+#: monday/templates/student/formulas.html:40
+msgid "Без раздела"
+msgstr "No section"
+
+#: monday/templates/student/formulas.html:41
+msgid "Добавить в раздел"
+msgstr "Add to section"
+
+#: monday/templates/student/formulas.html:50 monday/templates/teacher/questions.html:53
 #: monday/templates/teacher/works.html:135
 msgid "Удалить"
 msgstr "Delete"
 
-#: monday/templates/student/formulas.html:52
+#: monday/templates/student/formulas.html:55
 msgid "Пока пусто. Добавь формулу ниже."
 msgstr "Empty for now. Add a formula below."
 
-#: monday/templates/student/formulas.html:56
-msgid "Добавить формулу"
-msgstr "Add formula"
-
 #: monday/templates/student/formulas.html:59
+msgid "Добавить формулы"
+msgstr "Add formulas"
+
+#: monday/templates/student/formulas.html:62
 msgid "Раздел"
 msgstr "Section"
 
-#: monday/templates/student/formulas.html:62 monday/templates/teacher/tree.html:10
+#: monday/templates/student/formulas.html:65
+msgid "Все формулы ниже попадут в этот раздел. Можно выбрать уже существующий."
+msgstr "All formulas below go into this section. You can pick an existing one."
+
+#: monday/templates/student/formulas.html:68 monday/templates/teacher/tree.html:10
 #: monday/templates/teacher/work_edit.html:34 monday/templates/teacher/works.html:111
 msgid "Название"
 msgstr "Title"
 
-#: monday/templates/student/formulas.html:62
+#: monday/templates/student/formulas.html:68
 msgid "Площадь трапеции"
 msgstr "Area of a trapezoid"
 
-#: monday/templates/student/formulas.html:63
+#: monday/templates/student/formulas.html:69
 msgid "Формула"
 msgstr "Formula"
 
-#: monday/templates/student/formulas.html:63
-msgid "— между знаками"
-msgstr "— between the signs"
-
-#: monday/templates/student/formulas.html:65
+#: monday/templates/student/formulas.html:77
 msgid "Картинка — необязательно"
 msgstr "Picture — optional"
 
-#: monday/templates/student/formulas.html:66 monday/templates/teacher/bank.html:41
-#: monday/templates/teacher/students.html:57
-msgid "Добавить"
-msgstr "Add"
+#: monday/templates/student/formulas.html:78
+msgid "Убрать строку"
+msgstr "Remove row"
 
-#: monday/templates/student/formulas.html:71
+#: monday/templates/student/formulas.html:82
+msgid "Ещё формула"
+msgstr "Another formula"
+
+#: monday/templates/student/formulas.html:83 monday/templates/student/profile.html:23
+#: monday/templates/student/session.html:75 monday/templates/teacher/account.html:23
+#: monday/templates/teacher/question_edit.html:209 monday/templates/teacher/student_detail.html:148
+#: monday/templates/teacher/tree.html:16
+msgid "Сохранить"
+msgstr "Save"
+
+#: monday/templates/student/formulas.html:85
+msgid "Кнопки над полем вставляют степени, корни, дроби и знаки. Знаки $…$ ставить не нужно."
+msgstr "The buttons above the field insert powers, roots, fractions and symbols. No need to type $…$."
+
+#: monday/templates/student/formulas.html:90
 msgid "Ещё нет ни одного листа"
 msgstr "No sheets yet"
 
-#: monday/templates/student/formulas.html:71
+#: monday/templates/student/formulas.html:90
 msgid "Создай лист — например, «Тригонометрия» или «SAT формулы» — и собирай туда то, что легко забыть."
 msgstr "Create a sheet — e.g. “Trigonometry” or “SAT formulas” — and collect what's easy to forget."
 
@@ -4114,43 +4136,51 @@ msgstr "Reviewed"
 msgid "Вчера"
 msgstr "Yesterday"
 
-#: monday/templates/student/journal.html:55 monday/templates/student/journal.html:68
+#: monday/templates/student/journal.html:55 monday/templates/student/journal.html:69
 msgid "ошибки"
 msgstr "mistakes"
 
-#: monday/templates/student/journal.html:55 monday/templates/student/journal.html:68
+#: monday/templates/student/journal.html:55 monday/templates/student/journal.html:69
 msgid "ошибок"
 msgstr "mistakes"
 
-#: monday/templates/student/journal.html:83
+#: monday/templates/student/journal.html:74
+msgid "Смотреть вопросы"
+msgstr "See the questions"
+
+#: monday/templates/student/journal.html:75
+msgid "Открыть разбор теста"
+msgstr "Open the test review"
+
+#: monday/templates/student/journal.html:90
 msgid "Причина"
 msgstr "Reason"
 
-#: monday/templates/student/journal.html:85
+#: monday/templates/student/journal.html:92
 msgid "Причина?"
 msgstr "Reason?"
 
-#: monday/templates/student/journal.html:100
+#: monday/templates/student/journal.html:107
 msgid "Понял, закрыть"
 msgstr "Got it, close"
 
-#: monday/templates/student/journal.html:101
+#: monday/templates/student/journal.html:108
 msgid "Вернуть в открытые"
 msgstr "Reopen"
 
-#: monday/templates/student/journal.html:113
+#: monday/templates/student/journal.html:120
 msgid "Показать более ранние дни"
 msgstr "Show earlier days"
 
-#: monday/templates/student/journal.html:115
+#: monday/templates/student/journal.html:122
 msgid "Пусто"
 msgstr "Empty"
 
-#: monday/templates/student/journal.html:115
+#: monday/templates/student/journal.html:122
 msgid "Открытых ошибок нет. Отличная неделя."
 msgstr "No open mistakes. Great week."
 
-#: monday/templates/student/journal.html:115
+#: monday/templates/student/journal.html:122
 msgid "Здесь будут разобранные ошибки."
 msgstr "Reviewed mistakes will be here."
 
@@ -4333,12 +4363,6 @@ msgstr "Interface and explanation language"
 #: monday/templates/student/profile.html:19
 msgid "Переводы, кроме русского, появятся позже."
 msgstr "Translations other than Russian will come later."
-
-#: monday/templates/student/profile.html:23 monday/templates/student/session.html:75
-#: monday/templates/teacher/account.html:23 monday/templates/teacher/question_edit.html:209
-#: monday/templates/teacher/student_detail.html:148 monday/templates/teacher/tree.html:16
-msgid "Сохранить"
-msgstr "Save"
 
 #: monday/templates/student/profile.html:27
 msgid "Мои учителя"
@@ -4970,6 +4994,10 @@ msgstr "Question of the day · tomorrow"
 #: monday/templates/teacher/bank.html:35
 msgid "Новая домашка"
 msgstr "New homework"
+
+#: monday/templates/teacher/bank.html:41 monday/templates/teacher/students.html:57
+msgid "Добавить"
+msgstr "Add"
 
 #: monday/templates/teacher/bank.html:42
 msgid "Очистить корзину"
@@ -6641,4 +6669,7 @@ msgstr "This test has no tasks with a written solution"
 
 #~ msgid "SAT, CSCA, ЕНТ, ЕГЭ, ОГЭ — вопрос на экране и сетка номеров. ОРТ — страницы и бланк ответов."
 #~ msgstr "SAT, CSCA, ENT, EGE, OGE — one question on screen and a number grid. ORT — pages and an answer sheet."
+
+#~ msgid "— между знаками"
+#~ msgstr "— between the signs"
 

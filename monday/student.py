@@ -883,14 +883,26 @@ def formulas():
             flash(_("Лист удалён."), "success")
         elif action == "add_entry":
             sh = own_sheet(f.get("sheet_id", type=int))
-            topic = f.get("topic", "").strip()[:120]
-            formula = f.get("formula", "").strip()[:2000]
-            if not topic or not (formula or request.files.get("image")):
-                flash(_("Укажи название и формулу или картинку."), "error")
-            else:
-                entry = SheetEntry(sheet=sh, branch=f.get("branch", "").strip()[:80], topic=topic, formula=formula,
-                                   position=len(sh.entries))
-                upload = request.files.get("image")
+            branch = " ".join(f.get("branch", "").split())[:80]
+            for e in sh.entries:  # same section typed in another case → one section
+                if e.branch and e.branch.casefold() == branch.casefold():
+                    branch = e.branch
+                    break
+            topics, formulas_, images = f.getlist("topic"), f.getlist("formula"), request.files.getlist("image")
+            added = 0
+            for i, topic in enumerate(topics):
+                topic = topic.strip()[:120]
+                formula = (formulas_[i] if i < len(formulas_) else "").strip()[:2000]
+                upload = images[i] if i < len(images) else None
+                if not topic and not formula and not (upload and upload.filename):
+                    continue
+                if not topic or not (formula or (upload and upload.filename)):
+                    flash(_("Укажи название и формулу или картинку."), "error")
+                    continue
+                if formula and "$" not in formula:
+                    formula = f"${formula}$"
+                entry = SheetEntry(sheet=sh, branch=branch, topic=topic, formula=formula, position=len(sh.entries) + added)
+                added += 1
                 if upload and upload.filename:
                     ext = secure_filename(upload.filename).rsplit(".", 1)[-1].lower() if "." in upload.filename else ""
                     if ext in current_app.config["ALLOWED_IMAGE_EXTENSIONS"]:
@@ -900,7 +912,10 @@ def formulas():
                     else:
                         flash(_("Картинка: только PNG, JPG или WEBP."), "error")
                 db.session.add(entry)
+            if added:
                 db.session.commit()
+            elif not any(t.strip() for t in topics):
+                flash(_("Укажи название и формулу или картинку."), "error")
             return redirect(url_for("student.formulas", _anchor=f"sheet-{sh.id}"))
         elif action == "delete_entry":
             entry = db.session.get(SheetEntry, f.get("entry_id", type=int) or 0)

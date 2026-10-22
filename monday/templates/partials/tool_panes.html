@@ -9,14 +9,14 @@
     {% for sh in sheets %}
       <section class="sheet-view">
         <h3>{{ sh.title }}</h3>
-        {% for branch, entries in sh.entries|groupby('branch') %}
+        {% for branch, entries in sh.entries|branch_groups %}
           {% if branch %}<div class="sheet-view__branch">{{ branch }}</div>{% endif %}
           <div class="sheet-view__grid">
           {% for e in entries %}
             <div class="sheet-entry">
               {% if e.image_path %}<img src="{{ url_for('uploaded_file', filename=e.image_path) }}" alt="" data-lightbox>{% endif %}
               <div class="sheet-entry__topic">{{ e.topic }}</div>
-              {% if e.formula %}<div class="sheet-entry__formula math">{{ e.formula }}</div>{% endif %}
+              {% if e.formula %}<div class="sheet-entry__formula math">{{ e.formula|math_wrap }}</div>{% endif %}
             </div>
           {% endfor %}
           </div>

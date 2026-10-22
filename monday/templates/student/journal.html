@@ -61,14 +61,21 @@
       </header>
 
       {% for g in day.groups %}{% set att = g.attempt %}
-      <details class="jr-group" {{ 'open' if g.rows|length <= 3 }}>
+      {% set many = g.rows|length > 3 %}
+      <details class="jr-group">
         <summary class="jr-group__head">
           <span class="jr-group__kind">{{ g.kind }}</span>
           <span class="jr-group__title">{{ g.title }}</span>
           <span class="jr-group__meta small muted">{{ att.finished_at|dt("HH:mm") if att.finished_at else '' }} · {{ g.rows|length }} {{ g.rows|length|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }}</span>
           {{ ui.icon('chevron-down', 18) }}
         </summary>
-        <div class="list jr-list">
+        {% if many %}
+        <div class="jr-group__intro">
+          <button type="button" class="btn btn--secondary btn--sm" data-jr-show>{{ ui.icon('list', 16) }}{{ _("Смотреть вопросы") }} · {{ g.rows|length }}</button>
+          {% if att.finished_at and att.work_version_id %}<a class="small" style="font-weight:700" href="{{ url_for('student.attempt_result', attempt_id=att.id) }}">{{ _("Открыть разбор теста") }} →</a>{% endif %}
+        </div>
+        {% endif %}
+        <div class="list jr-list" {{ 'hidden' if many }}>
         {% for row in g.rows %}{% set e = row.answer %}{% set item = row.item|loc %}
           <div class="list__row" id="e{{ e.id }}" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1.4fr) minmax(0,1.2fr) auto">
             <div class="stack-sm" style="gap:2px">

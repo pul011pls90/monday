@@ -624,7 +624,16 @@ def test_formula_sheets():
         sid = ReferenceSheet.query.filter_by(title="SAT формулы").first().id
     c.post("/formulas", data={"action": "add_entry", "sheet_id": str(sid), "branch": "Геометрия",
                               "topic": "Площадь круга", "formula": "$S = \\pi r^2$"})
-    ok(c, "/formulas", contains=["Площадь круга", "Геометрия"])
+    ok(c, "/formulas", contains=["Площадь круга", "Геометрия", "data-mathkb"])
+    # several formulas at once, the section typed in another case joins the same section, $…$ added
+    c.post("/formulas", data={"action": "add_entry", "sheet_id": str(sid), "branch": " геометрия ",
+                              "topic": ["Площадь квадрата", "Теорема Пифагора", ""], "formula": ["S = a^2", "$c^2 = a^2 + b^2$", ""]})
+    with APP.app_context():
+        from monday.models import SheetEntry
+        entries = SheetEntry.query.filter_by(sheet_id=sid).all()
+        assert len(entries) == 3 and {e.branch for e in entries} == {"Геометрия"}
+        assert any(e.formula == "$S = a^2$" for e in entries)
+    assert c.get("/formulas").data.decode().count('class="sheet-view__branch') == 1
     # the sheet opens inside tests
     from monday.models import Work
     with APP.app_context():

@@ -66,6 +66,21 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     app.register_blueprint(content_i18n.bp)
     app.add_template_filter(content_i18n.localize, 'loc')
 
+    def branch_groups(entries):
+        """Formula-sheet entries grouped by section, ignoring case and extra spaces; first spelling wins."""
+        groups = {}
+        for e in sorted(entries, key=lambda e: (e.position or 0, e.id or 0)):
+            key = " ".join((e.branch or "").split()).casefold()
+            groups.setdefault(key, [" ".join((e.branch or "").split()), []])[1].append(e)
+        return [(label, items) for label, items in groups.values()]
+
+    def math_wrap(text):
+        """A formula typed without $…$ is still shown as maths."""
+        text = (text or "").strip()
+        return text if not text or "$" in text else f"${text}$"
+    app.add_template_filter(branch_groups, "branch_groups")
+    app.add_template_filter(math_wrap, "math_wrap")
+
     _register_template_helpers(app)
     _register_errors(app)
     _register_cli(app)
