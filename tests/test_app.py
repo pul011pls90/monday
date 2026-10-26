@@ -85,7 +85,7 @@ def test_sat_pack_is_imported_with_two_35_minute_modules():
     from monday.models import Question, Work
     with APP.app_context():
         works = Work.query.filter(Work.title.like("SAT Math · Princeton Review 2025%")).all()
-        assert len(works) == 4
+        assert len(works) == 6  # Practice Tests 1–2 (Module 2 easier/harder) + Chapter Tests 1–2
         for w in works:
             v = w.current_version
             assert w.status == "published" and w.exam == "SAT" and v.question_count == 44
