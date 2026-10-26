@@ -127,6 +127,9 @@ def create_app(config_object=Config, *, seed_if_empty=True):
         ensure_packs()  # ready-made questions and collections from monday/data/packs (once per pack)
         from .cleanup import run_fixes
         run_fixes()  # one-time data fixes (demo collections removed, demo student renamed)
+        if app.config.get("SEED_DEMO", True):
+            from .seed import refresh_demo_mondays
+            refresh_demo_mondays()  # demo Monday tests + demo students' results follow the calendar
 
     return app
 

@@ -735,3 +735,60 @@ def seed_demo():
         q.tags = auto_tags(q)
 
     db.session.commit()
+
+
+# --------------------------------------------------------------------------- keeping the demo alive
+
+DEMO_ADMIN = "admin@monday.kg"
+
+
+def refresh_demo_mondays():
+    """The demo seed is a snapshot: its Monday tests and the demo students' results belong to the week it ran.
+    As weeks pass, "last week's ranking" would show only real participants. On every start-up (demo mode only)
+    make sure the ORT Monday tests for last week and the coming week exist, and that the demo students
+    (student1…@monday.kg) have results on last week's test. Idempotent; never touches other accounts."""
+    from .models import Question
+    admin = User.query.filter_by(email=DEMO_ADMIN, role="admin").first()
+    if not admin:
+        return  # not a demo database
+    upcoming = week_start(next_monday_test_start().date())
+    previous = upcoming - timedelta(days=7)
+    rng = random.Random(previous.toordinal())  # same week → same demo results
+
+    def monday_work(ws):
+        w = Work.query.filter_by(kind="monday", exam="ORT", week_start=ws).first()
+        if w:
+            return w
+        pool = [q.id for q in Question.query.filter(Question.status == "published",
+                                                    Question.answer_type.in_(("choice", "number"))).all()
+                if "ORT" in (q.exams or [])]
+        if len(pool) < 10:
+            return None
+        w = Work(author=admin, kind="monday", category="full", exam="ORT",
+                 title=f"Тест понедельника · {ws.strftime('%d.%m')}", description="10 задач, одинаковых для всех на треке ОРТ.",
+                 time_limit_min=20, week_start=ws, draft_question_ids=random.Random(ws.toordinal()).sample(pool, 10))
+        db.session.add(w)
+        publish_work(w)
+        db.session.flush()
+        return w
+
+    last = monday_work(previous)
+    monday_work(upcoming)
+    if last and last.current_version:
+        v = last.current_version
+        taken = {a.user_id for v_ in last.versions for a in Attempt.query.filter_by(work_version_id=v_.id).all()}
+        demo = (User.query.filter(User.role == "student", User.email.like("student%@monday.kg"),
+                                  User.email != "student@monday.kg").order_by(User.id).all())
+        for u in demo:
+            if u.id in taken:
+                continue
+            started = datetime.combine(last.week_start, datetime.min.time()) + timedelta(hours=19, minutes=rng.randint(0, 5))
+            att = Attempt(user=u, mode="monday", work_version=v, started_at=started)
+            ratio = rng.uniform(0.35, 1.0)
+            form = {f"q{i}": (it["correct"] if rng.random() < ratio else (_wrong_answer(it, rng) if rng.random() < 0.85 else ""))
+                    for i, it in enumerate(v.items)}
+            db.session.add(att)
+            grade_version_attempt(att, v, form)
+            att.finished_at = started + timedelta(minutes=rng.randint(9, 20))
+            att.duration_sec = int((att.finished_at - started).total_seconds())
+    db.session.commit()
