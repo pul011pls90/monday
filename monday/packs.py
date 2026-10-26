@@ -105,7 +105,8 @@ def import_pack(pack_id, publish=True, author=None):
         if missing:
             by_key.update(_foreign_questions(missing, pack_id, publish, author))
         minutes = c.get("minutes_per_module", 32) * (2 if c.get("module_split") else 1)
-        w = Work(author=author, kind="collection", category="full", exam=exam, title=c["title"][:160],
+        category = c.get("category") if c.get("category") in ("full", "thematic") else "full"
+        w = Work(author=author, kind="collection", category=category, exam=exam, title=c["title"][:160],
                  description=c.get("description", ""), time_limit_min=minutes, status="draft",
                  draft_question_ids=[by_key[k].id for k in c["questions"]], format=c.get("format", "sat"),
                  calculator=bool(c.get("calculator", True)), module_split=c.get("module_split"))
