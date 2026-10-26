@@ -16,6 +16,7 @@
     </label>
     <label class="row" style="gap:10px;font-size:14px;font-weight:600">{{ _("Сортировка") }}
       <select class="select" name="sort" data-autosubmit style="width:auto;min-height:52px">
+        <option value="exam" {{ 'selected' if sort == 'exam' }}>{{ _("По экзаменам") }}</option>
         <option value="new" {{ 'selected' if sort == 'new' }}>{{ _("Сначала новые") }}</option>
         <option value="popular" {{ 'selected' if sort == 'popular' }}>{{ _("Популярные") }}</option>
         <option value="short" {{ 'selected' if sort == 'short' }}>{{ _("Короткие") }}</option>

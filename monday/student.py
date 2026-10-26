@@ -537,13 +537,22 @@ def _visible_collections():
     return Work.query.filter_by(kind="collection", status="published")
 
 
+def _natural_key(text):
+    """'Test 2' sorts before 'Test 10'."""
+    return [(0, int(part), "") if part.isdigit() else (1, 0, part.lower()) for part in re.split(r"(\d+)", text or "")]
+
+
+def _published(w):
+    return (w.current_version.published_at if w.current_version and w.current_version.published_at else w.created_at)
+
+
 @bp.route("/collections")
 @student_required
 def collections():
     exam_filter = request.args.get("exam", "")
     cat = request.args.get("cat", "")
     q = request.args.get("q", "").strip()
-    sort = request.args.get("sort", "new")
+    sort = request.args.get("sort", "exam")
     query = _visible_collections()
     if exam_filter in EXAMS:
         query = query.filter(Work.exam == exam_filter)
@@ -562,8 +571,13 @@ def collections():
             if a.work_version:
                 counts[a.work_version.work_id] += 1
         works.sort(key=lambda w: -counts[w.id])
-    else:
-        works.sort(key=lambda w: w.current_version.published_at if w.current_version else w.created_at, reverse=True)
+    elif sort == "new":
+        # Newest day first; within a day natural title order, so a series reads Test 1, Test 2, …
+        works.sort(key=lambda w: _natural_key(w.title))
+        works.sort(key=lambda w: _published(w).date(), reverse=True)
+    else:  # "exam": grouped by exam, full tests before topic sets, then natural title order
+        order = {code: i for i, code in enumerate(EXAMS)}
+        works.sort(key=lambda w: (order.get(w.exam, len(order)), w.category != "full", _natural_key(w.title)))
 
     # Recommendations: same exam; thematic sets that cover weak skills first.
     exam = _exam()
