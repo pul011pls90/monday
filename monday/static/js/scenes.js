@@ -466,7 +466,7 @@
     cells.h.textContent = pad(Math.floor(left % 86400 / 3600));
     cells.m.textContent = pad(Math.floor(left % 3600 / 60));
     cells.s.textContent = pad(left % 60);
-    for (const k of "dhms") window.MondayPixel(box.querySelector(`[data-pix="${k}"]`), cells[k].textContent, innerWidth < 640 ? 4 : 6);
+    for (const k of "dhms") window.MondayPixel(box.querySelector(`[data-pix="${k}"]`), cells[k].textContent, innerWidth < 640 ? 4 : (Number(box.dataset.cell) || 6));
     if (left === 0) { setTimeout(() => location.reload(), 1500); return; }
     setTimeout(tick, 1000 - (Date.now() % 1000));
   };
