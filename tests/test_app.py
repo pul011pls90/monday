@@ -189,7 +189,7 @@ def test_student_pages_render():
     ok(c, "/collections", contains=["Сборники", "Рекомендуем тебе", "ОРТ Май 2026"])
     ok(c, "/collections?exam=SAT&cat=full&sort=short", contains="SAT April 2024")
     ok(c, "/collections?q=Геометрия", contains="Геометрия: площади")
-    ok(c, "/homework", contains=["Нужно сделать", "ДЗ: свойства логарифмов", "Проверено"])
+    ok(c, "/homework", contains=["Нужно сделать", "свойства логарифмов", "hw-mission", "Проверено"])
     ok(c, "/journal", contains=["Лабораторный журнал", "Почему ты теряешь баллы"])
     ok(c, "/journal?show=resolved")
     ok(c, "/monday", contains=["Тест", "Рейтинг прошлой недели", "Дуэль школ"])
@@ -534,7 +534,7 @@ def test_content_tree_and_teacher_branches():
         assert own.owner_id and own.topic == "Алгебра" and own.subtopic == "Уравнения"
     # Aibek's student sees his branch, another teacher does not
     s = login(client(), "student@monday.kg", "student123")
-    ok(s, "/skills", contains=["Уравнения с параметром", "Треугольники"])
+    ok(s, "/skills", contains=["Уравнения с параметром", "Геометрия"])
     other = login(client(), "nurai@monday.kg", "teacher123")
     body = ok(other, "/teacher/tree", contains="Карта способностей").data.decode()
     assert "Уравнения с параметром" not in body
@@ -775,7 +775,7 @@ def test_question_bank_filters_and_play():
         st = BankState.query.filter_by(question_id=qid).first()
         assert st.marked and st.seconds == 17 and st.last_correct
     r = c.get("/bank/?exam=SAT&mk=yes")
-    assert "1 из 1 решено" in r.data.decode()
+    assert '<b class="num">1</b> из <b class="num">1</b> решено' in r.data.decode()
 
 
 def test_teacher_today_bank_and_attendance():
@@ -1166,7 +1166,7 @@ def test_scan_fixes_goal_time_skills():
         own = [q for q in student_pool("ORT") if "ORT" in (q.exams or [])]
         assert len(student_pool("ORT")) > len(own)
         assert all(q.answer_type != "written" for q in student_pool("ORT"))
-    ok(c, "/skills", contains=["Развернуть всё", "sk-ring"])
+    ok(c, "/skills", contains=["sp-level", "sp-dot", "Глава 1"])
 
 
 def test_practice_pack_answers_are_consistent():

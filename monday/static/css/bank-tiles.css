@@ -1,0 +1,80 @@
+/* Банк вопросов — topic tiles + one row of filter dropdowns.
+   Own file (loaded only by student/bank.html) so brand.css / monday.css stay untouched. */
+
+/* header: one-line summary instead of three stat cards */
+.bk-head { align-items: flex-end; }
+.bk-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; color: var(--text-2); font-size: 15px; }
+.bk-summary b { color: var(--text); font-weight: 700; }
+.bk-summary svg { vertical-align: -2px; }
+.bk-summary__bar { width: 120px; height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.bk-summary__bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+.bk-summary__sep { color: var(--line-strong); }
+
+/* filters: dropdown pills in one row */
+.bk-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 18px 0 26px; }
+.bk-drop { position: relative; }
+.bk-drop > summary { list-style: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px 0 16px;
+  border-radius: 999px; border: 1.5px solid var(--line-strong); background: var(--surface); font-weight: 600; font-size: 15px; cursor: pointer; user-select: none; }
+.bk-drop > summary::-webkit-details-marker { display: none; }
+.bk-drop > summary svg:last-child { color: var(--muted); transition: transform .15s; }
+.bk-drop[open] > summary svg:last-child { transform: rotate(180deg); }
+.bk-drop.is-on > summary { border-color: var(--btn-bg); }
+.bk-drop__n { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--btn-bg); color: var(--btn-text); font-size: 12px; display: inline-grid; place-items: center; }
+.bk-drop__menu { position: absolute; z-index: 20; top: calc(100% + 8px); left: 0; display: flex; flex-wrap: wrap; gap: 8px; min-width: 240px; max-width: 320px;
+  padding: 12px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); box-shadow: 0 18px 40px rgba(2, 11, 41, .16); }
+.bk-key { margin-left: auto; display: inline-flex; gap: 14px; font-size: 13px; color: var(--text-2); }
+.bk-key span { display: inline-flex; align-items: center; gap: 6px; }
+.bk-key i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.bk-reset { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 6px; font-weight: 600; font-size: 14px; color: var(--accent); text-decoration: none; }
+
+/* tiles */
+.bank-tree.bk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; align-items: stretch; }
+.bk-tile > details { height: 100%; }
+.bk-tile > details > summary.bk-tile__face { height: 100%; align-content: start; }
+.bk-tile > details[open] > summary.bk-tile__face { height: auto; }
+.bk-tile__face .bk-diff { margin-top: auto; }
+.bk-grid > .bank-start, .bk-grid > .empty { grid-column: 1 / -1; }
+.bk-tile { border-radius: 22px; transition: box-shadow .15s, transform .15s, border-color .15s; }
+.bk-tile:hover { box-shadow: 0 14px 34px rgba(2, 11, 41, .12); transform: translateY(-2px); }
+.bk-tile:has(> details[open]) { grid-column: 1 / -1; transform: none; }
+.bk-tile.is-empty { opacity: .5; }
+.bank-topic.bk-tile summary.bk-tile__face { display: grid; grid-template-columns: 1fr; gap: 10px; padding: 20px 20px 18px; align-items: start; }
+.bk-tile:has(> details[open]) summary.bk-tile__face { grid-template-columns: auto 1fr; column-gap: 16px; }
+.bk-tile:has(> details[open]) .bk-ring { grid-row: span 4; }
+
+.bk-ring { --p: 0; width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center;
+  background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--surface-2) 0); }
+.bk-ring span { width: 44px; height: 44px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+.bk-tile__name { font-size: 19px; font-weight: 800; line-height: 1.2; letter-spacing: -.01em; padding-right: 44px; }
+.bk-tile:has(> details[open]) .bk-tile__name { padding-right: 64px; }
+.bk-tile__count { font-size: 14px; color: var(--text-2); }
+.bk-tile__count b { color: var(--text); }
+
+/* easy / medium / hard split */
+.bk-diff { display: flex; gap: 3px; height: 8px; border-radius: 999px; overflow: hidden; background: var(--surface-2); }
+.bk-diff i { display: block; height: 100%; }
+.bk-diff__1 { background: #7fd1a8; }
+.bk-diff__2 { background: #f2c14e; }
+.bk-diff__3 { background: #e5706b; }
+.bk-diff__legend { display: flex; align-items: center; gap: 12px; color: var(--text-2); font-size: 13px; }
+.bk-diff__legend > span { display: inline-flex; align-items: center; gap: 5px; }
+.bk-diff__legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.bk-tile__open { margin-left: auto; color: var(--accent); font-weight: 600; }
+.bk-tile__open svg { transition: transform .15s; }
+.bk-tile details[open] .bk-tile__open svg { transform: rotate(180deg); }
+.bank-topic.bk-tile .bank-play--topic { top: 20px; right: 20px; }
+
+@media (max-width: 640px) {
+  .bk-filters { flex-wrap: nowrap; overflow-x: auto; margin-right: -16px; padding-right: 16px; scrollbar-width: none; }
+  .bk-filters::-webkit-scrollbar { display: none; }
+  .bk-drop { flex: none; }
+  .bk-drop__menu { position: fixed; left: 16px; right: 16px; top: auto; max-width: none; }
+  .bank-tree.bk-grid { grid-template-columns: 1fr; gap: 12px; }
+  .bk-key { display: none; }
+  .bank-topic.bk-tile summary.bk-tile__face { grid-template-columns: auto 1fr; column-gap: 14px; row-gap: 6px; padding: 16px; }
+  .bk-tile .bk-ring { grid-row: span 4; width: 50px; height: 50px; }
+  .bk-tile .bk-ring span { width: 38px; height: 38px; font-size: 12px; }
+  .bk-tile__name { font-size: 17px; padding-right: 48px; }
+  .bank-topic.bk-tile .bank-play--topic { top: 14px; right: 14px; }
+  .bk-summary__bar { width: 80px; }
+}
