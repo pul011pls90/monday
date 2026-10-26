@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/bank-tiles.css') }}">{% endblock %}
 {% block title %}{{ _("Банк вопросов") }}{% endblock %}
 {% block content %}
 {% set chip_labels = {
@@ -10,10 +11,16 @@
 } %}
 {% set groups = [('d', 'bars', _('Сложность')), ('st', 'status', _('Статус ответа')), ('mk', 'bookmark', _('Отмечено для проверки')), ('t', 'filter', _('Тип ответа')), ('src', 'journal', _('Источник'))] %}
 
-<div class="page-head">
+<div class="page-head bk-head">
   <div class="page-head__text">
     <h1>{{ _("Банк вопросов") }}</h1>
-    <p>{{ _("Собери свою сессию: выбери фильтры, отметь темы галочками и нажми «Начать сессию». Кнопка ▶ сразу запускает одну тему.") }}</p>
+    <p class="bk-summary">
+      <span><b class="num">{{ stats.answered }}</b> {{ _("из") }} <b class="num">{{ stats.total }}</b> {{ _("решено") }}</span>
+      <span class="bk-summary__bar" aria-hidden="true"><i style="width: {{ stats.percent }}%"></i></span>
+      <span class="num">{{ stats.percent }}%</span>
+      {% if stats.time != '—' %}<span class="bk-summary__sep">·</span><span>{{ ui.icon('clock', 15) }} <span class="num">{{ stats.time }}</span></span>{% endif %}
+      {% if stats.marked %}<span class="bk-summary__sep">·</span><span>{{ ui.icon('bookmark', 15) }} <span class="num">{{ stats.marked }}</span> {{ _("на проверку") }}</span>{% endif %}
+    </p>
   </div>
   <form method="get" class="bank-exam">
     {% for k, vals in f.items() %}{% for v in vals %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}{% endfor %}
@@ -24,67 +31,45 @@
   </form>
 </div>
 
-<div class="bank-stats">
-  <section class="card bank-stat">
-    <div class="eyebrow">{{ _("Прогресс") }}</div>
-    <div class="bank-stat__value"><span class="num">{{ stats.percent }}</span><small>%</small></div>
-    {{ ui.progress(stats.percent) }}
-    <div class="text-2 small">{{ _("%(a)s из %(n)s решено", a=stats.answered, n=stats.total) }}</div>
-  </section>
-  <section class="card bank-stat">
-    <div class="eyebrow">{{ _("Время") }}</div>
-    <div class="bank-stat__value num">{{ stats.time }}</div>
-    <div class="text-2 small">{{ _("по вопросам с текущими фильтрами") }}</div>
-  </section>
-  <section class="card bank-stat">
-    <div class="eyebrow">{{ _("На проверку") }}</div>
-    <div class="bank-stat__value num">{{ stats.marked }}</div>
-    <div class="text-2 small">{{ _("отмечено флажком — фильтр «Отмечено: Да»") }}</div>
-  </section>
-</div>
-
-{# ------------------------------------------------------------ filters (GET, each chip applies at once) #}
-<section class="section" aria-labelledby="flt-h">
-  <div class="section__head">
-    <div class="stack-sm" style="gap:4px"><h2 id="flt-h">{{ _("Фильтры") }}</h2>
-      <p class="text-2 small">{{ _("Пустая группа — значит «все». Можно выбрать несколько вариантов.") }}</p></div>
-    {% if active %}<a class="btn btn--secondary btn--sm" href="{{ url_for('bank.index', exam=exam) }}">{{ ui.icon('reset', 16) }}{{ _("Сбросить") }}</a>{% endif %}
-  </div>
-  <form method="get" class="bank-filters" data-bank-filters>
-    <input type="hidden" name="exam" value="{{ exam or '' }}">
-    {% for key, ic, title in groups %}
-      <fieldset class="bank-filter">
-        <legend>{{ ui.icon(ic, 16) }}{{ title }}</legend>
-        <div class="bank-filter__chips">
-          {% for val, label in chip_labels[key] %}
-            <label class="bank-chip"><input type="checkbox" name="{{ key }}" value="{{ val }}" {{ 'checked' if val in f[key] }}><span>{{ label }}</span></label>
-          {% endfor %}
-        </div>
-      </fieldset>
-    {% endfor %}
-    <noscript><button class="btn btn--primary btn--sm" type="submit">{{ _("Применить") }}</button></noscript>
-  </form>
-</section>
+{# ------------------------------------------------------------ filters: one row of dropdowns (each change applies at once) #}
+<form method="get" class="bk-filters" data-bank-filters aria-label="{{ _('Фильтры') }}">
+  <input type="hidden" name="exam" value="{{ exam or '' }}">
+  {% for key, ic, title in groups %}
+    <details class="bk-drop{{ ' is-on' if f[key] }}">
+      <summary>{{ ui.icon(ic, 16) }}<span>{{ title }}</span>{% if f[key] %}<b class="bk-drop__n num">{{ f[key]|length }}</b>{% endif %}{{ ui.icon('chevron-down', 16) }}</summary>
+      <div class="bk-drop__menu">
+        {% for val, label in chip_labels[key] %}
+          <label class="bank-chip"><input type="checkbox" name="{{ key }}" value="{{ val }}" {{ 'checked' if val in f[key] }}><span>{{ label }}</span></label>
+        {% endfor %}
+      </div>
+    </details>
+  {% endfor %}
+  <span class="bk-key" aria-hidden="true"><span><i class="bk-diff__1"></i>{{ _("лёгкие") }}</span><span><i class="bk-diff__2"></i>{{ _("средние") }}</span><span><i class="bk-diff__3"></i>{{ _("сложные") }}</span></span>
+  {% if active %}<a class="bk-reset" href="{{ url_for('bank.index', exam=exam) }}">{{ ui.icon('reset', 15) }}{{ _("Сбросить") }}</a>{% endif %}
+  <noscript><button class="btn btn--primary btn--sm" type="submit">{{ _("Применить") }}</button></noscript>
+</form>
 
 {# ------------------------------------------------------------ topics (POST start) #}
-<section class="section" aria-labelledby="tree-h">
-  <div class="section__head">
-    <div class="stack-sm" style="gap:4px"><h2 id="tree-h">{{ _("По темам") }}</h2>
-      <p class="text-2 small">{{ _("Раскрой тему, чтобы увидеть подтемы и навыки. Числа — сколько вопросов подходит под фильтры.") }}</p></div>
-  </div>
-
-  <form method="post" action="{{ url_for('bank.start') }}" class="bank-tree" data-bank-tree>
+<section class="section bk-topics" aria-labelledby="tree-h">
+  <h2 id="tree-h" class="sr-only">{{ _("По темам") }}</h2>
+<form method="post" action="{{ url_for('bank.start') }}" class="bank-tree bk-grid" data-bank-tree>
     {{ ui.csrf() }}
     <input type="hidden" name="exam" value="{{ exam or '' }}">
     {% for k, vals in f.items() %}{% for v in vals %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}{% endfor %}
 
     {% for sec in topics %}
-      <div class="bank-topic">
+      {% set n = count[sec.key] %}{% set dn = done[sec.key] or 0 %}{% set dd = diff[sec.key] or [0, 0, 0] %}
+      {% set pct = ((100 * dn / n) if n else 0)|round|int %}
+      <div class="bank-topic bk-tile{{ ' is-empty' if not n }}">
         <details data-topic="{{ sec.key }}">
-          <summary>
-            <span class="bank-topic__icon">{{ ui.icon('collections', 22) }}</span>
-            <span class="bank-topic__text"><b>{{ sec.name }}</b><span class="small muted">{% if sec.en %}{{ sec.en }} · {% endif %}{{ count[sec.key] }} {{ count[sec.key]|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}</span></span>
-            <span class="bank-topic__chev">{{ ui.icon('chevron-down', 20) }}</span>
+          <summary class="bk-tile__face">
+            <span class="bk-ring" style="--p: {{ pct }}" aria-label="{{ _('Решено %(a)s из %(n)s', a=dn, n=n) }}"><span class="num">{{ pct }}%</span></span>
+            <span class="bk-tile__name">{{ sec.name }}</span>
+            <span class="bk-tile__count"><b class="num">{{ n }}</b> {{ n|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}{% if sec.en %} · {{ sec.en }}{% endif %}</span>
+            <span class="bk-diff" aria-label="{{ _('Лёгких %(a)s, средних %(b)s, сложных %(c)s', a=dd[0], b=dd[1], c=dd[2]) }}">
+              {% for k in range(3) %}{% if dd[k] %}<i class="bk-diff__{{ k + 1 }}" style="flex: {{ dd[k] }}"></i>{% endif %}{% endfor %}
+            </span>
+            <span class="bk-diff__legend small"><span><i class="bk-diff__1"></i>{{ dd[0] }}</span><span><i class="bk-diff__2"></i>{{ dd[1] }}</span><span><i class="bk-diff__3"></i>{{ dd[2] }}</span><span class="bk-tile__open">{{ _("Подтемы") }}{{ ui.icon('chevron-down', 16) }}</span></span>
           </summary>
           <div class="bank-topic__body">
             {% for g in sec.groups %}

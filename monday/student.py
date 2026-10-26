@@ -860,7 +860,15 @@ def homework():
     groups["todo"].sort(key=lambda x: (x[0].due_at or datetime.max))
     groups["done"].sort(key=lambda x: x[0].due_at or datetime.min, reverse=True)
     teachers = StudentRecord.query.filter_by(student_user_id=current_user.id).all()
-    return render_template("student/homework.html", todo=groups["todo"], done=groups["done"], teachers=teachers)
+    now = utcnow()
+    mission = {}
+    for a, state in groups["todo"]:
+        open_att = next((x for x in a.attempts if x.user_id == current_user.id and not x.finished_at), None)
+        answered = sum(1 for x in open_att.answers if x.given) if open_att else 0
+        left = int((a.due_at - now).total_seconds()) if a.due_at else None
+        mission[a.id] = {"answered": answered, "left": left}
+    return render_template("student/homework.html", todo=groups["todo"], done=groups["done"], teachers=teachers,
+                           mission=mission)
 
 
 def _own_assignment(assignment_id):

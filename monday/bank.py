@@ -136,6 +136,15 @@ def index():
     total = {k: sum(total_node[n] for n in ids) for k, ids in ks.items()}
     topics = [sec for sec in view if total.get(sec["key"])]
 
+    # per topic: how the matching questions split by difficulty, and how many are already answered
+    by_diff, by_done = defaultdict(Counter), Counter()
+    for q, st in rows:
+        by_diff[q.skill_id][q.difficulty or 2] += 1
+        if st != "none":
+            by_done[q.skill_id] += 1
+    diff = {k: [sum(by_diff[n][d] for n in ids) for d in (1, 2, 3)] for k, ids in ks.items()}
+    done = {k: sum(by_done[n] for n in ids) for k, ids in ks.items()}
+
     answered = sum(1 for _q, st in rows if st != "none")
     seconds = sum(states[q.id].seconds for q, _st in rows if q.id in states)
     marked = sum(1 for q, _st in rows if q.id in states and states[q.id].marked)
@@ -146,7 +155,7 @@ def index():
     }
     active = any(f.values())
     return render_template("student/bank.html", exam=exam, f=f, active=active, topics=topics, stats=stats,
-                           pool_size=len(pool), count=count, total=total)
+                           pool_size=len(pool), count=count, total=total, diff=diff, done=done)
 
 
 @bp.route("/start", methods=["POST"])
