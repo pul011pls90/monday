@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block title %}{{ _("Сборники") }}{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/collections.css') }}">{% endblock %}
 {% block content %}
 <header class="page-head__text">
   <h1>{{ _("Сборники") }}</h1>
@@ -40,7 +41,7 @@
     <h2 id="rec-h">{{ _("Рекомендуем тебе") }}</h2>
     <span class="small muted">{{ _("По твоему экзамену и слабым темам") }}</span>
   </div>
-  <div class="grid grid-4">
+  <div class="grid grid-5 work-grid--compact">
     {% for w in recommended %}{{ ui.work_card(w, url_for('student.work_detail', work_id=w.id), _("Начать тест"), badge=(_("Твоя слабая тема") if w.weak_match else None)) }}{% endfor %}
   </div>
 </section>
@@ -52,7 +53,7 @@
     <span class="small muted">{{ works|length }} {{ works|length|plural_ru(_("сборник"), _("сборника"), _("сборников")) }}</span>
   </div>
   {% if works %}
-  <div class="grid grid-4">
+  <div class="grid grid-5 work-grid--compact">
     {% for w in works %}{{ ui.work_card(w, url_for('student.work_detail', work_id=w.id), _("Начать тест")) }}{% endfor %}
   </div>
   {% else %}
