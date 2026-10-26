@@ -1168,8 +1168,14 @@ def monday():
         ranks[key] = _rank_payload(lst, old_places, current_user.id)
     country_place, _ca = user_rank(all_rows, current_user.id)
     strip = [bool(x.is_correct) for x in sorted(my_attempt.answers, key=lambda x: x.index)] if my_attempt else []
+    from babel.dates import format_date
+    from flask_babel import get_locale
+    shown = start  # after taking this week's test, point at the following Monday
+    if already_taken and upcoming and upcoming.week_start and start.date() <= upcoming.week_start:
+        shown = start + timedelta(days=7)
+    start_label = f"{format_date(shown.date(), 'EEE, d MMMM', locale=str(get_locale() or 'ru'))} · {shown.strftime('%H:%M')}"
     return render_template(
-        "student/monday.html", previous=previous, upcoming=upcoming, rows=rows[:10], total=len(rows),
+        "student/monday.html", start_label=start_label, previous=previous, upcoming=upcoming, rows=rows[:10], total=len(rows),
         ranks=ranks, country_place=country_place, strip=strip,
         my_place=my_place, my_attempt=my_attempt, scope=scope, countdown=countdown_label(start - local_now()),
         start=start, window_open=monday_window_open(), already_taken=already_taken,
