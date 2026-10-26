@@ -77,6 +77,27 @@ def fix_goals_and_times():
             a.duration_sec = limit * 60
 
 
+def _delete_works(works):
+    """Delete collections together with their assignments and the attempts made on them."""
+    for w in works:
+        version_ids = [v.id for v in WorkVersion.query.filter_by(work_id=w.id).all()]
+        if version_ids:
+            for att in Attempt.query.filter(Attempt.work_version_id.in_(version_ids)).all():
+                db.session.delete(att)  # answers go with it
+        for a in Assignment.query.filter_by(work_id=w.id).all():
+            db.session.delete(a)
+        db.session.delete(w)  # versions go with it
+
+
+def remove_princeton_topic_sets():
+    """The 10 short Princeton topic sets (5–22 questions) were replaced by full 44-question Chapter Tests.
+    Their questions stay in the bank; only the collections go."""
+    works = Work.query.filter(Work.kind == "collection", db.or_(
+        Work.title.like("SAT Math Drill · % · Princeton Review 2025"),
+        Work.title.like("SAT Math Practice · % · Princeton Review 2025"))).all()
+    _delete_works(works)
+
+
 def run_fixes():
     if not current_app.config.get("DATA_FIXES", True):
         return
@@ -84,3 +105,4 @@ def run_fixes():
     _once("demo-student-renamed", rename_demo_student)
     _once("question-source", mark_pack_sources)
     _once("goals-times-capped", fix_goals_and_times)
+    _once("princeton-topic-sets-removed", remove_princeton_topic_sets)
