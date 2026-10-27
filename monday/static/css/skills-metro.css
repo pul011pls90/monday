@@ -6,6 +6,30 @@
 
 .mt { display: grid; gap: 14px; margin-top: 8px; }
 
+/* header: «Маршрут [ОРТ ▾]» + map/list switch */
+.skh { align-items: flex-end; }
+.skh-title { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 14px; }
+.skh-exam { position: relative; font-size: 1rem; letter-spacing: normal; }
+.skh-exam > summary { list-style: none; display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px 4px 18px; border-radius: 16px; cursor: pointer;
+  background: var(--btn-bg); color: var(--btn-text); font-size: clamp(26px, 3.2vw, 40px); font-weight: 800; letter-spacing: -.02em; line-height: 1.15;
+  box-shadow: 0 6px 0 #0a1250; transition: transform .12s, box-shadow .12s; }
+.skh-exam > summary::-webkit-details-marker { display: none; }
+.skh-exam > summary:hover { transform: translateY(-1px); }
+.skh-exam > summary .ic { opacity: .8; transition: transform .15s; }
+.skh-exam[open] > summary .ic { transform: rotate(180deg); }
+.skh-exam__menu { position: absolute; z-index: 30; top: calc(100% + 14px); left: 0; display: grid; min-width: 260px; padding: 8px; border-radius: 18px;
+  background: var(--surface); border: 1px solid var(--line); box-shadow: 0 20px 44px rgba(2, 11, 41, .18); }
+.skh-exam__menu a { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "n c" "s c"; align-items: center; min-height: 48px; padding: 6px 12px; border-radius: 12px;
+  color: var(--text); text-decoration: none; }
+.skh-exam__menu a b { grid-area: n; font-size: 16px; }
+.skh-exam__menu a small { grid-area: s; color: var(--text-2); font-size: 12.5px; font-weight: 500; }
+.skh-exam__menu a .ic { grid-area: c; color: var(--accent); }
+.skh-exam__menu a:hover { background: var(--surface-2); }
+.skh-exam__menu a.is-on { background: color-mix(in srgb, var(--accent) 9%, var(--surface)); }
+.skh-exam__menu hr { border: 0; border-top: 1px solid var(--line); margin: 6px 4px; }
+.skh-sub { font-size: 17px; color: var(--text-2); }
+.mt-switch { margin-right: 0; }
+
 /* next step */
 .mt-next { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "eye go" "where go" "skill go"; align-items: center; column-gap: 20px;
   padding: 18px 22px; border-radius: 22px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--card-shadow); }
@@ -100,6 +124,9 @@
   .mt-next__go { justify-content: center; margin-top: 8px; min-height: 48px; }
   .mt-stage { order: 1; border-radius: 22px; }
   .mt-legend { left: 16px; right: 16px; bottom: 14px; gap: 6px 14px; }
-  .mt-switch { margin: 0 0 8px; }
+  .skh { align-items: flex-start; }
+  .skh .mt-switch { margin: 4px 0 0; }
+  .skh-exam__menu { position: fixed; left: 12px; right: 12px; top: auto; min-width: 0; }
+  .skh-sub { font-size: 15px; }
   .mt-card { position: fixed; left: 12px; right: 12px; bottom: calc(84px + env(safe-area-inset-bottom)); width: auto; z-index: 40; }
 }
