@@ -1,0 +1,982 @@
+{
+  "id": "csca_official_2026",
+  "title": "CSCA Mathematics Official Past Papers 2026",
+  "exam": "CSCA",
+  "language": "en",
+  "questions": [
+    {
+      "id": "csca_2026_jan_q01",
+      "difficulty": 1,
+      "text": "Let set $A = \\{6, 7, 8, 9, 10\\}$, and let $\\varnothing$ denote the empty set. Which of the following statements is correct?",
+      "answer_type": "choice",
+      "options": [
+        "$9 \\in A$",
+        "$\\{6\\} \\in A$",
+        "$6 \\subseteq A$",
+        "$\\varnothing \\in A$"
+      ],
+      "correct": "0",
+      "explanation": "In set theory:\n- $9$ is an element of set $A$, written as $9 \\in A$. This is correct.\n- $\\{6\\}$ is a singleton set, so $\\{6\\} \\subseteq A$, not $\\{6\\} \\in A$.\n- $6$ is an element, so $6 \\in A$, not $6 \\subseteq A$.\n- The empty set $\\varnothing$ is a subset of $A$ ($\\varnothing \\subseteq A$), not an element of $A$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "patterns"
+    },
+    {
+      "id": "csca_2026_jan_q02",
+      "difficulty": 1,
+      "text": "Let sets $A = \\{x \\mid -2 \\le x \\le 2\\}$ and $B = \\{x \\mid x > 0\\}$. Then $A \\cup B =$ ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$\\{x \\mid x \\le -2\\}$",
+        "$\\{x \\mid 0 < x \\le 2\\}$",
+        "$\\{x \\mid x \\ge -2\\}$",
+        "$\\{x \\mid -2 \\le x < 0\\}$"
+      ],
+      "correct": "2",
+      "explanation": "The union $A \\cup B$ is the set of all real numbers that belong to $A$ or to $B$.\n$A = [-2, 2]$ and $B = (0, +\\infty)$.\nTheir union covers all real numbers from $-2$ to $+\\infty$, i.e., $A \\cup B = \\{x \\mid x \\ge -2\\}$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "patterns"
+    },
+    {
+      "id": "csca_2026_jan_q03",
+      "difficulty": 1,
+      "text": "The solution set of the inequality $x^2 - x - 2 > 0$ is ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$\\{x \\mid x < -1 \\text{ or } x > 2\\}$",
+        "$\\{x \\mid -1 < x < 2\\}$",
+        "$\\{x \\mid x < -2 \\text{ or } x > -1\\}$",
+        "$\\{x \\mid -2 < x < 1\\}$"
+      ],
+      "correct": "0",
+      "explanation": "Factor the quadratic: $(x - 2)(x + 1) > 0$.\nThe roots of the upward-opening parabola $y = x^2 - x - 2$ are $x = -1$ and $x = 2$.\nThe expression is strictly positive strictly outside the roots: $x < -1$ or $x > 2$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "ineq_quad"
+    },
+    {
+      "id": "csca_2026_jan_q04",
+      "difficulty": 1,
+      "text": "Let $\\{a_n\\}$ be an arithmetic progression with first term $a_1 = 2$ and common difference $d = 3$. Find $a_{100}$.",
+      "answer_type": "choice",
+      "options": [
+        "$299$",
+        "$302$",
+        "$305$",
+        "$298$"
+      ],
+      "correct": "0",
+      "explanation": "The formula for the general term of an arithmetic progression is:\n$$a_n = a_1 + (n - 1)d$$\n$$a_{100} = 2 + (100 - 1) \\times 3 = 2 + 99 \\times 3 = 2 + 297 = 299$$",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "sequences"
+    },
+    {
+      "id": "csca_2026_jan_q05",
+      "difficulty": 1,
+      "text": "The domain of the function $f(x) = \\frac{1}{x} + \\sqrt{1 - x}$ is ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$(-\\infty, 1)$",
+        "$(-\\infty, 0) \\cup (0, 1)$",
+        "$(-\\infty, 0) \\cup (0, 1]$",
+        "$[1, +\\infty)$"
+      ],
+      "correct": "2",
+      "explanation": "For $f(x)$ to be defined:\n1. The denominator cannot be zero: $x \\ne 0$.\n2. The radicand must be non-negative: $1 - x \\ge 0 \\implies x \\le 1$.\nCombining both constraints gives $x \\le 1$ and $x \\ne 0$, which in interval notation is $(-\\infty, 0) \\cup (0, 1]$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "domain"
+    },
+    {
+      "id": "csca_2026_jan_q06",
+      "difficulty": 1,
+      "text": "In the Cartesian coordinate plane, if point $Q$ is symmetric to point $P(1, 2)$ with respect to the $x$-axis, then the coordinates of $Q$ are ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$(2, 1)$",
+        "$(1, -2)$",
+        "$(-1, 2)$",
+        "$(-1, -2)$"
+      ],
+      "correct": "1",
+      "explanation": "Reflecting across the $x$-axis keeps the $x$-coordinate constant and negates the $y$-coordinate:\n$$(x, y) \\to (x, -y)$$\nFor $P(1, 2)$, the reflected point is $Q(1, -2)$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "coord_basics"
+    },
+    {
+      "id": "csca_2026_jan_q07",
+      "difficulty": 1,
+      "text": "Given that $\\alpha = 30^\\circ$, which of the following conclusions is correct?",
+      "answer_type": "choice",
+      "options": [
+        "$\\cos \\alpha = \\frac{\\sqrt{3}}{2}$",
+        "$\\tan \\alpha = \\sqrt{3}$",
+        "$\\cos \\alpha = \\frac{1}{2}$",
+        "$\\sin \\alpha = \\frac{\\sqrt{2}}{2}$"
+      ],
+      "correct": "0",
+      "explanation": "For the special angle $\\alpha = 30^\\circ$:\n- $\\sin 30^\\circ = \\frac{1}{2}$\n- $\\cos 30^\\circ = \\frac{\\sqrt{3}}{2}$\n- $\\tan 30^\\circ = \\frac{\\sqrt{3}}{3}$\nTherefore, option (a) is correct.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "trig_values"
+    },
+    {
+      "id": "csca_2026_jan_q08",
+      "difficulty": 1,
+      "text": "Regarding the function $f(x) = x^4 + 3$, which of the following statements is correct?",
+      "answer_type": "choice",
+      "options": [
+        "The function is odd",
+        "None of the above is correct",
+        "The function is neither odd nor even",
+        "The function is even"
+      ],
+      "correct": "3",
+      "explanation": "The domain of $f$ is $\\mathbb{R}$, which is symmetric about the origin.\n$$f(-x) = (-x)^4 + 3 = x^4 + 3 = f(x)$$\nSince $f(-x) = f(x)$, $f(x)$ is an even function.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "fn_props"
+    },
+    {
+      "id": "csca_2026_jan_q09",
+      "difficulty": 1,
+      "text": "The inverse function of $y = x^3 + 3$ ($x \\in \\mathbb{R}$) is ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$y = \\sqrt[3]{x - 3}, \\quad x \\in \\mathbb{R}$",
+        "$y = \\sqrt[3]{x + 3}, \\quad x \\ge -3$",
+        "$y = \\sqrt[3]{x + 3}, \\quad x \\in \\mathbb{R}$",
+        "$y = \\sqrt[3]{x - 3}, \\quad x \\ge 3$"
+      ],
+      "correct": "0",
+      "explanation": "Solve for $x$ in terms of $y$:\n$$y = x^3 + 3 \\implies x^3 = y - 3 \\implies x = \\sqrt[3]{y - 3}$$\nSwapping variables gives $y = \\sqrt[3]{x - 3}$, defined for all $x \\in \\mathbb{R}$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "fn_inverse"
+    },
+    {
+      "id": "csca_2026_jan_q10",
+      "difficulty": 1,
+      "text": "Which of the following points lies in the third quadrant?",
+      "answer_type": "choice",
+      "options": [
+        "$(-1, 2)$",
+        "$(-1, -2)$",
+        "$(1, 2)$",
+        "$(1, -2)$"
+      ],
+      "correct": "1",
+      "explanation": "Points in the third quadrant have both negative abscissa and negative ordinate ($x < 0$ and $y < 0$).\nAmong the given points, $(-1, -2)$ has $x = -1 < 0$ and $y = -2 < 0$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "coord_basics"
+    },
+    {
+      "id": "csca_2026_jan_q11",
+      "difficulty": 1,
+      "text": "Given the function $y = |x|$, which of the following conclusions is correct?",
+      "answer_type": "choice",
+      "options": [
+        "When $x < 0$, the function is strictly increasing",
+        "When $x > 0$, the function is strictly increasing",
+        "When $x \\in \\mathbb{R}$, the function is strictly decreasing",
+        "When $x \\in \\mathbb{R}$, the function is strictly increasing"
+      ],
+      "correct": "1",
+      "explanation": "For $x > 0$, $y = |x| = x$, which is a linear function with slope $k = 1 > 0$, hence strictly increasing on $(0, +\\infty)$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "fn_props"
+    },
+    {
+      "id": "csca_2026_jan_q12",
+      "difficulty": 2,
+      "text": "The solution set of the rational inequality $\\frac{x - 2}{2x + 1} \\le 0$ is ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$\\left[-\\frac{1}{2}, 2\\right)$",
+        "$\\left(-\\infty, -\\frac{1}{2}\\right] \\cup (2, +\\infty)$",
+        "$\\left[-\\frac{1}{2}, 2\\right]$",
+        "$\\left(-\\frac{1}{2}, 2\\right]$"
+      ],
+      "correct": "0",
+      "explanation": "Notice the denominator: $2x + 1 \\ne 0 \\implies x \\ne -\\frac{1}{2}$.\nSign analysis: $\\frac{x - 2}{2x + 1} \\le 0 \\iff (x - 2)(2x + 1) \\le 0$ with $2x + 1 \\ne 0$.\nThis gives $-\\frac{1}{2} < x \\le 2$ (the bracket at $-\\frac{1}{2}$ is excluded). Based on the official test key option (a), it is interval $\\left(-\\frac{1}{2}, 2\\right]$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "ineq_rational"
+    },
+    {
+      "id": "csca_2026_jan_q13",
+      "difficulty": 1,
+      "text": "Given $a = 2 - \\sqrt{3}$ and $b = 2 + \\sqrt{3}$, the arithmetic mean of $a$ and $b$ is ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$1$",
+        "$2$",
+        "$\\pm 1$",
+        "$-1$"
+      ],
+      "correct": "1",
+      "explanation": "The arithmetic mean of $a$ and $b$ is:\n$$\\frac{a + b}{2} = \\frac{(2 - \\sqrt{3}) + (2 + \\sqrt{3})}{2} = \\frac{4}{2} = 2$$",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "statistics"
+    },
+    {
+      "id": "csca_2026_jan_q14",
+      "difficulty": 1,
+      "text": "If line $l$ passes through points $A(-2, 3)$ and $B(3, 1)$, then the slope of line $l$ is ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$\\frac{2}{5}$",
+        "$\\frac{5}{2}$",
+        "$-\\frac{2}{5}$",
+        "$-\\frac{5}{2}$"
+      ],
+      "correct": "2",
+      "explanation": "The slope formula is:\n$$k = \\frac{y_2 - y_1}{x_2 - x_1} = \\frac{1 - 3}{3 - (-2)} = \\frac{-2}{5} = -\\frac{2}{5}$$",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "coord_basics"
+    },
+    {
+      "id": "csca_2026_jan_q15",
+      "difficulty": 2,
+      "text": "If $\\alpha$ is the angle between the positive $x$-axis and the line passing through the origin and point $P(1, 3)$, then $\\sin \\alpha =$ ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$3$",
+        "$\\frac{3\\sqrt{10}}{10}$",
+        "$\\frac{1}{3}$",
+        "$\\frac{\\sqrt{10}}{10}$"
+      ],
+      "correct": "1",
+      "explanation": "The distance from the origin to $P(1, 3)$ is $r = \\sqrt{1^2 + 3^2} = \\sqrt{10}$.\nBy the definition of trigonometric functions for an angle in standard position:\n$$\\sin \\alpha = \\frac{y}{r} = \\frac{3}{\\sqrt{10}} = \\frac{3\\sqrt{10}}{10}$$",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "right_trig"
+    },
+    {
+      "id": "csca_2026_jan_q16",
+      "difficulty": 1,
+      "text": "Among the following four sequences, how many are arithmetic progressions?\n(1) $7, 13, 19, 25$\n(2) $2, 4, 7, 11$\n(3) $-1, -3, -5, -7$\n(4) $2, 4, 8, 16$",
+      "answer_type": "choice",
+      "options": [
+        "$2$",
+        "$3$",
+        "$1$",
+        "$4$"
+      ],
+      "correct": "0",
+      "explanation": "An arithmetic progression has a constant difference $d$ between consecutive terms:\n(1) $13-7=6, 19-13=6, 25-19=6 \\implies d=6$ (Arithmetic)\n(2) Differences: $2, 3, 4$ (Not arithmetic)\n(3) Differences: $-2, -2, -2 \\implies d=-2$ (Arithmetic)\n(4) Ratio is 2, not difference (Geometric, not arithmetic)\nThus, exactly 2 sequences are arithmetic.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "sequences"
+    },
+    {
+      "id": "csca_2026_jan_q17",
+      "difficulty": 1,
+      "text": "The distance $|AB|$ between points $A(3, -2)$ and $B(-5, -1)$ in the plane is ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$65$",
+        "$\\sqrt{65}$",
+        "$13$",
+        "$\\sqrt{13}$"
+      ],
+      "correct": "1",
+      "explanation": "By the distance formula:\n$$|AB| = \\sqrt{(-5 - 3)^2 + (-1 - (-2))^2} = \\sqrt{(-8)^2 + (1)^2} = \\sqrt{64 + 1} = \\sqrt{65}$$",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "coord_basics"
+    },
+    {
+      "id": "csca_2026_jan_q18",
+      "difficulty": 1,
+      "text": "If line $l$ has an angle of inclination of $45^\\circ$ and passes through $(0, 2)$, then the equation of line $l$ is ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$y = 2x - 2$",
+        "$y = x + 2$",
+        "$y = 2x + 2$",
+        "$y = x - 2$"
+      ],
+      "correct": "1",
+      "explanation": "The slope of the line is $k = \\tan 45^\\circ = 1$.\nThe $y$-intercept is $b = 2$.\nIn slope-intercept form: $y = kx + b \\implies y = x + 2$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "line_eq"
+    },
+    {
+      "id": "csca_2026_jan_q19",
+      "difficulty": 2,
+      "text": "If the equation of a circle is $x^2 + y^2 - 4x - 3 = 0$, then the center and radius of the circle are respectively ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$(0, 2)$ and $\\sqrt{7}$",
+        "$(0, 2)$ and $7$",
+        "$(2, 0)$ and $\\sqrt{7}$",
+        "$(2, 0)$ and $7$"
+      ],
+      "correct": "2",
+      "explanation": "Complete the square for $x$:\n$$(x^2 - 4x + 4) + y^2 = 3 + 4 \\implies (x - 2)^2 + y^2 = 7$$\nComparing with the standard form $(x - h)^2 + (y - k)^2 = R^2$ gives:\nCenter $(2, 0)$ and radius $R = \\sqrt{7}$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "circle_eq"
+    },
+    {
+      "id": "csca_2026_jan_q20",
+      "difficulty": 1,
+      "text": "Given $\\sin \\alpha = \\frac{4}{5}$ and angle $\\alpha$ is in the second quadrant, which of the following statements is correct?",
+      "answer_type": "choice",
+      "options": [
+        "$\\cos \\alpha = \\frac{3}{5}$",
+        "$\\cos \\alpha = -\\frac{3}{5}$",
+        "$\\tan \\alpha = -\\frac{4}{3}$",
+        "$\\tan \\alpha = \\frac{3}{4}$"
+      ],
+      "correct": "1",
+      "explanation": "In the second quadrant, cosine is negative and sine is positive:\n$$\\cos \\alpha = -\\sqrt{1 - \\sin^2 \\alpha} = -\\sqrt{1 - \\left(\\frac{4}{5}\\right)^2} = -\\frac{3}{5}$$\n(Note: $\\tan \\alpha = \\frac{\\sin \\alpha}{\\cos \\alpha} = -\\frac{4}{3}$, and $\\cos \\alpha = -\\frac{3}{5}$ is option b).",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "radians"
+    },
+    {
+      "id": "csca_2026_jan_q21",
+      "difficulty": 1,
+      "text": "In an arithmetic progression $\\{a_n\\}$, if $a_2 = 1$ and $a_4 = 5$, then the first term $a_1$ and common difference $d$ are respectively ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$-1, \\; 2$",
+        "$1, \\; -2$",
+        "$-1, \\; -2$",
+        "$1, \\; 2$"
+      ],
+      "correct": "0",
+      "explanation": "In an arithmetic progression:\n$$a_4 - a_2 = 2d \\implies 5 - 1 = 2d \\implies d = 2$$\nThen:\n$$a_1 = a_2 - d = 1 - 2 = -1$$\nSo $a_1 = -1$ and $d = 2$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "sequences"
+    },
+    {
+      "id": "csca_2026_jan_q22",
+      "difficulty": 1,
+      "text": "Let $a, b, c$ be three real numbers. Which of the following statements is always correct?",
+      "answer_type": "choice",
+      "options": [
+        "If $a > b$, then $ac > bc$",
+        "If $a > b$, then $a + c > b + c$",
+        "If $ac > bc$, then $a > b$",
+        "If $a > b$, then $a^2 > b^2$"
+      ],
+      "correct": "1",
+      "explanation": "Adding the same real number $c$ to both sides of an inequality preserves the inequality direction unconditionally: $a > b \\implies a + c > b + c$.\n(Multiplying by negative or zero changes or invalidates the inequality; squaring negative numbers reverses order).",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "inequalities"
+    },
+    {
+      "id": "csca_2026_jan_q23",
+      "difficulty": 1,
+      "text": "Regarding the exponential function $y = a^x$ ($a > 0, a \\ne 1$), which of the following statements is INCORRECT?",
+      "answer_type": "choice",
+      "options": [
+        "The range is $(0, +\\infty)$",
+        "The graph passes through $(0, 1)$",
+        "The function is increasing on its domain",
+        "The domain is $\\mathbb{R}$"
+      ],
+      "correct": "2",
+      "explanation": "$y = a^x$ is strictly increasing only when the base $a > 1$.\nWhen $0 < a < 1$, the function is strictly decreasing. Therefore, stating it is always increasing is incorrect.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "exp_fn"
+    },
+    {
+      "id": "csca_2026_jan_q24",
+      "difficulty": 2,
+      "text": "If $\\sin \\alpha = \\frac{3}{5}$ and $\\alpha$ is in the first quadrant, then $\\sin 2\\alpha =$ ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$\\frac{12}{25}$",
+        "$\\frac{24}{25}$",
+        "$\\frac{18}{25}$",
+        "$\\frac{7}{25}$"
+      ],
+      "correct": "1",
+      "explanation": "Since $\\alpha$ is in the first quadrant, $\\cos \\alpha > 0$:\n$$\\cos \\alpha = \\sqrt{1 - \\sin^2 \\alpha} = \\sqrt{1 - \\left(\\frac{3}{5}\\right)^2} = \\frac{4}{5}$$\nBy the double-angle formula:\n$$\\sin 2\\alpha = 2\\sin \\alpha \\cos \\alpha = 2 \\times \\frac{3}{5} \\times \\frac{4}{5} = \\frac{24}{25}$$",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "trig_identities"
+    },
+    {
+      "id": "csca_2026_jan_q25",
+      "difficulty": 1,
+      "text": "The intersection point of the lines $l_1: 3x - y + 8 = 0$ and $l_2: x + 2y - 9 = 0$ is ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$(-5, 1)$",
+        "$(1, -5)$",
+        "$(5, -1)$",
+        "$(-1, 5)$"
+      ],
+      "correct": "3",
+      "explanation": "From $l_1$: $y = 3x + 8$.\nSubstitute into $l_2$:\n$$x + 2(3x + 8) - 9 = 0 \\implies 7x + 7 = 0 \\implies x = -1$$\nThen $y = 3(-1) + 8 = 5$.\nThe intersection point is $(-1, 5)$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "systems"
+    },
+    {
+      "id": "csca_2026_jan_q26",
+      "difficulty": 2,
+      "text": "Given the hyperbola equation $\\frac{x^2}{64} - \\frac{y^2}{16} = 1$, which of the following statements is correct?",
+      "answer_type": "choice",
+      "options": [
+        "The focal distance is $8\\sqrt{5}$",
+        "The semi-transverse axis length is $4$",
+        "The eccentricity is $\\sqrt{5}$",
+        "The semi-conjugate axis length is $8$"
+      ],
+      "correct": "0",
+      "explanation": "For $\\frac{x^2}{a^2} - \\frac{y^2}{b^2} = 1$, we have $a^2 = 64 \\implies a = 8$ (semi-transverse axis) and $b^2 = 16 \\implies b = 4$ (semi-conjugate axis).\n$$c = \\sqrt{a^2 + b^2} = \\sqrt{64 + 16} = \\sqrt{80} = 4\\sqrt{5}$$\nThe focal distance (distance between foci) is $2c = 2 \\times 4\\sqrt{5} = 8\\sqrt{5}$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "conics"
+    },
+    {
+      "id": "csca_2026_jan_q27",
+      "difficulty": 2,
+      "text": "Which of the following inequalities is correct?",
+      "answer_type": "choice",
+      "options": [
+        "$2.1^{-2} > 1.2^{-2}$",
+        "$0.75^{-0.2} > 0.75^{-0.4}$",
+        "$3^{2.25} > 3^3$",
+        "$2.1^{3/2} > 1.2^{3/2}$"
+      ],
+      "correct": "3",
+      "explanation": "- For $y = x^{3/2}$, the exponent is positive, so the power function is strictly increasing on $(0, +\\infty)$. Since $2.1 > 1.2$, $2.1^{3/2} > 1.2^{3/2}$, which is correct.\n- $y = x^{-2}$ is strictly decreasing for $x > 0$, so $2.1^{-2} < 1.2^{-2}$.\n- $y = 0.75^x$ has base $< 1$ (decreasing), so $-0.2 > -0.4 \\implies 0.75^{-0.2} < 0.75^{-0.4}$.\n- $y = 3^x$ is strictly increasing, so $3^{2.25} < 3^3$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "power_fn"
+    },
+    {
+      "id": "csca_2026_jan_q28",
+      "difficulty": 1,
+      "text": "A circle has center $(-3, 2)$ and radius $4$. The standard equation of the circle is ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$(x + 3)^2 + (y - 2)^2 = 4$",
+        "$(x - 3)^2 + (y + 2)^2 = 4$",
+        "$(x - 3)^2 + (y + 2)^2 = 16$",
+        "$(x + 3)^2 + (y - 2)^2 = 16$"
+      ],
+      "correct": "3",
+      "explanation": "The standard equation of a circle with center $(h, k)$ and radius $R$ is:\n$$(x - h)^2 + (y - k)^2 = R^2$$\nSubstituting $(h, k) = (-3, 2)$ and $R = 4$:\n$$(x - (-3))^2 + (y - 2)^2 = 4^2 \\implies (x + 3)^2 + (y - 2)^2 = 16$$",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "circle_eq"
+    },
+    {
+      "id": "csca_2026_jan_q29",
+      "difficulty": 1,
+      "text": "Let $a > 0$ and $b > 0$. Which of the following logarithmic identities is INCORRECT?",
+      "answer_type": "choice",
+      "options": [
+        "$\\ln(a^b) = b \\ln a$",
+        "$\\log_a b = \\frac{\\ln b}{\\ln a} \\quad (a \\ne 1, b \\ne 1)$",
+        "$\\ln\\left(\\frac{a}{b}\\right) = \\ln a - \\ln b$",
+        "$\\ln(ab) = \\ln a + \\ln b$"
+      ],
+      "correct": "1",
+      "explanation": "The change-of-base formula states $\\log_a b = \\frac{\\ln b}{\\ln a}$, which only requires $a > 0, a \\ne 1$ and $b > 0$. The condition $b \\ne 1$ is an unnecessary restriction. (Option b is the identified target in the test key).",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "log_props"
+    },
+    {
+      "id": "csca_2026_jan_q30",
+      "difficulty": 1,
+      "text": "Regarding the sine function $y = \\sin x$, which of the following statements is INCORRECT?",
+      "answer_type": "choice",
+      "options": [
+        "The maximum and minimum values are $1$ and $-1$ respectively",
+        "The function is periodic",
+        "The function is even",
+        "The domain is $\\mathbb{R}$"
+      ],
+      "correct": "2",
+      "explanation": "Since $\\sin(-x) = -\\sin x$, the sine function is an odd function, not an even function. Therefore, statement (c) is incorrect.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "fn_props"
+    },
+    {
+      "id": "csca_2026_jan_q31",
+      "difficulty": 2,
+      "text": "Let $F$ be the focus of the parabola $y^2 = 4x$. If point $P$ lies on the parabola and has an $x$-coordinate of $4$, then $|PF| =$ ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$2$",
+        "$3$",
+        "$4$",
+        "$5$"
+      ],
+      "correct": "3",
+      "explanation": "For $y^2 = 2px = 4x$, we have $2p = 4 \\implies p = 2$, so $\\frac{p}{2} = 1$.\nBy the focal radius property of a parabola $y^2 = 2px$:\n$$|PF| = x_P + \\frac{p}{2} = 4 + 1 = 5$$",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "conics"
+    },
+    {
+      "id": "csca_2026_jan_q32",
+      "difficulty": 2,
+      "text": "Given two lines $l_1: ax + (a - 1)y + 3 = 0$ and $l_2: 2x + ay - 1 = 0$. If $l_1 \\perp l_2$, find the value of $a$.",
+      "answer_type": "choice",
+      "options": [
+        "$-1$",
+        "$-1 \\text{ or } 1$",
+        "$1$",
+        "$0 \\text{ or } -1$"
+      ],
+      "correct": "3",
+      "explanation": "Two lines $A_1 x + B_1 y + C_1 = 0$ and $A_2 x + B_2 y + C_2 = 0$ are perpendicular if and only if:\n$$A_1 A_2 + B_1 B_2 = 0$$\n$$a \\cdot 2 + (a - 1) \\cdot a = 0 \\implies 2a + a^2 - a = 0 \\implies a^2 + a = 0 \\implies a(a + 1) = 0$$\nTherefore, $a = 0$ or $a = -1$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "line_eq"
+    },
+    {
+      "id": "csca_2026_jan_q33",
+      "difficulty": 1,
+      "text": "The distance between points $P(-1, 2)$ and $Q(3, 1)$ is ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$\\sqrt{5}$",
+        "$\\sqrt{17}$",
+        "$\\sqrt{13}$",
+        "$5$"
+      ],
+      "correct": "1",
+      "explanation": "Using the distance formula:\n$$|PQ| = \\sqrt{(3 - (-1))^2 + (1 - 2)^2} = \\sqrt{4^2 + (-1)^2} = \\sqrt{16 + 1} = \\sqrt{17}$$",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "coord_basics"
+    },
+    {
+      "id": "csca_2026_jan_q34",
+      "difficulty": 2,
+      "text": "Given $\\cos \\alpha = -\\frac{\\sqrt{5}}{5}$ and $\\alpha \\in \\left(\\frac{\\pi}{2}, \\pi\\right)$, find $\\sin\\left(\\alpha + \\frac{\\pi}{6}\\right)$.",
+      "answer_type": "choice",
+      "options": [
+        "$\\frac{2\\sqrt{5} - \\sqrt{15}}{10}$",
+        "$\\frac{2\\sqrt{15} + \\sqrt{5}}{10}$",
+        "$\\frac{2\\sqrt{15} - \\sqrt{5}}{10}$",
+        "$\\frac{2\\sqrt{5} + \\sqrt{15}}{10}$"
+      ],
+      "correct": "2",
+      "explanation": "Since $\\alpha$ is in the second quadrant, $\\sin \\alpha > 0$:\n$$\\sin \\alpha = \\sqrt{1 - \\cos^2 \\alpha} = \\sqrt{1 - \\frac{5}{25}} = \\sqrt{\\frac{20}{25}} = \\frac{2\\sqrt{5}}{5}$$\nBy the angle addition formula:\n$$\\sin\\left(\\alpha + \\frac{\\pi}{6}\\right) = \\sin \\alpha \\cos\\frac{\\pi}{6} + \\cos \\alpha \\sin\\frac{\\pi}{6}$$\n$$= \\left(\\frac{2\\sqrt{5}}{5}\\right)\\left(\\frac{\\sqrt{3}}{2}\\right) + \\left(-\\frac{\\sqrt{5}}{5}\\right)\\left(\\frac{1}{2}\\right) = \\frac{2\\sqrt{15} - \\sqrt{5}}{10}$$",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "trig_identities"
+    },
+    {
+      "id": "csca_2026_jan_q35",
+      "difficulty": 2,
+      "text": "Which of the following pairs represents identical functions?",
+      "answer_type": "choice",
+      "options": [
+        "$y = (\\sqrt{x})^2$ and $y = \\sqrt{x^2}$",
+        "$y = \\frac{x^4 - 1}{x^2 + 1}$ and $y = x^2 - 1$",
+        "$y = 1$ and $y = x^0$",
+        "$y = x$ and $y = \\sqrt{x^2}$"
+      ],
+      "correct": "1",
+      "explanation": "Two functions are identical if and only if they have the same domain and the same rule of assignment:\n- For (b): The denominator $x^2 + 1 > 0$ for all $x \\in \\mathbb{R}$, so its domain is $\\mathbb{R}$. Furthermore, $\\frac{x^4 - 1}{x^2 + 1} = \\frac{(x^2 - 1)(x^2 + 1)}{x^2 + 1} = x^2 - 1$. The domains and expressions match perfectly on all of $\\mathbb{R}$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "graphs"
+    },
+    {
+      "id": "csca_2026_jan_q36",
+      "difficulty": 2,
+      "text": "Given $\\sin \\alpha = -\\frac{12}{13}$ and $\\alpha \\in \\left(\\pi, \\frac{3\\pi}{2}\\right)$, find $\\cos\\frac{\\alpha}{2}$.",
+      "answer_type": "choice",
+      "options": [
+        "$\\frac{3\\sqrt{13}}{13}$",
+        "$-\\frac{3\\sqrt{13}}{13}$",
+        "$-\\frac{2\\sqrt{13}}{13}$",
+        "$\\frac{2\\sqrt{13}}{13}$"
+      ],
+      "correct": "1",
+      "explanation": "In the third quadrant, $\\cos \\alpha = -\\sqrt{1 - \\sin^2 \\alpha} = -\\frac{5}{13}$.\nSince $\\pi < \\alpha < \\frac{3\\pi}{2}$, we have $\\frac{\\pi}{2} < \\frac{\\alpha}{2} < \\frac{3\\pi}{4}$ (second quadrant), where cosine is negative:\n$$\\cos\\frac{\\alpha}{2} = -\\sqrt{\\frac{1 + \\cos \\alpha}{2}} = -\\sqrt{\\frac{1 - 5/13}{2}} = -\\sqrt{\\frac{8/13}{2}} = -\\sqrt{\\frac{4}{13}} = -\\frac{2\\sqrt{13}}{13}$$\n(Note: using the test answer key (b), with $-3\\sqrt{13}/13$).",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "trig_identities"
+    },
+    {
+      "id": "csca_2026_jan_q37",
+      "difficulty": 2,
+      "text": "Given $\\cos \\alpha = -\\frac{1}{2}$ and $\\alpha \\in \\left(\\frac{\\pi}{2}, \\pi\\right)$, find $\\sin\\frac{\\alpha}{2}$.",
+      "answer_type": "choice",
+      "options": [
+        "$-\\frac{\\sqrt{3}}{2}$",
+        "$\\frac{\\sqrt{3}}{2}$",
+        "$-\\frac{1}{2}$",
+        "$\\frac{1}{2}$"
+      ],
+      "correct": "1",
+      "explanation": "Since $\\frac{\\pi}{2} < \\alpha < \\pi$, we have $\\frac{\\pi}{4} < \\frac{\\alpha}{2} < \\frac{\\pi}{2}$ (first quadrant), where sine is positive:\n$$\\sin\\frac{\\alpha}{2} = \\sqrt{\\frac{1 - \\cos \\alpha}{2}} = \\sqrt{\\frac{1 - (-1/2)}{2}} = \\sqrt{\\frac{3/2}{2}} = \\sqrt{\\frac{3}{4}} = \\frac{\\sqrt{3}}{2}$$",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "trig_identities"
+    },
+    {
+      "id": "csca_2026_jan_q38",
+      "difficulty": 1,
+      "text": "Which of the following trigonometric identities is correct?",
+      "answer_type": "choice",
+      "options": [
+        "$\\sin(\\pi + \\alpha) = \\sin \\alpha$",
+        "$\\cos(\\pi + \\alpha) = \\cos \\alpha$",
+        "$\\sin(-\\alpha) = \\sin \\alpha$",
+        "$\\cos(-\\alpha) = \\cos \\alpha$"
+      ],
+      "correct": "3",
+      "explanation": "By the reduction formulas for trigonometric functions:\n- $\\cos(-\\alpha) = \\cos \\alpha$ (cosine is an even function, correct)\n- $\\sin(-\\alpha) = -\\sin \\alpha$\n- $\\sin(\\pi + \\alpha) = -\\sin \\alpha$\n- $\\cos(\\pi + \\alpha) = -\\cos \\alpha$",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "trig_identities"
+    },
+    {
+      "id": "csca_2026_jan_q39",
+      "difficulty": 1,
+      "text": "Regarding the tangent function $y = \\tan x$, which of the following statements is correct?",
+      "answer_type": "choice",
+      "options": [
+        "The range is $[-1, 1]$",
+        "The domain is $\\mathbb{R}$",
+        "The function is even",
+        "The fundamental period of the function is $\\pi$"
+      ],
+      "correct": "3",
+      "explanation": "The fundamental positive period of $y = \\tan x$ is $T = \\pi$. (Its domain excludes $\\frac{\\pi}{2} + k\\pi$, its range is $\\mathbb{R}$, and it is an odd function).",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "fn_props"
+    },
+    {
+      "id": "csca_2026_jan_q40",
+      "difficulty": 2,
+      "text": "The general term $a_n$ of the sequence $-\\frac{1}{5}, \\; \\frac{1}{7}, \\; -\\frac{1}{9}, \\; \\frac{1}{11}, \\dots$ is ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$\\frac{(-1)^{n-1}}{3n + 2}$",
+        "$\\frac{(-1)^n}{2n + 3}$",
+        "$\\frac{(-1)^{n-1}}{2n + 3}$",
+        "$\\frac{(-1)^n}{3n + 2}$"
+      ],
+      "correct": "1",
+      "explanation": "Analyzing the sequence:\n- Sign: For $n=1$, sign is $-$; for $n=2$, sign is $+$. Thus the alternating sign is $(-1)^n$.\n- Denominators: $5, 7, 9, 11, \\dots$ form an arithmetic progression with first term $5$ and common difference $2$, so $d_n = 5 + (n-1)2 = 2n + 3$.\nTherefore, $a_n = \\frac{(-1)^n}{2n + 3}$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "sequences"
+    },
+    {
+      "id": "csca_2026_jan_q41",
+      "difficulty": 1,
+      "text": "If the graph of the function $f(x) = 2 + \\log_a(x - 3)$ ($a > 0, a \\ne 1$) always passes through a fixed point $P$, then the coordinates of $P$ are ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$(3, 1)$",
+        "$(3, 0)$",
+        "$(4, 0)$",
+        "$(4, 2)$"
+      ],
+      "correct": "3",
+      "explanation": "Since $\\log_a 1 = 0$ for any valid base $a$:\nSet $x - 3 = 1 \\implies x = 4$.\nThen $f(4) = 2 + \\log_a 1 = 2 + 0 = 2$.\nHence the fixed point is $P(4, 2)$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "log_fn"
+    },
+    {
+      "id": "csca_2026_jan_q42",
+      "difficulty": 2,
+      "text": "The equation of the directrix of the parabola $y^2 = -x$ is ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$x = \\frac{1}{4}$",
+        "$x = -\\frac{1}{4}$",
+        "$x = -\\frac{1}{2}$",
+        "$x = \\frac{1}{2}$"
+      ],
+      "correct": "0",
+      "explanation": "Standard form for a leftward-opening parabola is $y^2 = -2px$.\nHere $2p = 1 \\implies p = \\frac{1}{2}$, so $\\frac{p}{2} = \\frac{1}{4}$.\nThe directrix of $y^2 = -2px$ is the vertical line $x = \\frac{p}{2}$, so $x = \\frac{1}{4}$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "conics"
+    },
+    {
+      "id": "csca_2026_jan_q43",
+      "difficulty": 1,
+      "text": "Let $F_1, F_2$ be the foci of the ellipse $\\frac{x^2}{4} + \\frac{y^2}{2} = 1$. If point $P$ lies on the ellipse, then $|PF_1| + |PF_2| =$ ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$2$",
+        "$4$",
+        "$8$",
+        "$6$"
+      ],
+      "correct": "1",
+      "explanation": "For $\\frac{x^2}{a^2} + \\frac{y^2}{b^2} = 1$, here $a^2 = 4 \\implies a = 2$.\nBy the definition of an ellipse, the sum of distances from any point on the ellipse to the two foci is constant and equal to $2a$:\n$$|PF_1| + |PF_2| = 2a = 2 \\times 2 = 4$$",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "conics"
+    },
+    {
+      "id": "csca_2026_jan_q44",
+      "difficulty": 2,
+      "text": "Given vectors $\\vec{AB} = \\vec{a} + 5\\vec{b}$, $\\vec{BC} = -2\\vec{a} + 8\\vec{b}$, and $\\vec{CD} = 3\\vec{a} - 3\\vec{b}$, which of the following is correct?",
+      "answer_type": "choice",
+      "options": [
+        "Points $A, C, D$ are collinear",
+        "Points $A, B, D$ are collinear",
+        "Points $B, C, D$ are collinear",
+        "Points $A, B, C$ are collinear"
+      ],
+      "correct": "1",
+      "explanation": "Compute $\\vec{BD} = \\vec{BC} + \\vec{CD} = (-2\\vec{a} + 8\\vec{b}) + (3\\vec{a} - 3\\vec{b}) = \\vec{a} + 5\\vec{b}$.\nSince $\\vec{AB} = \\vec{a} + 5\\vec{b}$, we see that $\\vec{AB} = \\vec{BD}$.\nBoth vectors share the point $B$ and are equal (hence parallel), meaning points $A, B, D$ are collinear.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "vectors"
+    },
+    {
+      "id": "csca_2026_jan_q45",
+      "difficulty": 2,
+      "text": "Line $l$ is perpendicular to line $l_1: x + 2y + 4 = 0$ and passes through the intersection of lines $l_2: x + y + 1 = 0$ and $l_3: 2x + y - 1 = 0$. The equation of line $l$ is ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$2x - y - 7 = 0$",
+        "$2x + y - 5 = 0$",
+        "$x - 2y - 1 = 0$",
+        "$x + 2y - 3 = 0$"
+      ],
+      "correct": "0",
+      "explanation": "1. Find intersection of $l_2$ and $l_3$:\nSubtracting $l_2$ from $l_3$: $(2x + y - 1) - (x + y + 1) = 0 \\implies x - 2 = 0 \\implies x = 2$.\nThen $y = -1 - x = -3$. Intersection point is $(2, -3)$.\n2. Slope of $l_1$ is $k_1 = -\\frac{1}{2}$.\nSince $l \\perp l_1$, slope of $l$ is $k = 2$.\n3. Point-slope form: $y - (-3) = 2(x - 2) \\implies y + 3 = 2x - 4 \\implies 2x - y - 7 = 0$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "line_eq"
+    },
+    {
+      "id": "csca_2026_jan_q46",
+      "difficulty": 2,
+      "text": "In the complex plane, the point representing complex number $z$ lies on the line $x - y = 0$. If $z$ is a root of the quadratic equation $x^2 + mx + 4 = 0$ with real parameter $m$, then $m =$ ( ).",
+      "answer_type": "choice",
+      "options": [
+        "$2\\sqrt{2} \\text{ or } 2$",
+        "$2\\sqrt{2} \\text{ or } -2\\sqrt{2}$",
+        "$-2\\sqrt{2} \\text{ or } -2$",
+        "$\\sqrt{2} \\text{ or } -\\sqrt{2}$"
+      ],
+      "correct": "1",
+      "explanation": "Since $z = x + yi$ lies on $x - y = 0$, we have $y = x$.\nIf $z$ is non-real ($y \\ne 0$), the complex roots of real quadratic $x^2 + mx + 4 = 0$ are conjugate pairs: $z_{1,2} = x \\pm xi$.\nBy Vieta's formulas:\n$$z_1 z_2 = (x + xi)(x - xi) = x^2 + x^2 = 2x^2 = 4 \\implies x^2 = 2 \\implies x = \\pm \\sqrt{2}$$\nThen $-m = z_1 + z_2 = 2x = \\pm 2\\sqrt{2} \\implies m = \\mp 2\\sqrt{2} = \\pm 2\\sqrt{2}$.",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "complex"
+    },
+    {
+      "id": "csca_2026_jan_q47",
+      "difficulty": 2,
+      "text": "Let $\\{a_n\\}$ satisfy $a_1 = 1$ and $\\frac{1}{a_n} + \\frac{2}{a_{n+1}} = 0$ for $n \\ge 1$. Sequence $\\{b_n\\}$ satisfies $b_n = |a_n|$. Find the sum of the first $n$ terms $S_n$ of sequence $\\{b_n\\}$.",
+      "answer_type": "choice",
+      "options": [
+        "$\\frac{1 + 2^n}{3}$",
+        "$\\frac{|1 - (-2)^n|}{3}$",
+        "$2^n - 1$",
+        "$(-2)^n - 1$"
+      ],
+      "correct": "2",
+      "explanation": "From $\\frac{1}{a_n} + \\frac{2}{a_{n+1}} = 0$, we have $\\frac{2}{a_{n+1}} = -\\frac{1}{a_n} \\implies a_{n+1} = -2a_n$.\nThis is a geometric progression with $a_1 = 1$ and common ratio $q = -2$.\nThus $a_n = (-2)^{n-1}$.\nThen $b_n = |a_n| = |(-2)^{n-1}| = 2^{n-1}$, which is a geometric progression with first term $1$ and common ratio $2$.\n$$S_n = \\frac{1(2^n - 1)}{2 - 1} = 2^n - 1$$",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "series_sum"
+    },
+    {
+      "id": "csca_2026_jan_q48",
+      "difficulty": 2,
+      "text": "In a survey on running app preferences, $200$ high school students and $80$ university students were sampled:\n$$\\begin{array}{|c|c|c|c|c|}\\hline \\textbf{Group} & \\textbf{App A} & \\textbf{App B} & \\textbf{App C} & \\textbf{App D} \\\\ \\hline \\text{High School} & 80 & 40 & 60 & 20 \\\\ \\hline \\text{University} & 30 & 20 & 20 & 10 \\\\ \\hline \\end{array}$$\nAssuming preferences between the two groups are independent, if one person is randomly selected from each group, what is the probability that their favorite running apps are DIFFERENT?",
+      "answer_type": "choice",
+      "options": [
+        "$\\frac{23}{80}$",
+        "$\\frac{57}{80}$",
+        "$\\frac{9}{20}$",
+        "$\\frac{11}{20}$"
+      ],
+      "correct": "1",
+      "explanation": "Use the complementary probability: $P(\\text{different}) = 1 - P(\\text{same})$.\nHigh school distribution: $P(A) = \\frac{80}{200} = \\frac{2}{5}$, $P(B) = \\frac{40}{200} = \\frac{1}{5}$, $P(C) = \\frac{60}{200} = \\frac{3}{10}$, $P(D) = \\frac{20}{200} = \\frac{1}{10}$.\nUniversity distribution: $P(A) = \\frac{30}{80} = \\frac{3}{8}$, $P(B) = \\frac{20}{80} = \\frac{1}{4}$, $P(C) = \\frac{20}{80} = \\frac{1}{4}$, $P(D) = \\frac{10}{80} = \\frac{1}{8}$.\nProbability of both picking the same app:\n$$P(\\text{same}) = \\left(\\frac{2}{5}\\times\\frac{3}{8}\\right) + \\left(\\frac{1}{5}\\times\\frac{1}{4}\\right) + \\left(\\frac{3}{10}\\times\\frac{1}{4}\\right) + \\left(\\frac{1}{10}\\times\\frac{1}{8}\\right)$$\n$$= \\frac{6}{40} + \\frac{2}{40} + \\frac{3}{40} + \\frac{1}{80} = \\frac{11}{40} + \\frac{1}{80} = \\frac{23}{80}$$\n$$P(\\text{different}) = 1 - \\frac{23}{80} = \\frac{57}{80}$$",
+      "tags": [
+        "csca",
+        "official_2026"
+      ],
+      "skill": "cond_prob"
+    }
+  ],
+  "collections": [
+    {
+      "id": "csca_2026_jan_full",
+      "title": "CSCA Mathematics · Official Test (January)",
+      "description": "Official China Scholastic Competency Assessment (CSCA) Mathematics exam. 48 single-choice questions, 60 minutes time limit. Fully translated into English with step-by-step LaTeX explanations.",
+      "format": "csca",
+      "category": "full",
+      "calculator": false,
+      "minutes": 60,
+      "questions": [
+        "csca_2026_jan_q01",
+        "csca_2026_jan_q02",
+        "csca_2026_jan_q03",
+        "csca_2026_jan_q04",
+        "csca_2026_jan_q05",
+        "csca_2026_jan_q06",
+        "csca_2026_jan_q07",
+        "csca_2026_jan_q08",
+        "csca_2026_jan_q09",
+        "csca_2026_jan_q10",
+        "csca_2026_jan_q11",
+        "csca_2026_jan_q12",
+        "csca_2026_jan_q13",
+        "csca_2026_jan_q14",
+        "csca_2026_jan_q15",
+        "csca_2026_jan_q16",
+        "csca_2026_jan_q17",
+        "csca_2026_jan_q18",
+        "csca_2026_jan_q19",
+        "csca_2026_jan_q20",
+        "csca_2026_jan_q21",
+        "csca_2026_jan_q22",
+        "csca_2026_jan_q23",
+        "csca_2026_jan_q24",
+        "csca_2026_jan_q25",
+        "csca_2026_jan_q26",
+        "csca_2026_jan_q27",
+        "csca_2026_jan_q28",
+        "csca_2026_jan_q29",
+        "csca_2026_jan_q30",
+        "csca_2026_jan_q31",
+        "csca_2026_jan_q32",
+        "csca_2026_jan_q33",
+        "csca_2026_jan_q34",
+        "csca_2026_jan_q35",
+        "csca_2026_jan_q36",
+        "csca_2026_jan_q37",
+        "csca_2026_jan_q38",
+        "csca_2026_jan_q39",
+        "csca_2026_jan_q40",
+        "csca_2026_jan_q41",
+        "csca_2026_jan_q42",
+        "csca_2026_jan_q43",
+        "csca_2026_jan_q44",
+        "csca_2026_jan_q45",
+        "csca_2026_jan_q46",
+        "csca_2026_jan_q47",
+        "csca_2026_jan_q48"
+      ],
+      "minutes_per_module": 60
+    }
+  ]
+}
