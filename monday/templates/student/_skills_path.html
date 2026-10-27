@@ -1,0 +1,70 @@
+{# Level path (the «Список» view of the skill map). #}
+{# Level path: each topic is a chapter, each skill a level on a winding road. The first level that is not
+   mastered yet (and has questions) is the place to continue — it glows with «Старт». #}
+{% set offsets = [0, 16, 24, 16, 0, -16, -24, -16] %}
+{% set row_h = 124 %}
+{% set ns = namespace(current=None) %}
+{% for t in topics %}{% for i in t["items"] %}{% if ns.current is none and i.state not in ('outside', 'mastered') and i.n %}{% set ns.current = i.skill.id %}{% endif %}{% endfor %}{% endfor %}
+<div class="sp-layout">
+  <nav class="sp-index" aria-label="{{ _('Главы') }}">
+    <div class="sp-index__title">{{ _("Главы") }}</div>
+    {% for t in topics %}
+      {% set pct = ((100 * t.mastered / t.counted) if t.counted else 0)|round|int %}
+      <a class="sp-index__item{{ ' is-weak' if t.node.id == highlight }}" href="#ch-{{ t.node.id }}">
+        <span class="sp-mini" style="--p: {{ pct }}"></span>
+        <span class="sp-index__name">{{ t.name }}</span>
+        <span class="sp-index__n num">{{ t.mastered }}/{{ t.counted }}</span>
+      </a>
+    {% endfor %}
+    <div class="sp-key">
+      <span><i class="sp-key__dot is-mastered"></i>{{ _("Освоен") }}</span>
+      <span><i class="sp-key__dot is-progress"></i>{{ _("В процессе") }}</span>
+      <span><i class="sp-key__dot is-new"></i>{{ _("Новый") }}</span>
+    </div>
+  </nav>
+
+  <div class="sp-road-wrap">
+  {% for t in topics %}
+    {% set levels = t["items"]|rejectattr('state', 'equalto', 'outside')|list %}
+    {% set pct = ((100 * t.mastered / t.counted) if t.counted else 0)|round|int %}
+    <section class="sp-chapter{{ ' is-done' if t.counted and t.mastered == t.counted }}" id="ch-{{ t.node.id }}" aria-labelledby="ch-h-{{ t.node.id }}">
+      <header class="sp-head">
+        <span class="sp-head__eyebrow">{{ _("Глава %(n)s", n=loop.index) }}{% if t.node.id == highlight %} · <b>{{ _("слабое место") }}</b>{% endif %}</span>
+        <h2 id="ch-h-{{ t.node.id }}">{{ t.name }}</h2>
+        <div class="sp-head__progress"><span class="sp-head__bar"><i style="width: {{ pct }}%"></i></span><span class="num">{{ t.mastered }} / {{ t.counted }}</span></div>
+      </header>
+      {% set h = levels|length * row_h %}
+      <div class="sp-road" style="height: {{ h }}px">
+        <svg class="sp-road__line" viewBox="0 0 100 {{ h }}" preserveAspectRatio="none" aria-hidden="true">
+          {% set pts = [] %}
+          {% for i in levels %}{% set _ = pts.append((34 + offsets[loop.index0 % 8], loop.index0 * row_h + row_h / 2)) %}{% endfor %}
+          {% for base, k, cls in [(34, 1, 'sp-path--wide'), (24, 0.6, 'sp-path--narrow')] %}
+          {% set ns2 = namespace(d='') %}
+          {% for x, y in pts %}{% set x = base + (x - 34) * k %}{% if loop.first %}{% set ns2.d = 'M' ~ x ~ ',' ~ y %}{% else %}{% set px, py = pts[loop.index0 - 1] %}{% set px = base + (px - 34) * k %}{% set ns2.d = ns2.d ~ ' C' ~ px ~ ',' ~ (py + row_h / 2) ~ ' ' ~ x ~ ',' ~ (y - row_h / 2) ~ ' ' ~ x ~ ',' ~ y %}{% endif %}{% endfor %}
+          <path class="{{ cls }}" d="{{ ns2.d }}" vector-effect="non-scaling-stroke"/>
+          {% endfor %}
+        </svg>
+        <ol class="sp-levels">
+        {% for i in levels %}
+          {% set cur = i.skill.id == ns.current %}
+          {% set playable = i.n %}
+          <li class="sp-level is-{{ i.state }}{{ ' is-current' if cur }}{{ ' is-locked' if not playable }}" style="--o: {{ offsets[loop.index0 % 8] }}; --y: {{ loop.index0 * row_h + row_h / 2 }}px; --a: {{ ((i.accuracy or 0) * 100)|round|int }}">
+            <form method="post" action="{{ url_for('student.start_session', mode='franklin') }}">
+              {{ ui.csrf() }}<input type="hidden" name="skill_id" value="{{ i.skill.id }}"><input type="hidden" name="exam" value="{{ view }}">
+              <button class="sp-dot" type="submit" {{ 'disabled' if not playable }} aria-label="{{ _('Тренировать: %(n)s', n=i.skill.name) }}" title="{{ _('Тренировать · 5 мин') }}">
+                {% if i.state == 'mastered' %}{{ ui.icon('check', 26) }}{% elif cur %}{{ ui.icon('play', 26) }}{% else %}<span class="num">{{ loop.index }}</span>{% endif %}
+              </button>
+            </form>
+            {% if cur %}<span class="sp-start">{{ _("Старт") }}</span>{% endif %}
+            <span class="sp-label">
+              <b>{{ i.skill.name }}</b>
+              <small>{% if not playable %}{{ _("нет вопросов") }}{% elif i.state == 'mastered' %}{{ _("освоен") }}{% elif i.accuracy is not none %}{{ _("точность %(p)s%%", p=((i.accuracy or 0) * 100)|round|int) }}{% else %}{{ _("новый") }} · {{ i.n }} {{ i.n|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}{% endif %}</small>
+            </span>
+          </li>
+        {% endfor %}
+        </ol>
+      </div>
+    </section>
+  {% endfor %}
+  </div>
+</div>

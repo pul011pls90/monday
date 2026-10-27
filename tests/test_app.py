@@ -183,7 +183,11 @@ def test_student_pages_render():
     c = login(client(), "student@monday.kg", "student123")
     ok(c, "/home", contains=["Привет, Тима", "21", "Франклин", "Задача на сегодня", "Ты в точках", "Факт дня", "~5 мин"])
     ok(c, "/home?t=30")
-    ok(c, "/skills", contains=["Карта навыков", "Свойства логарифмов"])
+    ok(c, "/skills?show=list", contains=["Карта навыков", "Свойства логарифмов"])
+    body = ok(c, "/skills").data.decode()  # the list choice is remembered
+    assert "sp-level" in body and "metro-data" not in body
+    body = ok(c, "/skills?show=map", contains=["data-metro", "metro-data", "mt-start", "Продолжить"]).data.decode()
+    assert "sp-level" not in body
     ok(c, "/skills?scope=all&q=лог")
     ok(c, "/sessions", contains="Недавние сессии")
     ok(c, "/collections", contains=["Сборники", "Рекомендуем тебе", "ОРТ Май 2026"])
@@ -534,7 +538,7 @@ def test_content_tree_and_teacher_branches():
         assert own.owner_id and own.topic == "Алгебра" and own.subtopic == "Уравнения"
     # Aibek's student sees his branch, another teacher does not
     s = login(client(), "student@monday.kg", "student123")
-    ok(s, "/skills", contains=["Уравнения с параметром", "Геометрия"])
+    ok(s, "/skills?show=list", contains=["Уравнения с параметром", "Геометрия"])
     other = login(client(), "nurai@monday.kg", "teacher123")
     body = ok(other, "/teacher/tree", contains="Карта способностей").data.decode()
     assert "Уравнения с параметром" not in body
@@ -1169,7 +1173,7 @@ def test_scan_fixes_goal_time_skills():
         own = [q for q in student_pool("ORT") if "ORT" in (q.exams or [])]
         assert len(student_pool("ORT")) > len(own)
         assert all(q.answer_type != "written" for q in student_pool("ORT"))
-    ok(c, "/skills", contains=["sp-level", "sp-dot", "Глава 1"])
+    ok(c, "/skills?show=list", contains=["sp-level", "sp-dot", "Глава 1"])
 
 
 def test_practice_pack_answers_are_consistent():
