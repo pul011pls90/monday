@@ -775,7 +775,7 @@ def test_question_bank_filters_and_play():
         st = BankState.query.filter_by(question_id=qid).first()
         assert st.marked and st.seconds == 17 and st.last_correct
     r = c.get("/bank/?exam=SAT&mk=yes")
-    assert '<b class="num">1</b> из <b class="num">1</b> решено' in r.data.decode()
+    assert '<b class="num">1</b> из <span class="num">1</span> решено' in r.data.decode()
 
 
 def test_teacher_today_bank_and_attendance():
