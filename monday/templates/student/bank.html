@@ -25,14 +25,17 @@
   </div>
   <div class="bk-progress__pct num">{{ stats.percent }}<small>%</small></div>
   <div class="bk-progress__bar" role="progressbar" aria-valuemin="0" aria-valuemax="{{ stats.total }}" aria-valuenow="{{ stats.answered }}">
-    <i class="is-ok" style="width: {{ stats.ok_w }}%"></i><i class="is-bad" style="width: {{ stats.bad_w }}%"></i>
+    <div class="bk-progress__fill">
+      <a class="is-ok" style="width: {{ stats.ok_w }}%" href="{{ url_for('bank.index', exam=exam, st='correct') }}" title="{{ _('Верно') }}: {{ stats.correct }}"></a><a class="is-bad" style="width: {{ stats.bad_w }}%" href="{{ url_for('bank.index', exam=exam, st='incorrect') }}" title="{{ _('Неверно') }}: {{ stats.wrong }}"></a>
+    </div>
   </div>
-  <ul class="bk-progress__facts">
-    <li><i class="is-ok"></i>{{ _("Верно") }} <b class="num">{{ stats.correct }}</b></li>
-    <li><i class="is-bad"></i>{{ _("Неверно") }} <b class="num">{{ stats.wrong }}</b></li>
-    {% if stats.time != '—' %}<li>{{ ui.icon('clock', 15) }} <b class="num">{{ stats.time }}</b></li>{% endif %}
-    {% if stats.marked %}<li>{{ ui.icon('bookmark', 15) }} <b class="num">{{ stats.marked }}</b> {{ _("на проверку") }}</li>{% endif %}
-  </ul>
+  <div class="bk-progress__chips">
+    <a class="bk-pchip bk-pchip--ok{{ ' is-on' if f.st == ['correct'] }}" href="{{ url_for('bank.index', exam=exam, st='correct') }}">{{ ui.icon('check', 16) }}<span>{{ _("Верно") }}</span><b class="num">{{ stats.correct }}</b></a>
+    <a class="bk-pchip bk-pchip--bad{{ ' is-on' if f.st == ['incorrect'] }}" href="{{ url_for('bank.index', exam=exam, st='incorrect') }}">{{ ui.icon('x', 16) }}<span>{{ _("Неверно") }}</span><b class="num">{{ stats.wrong }}</b></a>
+    <a class="bk-pchip bk-pchip--new{{ ' is-on' if f.st == ['none'] }}" href="{{ url_for('bank.index', exam=exam, st='none') }}">{{ ui.icon('questions', 16) }}<span>{{ _("Без ответа") }}</span><b class="num">{{ stats.total - stats.answered }}</b></a>
+    {% if stats.marked %}<a class="bk-pchip bk-pchip--mark{{ ' is-on' if f.mk == ['yes'] }}" href="{{ url_for('bank.index', exam=exam, mk='yes') }}">{{ ui.icon('bookmark', 16) }}<span>{{ _("на проверку") }}</span><b class="num">{{ stats.marked }}</b></a>{% endif %}
+    {% if stats.time != '—' %}<span class="bk-pchip bk-pchip--time">{{ ui.icon('clock', 16) }}<span>{{ _("Всего времени в банке") }}</span><b class="num">{{ stats.time }}</b></span>{% endif %}
+  </div>
 </section>
 
 {# ------------------------------------------------------------ filters: one row of dropdowns (each change applies at once) #}
@@ -114,8 +117,8 @@
 
     {% if topics %}
     <div class="bank-start" data-bank-start>
-      <span class="bank-start__text" data-sel-text data-none="{{ _('Ничего не выбрано — сессия по всем фильтрам: %(n)s', n=stats.total) }}"
-            data-some="{{ _('Выбрано навыков: {k} · вопросов: {q}') }}">{{ _('Ничего не выбрано — сессия по всем фильтрам: %(n)s', n=stats.total) }}</span>
+      <span class="bank-start__text" data-sel-text data-none="{{ _('Ничего не выбрано — сессия по всем фильтрам: %(n)s', n=matching) }}"
+            data-some="{{ _('Выбрано навыков: {k} · вопросов: {q}') }}">{{ _('Ничего не выбрано — сессия по всем фильтрам: %(n)s', n=matching) }}</span>
       <button class="btn btn--primary" type="submit" {{ 'disabled' if not stats.total }}>{{ _("Начать сессию") }}{{ ui.icon('arrow-right', 18) }}</button>
     </div>
     {% endif %}
