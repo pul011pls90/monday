@@ -6,7 +6,7 @@
 .mhb-cell { position: relative; display: grid; justify-items: start; gap: 6px; }
 .mhb-cell + .mhb-cell::before { content: ""; position: absolute; left: -16px; top: 14px; width: 5px; height: 5px;
   background: rgba(255, 255, 255, .55); box-shadow: 0 16px 0 rgba(255, 255, 255, .55); }
-.mhb-cell span, .mhb-facts dt { font: 600 11px/1 'IBM Plex Mono', ui-monospace, monospace; text-transform: uppercase;
+.mhb-cell span, .mhb-facts dt { font: 700 11px/1 var(--font); text-transform: uppercase;
   letter-spacing: .12em; color: rgba(201, 211, 255, .72); }
 
 .mhb-facts { display: flex; flex-wrap: wrap; row-gap: 14px; margin: 0; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, .18); }

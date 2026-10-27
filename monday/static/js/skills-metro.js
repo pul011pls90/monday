@@ -54,14 +54,14 @@
       });
       H = y + 56; total = s; path = `M${x},46 L${x},${y - 40}`;
     } else {
-      const r = 64, pad = 28 + r, x0 = pad, x1 = W - pad, L = x1 - x0, top = 104;
+      const r = 74, pad = 28 + r, x0 = pad, x1 = W - pad, L = x1 - x0, top = 104;
       let u = 6, row = 0, s = 6, open = null;
       const pos = () => ({ x: row % 2 ? x1 - u : x0 + u, y: top + row * 2 * r, s, row });
       const adv = (g) => {
         if (u + g > L) { s += L - u + Math.PI * r + 30; row++; u = 30; } else { u += g; s += g; }
       };
       seq.forEach((node, i) => {
-        if (node.type === 'topic') { if (i) adv(54); P.push({ node, ...pos() }); adv(58); }
+        if (node.type === 'topic') { if (i) adv(76); P.push({ node, ...pos() }); adv(70); }
         else if (node.type === 'sub') { if (seq[i - 1].type !== 'topic') adv(22); open = { node, ...pos(), parts: [] }; }
         else if (node.type === 'skill') { if (seq[i - 1].type !== 'sub' || seq[i - 2].type !== 'topic') adv(40); P.push({ node, ...pos() }); }
         else { subSpans.push(open); }
@@ -106,13 +106,34 @@
       const row = mine.filter((p) => p.row === mine[0].row);
       return { sp, a: Math.min(...row.map((p) => p.x)), b: Math.max(...row.map((p) => p.x)), y: row[0].y, row: row[0].row };
     });
+    // measure with the page's own font; a label is never cut inside a word
+    const ctx = document.createElement('canvas').getContext('2d');
+    ctx.font = `600 12.5px ${getComputedStyle(stage).fontFamily}`;
+    const tw = (s) => ctx.measureText(s).width;
+    // topic names sit under their interchange: reserve that space on the "below" side
+    const boxes = { above: [], below: [], high: [] };
+    P.filter((p) => p.node.type === 'topic').forEach((p) => {
+      boxes.below.push({ row: p.row, l: p.x - 92, r: p.x + 92 });
+      boxes.high.push({ row: p.row + 1, l: p.x - 92, r: p.x + 92 }); // the topic name of the row above reaches down here
+    });
+    const free = (side, row, l, r) => !boxes[side].some((b) => b.row === row && l < b.r + 8 && r > b.l - 8);
     spans.forEach((it) => {
-      const el = document.createElement('span'); el.className = 'mt-sub'; el.textContent = it.sp.node.s.name; el.title = it.sp.node.s.name;
+      const name = it.sp.node.s.name;
+      const el = document.createElement('span'); el.className = 'mt-sub'; el.textContent = name; el.title = name;
       if (phone) { el.style.left = it.sp.x + 28 + 'px'; el.style.top = it.sp.y + 'px'; stage.appendChild(el); return; }
-      const same = spans.filter((o) => o.row === it.row && o !== it);
-      const prev = same.filter((o) => o.b < it.a).sort((x, y) => y.b - x.b)[0], next = same.filter((o) => o.a > it.b).sort((x, y) => x.a - y.a)[0];
-      const left = prev ? (prev.b + it.a) / 2 : it.a - 70, right = next ? (it.b + next.a) / 2 : it.b + 70, c = (it.a + it.b) / 2;
-      el.style.left = c + 'px'; el.style.top = it.y + 'px'; el.style.width = Math.max(56, 2 * Math.min(c - left, right - c) - 8) + 'px';
+      const full = tw(name), longest = Math.max(...name.split(/\s+/).map(tw));
+      const c = (it.a + it.b) / 2, room = Math.max(it.b - it.a + 34, 70);
+      const w = Math.ceil(Math.max(longest, Math.min(full, Math.max(room, full / 2 + 14)))) + 4;
+      // try above / below / one level higher, then the same nudged sideways; the label stays near its stations
+      let spot = null;
+      for (const dx of [0, -30, 30, -60, 60]) {
+        const side = ['above', 'below', 'high'].find((sd) => free(sd, it.row, c + dx - w / 2, c + dx + w / 2));
+        if (side) { spot = { side, x: c + dx }; break; }
+      }
+      spot = spot || { side: 'above', x: c };
+      boxes[spot.side].push({ row: it.row, l: spot.x - w / 2, r: spot.x + w / 2 });
+      el.classList.add('is-' + spot.side);
+      el.style.left = spot.x + 'px'; el.style.top = it.y + 'px'; el.style.width = w + 'px';
       stage.appendChild(el);
     });
 
