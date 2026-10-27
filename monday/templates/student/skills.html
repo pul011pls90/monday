@@ -11,20 +11,34 @@
 </form>
 {% endblock %}
 {% block content %}
-<div class="page-head">
+{# Header: «Маршрут [ОРТ ▾]» — the exam badge is also the exam switcher; on the right, how to look at it (map / list). #}
+{% set cur_name = metro.current and (metro.topics|map(attribute='subtopics')|sum(start=[])|map(attribute='skills')|sum(start=[])|selectattr('id', 'equalto', metro.current)|map(attribute='name')|first) %}
+<div class="page-head skh">
   <div class="page-head__text">
-    <h1>{{ _("Карта навыков") }}</h1>
-    <p>{% if exam %}{{ _("Маршрут %(exam)s: %(total)s навыков · освоено %(m)s", exam=exam|exam_label, total=summary.total, m=summary.mastered) }}{% else %}{{ _("Все экзамены: %(total)s навыков · освоено %(m)s", total=summary.total, m=summary.mastered) }}{% endif %}</p>
+    <h1 class="skh-title">{{ _("Маршрут") }}
+      <details class="skh-exam">
+        <summary aria-label="{{ _('Сменить экзамен') }}"><span>{{ exam|exam_label if exam else _("Все экзамены") }}</span>{{ ui.icon('chevron-down', 22) }}</summary>
+        <div class="skh-exam__menu" role="menu">
+          {% set codes = ([own] if own in EXAMS else []) + (EXAMS.keys()|reject('equalto', own)|list) %}
+          {% for code in codes %}
+            <a role="menuitem" class="{{ 'is-on' if view == code }}" href="{{ url_for('student.skills', exam=code, q=q or None) }}">
+              <b>{{ EXAMS[code].label }}</b>{% if code == own %}<small>{{ _("твой экзамен") }}</small>{% endif %}
+              {% if view == code %}{{ ui.icon('check', 18) }}{% endif %}
+            </a>
+          {% endfor %}
+          <hr>
+          <a role="menuitem" class="{{ 'is-on' if view == 'all' }}" href="{{ url_for('student.skills', exam='all', q=q or None) }}"><b>{{ _("Все навыки") }}</b><small>{{ _("всех экзаменов") }}</small>{% if view == 'all' %}{{ ui.icon('check', 18) }}{% endif %}</a>
+        </div>
+      </details>
+    </h1>
+    <p class="skh-sub">
+      {% if summary.total and summary.mastered >= summary.total %}{{ _("Все %(n)s навыков освоены — маршрут пройден.", n=summary.total) }}
+      {% else %}{{ _("Пройдено %(a)s из %(n)s %(w)s.", a=summary.mastered, n=summary.total, w=summary.total|plural_ru(_("навыка"), _("навыков"), _("навыков"))) }}{% if cur_name %} {{ _("Дальше — «%(s)s».", s=cur_name) }}{% endif %}{% endif %}
+    </p>
   </div>
   <div class="mt-switch" role="group" aria-label="{{ _('Вид') }}">
     <a class="{{ 'is-on' if show == 'map' }}" href="{{ url_for('student.skills', exam=view, q=q or None, show='map') }}"{% if show == 'map' %} aria-current="page"{% endif %}>{{ ui.icon('skills', 16) }} {{ _("Карта") }}</a>
     <a class="{{ 'is-on' if show == 'list' }}" href="{{ url_for('student.skills', exam=view, q=q or None, show='list') }}"{% if show == 'list' %} aria-current="page"{% endif %}>{{ ui.icon('list', 16) }} {{ _("Список") }}</a>
-  </div>
-  <div class="chips" role="group" aria-label="{{ _('Экзамен') }}">
-    <a class="chip{{ ' is-active' if view == 'all' }}" href="{{ url_for('student.skills', exam='all', q=q or None) }}">{{ _("Все") }}</a>
-    {% for code, e in EXAMS.items() %}
-      <a class="chip{{ ' is-active' if view == code }}" href="{{ url_for('student.skills', exam=code, q=q or None) }}"{% if code == own %} title="{{ _('Твой экзамен') }}"{% endif %}>{{ e.label }}{% if code == own %}<i class="sk-own" aria-hidden="true"></i>{% endif %}</a>
-    {% endfor %}
   </div>
 </div>
 
