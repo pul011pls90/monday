@@ -193,7 +193,7 @@ def test_student_pages_render():
     ok(c, "/collections", contains=["Сборники", "Рекомендуем тебе", "ОРТ Май 2026"])
     ok(c, "/collections?exam=SAT&cat=full&sort=short", contains="SAT April 2024")
     ok(c, "/collections?q=Геометрия", contains="Геометрия: площади")
-    ok(c, "/homework", contains=["Нужно сделать", "свойства логарифмов", "hw-mission", "Проверено"])
+    ok(c, "/homework", contains=["Нужно сделать", "Свойства логарифмов", "hwc__icon", "Проверено"])
     ok(c, "/journal", contains=["Лабораторный журнал", "Почему ты теряешь баллы"])
     ok(c, "/journal?show=resolved")
     ok(c, "/monday", contains=["Тест", "Рейтинг прошлой недели", "Дуэль школ"])

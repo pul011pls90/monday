@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/homework-missions.css') }}">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/homework.css') }}">{% endblock %}
 {% block title %}{{ _("Домашние задания") }}{% endblock %}
 {% block content %}
 <div class="page-head">
@@ -25,40 +25,45 @@
 {%- if d -%}{{ _("%(d)s д %(h)s ч", d=d, h=h) }}{%- elif h -%}{{ _("%(h)s ч %(m)s мин", h=h, m=m % 60) }}{%- else -%}{{ _("%(m)s мин", m=m) }}{%- endif -%}
 {%- endmacro %}
 
+{% macro title_of(a) -%}{%- set x = a.work.title|replace('ДЗ: ', '') -%}{{ x[:1]|upper }}{{ x[1:] }}{%- endmacro %}
+
 <section class="section" aria-labelledby="todo-h">
   <div class="section__head"><h2 id="todo-h">{{ _("Нужно сделать") }}</h2><span class="small muted">{{ todo|length }}</span></div>
   {% if todo %}
-  <div class="hw-missions">
+  <div class="hwc-grid">
     {% for a, state in todo %}
       {% set v = a.work.current_version %}{% set m = mission[a.id] %}{% set n = v.question_count %}
-      <article class="hw-mission hw-mission--c{{ a.id % 4 }}{{ ' is-overdue' if state == 'overdue' }}">
-        <div class="hw-mission__top">
-          <span class="hw-mission__kicker">{{ a.work.exam|exam_label }} · {{ n }} {{ n|plural_ru(_("задача"), _("задачи"), _("задач")) }} · {{ v.time_limit_min|minutes }}</span>
-          <span class="hw-timer{{ ' is-late' if m.left is not none and m.left < 0 }}">
-            {{ ui.icon('clock', 16) }}
-            {% if m.left is none %}{{ _("без срока") }}{% elif m.left < 0 %}{{ _("просрочено на %(t)s", t=left_label(m.left)) }}{% else %}{{ _("осталось %(t)s", t=left_label(m.left)) }}{% endif %}
+      {% set late = m.left is not none and m.left < 0 %}{% set soon = m.left is not none and 0 <= m.left < 86400 %}
+      <article class="hwc{{ ' is-late' if late }}">
+        <div class="hwc__head">
+          <span class="hwc__icon" aria-hidden="true">{{ emoji[a.id] }}</span>
+          <div>
+            <h3 class="hwc__title">{{ title_of(a) }}</h3>
+            <p class="hwc__meta">{{ a.work.exam|exam_label }} · {{ n }} {{ n|plural_ru(_("задача"), _("задачи"), _("задач")) }}{% if v.time_limit_min %} · ~{{ v.time_limit_min|minutes }}{% endif %}</p>
+          </div>
+        </div>
+        {% if a.message %}
+          <blockquote class="hwc__note"><span aria-hidden="true">💬</span><span>«{{ a.message }}»<cite>— {{ a.teacher.name }}</cite></span></blockquote>
+        {% else %}
+          <p class="hwc__from">{{ ui.avatar(a.teacher, 'avatar--sm') }}{{ a.teacher.name }}</p>
+        {% endif %}
+        {% if m.answered %}
+          <div class="hwc__progress"><span class="hwc__bar"><i style="width: {{ (100 * m.answered / n)|round|int if n else 0 }}%"></i></span><small class="num">{{ _("%(a)s из %(n)s", a=m.answered, n=n) }}</small></div>
+        {% endif %}
+        <div class="hwc__foot">
+          <span class="hwc__due{{ ' is-late' if late }}{{ ' is-soon' if soon }}">
+            <span aria-hidden="true">{{ '⏰' if late or soon else '🗓️' }}</span>
+            {% if m.left is none %}{{ _("Без срока") }}{% elif late %}{% set dd = (m.left|abs) // 86400 %}{{ _("Срок прошёл %(t)s назад", t=(_("%(d)s д", d=dd) if dd else left_label(m.left))) }}{% elif soon %}{{ _("Сдать через %(t)s", t=left_label(m.left)) }}{% else %}{{ _("Сдать до %(d)s", d=a.due_at|dt) }}{% endif %}
           </span>
-        </div>
-        <h3 class="hw-mission__title">{{ a.work.title|replace('ДЗ: ', '') }}</h3>
-        <div class="hw-from">
-          {{ ui.avatar(a.teacher, 'avatar--sm') }}
-          {% if a.message %}<p class="hw-bubble">{{ a.message }}</p>{% else %}<span class="hw-from__name">{{ a.teacher.name }}</span>{% endif %}
-        </div>
-        <div class="hw-segs" aria-label="{{ _('Решено %(a)s из %(n)s', a=m.answered, n=n) }}">
-          {% for k in range(n) %}<i class="{{ 'is-on' if k < m.answered }}"></i>{% endfor %}
-        </div>
-        <div class="hw-mission__foot">
-          <span class="hw-mission__progress num">{{ m.answered }} / {{ n }}</span>
-          <a class="hw-go" href="{{ url_for('student.homework_detail', assignment_id=a.id) }}">{{ _("Продолжить") if state == 'in_progress' else _("Начать") }} {{ ui.icon('arrow-right', 18) }}</a>
+          <a class="hwc__go" href="{{ url_for('student.homework_detail', assignment_id=a.id) }}">{{ _("Продолжить") if state == 'in_progress' else _("Начать") }} {{ ui.icon('arrow-right', 18) }}</a>
         </div>
       </article>
     {% endfor %}
   </div>
   {% else %}
-  <div class="hw-clear">
-    <div class="hw-clear__badge">{{ ui.icon('check', 30) }}</div>
-    <h3>{{ _("Всё сдано") }}</h3>
-    <p>{{ _("Новых заданий нет. Можно пройти сессию или сборник.") }}</p>
+  <div class="hwc-clear">
+    <span class="hwc-clear__emoji" aria-hidden="true">🎉</span>
+    <div><h3>{{ _("Всё сдано!") }}</h3><p>{{ _("Новых заданий нет. Можно пройти сессию или сборник.") }}</p></div>
   </div>
   {% endif %}
 </section>
@@ -66,16 +71,20 @@
 <section class="section" aria-labelledby="done-h">
   <div class="section__head"><h2 id="done-h">{{ _("Выполненные") }}</h2><span class="small muted">{{ done|length }}</span></div>
   {% if done %}
-  <div class="hw-shelf">
+  <div class="hwd-list">
     {% for a, state in done %}
       {% set last = a.attempts|selectattr('finished_at')|list|last %}
       {% set perfect = last and last.total and last.score == last.total %}
-      <a class="hw-stamp{{ ' is-perfect' if perfect }}{{ ' is-checked' if state == 'checked' }}" href="{{ url_for('student.homework_detail', assignment_id=a.id) }}">
-        <span class="hw-stamp__score num">{% if last %}{{ last.score }}<small>/{{ last.total }}</small>{% else %}—{% endif %}</span>
-        {% if perfect %}<span class="hw-stamp__star" aria-label="{{ _('Без ошибок') }}">★</span>{% endif %}
-        <span class="hw-stamp__title">{{ a.work.title|replace('ДЗ: ', '') }}</span>
-        <span class="hw-stamp__meta">{{ ui.state(state, HOMEWORK_STATES[state]) }}</span>
-        <span class="hw-stamp__date small">{{ _("сдано") }} {{ last.finished_at|dt if last }}</span>
+      <a class="hwd" href="{{ url_for('student.homework_detail', assignment_id=a.id) }}">
+        <span class="hwd__icon" aria-hidden="true">{{ '⭐' if perfect else '✅' }}</span>
+        <span class="hwd__main">
+          <b>{{ title_of(a) }}</b>
+          <small>{{ emoji[a.id] }} {% if last %}{{ _("сдано") }} {{ last.finished_at|dt }}{% endif %}</small>
+          {% if a.teacher_comment %}<span class="hwd__comment">💬 {{ a.teacher_comment }}</span>{% endif %}
+        </span>
+        <span class="hwd__state">{{ ui.state(state, HOMEWORK_STATES[state]) }}</span>
+        <span class="hwd__score num{{ ' is-perfect' if perfect }}">{% if last %}{{ last.score }}<small>/{{ last.total }}</small>{% else %}—{% endif %}</span>
+        {{ ui.icon('chevron-down', 18) }}
       </a>
     {% endfor %}
   </div>

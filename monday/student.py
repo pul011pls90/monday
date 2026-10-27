@@ -885,8 +885,31 @@ def homework():
         answered = sum(1 for x in open_att.answers if x.given) if open_att else 0
         left = int((a.due_at - now).total_seconds()) if a.due_at else None
         mission[a.id] = {"answered": answered, "left": left}
+    emoji = {a.id: _homework_emoji(a.work) for a, _s in groups["todo"] + groups["done"]}
     return render_template("student/homework.html", todo=groups["todo"], done=groups["done"], teachers=teachers,
-                           mission=mission)
+                           mission=mission, emoji=emoji)
+
+
+# one friendly emoji per homework, from the topic most of its questions belong to (falls back to the title)
+_TOPIC_EMOJI = [("геометр", "📐"), ("geometry", "📐"), ("тригоном", "🔺"), ("trigon", "🔺"), ("функц", "📈"), ("анализ", "📈"),
+                ("advanced", "📈"), ("логариф", "📈"), ("вероят", "🎲"), ("статист", "📊"), ("data", "📊"), ("арифм", "🔢"),
+                ("числ", "🔢"), ("процент", "🔢"), ("алгебр", "🧮"), ("algebra", "🧮"), ("уравнен", "🧮"), ("логик", "🧩")]
+
+
+def _homework_emoji(work):
+    v = work.current_version
+    ids = [it.get("skill_id") for it in (v.items or [])] if v else []
+    names = []
+    if ids:
+        nodes = {n.id: n for n in ContentNode.query.filter(ContentNode.id.in_([i for i in ids if i])).all()}
+        tops = Counter((nodes[i].topic_node.name if nodes[i].topic_node else nodes[i].name) for i in ids if i in nodes)
+        names = [n for n, _c in tops.most_common()]
+    for text in names + [work.title or ""]:
+        low = text.lower()
+        for key, e in _TOPIC_EMOJI:
+            if key in low:
+                return e
+    return "📝"
 
 
 def _own_assignment(assignment_id):
