@@ -146,10 +146,14 @@ def index():
     done = {k: sum(by_done[n] for n in ids) for k, ids in ks.items()}
 
     answered = sum(1 for _q, st in rows if st != "none")
+    correct = sum(1 for _q, st in rows if st == "correct")
     seconds = sum(states[q.id].seconds for q, _st in rows if q.id in states)
     marked = sum(1 for q, _st in rows if q.id in states and states[q.id].marked)
     stats = {
         "total": len(rows), "answered": answered, "marked": marked,
+        "correct": correct, "wrong": answered - correct,
+        "ok_w": round(100 * correct / len(rows), 1) if rows else 0,
+        "bad_w": round(100 * (answered - correct) / len(rows), 1) if rows else 0,
         "percent": round(100 * answered / len(rows)) if rows else 0,
         "time": clock(seconds) if seconds else "—",
     }

@@ -9,31 +9,43 @@
   't': [('choice', _('Варианты')), ('number', _('Ввод ответа'))],
   'src': [('pack', _('Из сборников')), ('teacher', _('От учителей'))],
 } %}
-{% set groups = [('d', 'bars', _('Сложность')), ('st', 'status', _('Статус ответа')), ('mk', 'bookmark', _('Отмечено для проверки')), ('t', 'filter', _('Тип ответа')), ('src', 'journal', _('Источник'))] %}
+{% set groups = [('d', 'bars', _('Сложность')), ('st', 'status', _('Статус ответа')), ('mk', 'bookmark', _('Отмеченные')), ('t', 'filter', _('Тип ответа')), ('src', 'journal', _('Источник'))] %}
 
 <div class="page-head bk-head">
   <div class="page-head__text">
     <h1>{{ _("Банк вопросов") }}</h1>
-    <p class="bk-summary">
-      <span><b class="num">{{ stats.answered }}</b> {{ _("из") }} <b class="num">{{ stats.total }}</b> {{ _("решено") }}</span>
-      <span class="bk-summary__bar" aria-hidden="true"><i style="width: {{ stats.percent }}%"></i></span>
-      <span class="num">{{ stats.percent }}%</span>
-      {% if stats.time != '—' %}<span class="bk-summary__sep">·</span><span>{{ ui.icon('clock', 15) }} <span class="num">{{ stats.time }}</span></span>{% endif %}
-      {% if stats.marked %}<span class="bk-summary__sep">·</span><span>{{ ui.icon('bookmark', 15) }} <span class="num">{{ stats.marked }}</span> {{ _("на проверку") }}</span>{% endif %}
-    </p>
   </div>
-  <form method="get" class="bank-exam">
-    {% for k, vals in f.items() %}{% for v in vals %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}{% endfor %}
-    <label class="sr-only" for="bank-exam">{{ _("Экзамен") }}</label>
-    <select class="select" id="bank-exam" name="exam" data-autosubmit>
-      {% for code, e in EXAMS.items() %}<option value="{{ code }}" {{ 'selected' if code == exam }}>{{ e.label }}</option>{% endfor %}
-    </select>
-  </form>
 </div>
+
+{# ------------------------------------------------------------ progress: the main number of the page #}
+<section class="bk-progress" aria-label="{{ _('Прогресс') }}">
+  <div class="bk-progress__count">
+    <span class="bk-progress__eyebrow">{{ _("Прогресс") }}</span>
+    <span><b class="num">{{ stats.answered }}</b> {{ _("из") }} <span class="num">{{ stats.total }}</span> {{ _("решено") }}</span>
+  </div>
+  <div class="bk-progress__pct num">{{ stats.percent }}<small>%</small></div>
+  <div class="bk-progress__bar" role="progressbar" aria-valuemin="0" aria-valuemax="{{ stats.total }}" aria-valuenow="{{ stats.answered }}">
+    <i class="is-ok" style="width: {{ stats.ok_w }}%"></i><i class="is-bad" style="width: {{ stats.bad_w }}%"></i>
+  </div>
+  <ul class="bk-progress__facts">
+    <li><i class="is-ok"></i>{{ _("Верно") }} <b class="num">{{ stats.correct }}</b></li>
+    <li><i class="is-bad"></i>{{ _("Неверно") }} <b class="num">{{ stats.wrong }}</b></li>
+    {% if stats.time != '—' %}<li>{{ ui.icon('clock', 15) }} <b class="num">{{ stats.time }}</b></li>{% endif %}
+    {% if stats.marked %}<li>{{ ui.icon('bookmark', 15) }} <b class="num">{{ stats.marked }}</b> {{ _("на проверку") }}</li>{% endif %}
+  </ul>
+</section>
 
 {# ------------------------------------------------------------ filters: one row of dropdowns (each change applies at once) #}
 <form method="get" class="bk-filters" data-bank-filters aria-label="{{ _('Фильтры') }}">
-  <input type="hidden" name="exam" value="{{ exam or '' }}">
+  <details class="bk-drop bk-drop--exam is-on">
+    <summary>{{ ui.icon('flag', 16) }}<span class="sr-only">{{ _("Экзамен") }}:</span><b>{{ EXAMS[exam].label if exam in EXAMS else _("Все") }}</b>{{ ui.icon('chevron-down', 16) }}</summary>
+    <div class="bk-drop__menu">
+      {% for code, e in EXAMS.items() %}
+        <label class="bank-chip"><input type="radio" name="exam" value="{{ code }}" {{ 'checked' if code == exam }}><span>{{ e.label }}</span></label>
+      {% endfor %}
+    </div>
+  </details>
+  <span class="bk-filters__sep" aria-hidden="true"></span>
   {% for key, ic, title in groups %}
     <details class="bk-drop{{ ' is-on' if f[key] }}">
       <summary>{{ ui.icon(ic, 16) }}<span>{{ title }}</span>{% if f[key] %}<b class="bk-drop__n num">{{ f[key]|length }}</b>{% endif %}{{ ui.icon('chevron-down', 16) }}</summary>
