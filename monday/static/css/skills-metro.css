@@ -1,0 +1,105 @@
+/* Карта навыков — metro map. Navy + white, one accent blue, gold only for stars, green only for «освоен». */
+
+.mt-switch { display: inline-flex; padding: 4px; border-radius: 999px; background: var(--surface-2); margin-right: 12px; }
+.mt-switch a { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border-radius: 999px; color: var(--text-2); font-weight: 600; font-size: 14px; text-decoration: none; }
+.mt-switch a.is-on { background: var(--surface); color: var(--text); box-shadow: 0 2px 6px rgba(2, 11, 41, .1); }
+
+.mt { display: grid; gap: 14px; margin-top: 8px; }
+
+/* next step */
+.mt-next { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "eye go" "where go" "skill go"; align-items: center; column-gap: 20px;
+  padding: 18px 22px; border-radius: 22px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--card-shadow); }
+.mt-next__eyebrow { grid-area: eye; font: 600 11px/1.3 'IBM Plex Mono', ui-monospace, monospace; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); }
+.mt-next__where { grid-area: where; color: var(--text-2); font-size: 14px; }
+.mt-next__skill { grid-area: skill; font-size: 20px; line-height: 1.25; letter-spacing: -.01em; }
+.mt-next__go { grid-area: go; display: inline-flex; align-items: center; gap: 8px; min-height: 50px; padding: 0 24px; border: 0; border-radius: 999px; cursor: pointer;
+  background: var(--btn-bg); color: var(--btn-text); font: inherit; font-weight: 800; font-size: 16px; box-shadow: 0 5px 0 #0a1250; transition: transform .12s, box-shadow .12s; }
+.mt-next__go:hover { transform: translateY(-1px); }
+.mt-next__go:active { transform: translateY(3px); box-shadow: 0 2px 0 #0a1250; }
+
+/* the map */
+.mt-stage { --line-bg: rgba(255, 255, 255, .16); position: relative; border-radius: 26px; overflow: hidden; color: #fff;
+  background: radial-gradient(120% 90% at 85% 0%, #24339c 0%, transparent 55%), linear-gradient(160deg, #16237a, #0b1456 70%);
+  box-shadow: 0 22px 50px rgba(11, 20, 86, .28); min-height: 320px; }
+.mt-svg { position: absolute; inset: 0; }
+.mt-country path { fill: none; stroke: rgba(255, 255, 255, .07); stroke-linecap: round; }
+.mt-line { fill: none; stroke: var(--line-bg); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+.mt-line--done { stroke: #fff; }
+
+.mt-sub { position: absolute; transform: translate(-50%, calc(-100% - 20px)); font: 600 10.5px/1.25 'IBM Plex Mono', ui-monospace, monospace; text-transform: uppercase;
+  letter-spacing: .06em; color: rgba(214, 222, 255, .72); text-align: center; pointer-events: none;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* interchange (topic) */
+.mt-ix { position: absolute; z-index: 2; transform: translate(-50%, -50%); width: 46px; height: 46px; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  background: #fff; color: #0b1456; box-shadow: 0 0 0 6px rgba(255, 255, 255, .18), 0 8px 18px rgba(0, 0, 0, .25); transition: transform .15s; }
+.mt-ix > b { font-size: 20px; font-weight: 800; }
+.mt-ix:hover, .mt-ix:focus-visible { transform: translate(-50%, -50%) scale(1.08); }
+.mt-ix:focus-visible, .mt-st:focus-visible { outline: 3px solid #ffd36b; outline-offset: 3px; }
+.mt-ix.is-current { box-shadow: 0 0 0 6px var(--accent), 0 8px 18px rgba(0, 0, 0, .25); }
+.mt-ix.is-done { background: #f2c14e; }
+.mt-ix__label { position: absolute; left: 50%; top: calc(100% + 14px); transform: translateX(-50%); display: grid; gap: 2px; width: max-content; max-width: 170px; text-align: center; color: #fff; }
+.mt-ix__label strong { font-size: 15px; line-height: 1.2; }
+.mt-ix__label small { font-size: 12px; color: rgba(214, 222, 255, .8); }
+.mt-ix.is-weak .mt-ix__label strong::after { content: ""; display: inline-block; width: 8px; height: 8px; margin-left: 6px; border-radius: 50%; background: #ff8a80; vertical-align: 2px; }
+
+/* station (skill) */
+.mt-st { position: absolute; z-index: 1; transform: translate(-50%, -50%); width: 36px; height: 36px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; color: #fff; }
+.mt-st > i { width: 18px; height: 18px; border-radius: 50%; background: #0b1456; border: 3px solid rgba(255, 255, 255, .55); transition: transform .12s; }
+.mt-st:hover > i { transform: scale(1.25); }
+.mt-st.is-mastered > i { background: #fff; border-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%230b1456' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: 12px; background-position: center; background-repeat: no-repeat; }
+.mt-st.is-progress > i { border-color: #fff; background: radial-gradient(circle, #fff 0 3px, #0b1456 3.5px); }
+.mt-st.is-noq > i { border-style: dashed; border-color: rgba(255, 255, 255, .3); }
+.mt-st.is-current { z-index: 3; }
+.mt-st.is-current > i { width: 24px; height: 24px; background: var(--accent); border: 4px solid #fff; box-shadow: 0 0 0 0 rgba(59, 91, 255, .7); animation: mt-pulse 2s infinite; }
+@keyframes mt-pulse { 70% { box-shadow: 0 0 0 14px rgba(59, 91, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(59, 91, 255, 0); } }
+@media (prefers-reduced-motion: reduce) { .mt-st.is-current > i { animation: none; } }
+.mt-here { position: absolute; left: 50%; bottom: calc(100% + 44px); transform: translateX(-50%); padding: 5px 10px; border-radius: 999px; background: #fff; color: #0b1456;
+  font-weight: 800; font-size: 12px; white-space: nowrap; box-shadow: 0 6px 14px rgba(0, 0, 0, .25); }
+.mt-here::after { content: ""; position: absolute; left: 50%; top: 100%; width: 2px; height: 38px; background: linear-gradient(#fff, rgba(255, 255, 255, .2)); transform: translateX(-50%); }
+.mt-stars { color: #f2c14e; letter-spacing: 1px; }
+.mt-stars em { font-style: normal; color: rgba(214, 222, 255, .35); }
+
+/* the card */
+.mt-card { position: absolute; z-index: 10; display: grid; gap: 6px; width: 300px; padding: 16px 18px; border-radius: 18px; background: var(--surface); color: var(--text);
+  box-shadow: 0 20px 44px rgba(2, 11, 41, .35); }
+.mt-card__x { position: absolute; top: 8px; right: 8px; width: 36px; height: 36px; border: 0; border-radius: 50%; background: none; color: var(--text-2); font-size: 22px; cursor: pointer; }
+.mt-card__x:hover { background: var(--surface-2); }
+.mt-card__where { font: 600 11px/1.3 'IBM Plex Mono', ui-monospace, monospace; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); padding-right: 28px; }
+.mt-card__title { font-size: 18px; line-height: 1.25; }
+.mt-card__meta { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-2); }
+.mt-card .mt-stars em { color: var(--line-strong); }
+.mt-card__go { justify-self: start; margin-top: 6px; min-height: 44px; padding: 0 20px; border: 0; border-radius: 999px; background: var(--btn-bg); color: var(--btn-text); font: inherit; font-weight: 800; cursor: pointer; text-align: left; }
+
+.mt-legend { position: absolute; z-index: 2; left: 22px; bottom: 18px; display: flex; flex-wrap: wrap; gap: 8px 18px; color: rgba(214, 222, 255, .8); font-size: 12.5px; }
+.mt-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.mt-k { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 3px solid rgba(255, 255, 255, .55); background: #0b1456; }
+.mt-k--done { background: #fff; border-color: #fff; }
+.mt-k--prog { border-color: #fff; background: radial-gradient(circle, #fff 0 2px, #0b1456 2.5px); }
+.mt-k--here { background: var(--accent); border-color: #fff; }
+
+/* phone: one vertical line, each station a full-width row */
+.mt-stage.is-vertical .mt-st { transform: translate(-18px, -50%); width: calc(100% - 34px); height: 48px; display: flex; justify-content: flex-start; gap: 14px; padding-left: 9px; text-align: left; border-radius: 14px; }
+.mt-stage.is-vertical .mt-st:hover, .mt-stage.is-vertical .mt-st:focus-visible { background: rgba(255, 255, 255, .06); }
+.mt-stage.is-vertical .mt-st > i { flex: none; }
+.mt-stage.is-vertical .mt-st.is-current > i { margin-left: -3px; }
+.mt-st__name { flex: 1; font-size: 15px; font-weight: 600; line-height: 1.25; color: #fff; }
+.mt-st.is-new .mt-st__name, .mt-st.is-noq .mt-st__name { color: rgba(214, 222, 255, .78); font-weight: 500; }
+.mt-stage.is-vertical .mt-stars { padding-right: 12px; font-size: 13px; }
+.mt-stage.is-vertical .mt-here { position: static; transform: none; margin-right: 8px; }
+.mt-stage.is-vertical .mt-here::after { display: none; }
+.mt-stage.is-vertical .mt-ix__label { left: calc(100% + 16px); top: 50%; transform: translateY(-50%); text-align: left; max-width: 230px; }
+.mt-stage.is-vertical .mt-sub { transform: translateY(-50%); text-align: left; }
+
+@media (max-width: 719px) {
+  .mt-next { position: sticky; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 5; grid-template-columns: 1fr; grid-template-areas: "eye" "skill" "go"; row-gap: 4px; padding: 14px 16px; order: 2; box-shadow: 0 14px 34px rgba(2, 11, 41, .2); }
+  .mt-next__where { display: none; }
+  .mt-next__skill { font-size: 17px; }
+  .mt-next__go { justify-content: center; margin-top: 8px; min-height: 48px; }
+  .mt-stage { order: 1; border-radius: 22px; }
+  .mt-legend { left: 16px; right: 16px; bottom: 14px; gap: 6px 14px; }
+  .mt-switch { margin: 0 0 8px; }
+  .mt-card { position: fixed; left: 12px; right: 12px; bottom: calc(84px + env(safe-area-inset-bottom)); width: auto; z-index: 40; }
+}

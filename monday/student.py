@@ -3,7 +3,7 @@ import re
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
 
-from flask import Blueprint, abort, current_app, flash, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, flash, jsonify, make_response, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_required
 from sqlalchemy import or_
@@ -215,8 +215,26 @@ def skills():
     summary = {"total": sum(t["counted"] for t in topics), "mastered": sum(t["mastered"] for t in topics)}
     weak = progress_summary(current_user.id, own)["weak"] if exam == own else []
     highlight = weak[0]["skill"].topic_node.id if weak and weak[0]["skill"].topic_node else None
-    return render_template("student/skills.html", topics=topics, summary=summary, scope=scope, q=q, exam=exam,
-                           view=view, own=own, highlight=highlight)
+    # metro map data: topic → subtopic → skill, plus the station to continue from
+    current = next((i["skill"].id for t in topics for i in t["items"] if i["state"] not in ("outside", "mastered") and i["n"]), None)
+    metro = {"exam": exam, "current": current, "topics": [{
+        "id": t["node"].id, "name": t["name"], "weak": t["node"].id == highlight,
+        "subtopics": [{"name": s["node"].name, "skills": [
+            {"id": i["skill"].id, "name": i["skill"].name, "state": i["state"], "n": i["n"],
+             "acc": round(i["accuracy"], 3) if i["accuracy"] is not None else None}
+            for i in s["items"] if i["state"] != "outside"]} for s in t["subtopics"]],
+    } for t in topics]}
+    for t in metro["topics"]:
+        t["subtopics"] = [s for s in t["subtopics"] if s["skills"]]
+    metro["topics"] = [t for t in metro["topics"] if t["subtopics"]]
+    # map or list; the choice is remembered
+    show = request.args.get("show") or request.cookies.get("skills_view") or "map"
+    show = show if show in ("map", "list") else "map"
+    resp = make_response(render_template("student/skills.html", topics=topics, summary=summary, scope=scope, q=q, exam=exam,
+                                         view=view, own=own, highlight=highlight, metro=metro, show=show))
+    if request.args.get("show") in ("map", "list"):
+        resp.set_cookie("skills_view", show, max_age=60 * 60 * 24 * 365, samesite="Lax")
+    return resp
 
 
 # --------------------------------------------------------------------------- practice sessions
