@@ -103,12 +103,13 @@ def _matching(user, exam, f):
     tree, pool = _pool(user, exam)
     states = _states(user.id)
     last = _last_answers(user.id)
-    rows = []
+    rows, every = [], []
     for q in pool:
         status = _status(q, states, last)
+        every.append((q, status))
         if _match(q, f, status, states):
             rows.append((q, status))
-    return tree, pool, rows, states
+    return tree, pool, rows, states, every  # every: all of the exam's questions with their status
 
 
 def clock(seconds):
@@ -126,7 +127,7 @@ def clock(seconds):
 def index():
     exam = _exam_arg()
     f = _filters(request.args)
-    tree, pool, rows, states = _matching(current_user, exam, f)
+    tree, pool, rows, states, every = _matching(current_user, exam, f)
 
     # the exam's own view of the map (SAT: official domains; others: the master map)
     view = exam_view(current_user, exam)
@@ -145,20 +146,22 @@ def index():
     diff = {k: [sum(by_diff[n][d] for n in ids) for d in (1, 2, 3)] for k, ids in ks.items()}
     done = {k: sum(by_done[n] for n in ids) for k, ids in ks.items()}
 
-    answered = sum(1 for _q, st in rows if st != "none")
-    correct = sum(1 for _q, st in rows if st == "correct")
-    seconds = sum(states[q.id].seconds for q, _st in rows if q.id in states)
-    marked = sum(1 for q, _st in rows if q.id in states and states[q.id].marked)
+    # the progress card always shows the whole exam, whatever filters are on
+    answered = sum(1 for _q, st in every if st != "none")
+    correct = sum(1 for _q, st in every if st == "correct")
+    seconds = sum(states[q.id].seconds for q, _st in every if q.id in states)
+    marked = sum(1 for q, _st in every if q.id in states and states[q.id].marked)
+    n = len(every)
     stats = {
-        "total": len(rows), "answered": answered, "marked": marked,
+        "total": n, "answered": answered, "marked": marked,
         "correct": correct, "wrong": answered - correct,
-        "ok_w": round(100 * correct / len(rows), 1) if rows else 0,
-        "bad_w": round(100 * (answered - correct) / len(rows), 1) if rows else 0,
-        "percent": round(100 * answered / len(rows)) if rows else 0,
+        "percent": round(100 * answered / n) if n else 0,
+        "ok_w": round(100 * correct / n, 1) if n else 0,
+        "bad_w": round(100 * (answered - correct) / n, 1) if n else 0,
         "time": clock(seconds) if seconds else "—",
     }
     active = any(f.values())
-    return render_template("student/bank.html", exam=exam, f=f, active=active, topics=topics, stats=stats,
+    return render_template("student/bank.html", exam=exam, f=f, active=active, topics=topics, stats=stats, matching=len(rows),
                            pool_size=len(pool), count=count, total=total, diff=diff, done=done)
 
 
@@ -167,7 +170,7 @@ def index():
 def start():
     exam = _exam_arg()
     f = _filters(request.form)
-    tree, _pool_all, rows, _states_ = _matching(current_user, exam, f)
+    tree, _pool_all, rows, _states_, _every = _matching(current_user, exam, f)
 
     # the chosen entries (any level of the exam view) → master skills
     ks = keyset(exam_view(current_user, exam))

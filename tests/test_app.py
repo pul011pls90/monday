@@ -775,7 +775,10 @@ def test_question_bank_filters_and_play():
         st = BankState.query.filter_by(question_id=qid).first()
         assert st.marked and st.seconds == 17 and st.last_correct
     r = c.get("/bank/?exam=SAT&mk=yes")
-    assert '<b class="num">1</b> из <span class="num">1</span> решено' in r.data.decode()
+    body = r.data.decode()
+    assert "сессия по всем фильтрам: 1<" in body  # the filter keeps the one marked question
+    assert re.search(r'bk-pchip--mark is-on.*?<b class="num">1</b>', body, re.S)  # the card counts the whole exam
+    assert re.search(r'<b class="num">\d+</b> из <span class="num">\d+</span> решено', body)
 
 
 def test_teacher_today_bank_and_attendance():
