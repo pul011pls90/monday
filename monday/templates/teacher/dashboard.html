@@ -17,66 +17,17 @@
   </div>
 </div>
 
-{# ------------------------------------------------------------ hero: today #}
-<section class="hero hero--home" data-hero aria-label="{{ _('Сегодня') }}">
-  <canvas class="hero__canvas" data-hero-dots aria-hidden="true"></canvas>
-  <div class="home-hero">
-    <div class="home-hero__count">
-      <div class="eyebrow">{{ _("Сегодня") }}</div>
-      <div class="hero__count">
-        <span class="hero__number">{{ today_lessons|length }}</span>
-        <span class="hero__unit">{{ today_lessons|length|plural_ru(_("урок"), _("урока"), _("уроков")) }}
-          <span class="home-hero__line">{% if next_lesson %}{{ _("Следующий — %(t)s, %(n)s", t=next_lesson.lesson_time, n=next_lesson.name) }}{% elif today_lessons %}{{ _("Все уроки на сегодня прошли") }}{% else %}{{ _("Свободный день") }}{% endif %}</span></span>
-      </div>
-      <div class="t-hero-stats">
-        <a href="{{ url_for('teacher.review') }}"><b class="num">{{ to_check|length }}</b><span>{{ _("на проверку") }}</span></a>
-        <a href="#behind-h"><b class="num">{{ behind|length }}</b><span>{{ _("нужно внимание") }}</span></a>
-        <a href="{{ url_for('teacher.students') }}"><b class="num">{{ records|length }}</b><span>{{ _("учеников") }}</span></a>
-      </div>
-    </div>
-    {{ ui.dot_ring(week_done ~ '/' ~ week_items|length, (week_done / week_items|length) if week_items else 0,
-                   _("домашек") ~ '<br>'|safe ~ _("сдано за неделю"), _('Сдано %(a)s из %(b)s домашек этой недели', a=week_done, b=week_items|length)) }}
+{# ------------------------------------------------------------ today in one row: the numbers that need a decision #}
+<section class="card t-today" aria-label="{{ _('Сегодня') }}">
+  <div class="t-today__main">
+    <b class="num">{{ today_lessons|length }}</b>
+    <span><b>{{ today_lessons|length|plural_ru(_("урок"), _("урока"), _("уроков")) }} {{ _("сегодня") }}</b>
+      <span class="small muted">{% if next_lesson %}{{ _("Следующий — %(t)s, %(n)s", t=next_lesson.lesson_time, n=next_lesson.name) }}{% elif today_lessons %}{{ _("Все уроки на сегодня прошли") }}{% else %}{{ _("Свободный день") }}{% endif %}</span></span>
   </div>
-  {% if today_lessons %}
-  <div class="t-lessons-strip" aria-label="{{ _('Уроки сегодня') }}">
-    {% for r in today_lessons %}<span class="t-lesson-chip{{ ' is-next' if next_lesson and r.id == next_lesson.id }}{{ ' is-past' if r.lesson_time < now|d('HH:mm') }}"><b class="num">{{ r.lesson_time }}</b>{{ r.name.split()[0] }}</span>{% endfor %}
-  </div>
-  {% endif %}
-</section>
-
-{# ------------------------------------------------------------ questions of the day #}
-<section class="card daily-t" aria-labelledby="daily-h">
-  <div class="card__head">
-    <div class="stack-sm" style="gap:2px"><h2 id="daily-h" style="font-size:20px">{{ _("Вопросы дня") }}</h2>
-      <span class="small muted">{{ _("до 3 вопросов в день — ученики видят их первыми на главной. Один ответ, сразу разбор.") }}</span></div>
-    <a class="btn btn--secondary btn--sm" href="{{ url_for('teacher.bank', daily='today' if daily.today.free else 'tomorrow') }}">{{ ui.icon('plus', 16) }}{{ _("Выбрать в банке") }}</a>
-  </div>
-  <div class="daily-t__cols">
-    {% for key, title in [('today', _('Сегодня')), ('tomorrow', _('Завтра'))] %}{% set d = daily[key] %}
-      <div class="daily-t__col">
-        <div class="eyebrow">{{ title }} · {{ d.day|d('d MMM') }}</div>
-        {% for row in d.rows %}{% set q = row.pick.question %}
-          <div class="daily-t__q">
-            <span class="daily-t__n">{{ loop.index }}</span>
-            <div class="daily-t__body"><span class="math daily-t__text">{{ q.text or _('Задача с рисунком') }}</span>
-              <span class="small muted">{{ q.skill.name if q.skill }}{% if row.pick.exam %} · {{ row.pick.exam|exam_label }}{% endif %}</span></div>
-            {% if key == 'today' %}
-              <span class="daily-t__stat" title="{{ _('ответили / учеников') }}"><b class="num">{{ row.answered }}/{{ daily.students }}</b>
-                {% if row.answered %}<span class="t-score t-score--{{ 'green' if row.ok / row.answered >= 0.8 else ('yellow' if row.ok / row.answered >= 0.5 else 'red') }} num">{{ (100 * row.ok / row.answered)|round|int }}%</span>{% endif %}</span>
-            {% endif %}
-            {% if not row.answered %}
-            <form method="post" action="{{ url_for('teacher.daily_remove', pick_id=row.pick.id) }}">{{ ui.csrf() }}
-              <button class="icon-btn icon-btn--sm" type="submit" aria-label="{{ _('Убрать') }}">{{ ui.icon('x', 14) }}</button></form>
-            {% endif %}
-          </div>
-        {% endfor %}
-        {% for i in range(d.free) %}
-          <a class="daily-t__slot" href="{{ url_for('teacher.bank', daily=key) }}">{{ ui.icon('plus', 16) }}{{ _("Свободно — выбрать вопрос") }}</a>
-        {% endfor %}
-        {% if key == 'today' and not d.rows %}<p class="small muted">{{ _("Пока вы не выбрали, ученики видят вопрос дня от Monday.") }}</p>{% endif %}
-      </div>
-    {% endfor %}
-  </div>
+  <a class="t-today__stat{{ ' is-hot' if to_check }}" href="{{ url_for('teacher.review') }}"><b class="num">{{ to_check|length }}</b><span>{{ _("на проверку") }}</span></a>
+  <a class="t-today__stat{{ ' is-hot' if behind }}" href="#behind-h"><b class="num">{{ behind|length }}</b><span>{{ _("нужно внимание") }}</span></a>
+  <a class="t-today__stat" href="{{ url_for('teacher.students') }}"><b class="num">{{ records|length }}</b><span>{{ _("учеников") }}</span></a>
+  <span class="t-today__stat"><b class="num">{{ week_done }}/{{ week_items|length }}</b><span>{{ _("домашек сдано за неделю") }}</span></span>
 </section>
 
 {# ------------------------------------------------------------ lessons with attendance + to check #}
@@ -122,6 +73,41 @@
   </section>
 </div>
 
+{# ------------------------------------------------------------ questions of the day #}
+<section class="card daily-t" aria-labelledby="daily-h">
+  <div class="card__head">
+    <div class="stack-sm" style="gap:2px"><h2 id="daily-h" style="font-size:20px">{{ _("Вопросы дня") }}</h2>
+      <span class="small muted">{{ _("до 3 вопросов в день — ученики видят их первыми на главной. Один ответ, сразу разбор.") }}</span></div>
+    <a class="btn btn--secondary btn--sm" href="{{ url_for('teacher.bank', daily='today' if daily.today.free else 'tomorrow') }}">{{ ui.icon('plus', 16) }}{{ _("Выбрать в банке") }}</a>
+  </div>
+  <div class="daily-t__cols">
+    {% for key, title in [('today', _('Сегодня')), ('tomorrow', _('Завтра'))] %}{% set d = daily[key] %}
+      <div class="daily-t__col">
+        <div class="eyebrow">{{ title }} · {{ d.day|d('d MMM') }}</div>
+        {% for row in d.rows %}{% set q = row.pick.question %}
+          <div class="daily-t__q">
+            <span class="daily-t__n">{{ loop.index }}</span>
+            <div class="daily-t__body"><span class="math daily-t__text">{{ q.text or _('Задача с рисунком') }}</span>
+              <span class="small muted">{{ q.skill.name if q.skill }}{% if row.pick.exam %} · {{ row.pick.exam|exam_label }}{% endif %}</span></div>
+            {% if key == 'today' %}
+              <span class="daily-t__stat" title="{{ _('ответили / учеников') }}"><b class="num">{{ row.answered }}/{{ daily.students }}</b>
+                {% if row.answered %}<span class="t-score t-score--{{ 'green' if row.ok / row.answered >= 0.8 else ('yellow' if row.ok / row.answered >= 0.5 else 'red') }} num">{{ (100 * row.ok / row.answered)|round|int }}%</span>{% endif %}</span>
+            {% endif %}
+            {% if not row.answered %}
+            <form method="post" action="{{ url_for('teacher.daily_remove', pick_id=row.pick.id) }}">{{ ui.csrf() }}
+              <button class="icon-btn icon-btn--sm" type="submit" aria-label="{{ _('Убрать') }}">{{ ui.icon('x', 14) }}</button></form>
+            {% endif %}
+          </div>
+        {% endfor %}
+        {% for i in range(d.free) %}
+          <a class="daily-t__slot" href="{{ url_for('teacher.bank', daily=key) }}">{{ ui.icon('plus', 16) }}{{ _("Свободно — выбрать вопрос") }}</a>
+        {% endfor %}
+        {% if key == 'today' and not d.rows %}<p class="small muted">{{ _("Пока вы не выбрали, ученики видят вопрос дня от Monday.") }}</p>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
 {# ------------------------------------------------------------ homework week (drag to move a due date) #}
 <section class="card" aria-labelledby="week-h">
   <div class="card__head">
@@ -153,13 +139,74 @@
   </div>
 </section>
 
+{# ------------------------------------------------------------ needs attention #}
+<section class="card" aria-labelledby="behind-h">
+  <div class="card__head"><h2 id="behind-h" style="font-size:20px">{{ _("Нужно внимание") }}</h2><span class="small muted">{{ _("освоено меньше 40%% навыков или есть просроченная домашка") }}</span></div>
+  {% if behind %}
+  <div class="t-list">
+    {% for b in behind %}
+      <a class="t-list__row t-list__row--link" href="{{ url_for('teacher.student_detail', record_id=b.record.id) }}">
+        {{ ui.avatar(b.record.student, 'avatar--sm', b.record.name[:1]) }}
+        <span class="t-list__grow"><b>{{ b.record.name }}</b><span class="small muted">{{ b.record.goal_label or '—' }}</span></span>
+        <span class="t-behind__bar">{{ ui.progress(b.progress) }}<span class="num small" title="{{ _('освоено навыков') }}">{{ b.progress }}% {{ _("навыков") }}</span></span>
+        {% if b.overdue %}<span class="tag tag--bad tag--xs">{{ _("просрочено: %(n)s", n=b.overdue) }}</span>{% endif %}
+      </a>
+    {% endfor %}
+  </div>
+  {% else %}
+    <p class="text-2">{{ _("Все ученики в графике.") }}</p>
+  {% endif %}
+</section>
+{# ------------------------------------------------------------ Monday test + fresh mistakes #}
+<div class="grid grid-2">
+  <section class="card" aria-labelledby="mon-h">
+    <div class="card__head"><h2 id="mon-h" style="font-size:20px">{{ _("Тест понедельника") }}</h2>{% if monday %}<span class="small muted">{{ monday.week|d('d MMMM') }}</span>{% endif %}</div>
+    {% if monday %}
+      <div class="t-mon">
+        <div class="t-mon__avg"><b class="num">{{ monday.avg }}%</b><span class="small muted">{{ _("средний балл класса") }}</span></div>
+        <div class="t-mon__move small"><span class="t-up">▲ {{ monday.up }}</span> {{ _("выросли") }} · <span class="t-down">▼ {{ monday.down }}</span> {{ _("упали") }}</div>
+      </div>
+      <ol class="t-mon__rows">
+        {% for r in monday.rows[:4] %}
+          <li><span class="t-list__grow">{{ r.record.name }}</span>
+            {% if r.delta is not none %}<span class="small {{ 't-up' if r.delta > 0 else ('t-down' if r.delta < 0 else 'muted') }}">{{ '▲' if r.delta > 0 else ('▼' if r.delta < 0 else '=') }} {{ r.delta|abs }}</span>{% endif %}
+            <b class="num">{{ r.percent }}%</b></li>
+        {% endfor %}
+      </ol>
+      {% if monday.hardest %}
+      <div class="stack-sm"><span class="eyebrow">{{ _("Самые трудные вопросы") }}</span>
+        {% for h in monday.hardest[:2] %}<div class="t-hard"><b>№{{ h.n }}</b><span class="math t-hard__text">{{ h['item'].text if h['item'] else '' }}</span><span class="tag tag--bad tag--xs">{{ (h.rate * 100)|round|int }}% {{ _("верно") }}</span></div>{% endfor %}
+      </div>
+      {% endif %}
+      {% if monday.missing %}<p class="small muted">{{ _("Не писали:") }} {{ monday.missing|map(attribute='name')|join(', ') }}</p>{% endif %}
+    {% else %}
+      <p class="text-2">{{ _("Когда ученики напишут тест понедельника, здесь появятся средний балл, самые трудные вопросы и кто вырос.") }}</p>
+    {% endif %}
+  </section>
+
+  <section class="card" aria-labelledby="mis-h">
+    <div class="card__head"><h2 id="mis-h" style="font-size:20px">{{ _("Свежие ошибки") }}</h2><span class="small muted">{{ _("за 7 дней") }}</span></div>
+    {% if mistakes %}
+      <div class="t-list">
+        {% for m in mistakes %}
+          <a class="t-list__row t-list__row--link" href="{{ url_for('teacher.student_detail', record_id=m.record.id) }}">
+            {{ ui.avatar(m.record.student, 'avatar--sm') }}
+            <span class="t-list__grow"><b>{{ m.answer.skill.name if m.answer.skill else _('Без темы') }}{% if m.count > 1 %} <span class="muted">×{{ m.count }}</span>{% endif %}</b><span class="small muted">{{ m.record.name }} · {{ m.answer.answered_at|ago }}</span></span>
+            {% if m.answer.mistake_reason %}<span class="tag tag--line tag--xs">{{ MISTAKE_REASONS[m.answer.mistake_reason] }}</span>{% endif %}
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}<p class="text-2">{{ _("За неделю ошибок нет.") }}</p>{% endif %}
+  </section>
+</div>
+
 {# ------------------------------------------------------------ the class as dots: students × topics #}
-<section class="card" aria-labelledby="dots-h">
-  <div class="card__head">
+<details class="card t-fold" aria-labelledby="dots-h">
+  <summary class="card__head">
     <div class="stack-sm" style="gap:2px"><h2 id="dots-h" style="font-size:20px">{{ _("Класс в точках") }}</h2>
       <span class="small muted">{{ _("точность по темам: зелёный ≥ 80%%, жёлтый 50–79%%, красный < 50%%") }}</span></div>
     {% if dots.weak %}<div class="chips"><span class="small muted">{{ _("Слабее всего:") }}</span>{% for w in dots.weak %}<span class="tag {{ "tag--bad" if w.avg < 0.5 else ("tag--warn" if w.avg < 0.8 else "tag--ok") }}">{{ w.node.name }} · {{ (w.avg * 100)|round|int }}%</span>{% endfor %}</div>{% endif %}
-  </div>
+  </summary>
   {% if dots.rows %}
   <div class="t-dots-wrap">
     <table class="t-dots">
@@ -177,68 +224,7 @@
     </table>
   </div>
   {% else %}<p class="text-2">{{ _("Добавьте учеников — здесь появится карта класса.") }}</p>{% endif %}
-</section>
+</details>
 
-{# ------------------------------------------------------------ Monday test + fresh mistakes #}
-<div class="grid grid-2">
-  <section class="card" aria-labelledby="mon-h">
-    <div class="card__head"><h2 id="mon-h" style="font-size:20px">{{ _("Тест понедельника") }}</h2>{% if monday %}<span class="small muted">{{ monday.week|d('d MMMM') }}</span>{% endif %}</div>
-    {% if monday %}
-      <div class="t-mon">
-        <div class="t-mon__avg"><b class="num">{{ monday.avg }}%</b><span class="small muted">{{ _("средний балл класса") }}</span></div>
-        <div class="t-mon__move small"><span class="t-up">▲ {{ monday.up }}</span> {{ _("выросли") }} · <span class="t-down">▼ {{ monday.down }}</span> {{ _("упали") }}</div>
-      </div>
-      <ol class="t-mon__rows">
-        {% for r in monday.rows[:6] %}
-          <li><span class="t-list__grow">{{ r.record.name }}</span>
-            {% if r.delta is not none %}<span class="small {{ 't-up' if r.delta > 0 else ('t-down' if r.delta < 0 else 'muted') }}">{{ '▲' if r.delta > 0 else ('▼' if r.delta < 0 else '=') }} {{ r.delta|abs }}</span>{% endif %}
-            <b class="num">{{ r.percent }}%</b></li>
-        {% endfor %}
-      </ol>
-      {% if monday.hardest %}
-      <div class="stack-sm"><span class="eyebrow">{{ _("Самые трудные вопросы") }}</span>
-        {% for h in monday.hardest %}<div class="t-hard"><b>№{{ h.n }}</b><span class="math t-hard__text">{{ h['item'].text if h['item'] else '' }}</span><span class="tag tag--bad tag--xs">{{ (h.rate * 100)|round|int }}% {{ _("верно") }}</span></div>{% endfor %}
-      </div>
-      {% endif %}
-      {% if monday.missing %}<p class="small muted">{{ _("Не писали:") }} {{ monday.missing|map(attribute='name')|join(', ') }}</p>{% endif %}
-    {% else %}
-      <p class="text-2">{{ _("Когда ученики напишут тест понедельника, здесь появятся средний балл, самые трудные вопросы и кто вырос.") }}</p>
-    {% endif %}
-  </section>
-
-  <section class="card" aria-labelledby="mis-h">
-    <div class="card__head"><h2 id="mis-h" style="font-size:20px">{{ _("Свежие ошибки") }}</h2><span class="small muted">{{ _("за 7 дней") }}</span></div>
-    {% if mistakes %}
-      <div class="t-list">
-        {% for m in mistakes %}
-          <a class="t-list__row t-list__row--link" href="{{ url_for('teacher.student_detail', record_id=m.record.id) }}">
-            {{ ui.avatar(m.record.student, 'avatar--sm') }}
-            <span class="t-list__grow"><b>{{ m.answer.skill.name if m.answer.skill else _('Без темы') }}</b><span class="small muted">{{ m.record.name }} · {{ m.answer.answered_at|ago }}</span></span>
-            {% if m.answer.mistake_reason %}<span class="tag tag--line tag--xs">{{ MISTAKE_REASONS[m.answer.mistake_reason] }}</span>{% endif %}
-          </a>
-        {% endfor %}
-      </div>
-    {% else %}<p class="text-2">{{ _("За неделю ошибок нет.") }}</p>{% endif %}
-  </section>
-</div>
-
-{# ------------------------------------------------------------ needs attention #}
-<section class="card" aria-labelledby="behind-h">
-  <div class="card__head"><h2 id="behind-h" style="font-size:20px">{{ _("Нужно внимание") }}</h2><span class="small muted">{{ _("прогресс ниже 40%% или просроченная домашка") }}</span></div>
-  {% if behind %}
-  <div class="t-list">
-    {% for b in behind %}
-      <a class="t-list__row t-list__row--link" href="{{ url_for('teacher.student_detail', record_id=b.record.id) }}">
-        {{ ui.avatar(b.record.student, 'avatar--sm', b.record.name[:1]) }}
-        <span class="t-list__grow"><b>{{ b.record.name }}</b><span class="small muted">{{ b.record.goal_label or '—' }}</span></span>
-        <span class="t-behind__bar">{{ ui.progress(b.progress) }}<span class="num small">{{ b.progress }}%</span></span>
-        {% if b.overdue %}<span class="tag tag--bad tag--xs">{{ _("просрочено: %(n)s", n=b.overdue) }}</span>{% endif %}
-      </a>
-    {% endfor %}
-  </div>
-  {% else %}
-    <p class="text-2">{{ _("Все ученики в графике.") }}</p>
-  {% endif %}
-</section>
 {% endblock %}
-{% block scripts %}<script defer src="{{ url_for('static', filename='js/hero.js') }}"></script><script defer src="{{ url_for('static', filename='js/teacher.js') }}"></script>{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/teacher.js') }}"></script>{% endblock %}

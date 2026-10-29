@@ -9,7 +9,7 @@
   <a class="chip{{ ' is-active' if show == 'submitted' }}" href="{{ url_for('teacher.review', show='submitted') }}">{{ _("Ждут проверки") }} <span class="chip__count">{{ counts.submitted }}</span></a>
   <a class="chip{{ ' is-active' if show == 'open' }}" href="{{ url_for('teacher.review', show='open') }}">{{ _("Не сданы") }} <span class="chip__count">{{ counts.open }}</span></a>
   <a class="chip{{ ' is-active' if show == 'checked' }}" href="{{ url_for('teacher.review', show='checked') }}">{{ _("Проверены") }} <span class="chip__count">{{ counts.checked }}</span></a>
-  <a class="chip{{ ' is-active' if show == 'written' }}" href="{{ url_for('teacher.review', show='written') }}">{{ _("Часть 2") }} <span class="chip__count">{{ counts.written }}</span></a>
+  <a class="chip{{ ' is-active' if show == 'written' }}" href="{{ url_for('teacher.review', show='written') }}">{{ _("Письменные ответы") }} <span class="chip__count">{{ counts.written }}</span></a>
 </div>
 {% if show == 'written' %}
 {% if written %}
@@ -38,7 +38,7 @@
       <td class="t-strong">{{ a.record.name }}</td>
       <td>{{ a.work.title }}</td>
       <td class="muted nowrap">{{ a.due_at|dt if a.due_at else '—' }}</td>
-      <td>{{ ui.state(row.state, HOMEWORK_STATES[row.state]) }}</td>
+      <td>{{ ui.state('overdue' if row.state == 'empty' else row.state, _('Пусто — нет ответов') if row.state == 'empty' else HOMEWORK_STATES[row.state]) }}</td>
       <td class="num">{{ (row.last.score ~ ' / ' ~ row.last.total) if row.last else '—' }}</td>
       <td style="text-align:right"><a href="{{ url_for('teacher.review_detail', assignment_id=a.id) }}">{{ _("Проверить") if row.state == 'submitted' else _("Открыть") }}</a></td>
     </tr>

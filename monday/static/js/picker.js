@@ -204,3 +204,27 @@
   sync();
   load();
 })();
+
+/* filter dropdowns: one open at a time, a click elsewhere closes them */
+document.addEventListener("click", (e) => {
+  document.querySelectorAll(".pk-drop[open]").forEach((d) => { if (!d.contains(e.target)) d.open = false; });
+});
+
+/* work editor: two steps (description → questions) on one form */
+(function () {
+  const nav = document.querySelector("[data-we-steps]");
+  if (!nav) return;
+  const form = nav.closest("form");
+  const steps = Array.from(form.querySelectorAll("[data-we-step]"));
+  const show = (n) => {
+    steps.forEach((s) => (s.hidden = s.dataset.weStep !== String(n)));
+    nav.querySelectorAll("[data-we-go]").forEach((b) => b.classList.toggle("is-on", b.dataset.weGo === String(n)));
+    window.scrollTo({ top: 0 });
+  };
+  nav.hidden = false;
+  form.querySelectorAll("[data-we-next]").forEach((x) => (x.hidden = false));
+  form.addEventListener("click", (e) => { const b = e.target.closest("[data-we-go]"); if (b) show(b.dataset.weGo); });
+  // a required field on the hidden step: open that step so the browser can point at it
+  form.addEventListener("invalid", (e) => { const s = e.target.closest("[data-we-step]"); if (s && s.hidden) show(s.dataset.weStep); }, true);
+  show(nav.dataset.start || 1);
+})();

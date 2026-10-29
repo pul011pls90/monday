@@ -28,7 +28,13 @@
   <input type="hidden" name="kind" value="{{ work.kind }}">
   <input type="hidden" id="question_order" name="question_order" value="{{ (work.draft_question_ids or [])|join(',') }}">
 
-  <fieldset>
+  {# two steps on one form: description, then questions (a new work starts at 1, an existing one at 2) #}
+  <nav class="we-steps" data-we-steps data-start="{{ 2 if work.id else 1 }}" hidden aria-label="{{ _('Шаги') }}">
+    <button type="button" data-we-go="1"><b>1</b>{{ _("Описание") }}</button>
+    <button type="button" data-we-go="2"><b>2</b>{{ _("Вопросы") }} · <span data-order-count>{{ selected|length }}</span></button>
+  </nav>
+
+  <fieldset data-we-step="1">
     <legend>{{ _("1 · Описание") }}</legend>
     <div class="grid grid-3">
       <div class="field span-2"><label for="title">{{ _("Название") }}</label><input class="input" id="title" name="title" required value="{{ work.title }}" placeholder="{{ _('Например: ОРТ Май 2026') }}"></div>
@@ -81,9 +87,12 @@
       <div class="field"><label for="week_start">{{ _("Неделя (понедельник)") }}</label><input class="input" type="date" id="week_start" name="week_start" value="{{ work.week_start.isoformat() if work.week_start }}"></div>
       {% endif %}
     </div>
+    <div class="row" data-we-next hidden style="justify-content:flex-end;margin-top:12px">
+      <button type="button" class="btn btn--primary" data-we-go="2">{{ _("Дальше: вопросы") }}{{ ui.icon('arrow-right', 18) }}</button>
+    </div>
   </fieldset>
 
-  <div class="pk-layout">
+  <div class="pk-layout" data-we-step="2">
     <fieldset class="pk-field">
       <legend>{{ _("2 · Банк вопросов") }}</legend>
       <div class="row row--between" style="gap:8px">

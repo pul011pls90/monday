@@ -20,7 +20,7 @@
   <table class="table">
     <thead>
       <tr>
-        {% for key, label in [('name', _('Имя')), ('grade', _('Класс')), ('time', _('Урок')), ('progress', _('Прогресс'))] %}
+        {% for key, label in [('name', _('Имя')), ('grade', _('Класс')), ('time', _('Урок')), ('progress', _('Освоено навыков'))] %}
           <th><a href="{{ url_for('teacher.students', sort=key, q=q) }}" class="{{ 'is-active' if sort == key }}">{{ label }}{{ ' ↓' if sort == key }}</a></th>
         {% endfor %}
         <th>{{ _("Цель") }}</th>

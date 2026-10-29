@@ -13,7 +13,7 @@ from werkzeug.utils import secure_filename
 
 from .models import local_date, local_midnight_utc, local_now, today as local_today  # noqa: F401
 from .access import staff_required, teacher_required
-from .constants import EXAMS, MISTAKE_REASONS, TRUSTED_TEACHER_THRESHOLD, WORK_KINDS
+from .constants import EXAMS, MISTAKE_REASONS, WORK_KINDS
 from .extensions import db
 from .models import utcnow
 from .models import (INPUT_FORMATS, MATERIAL_TYPES, QUESTION_WORD_LIMIT, Assignment, Attempt, AttemptAnswer,
@@ -133,6 +133,11 @@ def _resolve_node(form, exams):
 # --------------------------------------------------------------------------- dashboard
 
 
+def _handed_in_empty(attempt):
+    """Handed in (usually: time ran out) without a single answer — nothing to check, counts as not done."""
+    return attempt is not None and not any(x.given for x in attempt.answers)
+
+
 @bp.route("/")
 @teacher_required
 def dashboard():
@@ -151,7 +156,8 @@ def dashboard():
     next_lesson = next((r for r in today_lessons if r.lesson_time >= now_hm), None)
     to_check = []
     for a in Assignment.query.filter_by(teacher_id=current_user.id, checked_at=None).all():
-        if a.record.student_user_id and latest_attempt(a, a.record.student_user_id):
+        last = latest_attempt(a, a.record.student_user_id) if a.record.student_user_id else None
+        if last and not _handed_in_empty(last):
             to_check.append(a)
     behind = []
     for r in records:
@@ -688,15 +694,19 @@ def review():
               .order_by(Assignment.created_at.desc()).all()):
         uid = a.record.student_user_id
         state = homework_state(a, uid) if uid else "new"
-        rows.append({"a": a, "state": state, "last": latest_attempt(a, uid) if uid else None})
+        last = latest_attempt(a, uid) if uid else None
+        if state == "submitted" and _handed_in_empty(last):
+            state = "empty"  # «Не сданы», not «Ждут проверки»
+        rows.append({"a": a, "state": state, "last": last})
+    not_done = ("new", "in_progress", "overdue", "empty")
     counts = {k: sum(1 for r in rows if r["state"] == k) for k in ("submitted", "checked")}
-    counts["open"] = sum(1 for r in rows if r["state"] in ("new", "in_progress", "overdue"))
+    counts["open"] = sum(1 for r in rows if r["state"] in not_done)
     written = written_to_mark(current_user)
     counts["written"] = len(written)
     if show == "written":
         return render_template("teacher/review.html", rows=[], written=written, show=show, counts=counts)
     if show == "open":
-        rows = [r for r in rows if r["state"] in ("new", "in_progress", "overdue")]
+        rows = [r for r in rows if r["state"] in not_done]
     else:
         rows = [r for r in rows if r["state"] == show]
     return render_template("teacher/review.html", rows=rows, written=written, show=show, counts=counts)
@@ -1226,4 +1236,4 @@ def account():
         "questions": Question.query.filter_by(author_id=current_user.id, status="published").count(),
         "works": Work.query.filter_by(author_id=current_user.id, status="published").count(),
     }
-    return render_template("teacher/account.html", stats=stats, threshold=TRUSTED_TEACHER_THRESHOLD)
+    return render_template("teacher/account.html", stats=stats)

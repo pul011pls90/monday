@@ -9,9 +9,6 @@
   <div class="card card--tight"><div class="stat-value">{{ stats.questions }}</div><div class="stat-label">{{ _("вопросов в банке") }}</div></div>
   <div class="card card--tight"><div class="stat-value">{{ stats.works }}</div><div class="stat-label">{{ _("опубликованных работ") }}</div></div>
 </div>
-{% if not current_user.is_admin %}
-<div class="card card--soft card--tight">{{ _("Одобрено вопросов: %(n)s из %(t)s. После %(t)s вопросы публикуются без проверки.", n=stats.questions, t=threshold) }}</div>
-{% endif %}
 <form method="post" class="card">
   {{ ui.csrf() }}<input type="hidden" name="action" value="profile">
   <h2>{{ _("Настройки") }}</h2>

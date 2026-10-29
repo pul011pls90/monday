@@ -744,6 +744,18 @@ def db_get_skill_parent(skill_id):
         return db_get(ContentNode, skill_id).parent_id
 
 
+def test_teacher_pages_compact_and_labels():
+    t = login(client(), "aibek@monday.kg", "teacher123")
+    body = ok(t, "/teacher/").data.decode()
+    assert 't-today' in body and "hero--home" not in body and "навыков или есть просроченная" in body
+    ok(t, "/teacher/review?show=written", contains="Письменные ответы")
+    body = ok(t, "/teacher/assign").data.decode()  # «Выдать задание» lights up «Работы», not «Проверка»
+    assert re.search(r'class="rail__item is-active[^"]*" href="/teacher/works"', body)
+    assert "Одобрено вопросов" not in ok(t, "/teacher/account").data.decode()
+    assert 'class="pk-drop' in ok(t, "/teacher/bank").data.decode()
+    assert 'data-we-steps' in ok(t, "/teacher/works/new?kind=homework").data.decode()
+
+
 def test_formula_sheets():
     import io
     from monday.models import ReferenceSheet

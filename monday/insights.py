@@ -30,6 +30,7 @@ def homework_week(teacher_id, start):
 
 
 def fresh_mistakes(records, days=7, limit=8):
+    """Latest wrong answers, grouped: one row per student × skill × reason with how many times (newest first)."""
     ids = {r.student_user_id: r for r in records if r.student_user_id}
     if not ids:
         return []
@@ -37,8 +38,15 @@ def fresh_mistakes(records, days=7, limit=8):
     rows = (AttemptAnswer.query.join(Attempt)
             .filter(Attempt.user_id.in_(ids.keys()), AttemptAnswer.is_correct.is_(False),
                     AttemptAnswer.answered_at >= since)
-            .order_by(AttemptAnswer.answered_at.desc()).limit(limit).all())
-    return [{"answer": a, "record": ids[a.attempt.user_id]} for a in rows]
+            .order_by(AttemptAnswer.answered_at.desc()).limit(200).all())
+    groups = {}
+    for a in rows:
+        key = (a.attempt.user_id, a.skill_id, a.mistake_reason)
+        if key in groups:
+            groups[key]["count"] += 1
+        elif len(groups) < limit:
+            groups[key] = {"answer": a, "record": ids[a.attempt.user_id], "count": 1}
+    return list(groups.values())
 
 
 def class_dots(teacher, records):

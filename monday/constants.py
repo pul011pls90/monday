@@ -69,10 +69,6 @@ HOMEWORK_STATES = {
 
 WEEKDAYS = [_l("Пн"), _l("Вт"), _l("Ср"), _l("Чт"), _l("Пт"), _l("Сб"), _l("Вс")]
 
-# Teachers whose number of approved questions reaches this publish directly.
-TRUSTED_TEACHER_THRESHOLD = 20
-
-
 # How a test looks and behaves for the student. Chosen by the teacher when creating a work;
 # the default follows the exam. "grid" = one question per screen with a number grid to jump
 # anywhere (like the Digital SAT / CSCA); "pages" = several questions per page with a bubble

@@ -22,14 +22,15 @@
       <option value="hard">{{ _("Сначала трудные") }}</option><option value="used">{{ _("Самые используемые") }}</option></select>
     <button type="button" class="btn btn--ghost btn--sm" data-pk-reset hidden>{{ ui.icon('reset', 16) }}{{ _("Сбросить") }}</button>
   </div>
-  <div class="bank-filters pk-filters">
+  {# filters: one row of small dropdowns, so the questions start on the first screen #}
+  <div class="pk-drops">
     {% for key, ic, title, opts in chip_labels %}
-      <fieldset class="bank-filter pk-filter--{{ key }}">
-        <legend>{{ ui.icon(ic, 16) }}{{ title }}</legend>
-        <div class="bank-filter__chips">
+      <details class="pk-drop pk-filter--{{ key }}">
+        <summary>{{ ui.icon(ic, 16) }}<span>{{ title }}</span>{{ ui.icon('chevron-down', 16) }}</summary>
+        <div class="pk-drop__menu">
           {% for val, label in opts %}<label class="bank-chip"><input type="checkbox" data-pk-f="{{ key }}" value="{{ val }}"><span>{{ label }}</span></label>{% endfor %}
         </div>
-      </fieldset>
+      </details>
     {% endfor %}
   </div>
   <div class="pk-body">
