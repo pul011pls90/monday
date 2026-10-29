@@ -118,7 +118,7 @@ def home():
         recommended=recommended_mode(minutes), monday_countdown=countdown_label(start - local_now()),
         monday_start=start, breakdown=breakdown, week_mistakes=week_mistakes, assignments=assignments[:3], hw_n=len(assignments),
         my_place=my_place, strip=_monday_strip(left), task=_todays_task(p.exam, summary),
-        portrait=skill_map(current_user.id, p.exam), facts=_daily_facts(len(MODES)), daily=_daily_block(),
+        portrait=skill_map(current_user.id, p.exam), daily=_daily_block(),
         replies=_report_replies(), practice=_practice_goal(),
     )
 
@@ -163,12 +163,6 @@ def _todays_task(exam, summary):
             if i["state"] == "new" and i["skill"].id not in stats_ids:
                 return {"skill": i["skill"], "accuracy": None, "why": "new"}
     return None
-
-
-def _daily_facts(n):
-    from .constants import FACTS
-    day = local_today().toordinal()
-    return [str(FACTS[(day * 3 + i * 3) % len(FACTS)]) for i in range(n)]
 
 
 # --------------------------------------------------------------------------- skills
@@ -269,7 +263,7 @@ def sessions():
              .filter(Attempt.user_id == current_user.id).scalar() or 0)
     return render_template("student/sessions.html", bank_n=bank_n, answered_n=answered_n,
                            bank_pct=min(100, round(100 * answered_n / bank_n)) if bank_n else 0,
-                           spent_label=_("%(h)s ч %(m)s мин", h=spent // 3600, m=spent % 3600 // 60), recent=recent, facts=_daily_facts(len(MODES)), topics=topics,
+                           spent_label=_("%(h)s ч %(m)s мин", h=spent // 3600, m=spent % 3600 // 60), recent=recent, topics=topics,
                            totals=totals, presets=current_user.profile.session_presets or [], practice=_practice_goal(),
                            PACE=PACE, SESSION_MINUTES=SESSION_MINUTES)
 
