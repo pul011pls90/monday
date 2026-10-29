@@ -145,18 +145,6 @@
   </a>
 </div>
 
-{# ------------------------------------------------------------ free practice: compact time strip (full cards live on Сессии) #}
-<section class="card home-times" aria-labelledby="time-h">
-  <div class="home-times__head">
-    <h2 id="time-h">{{ _("Свободная практика") }}</h2>
-    <div class="home-times__tools">
-      <a class="small" href="{{ url_for('student.sessions') }}#custom" style="font-weight:600">{{ _("Своя сессия") }} →</a>
-      {{ ui.goal_chip(practice) }}
-    </div>
-  </div>
-  {{ ui.time_cards() }}
-</section>
-
 {# ------------------------------------------------------------ homework · Monday test · journal: three equal tiles #}
 <div class="home-tiles">
   <a class="card home-tile" href="{{ url_for('student.homework') }}">
@@ -178,6 +166,12 @@
     <span class="home-tile__sub">{% if week_mistakes %}{{ _("за неделю · %(c)s по невнимательности", c=breakdown.get('careless', 0)) }}{% else %}{{ _("ошибок на этой неделе нет") }}{% endif %}</span>
   </a>
 </div>
+
+{# ------------------------------------------------------------ practice today: one simple row at the end (the modes live on Сессии) #}
+<section class="card home-goal-row" aria-label="{{ _('Практика сегодня') }}">
+  {{ ui.goal_chip(practice) }}
+  <a class="btn btn--secondary" href="{{ url_for('student.sessions') }}">{{ _("К сессиям") }}{{ ui.icon('arrow-right', 16) }}</a>
+</section>
 {% endblock %}
 
 {% block scripts %}<script defer src="{{ url_for('static', filename='js/hero.js') }}"></script>{% endblock %}

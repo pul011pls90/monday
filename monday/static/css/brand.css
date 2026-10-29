@@ -3221,14 +3221,10 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 .home-today__go { align-self: flex-start; margin-top: 4px; }
 .home-today__done { margin: 0; font-weight: 600; color: #1E9E6A; }
 
-.home-times { display: flex; flex-direction: column; gap: 14px; padding: 24px; }
-.home-times__head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-.home-times__tools { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.home-times__head h2 { margin: 0; font: 800 22px/1.15 var(--font-display); letter-spacing: -.02em; }
-.home-times .time-card { padding: 14px 16px; gap: 2px; }
-.home-times .time-card__desc, .home-times .time-card__points { display: none; }
-.home-times .time-card__time b { font-size: clamp(36px, 40cqw, 72px); }
-.home-times .time-card__time small { font-size: 14px; }
+/* Главная: practice goal as one plain row at the end of the page */
+.home-goal-row { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 14px 20px; }
+.home-goal-row .goal { flex: 1; min-width: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+.home-goal-row .goal__set { margin-left: auto; }
 
 .home-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .home-tile { gap: 4px; padding: 20px; color: inherit; text-decoration: none; transition: border-color .15s, transform .15s; }
