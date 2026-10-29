@@ -42,6 +42,9 @@
   <p class="no-math">{{ _("Один шаблон для банка вопросов, домашних заданий и тестов. Формулы пишутся между знаками $…$, например $\\log_2 8$.") }}</p>
 </div>
 
+{% if qn.replaces_id %}
+<div class="flash flash--info">{{ _("Исправление к вопросу #%(n)s по сообщению ученика. После проверки методистом оно заменит исходный вопрос, а ученик получит ответ.", n=qn.replaces_id) }}</div>
+{% endif %}
 <form method="post" enctype="multipart/form-data" data-question-editor>
   {% if back in ('review', 'reports', 'tree') %}<input type="hidden" name="back" value="{{ back }}">{% endif %}
   {% if back == 'tree' %}<input type="hidden" name="exam_view" value="{{ request.args.get('exam') or request.form.get('exam_view') or '' }}"><input type="hidden" name="open_topic" value="{{ request.args.get('open') or request.form.get('open_topic') or '' }}">{% endif %}
@@ -70,7 +73,19 @@
             </select></div>
         </div>
         {% if current_user.is_assistant %}
-        <p class="small muted">{{ _("Нужной ветки нет? Напишите администратору — карту тем меняют только учителя и админ.") }}</p>
+        {# the request is its own small form (form="branch-req", defined after this one: forms can't nest) #}
+        <details class="disclosure">
+          <summary>{{ _("Нужной ветки нет — попросить администратора") }}</summary>
+          <div class="tree-pick" style="margin-top:12px;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end">
+            <div class="field"><label for="br-parent">{{ _("В какую подтему") }}</label>
+              <select class="select" id="br-parent" name="parent_id" form="branch-req">
+                {% for t in tree %}<optgroup label="{{ t.name }}">{% for sub in t.subs %}<option value="{{ sub.id }}">{{ sub.name }}</option>{% endfor %}</optgroup>{% endfor %}
+              </select></div>
+            <div class="field"><label for="br-name">{{ _("Название навыка") }}</label>
+              <input class="input" id="br-name" name="name" form="branch-req" maxlength="120" placeholder="{{ _('Например: Сравнение тригонометрических значений') }}"></div>
+            <button class="btn btn--secondary" type="submit" form="branch-req">{{ _("Отправить") }}</button>
+          </div>
+        </details>
         {% else %}
         <details class="disclosure" {{ 'open' if request.form.get('new_node') }}>
           <summary>{{ _("Нужной ветки нет — добавить новую") }}</summary>
@@ -215,4 +230,5 @@
     </aside>
   </div>
 </form>
+{% if current_user.is_assistant %}<form method="post" action="{{ url_for('assistant.branch_request') }}" id="branch-req" hidden>{{ ui.csrf() }}</form>{% endif %}
 {% endblock %}

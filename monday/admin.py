@@ -11,7 +11,7 @@ from .access import admin_required
 from .constants import EXAMS
 from .extensions import db
 from .models import (Attempt, ContentNode, Question, StudentProfile, StudentRecord, User, Work, utcnow)
-from .services import progress_summary
+from .services import content_gaps, progress_summary
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -46,17 +46,8 @@ def _overview():
     answers_week = sum(len(a.answers) for a in Attempt.query.filter(Attempt.started_at >= week).all())
 
     # content health: skills (third level) with too few published questions, per exam
-    published = Counter()
-    for q in Question.query.filter_by(status="published").all():
-        for ex in (q.exams or []):
-            published[(q.skill_id, ex)] += 1
-    thin_rows, by_exam = [], Counter()
-    for n in ContentNode.query.filter_by(level="node", archived=False, owner_id=None).all():
-        gaps = [(ex, published.get((n.id, ex), 0)) for ex in (n.exams or []) if published.get((n.id, ex), 0) < THIN]
-        if gaps:
-            by_exam.update(ex for ex, _c in gaps)
-            thin_rows.append({"node": n, "gaps": gaps, "least": min(c for _e, c in gaps)})
-    thin_rows.sort(key=lambda x: (x["least"], -len(x["gaps"]), x["node"].name))
+    thin_rows = content_gaps(THIN)
+    by_exam = Counter(ex for row in thin_rows for ex, _c in row["gaps"])
     thin, thin_total = thin_rows, len(thin_rows)
     return {"series": series, "peak": peak, "signups_month": sum(signups.values()),
             "active_week": len(active_ids), "tests_week": tests_week, "tests_month": tests_month,

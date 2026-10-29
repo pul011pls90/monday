@@ -1,4 +1,5 @@
 """Teacher side: dashboard, students, works (tests & homework), question bank, assigning and checking."""
+import copy
 import os
 from collections import defaultdict
 import re
@@ -16,7 +17,7 @@ from .constants import EXAMS, MISTAKE_REASONS, TRUSTED_TEACHER_THRESHOLD, WORK_K
 from .extensions import db
 from .models import utcnow
 from .models import (INPUT_FORMATS, MATERIAL_TYPES, QUESTION_WORD_LIMIT, Assignment, Attempt, AttemptAnswer,
-                     ContentNode, Question, Skill, StudentRecord, Work, new_invite_code)
+                     ContentNode, Question, Report, Skill, StudentRecord, Work, new_invite_code)
 from .services import (content_tree, homework_state, latest_attempt, mistake_breakdown, parse_number,
                        progress_summary, publish_work, record_progress, skill_map, visible_nodes)
 
@@ -1103,6 +1104,19 @@ def _needs_review(work):
             and len(work.draft_question_ids or []) >= BIG_TEST_QUESTIONS and work.status != "published")
 
 
+QUESTION_COPY_FIELDS = ("skill_id", "exams", "difficulty", "answer_type", "weight", "options", "correct", "language",
+                        "material", "text", "explanation", "input_formats", "image_path", "precision", "tags")
+
+
+def _reported_question():
+    """«Исправления»: ?fix=<report id> opens the form on a copy of the reported question (assistants and admins)."""
+    rid = request.args.get("fix", type=int)
+    if not rid or not (current_user.is_assistant or current_user.is_admin):
+        return None
+    r = db.session.get(Report, rid)
+    return r.question if r and r.status == "open" and r.question else None
+
+
 @bp.route("/questions/new", methods=["GET", "POST"])
 @staff_required
 def question_new():
@@ -1111,6 +1125,11 @@ def question_new():
                   answer_type="choice", weight=1,
                   options=["", "", "", ""], correct="0", language="ru", material=[],
                   input_formats=list(INPUT_FORMATS), skill_id=request.args.get("node", type=int))
+    original = _reported_question()
+    if original:  # a correction: same content to edit; on approval it is copied onto the original
+        for field in QUESTION_COPY_FIELDS:
+            setattr(qn, field, copy.deepcopy(getattr(original, field)))
+        qn.replaces_id = original.id
     if request.method == "POST":
         errors = _fill_question(qn, request.form, request.files)
         if errors:
@@ -1119,6 +1138,8 @@ def question_new():
             db.session.rollback()
             return _render_question(qn, 400)
         qn.status = "draft" if request.form.get("action") == "draft" else _question_status_for_author()
+        if original:
+            qn.status = "draft" if request.form.get("action") == "draft" else "pending"  # a fix is always reviewed
         db.session.add(qn)
         db.session.commit()
         if qn.status == "pending":

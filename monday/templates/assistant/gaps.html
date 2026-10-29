@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Где мало вопросов") }}{% endblock %}
+{% block context %}{{ _("Кабинет ассистента") if current_user.is_assistant else _("Кабинет учителя") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text"><h1>{{ _("Где мало вопросов") }}</h1>
+    <p>{{ _("Навыки, где для экзамена опубликовано меньше %(n)s вопросов. Начните с тех, где пусто: «+ Вопрос» откроет форму сразу с этим навыком.", n=thin) }}</p></div>
+</div>
+<div class="chips">
+  <a class="chip{{ ' is-active' if not exam }}" href="{{ url_for('assistant.gaps') }}">{{ _("Все") }}</a>
+  {% for code, e in EXAMS.items() %}<a class="chip{{ ' is-active' if exam == code }}" href="{{ url_for('assistant.gaps', exam=code) }}">{{ e.label }}</a>{% endfor %}
+</div>
+{% if rows %}
+<p class="small muted">{{ _("Навыков: %(n)s", n=total) }}{% if total > rows|length %} · {{ _("показаны первые %(n)s", n=rows|length) }}{% endif %}</p>
+<ul class="thin-list card">
+  {% for t in rows %}
+    <li><span class="thin-list__dots" aria-hidden="true" title="{{ _('меньше всего: %(n)s', n=t.least) }}">{% for i in range(thin) %}<i class="{{ 'is-on' if i < t.least }}"></i>{% endfor %}</span>
+      <span class="thin-list__name">{{ t.node.name }}<span class="small muted"> · {{ t.node.topic }}</span></span>
+      <span class="thin-list__ex">{% for ex, c in t.gaps %}<span class="tag tag--line tag--xs" title="{{ _('опубликовано: %(n)s', n=c) }}">{{ ex|exam_label }} {{ c }}</span>{% endfor %}</span>
+      {% set first_exam = (t.gaps|selectattr(0, 'equalto', exam)|list or t.gaps)[0][0] %}
+      <a class="btn btn--secondary btn--sm" href="{{ url_for('teacher.question_new', node=t.node.id, exam=first_exam) }}">{{ ui.icon('plus', 14) }}{{ _("Вопрос") }}</a></li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="empty"><h3>{{ _("Пробелов нет") }}</h3><p>{{ _("Во всех навыках хватает вопросов.") }}</p></div>
+{% endif %}
+{% endblock %}

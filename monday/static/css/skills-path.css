@@ -69,7 +69,7 @@
 .sp-level.is-current .sp-label b { color: var(--accent); font-size: 16px; }
 
 @media (max-width: 960px) {
-  .sp-layout { grid-template-columns: 1fr; gap: 16px; }
+  .sp-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }  /* minmax: the chapter strip scrolls instead of widening the page */
   .sp-index { position: static; display: flex; overflow-x: auto; gap: 8px; padding: 8px; scrollbar-width: none; border-radius: 16px; }
   .sp-index::-webkit-scrollbar { display: none; }
   .sp-index__title, .sp-key { display: none; }
@@ -121,5 +121,5 @@ body:not(.auth-body):has(.page--city) { background: url("data:image/svg+xml,%3Cs
 .sp-street { position: static; transform: none; display: inline-flex; margin: 0 0 8px 4px; }
 @media (max-width: 640px) {
   .sp-level { left: var(--x); }
-  .sp-label { max-width: 130px; }
+  .sp-label { max-width: min(130px, calc(100vw - 268px)); }  /* never past the right edge (no page zoom-out) */
 }

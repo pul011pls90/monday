@@ -20,6 +20,7 @@
       <div class="rv-card__meta small">
         <span>{{ people[q.author_id].name if q.author_id in people else '' }}</span>
         <span class="muted">· {{ q.skill.path if q.skill }} · {{ DIFFICULTIES[q.difficulty or 2] }} · {{ q.exams|map('exam_label')|join(', ') }} · {{ q.created_at|ago }}</span>
+        {% if q.replaces_id %}<span class="tag tag--warn tag--xs">{{ _("исправление к #%(n)s — заменит его", n=q.replaces_id) }}</span>{% endif %}
         {% if dups.get(loop.index0) %}<span class="tag tag--warn tag--xs">{{ _("похоже на #%(n)s в банке", n=dups[loop.index0].id) }}</span>{% endif %}
       </div>
       <div class="rv-card__body">{{ ui.question_body(it, 'rv' ~ q.id, reveal=true, disabled=true) }}

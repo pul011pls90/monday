@@ -25,8 +25,10 @@
       {% set items = [
         ('assistant.home', 'plus', _('Загрузка'), ['assistant.home', 'assistant.import_preview', 'assistant.import_save']),
         ('assistant.mine', 'questions', _('Мои вопросы'), ['assistant.mine', 'teacher.question_new', 'teacher.question_edit']),
+        ('assistant.fixes', 'flag', _('Исправления'), ['assistant.fixes']),
+        ('assistant.gaps', 'skills', _('Пробелы'), ['assistant.gaps']),
       ] %}
-      {% set primary = ['assistant.home', 'assistant.mine'] %}
+      {% set primary = ['assistant.home', 'assistant.mine', 'assistant.fixes', 'assistant.gaps'] %}
     {% else %}
       <a class="rail__logo" href="{{ url_for('student.home') }}" aria-label="Monday">M</a>
       {% set items = [

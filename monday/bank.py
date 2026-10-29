@@ -71,14 +71,23 @@ def _status(q, states, last):
 
 
 def _pool(user, exam):
-    """Published questions of the exam whose node is in the student's visible tree, in tree order."""
-    tree = content_tree(user, exam)
+    """Published questions of the exam, in tree order. The tree is the exam's route plus any other node
+    that has questions for this exam, so the bank holds the same questions as «Сессии» and the skill map."""
+    pool = student_pool(exam)
+    have = {q.skill_id for q in pool}
+    tree = []
+    for t in content_tree(user):
+        subs = [{"node": s["node"], "nodes": [n for n in s["nodes"] if not exam or n.in_exam(exam) or n.id in have]}
+                for s in t["subtopics"]]
+        subs = [s for s in subs if s["nodes"]]
+        if subs:
+            tree.append({"node": t["node"], "subtopics": subs})
     order = {}
     for t in tree:
         for s in t["subtopics"]:
             for n in s["nodes"]:
                 order[n.id] = len(order)
-    qs = [q for q in student_pool(exam) if q.skill_id in order]
+    qs = [q for q in pool if q.skill_id in order]
     qs.sort(key=lambda q: (order[q.skill_id], q.difficulty or 2, q.id))
     return tree, qs
 

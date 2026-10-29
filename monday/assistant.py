@@ -2,6 +2,9 @@
 
 /assistant/            Загрузка: paste a test (text or JSON) → preview → send (teachers can use it too)
 /assistant/mine        Мои вопросы: черновики, на проверке, вернули с комментарием, опубликованы
+/assistant/gaps        Где мало вопросов: skills that need content, with a «add a question here» link
+/assistant/fixes       Исправления: students' error reports — the assistant proposes a corrected copy, a reviewer
+                       approves it and the original question takes the fix (same id, so results stay linked)
 /review/questions      queue for admins and methodists: approve, edit, send back with a note
 """
 import os
@@ -18,13 +21,15 @@ from .access import reviewer_required, staff_required
 from .constants import EXAMS
 from .extensions import db
 from .importer import find_duplicates, guess_skill, parse, problems
-from .models import INPUT_FORMATS, Question, User, utcnow
-from .services import content_tree, valid_number_answer
+from .constants import REPORT_KINDS
+from .models import INPUT_FORMATS, ContentNode, Question, Report, User, utcnow
+from .services import content_gaps, content_tree, valid_number_answer
 
 bp = Blueprint("assistant", __name__, url_prefix="/assistant")
 review_bp = Blueprint("review", __name__, url_prefix="/review")
 
 MAX_IMPORT = 80
+THIN = 3  # same threshold as the admin overview: a skill with fewer published questions needs content
 CYR = "АБВГДЕЖЗ"
 
 
@@ -55,7 +60,14 @@ def home():
         "returned": mine.filter(Question.status == "draft", Question.review_note.isnot(None)).count(),
         "published": mine.filter_by(status="published").count(),
     }
-    return render_template("assistant/home.html", stats=stats)
+    # how reviews went: share approved, and the latest comments on returned questions
+    reviewed = mine.filter(Question.reviewed_at.isnot(None))
+    approved = reviewed.filter(Question.status == "published").count()
+    stats["approved_pct"] = round(100 * approved / reviewed.count()) if reviewed.count() else None
+    notes = (mine.filter(Question.review_note.isnot(None)).order_by(Question.reviewed_at.desc()).limit(5).all())
+    stats["fixes"] = Report.query.filter(Report.status == "open", Report.question_id.isnot(None)).count()
+    stats["gaps"] = len(content_gaps(THIN))
+    return render_template("assistant/home.html", stats=stats, notes=notes)
 
 
 @bp.route("/import", methods=["POST"])
@@ -193,6 +205,61 @@ def mine():
     return render_template("assistant/mine.html", tab=tab, counts=counts, rows=rows, page=page, pages=pages)
 
 
+# --------------------------------------------------------------------------- what to add, what to fix
+
+
+@bp.route("/gaps")
+@staff_required
+def gaps():
+    exam = request.args.get("exam") if request.args.get("exam") in EXAMS else None
+    rows = [r for r in content_gaps(THIN) if not exam or any(e == exam for e, _c in r["gaps"])]
+    return render_template("assistant/gaps.html", rows=rows[:200], total=len(rows), exam=exam, thin=THIN)
+
+
+@bp.route("/fixes")
+@staff_required
+def fixes():
+    """Open error reports on questions. A correction goes through the same review as a new question."""
+    reports = (Report.query.filter(Report.status == "open", Report.question_id.isnot(None))
+               .order_by(Report.created_at.desc()).limit(100).all())
+    proposed = {q.replaces_id: q for q in Question.query.filter(Question.replaces_id.isnot(None),
+                                                                 Question.status.in_(("pending", "draft"))).all()}
+    return render_template("assistant/fixes.html", reports=reports, proposed=proposed, kinds=REPORT_KINDS)
+
+
+@bp.route("/branch-request", methods=["POST"])
+@staff_required
+def branch_request():
+    """«Нужной ветки нет»: the request reaches the admins' «Исправления» as a note on the parent subtopic."""
+    parent = db.session.get(ContentNode, request.form.get("parent_id", type=int) or 0)
+    name = (request.form.get("name") or "").strip()[:120]
+    if not parent or not name:
+        flash(_("Выберите подтему и напишите название навыка."), "error")
+    else:
+        db.session.add(Report(author_id=current_user.id, node_id=parent.id, kind="node",
+                              message=_("Нужна новая ветка: %(n)s", n=name)))
+        db.session.commit()
+        flash(_("Запрос отправлен администратору."), "success")
+    return redirect(request.referrer or url_for("assistant.home"))
+
+
+def publish_reviewed(q):
+    """Approve a question. A correction is copied onto the question it fixes (same id) and its reports are closed."""
+    q.status, q.review_note, q.reviewed_by_id, q.reviewed_at = "published", None, current_user.id, utcnow()
+    orig = q.replaces
+    if not orig:
+        return q
+    for field in ("text", "options", "correct", "explanation", "material", "image_path", "answer_type", "input_formats",
+                  "precision", "difficulty", "skill_id", "exams", "weight", "tags"):
+        setattr(orig, field, getattr(q, field))
+    orig.reviewed_by_id, orig.reviewed_at = current_user.id, utcnow()
+    for r in Report.query.filter_by(question_id=orig.id, status="open").all():
+        r.status, r.handled_by_id, r.handled_at, r.seen = "fixed", current_user.id, utcnow(), False
+        r.reply = _("Спасибо! Вопрос исправлен.")
+    db.session.delete(q)
+    return orig
+
+
 # --------------------------------------------------------------------------- review queue
 
 
@@ -221,16 +288,17 @@ def decide(qid):
     decision = request.form.get("decision")
     q.reviewed_by_id, q.reviewed_at = current_user.id, utcnow()
     if decision == "approve":
-        q.status, q.review_note = "published", None
+        publish_reviewed(q)
     else:
         note = request.form.get("note", "").strip()
         if not note:
             flash(_("Напишите, что исправить — ассистент увидит комментарий."), "error")
             return redirect(url_for("review.queue", author=request.args.get("author")) + f"#q{qid}")
         q.status, q.review_note = "draft", note
+    status = q.status  # read before commit: an approved correction is merged into its original and removed
     db.session.commit()
     if request.headers.get("X-Requested-With") == "fetch":
-        return {"status": q.status}
+        return {"status": status}
     return redirect(url_for("review.queue", author=request.args.get("author")))
 
 
@@ -240,7 +308,7 @@ def approve_all():
     ids = [int(x) for x in request.form.getlist("qid") if x.isdigit()]
     n = 0
     for q in Question.query.filter(Question.id.in_(ids or [0]), Question.status == "pending").all():
-        q.status, q.review_note, q.reviewed_by_id, q.reviewed_at = "published", None, current_user.id, utcnow()
+        publish_reviewed(q)
         n += 1
     db.session.commit()
     flash(_("Одобрено: %(n)s.", n=n), "success")

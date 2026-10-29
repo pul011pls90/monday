@@ -22,7 +22,7 @@
           <dt>{{ _("Навык") }}</dt><dd>{{ node.name }}</dd>{% endif %}
           <dt>{{ _("Сложность") }}</dt><dd>{{ DIFFICULTIES[question.difficulty or 2] }}</dd>
           <dt>{{ _("Тип ответа") }}</dt><dd>{{ _("Ввод ответа") if question.answer_type == 'number' else _("Варианты") }}</dd>
-          <dt>{{ _("Автор") }}</dt><dd>{{ question.author.name if question.author else '—' }}</dd>
+          <dt>{{ _("Автор") }}</dt><dd>{{ question.author.public_name if question.author else '—' }}</dd>
           <dt>{{ _("Время на вопрос") }}</dt><dd class="num" data-meta-time data-base="{{ state.seconds if state else 0 }}">{{ '%d:%02d' % (((state.seconds if state else 0) or 0) // 60, ((state.seconds if state else 0) or 0) % 60) }}</dd>
           <dt>ID</dt><dd class="num">{{ question.id }}</dd>
         </dl>

@@ -156,8 +156,8 @@
   <a class="card home-tile" href="{{ url_for('student.monday') }}">
     <span class="home-tile__ic">{{ ui.icon('timer', 20) }}</span>
     <span class="home-tile__label">{{ _("Тест понедельника") }}</span>
-    <b class="home-tile__big num">{% if monday_countdown %}{{ _("%(d)s д %(h)s ч", d=monday_countdown[0], h=monday_countdown[1]) }}{% else %}{{ _("Идёт") }}{% endif %}</b>
-    <span class="home-tile__sub">{{ _("до старта") }}{% if my_place %} · {{ _("в прошлый раз #%(n)s", n=my_place) }}{% endif %}</span>
+    <b class="home-tile__big num">{% if monday_countdown %}{{ _("%(d)s д %(h)s ч", d=monday_countdown[0], h=monday_countdown[1]) }}{% else %}{{ _("Идёт сейчас") }}{% endif %}</b>
+    <span class="home-tile__sub">{{ _("до старта") if monday_countdown else _("можно начать") }}{% if my_place %} · {{ _("в прошлый раз #%(n)s", n=my_place) }}{% endif %}</span>
   </a>
   <a class="card home-tile" href="{{ url_for('student.journal') }}">
     <span class="home-tile__ic">{{ ui.icon('journal', 20) }}</span>

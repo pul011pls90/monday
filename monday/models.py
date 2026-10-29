@@ -92,6 +92,11 @@ class User(UserMixin, db.Model):
         return "".join(p[0] for p in parts[:2]).upper() or "?"
 
     @property
+    def public_name(self):
+        """How the author of shared content is signed for students: the platform for admins."""
+        return "Monday Academy" if self.role == "admin" else self.name
+
+    @property
     def first_name(self):
         return self.name.split()[0] if self.name else ""
 
@@ -232,6 +237,7 @@ class Question(db.Model):
     tags = db.Column(JSONText)  # kinds of question: word, graph, nocalc, compare (see taxonomy.TAGS)
     status = db.Column(db.String(12), default="published")  # draft | pending (assistant's, waits for review) | published
     review_note = db.Column(db.Text)  # reviewer's comment when a question is sent back
+    replaces_id = db.Column(db.Integer, db.ForeignKey("question.id"))  # an assistant's correction of this published question
     reviewed_by_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     reviewed_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=utcnow)
@@ -239,6 +245,7 @@ class Question(db.Model):
 
     author = db.relationship("User", foreign_keys=[author_id])
     reviewer = db.relationship("User", foreign_keys=[reviewed_by_id])
+    replaces = db.relationship("Question", remote_side="Question.id", foreign_keys=[replaces_id])
     skill = db.relationship("ContentNode")
 
     @property

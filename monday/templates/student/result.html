@@ -26,7 +26,7 @@
 {% set pending = rows|selectattr('item')|selectattr('item.answer_type', 'equalto', 'written')|selectattr('answer.points', 'none')|selectattr('answer.given')|list|length %}
 {% if pending %}<div class="flash flash--info">{{ _("Часть 2 ждёт оценки: %(n)s зад. Откройте каждое задание в разборе, сравните с эталоном и отметьте свой балл по критериям — итог обновится. Учитель может поправить оценку.", n=pending) }}</div>{% endif %}
 {% set ns_w = namespace(n=0) %}{% for r in rows if not r.answer.is_correct and not (r.item and r.item.answer_type == 'written' and r.answer.points is none) %}{% set ns_w.n = ns_w.n + 1 %}{% endfor %}{% set wrong = ns_w.n %}
-{% if wrong %}<div class="flash flash--info">{{ _("Ошибок в работе: %(n)s. Они добавлены в Лабораторный журнал — там их можно разобрать и закрыть.", n=wrong) }}</div>{% endif %}
+{% if wrong %}<div class="flash flash--info">{{ _("Ошибок в работе: %(n)s. Они добавлены в журнал ошибок — там их можно разобрать и закрыть.", n=wrong) }}</div>{% endif %}
 
 {% if layout %}
 {% include "student/_review_steps.html" %}

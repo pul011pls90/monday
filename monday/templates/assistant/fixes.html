@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Исправления") }}{% endblock %}
+{% block context %}{{ _("Кабинет ассистента") if current_user.is_assistant else _("Кабинет учителя") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text"><h1>{{ _("Исправления") }}</h1>
+    <p>{{ _("Ученики сообщают об ошибках в вопросах. Откройте вопрос, исправьте копию и отправьте — после проверки исправление заменит исходный вопрос, а ученик получит ответ.") }}</p></div>
+</div>
+{% if reports %}
+<div class="stack" style="gap:12px">
+  {% for r in reports %}{% set q = r.question %}{% set mine = proposed.get(q.id) %}
+    <article class="card fix-card">
+      <div class="row row--between" style="gap:8px;flex-wrap:wrap">
+        <span class="small"><span class="tag tag--warn tag--xs">{{ kinds[r.kind] if r.kind in kinds else r.kind }}</span>
+          <span class="muted">#{{ q.id }} · {{ q.skill.path if q.skill }} · {{ r.created_at|ago }}</span></span>
+        {% if mine %}
+          <a class="btn btn--secondary btn--sm" href="{{ url_for('teacher.question_edit', question_id=mine.id) }}">{{ _("Исправление на проверке") if mine.status == 'pending' else _("Черновик исправления") }}</a>
+        {% else %}
+          <a class="btn btn--primary btn--sm" href="{{ url_for('teacher.question_new', fix=r.id) }}">{{ ui.icon('edit', 14) }}{{ _("Исправить") }}</a>
+        {% endif %}
+      </div>
+      {% if r.message %}<p class="fix-card__msg">«{{ r.message }}»</p>{% endif %}
+      <p class="math small text-2" style="margin:0">{{ q.text or _('Задача с рисунком') }}</p>
+    </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty"><h3>{{ _("Сообщений об ошибках нет") }}</h3><p>{{ _("Когда ученик отметит ошибку в вопросе, она появится здесь.") }}</p></div>
+{% endif %}
+{% endblock %}

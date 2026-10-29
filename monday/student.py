@@ -22,6 +22,8 @@ from .services import (answer_item, build_custom_plan, ladder_next, countdown_la
 
 bp = Blueprint("student", __name__)
 
+FIX_MAX = 30  # «Работа над ошибками» started from the journal: at most this many questions
+
 LETTERS = "АБВГДЕЖЗ"
 
 
@@ -115,7 +117,7 @@ def home():
                    .filter(Attempt.user_id == current_user.id, AttemptAnswer.answered_at >= since).count())
     return render_template(
         "student/home.html", p=p, summary=summary, mondays=left, minutes=minutes, week_solved=week_solved,
-        recommended=recommended_mode(minutes), monday_countdown=countdown_label(start - local_now()),
+        recommended=recommended_mode(minutes), monday_countdown=None if monday_window_open() else countdown_label(start - local_now()),
         monday_start=start, breakdown=breakdown, week_mistakes=week_mistakes, assignments=assignments[:3], hw_n=len(assignments),
         my_place=my_place, strip=_monday_strip(left), task=_todays_task(p.exam, summary),
         portrait=skill_map(current_user.id, p.exam), daily=_daily_block(),
@@ -246,10 +248,11 @@ def sessions():
     exam = _exam()
     tmap = skill_map(current_user.id, exam)
     topic_of = {i["skill"].id: t["node"].id for t in tmap for i in t["items"]}
-    have = Counter()
-    for _i, sid, d in pool_index(exam):
+    have, pool_ids = Counter(), set()
+    for qid, sid, d in pool_index(exam):
         if sid in topic_of:
             have[(topic_of[sid], d)] += 1
+            pool_ids.add(qid)
     topics = []
     for t in tmap:
         n = {d: have[(t["node"].id, d)] for d in (1, 2, 3)}
@@ -257,8 +260,9 @@ def sessions():
             topics.append({"id": t["node"].id, "name": t["name"], "n": n})
     totals = {d: sum(t["n"][d] for t in topics) for d in (1, 2, 3)}
     bank_n = sum(totals.values())
-    answered_n = (db.session.query(db.func.count(db.distinct(AttemptAnswer.question_id))).join(Attempt)
-                  .filter(Attempt.user_id == current_user.id).scalar() or 0)
+    # solved = questions of this same set answered at least once (the bank counts the same way)
+    answered_n = len(pool_ids & {qid for (qid,) in db.session.query(AttemptAnswer.question_id).join(Attempt)
+                                 .filter(Attempt.user_id == current_user.id).distinct()})
     spent = (db.session.query(db.func.sum(Attempt.duration_sec))
              .filter(Attempt.user_id == current_user.id).scalar() or 0)
     return render_template("student/sessions.html", bank_n=bank_n, answered_n=answered_n,
@@ -294,8 +298,10 @@ def start_session(mode):
         return redirect(url_for("student.sessions"))
     skill_id = request.form.get("skill_id", type=int)
     exam = request.form.get("exam")
+    count = request.form.get("count", type=int) if mode == "darwin" else None  # the journal asks for one per open record
     questions = pick_practice_questions(current_user, mode, skill_id=skill_id,
-                                        exam=exam if exam in EXAMS or exam == "all" else None)
+                                        exam=exam if exam in EXAMS or exam == "all" else None,
+                                        count=max(1, min(FIX_MAX, count)) if count else None)
     if not questions:
         flash(_("Пока нет вопросов для этого режима."), "error")
         return redirect(url_for("student.sessions"))
@@ -993,8 +999,11 @@ def journal():
     since = utcnow() - timedelta(days=7)
     breakdown = mistake_breakdown(current_user.id, since)
     days, more = journal_days(entries, days_shown)
+    # «Работа над ошибками» from here: one question per open record, up to FIX_MAX
+    fix_count = min(FIX_MAX, open_count) or MODES["darwin"]["count"]
     return render_template("student/journal.html", days=days, more=more, days_shown=days_shown, show=show, today_d=local_today(),
                            open_count=open_count, resolved_count=resolved_count, breakdown=breakdown,
+                           fix_count=fix_count, fix_minutes=max(5, round(fix_count * PACE[2] / 60)),
                            week_total=sum(breakdown.values()))
 
 

@@ -15,8 +15,26 @@
   <a class="card admin-stat" href="{{ url_for('assistant.mine', tab='pending') }}"><span class="admin-stat__ic">{{ ui.icon('inbox', 22) }}</span><span><b class="num">{{ stats.pending }}</b><span>{{ _("на проверке") }}</span></span></a>
   <a class="card admin-stat{{ ' is-hot' if stats.returned }}" href="{{ url_for('assistant.mine', tab='returned') }}"><span class="admin-stat__ic">{{ ui.icon('retry', 22) }}</span><span><b class="num">{{ stats.returned }}</b><span>{{ _("вернули с комментарием") }}</span></span></a>
   <a class="card admin-stat" href="{{ url_for('assistant.mine', tab='published') }}"><span class="admin-stat__ic">{{ ui.icon('check', 22) }}</span><span><b class="num">{{ stats.published }}</b><span>{{ _("опубликовано") }}</span></span></a>
-  <div class="card admin-stat"><span class="admin-stat__ic">{{ ui.icon('bars', 22) }}</span><span><b class="num">{{ stats.week }}</b><span>{{ _("загружено за неделю") }}</span></span></div>
+  <div class="card admin-stat"><span class="admin-stat__ic">{{ ui.icon('bars', 22) }}</span><span><b class="num">{{ stats.week }}</b><span>{{ _("загружено за неделю") }}{% if stats.approved_pct is not none %} · {{ _("одобряют %(p)s%%", p=stats.approved_pct) }}{% endif %}</span></span></div>
 </div>
+
+{# what to work on next: student error reports and skills without enough questions #}
+<div class="grid grid-2 asst-next">
+  <a class="card asst-next__card{{ ' is-hot' if stats.fixes }}" href="{{ url_for('assistant.fixes') }}">
+    <span class="admin-stat__ic">{{ ui.icon('flag', 22) }}</span>
+    <span><b>{{ _("Исправления") }} · {{ stats.fixes }}</b><span class="small text-2">{{ _("ученики нашли ошибки в вопросах — исправьте их") }}</span></span>
+    {{ ui.icon('arrow-right', 18) }}</a>
+  <a class="card asst-next__card" href="{{ url_for('assistant.gaps') }}">
+    <span class="admin-stat__ic">{{ ui.icon('skills', 22) }}</span>
+    <span><b>{{ _("Где мало вопросов") }} · {{ stats.gaps }}</b><span class="small text-2">{{ _("навыки, которым нужны новые вопросы") }}</span></span>
+    {{ ui.icon('arrow-right', 18) }}</a>
+</div>
+{% if notes %}
+<section class="card" aria-labelledby="notes-h">
+  <h2 id="notes-h" style="font-size:17px;margin:0 0 8px">{{ _("Последние комментарии проверяющих") }}</h2>
+  <ul class="asst-notes">{% for q in notes %}<li><a href="{{ url_for('teacher.question_edit', question_id=q.id) }}"><span class="small muted">#{{ q.id }} · {{ q.reviewed_at|ago if q.reviewed_at }}</span> {{ q.review_note }}</a></li>{% endfor %}</ul>
+</section>
+{% endif %}
 
 <form method="post" action="{{ url_for('assistant.import_preview') }}" class="card imp-paste">
   {{ ui.csrf() }}

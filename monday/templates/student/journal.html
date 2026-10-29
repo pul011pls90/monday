@@ -1,16 +1,16 @@
 {% extends "layout.html" %}
-{% block title %}{{ _("Лабораторный журнал") }}{% endblock %}
+{% block title %}{{ _("Журнал ошибок") }}{% endblock %}
 {% block content %}
 <header class="page-head__text">
-  <h1>{{ _("Лабораторный журнал") }}</h1>
-  <p class="text-2">{{ _("Ты можешь просмотреть ошибки по своим недавним решениям. И выяснить где у тебя пробелы )") }}</p>
+  <h1>{{ _("Журнал ошибок") }}</h1>
+  <p class="text-2">{{ _("Ошибки из твоих последних работ. Разбери их — так закрываются пробелы.") }}</p>
 </header>
 
 <div class="grid grid-2">
   <section class="card" aria-labelledby="why-h">
     <div class="card__head"><div class="stack-xs" style="gap:2px">
-        <h2 id="why-h" style="font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0">{{ _("Отрицательный прогресс") }}</h2>
-        <span class="small muted" style="font-size:12px;font-weight:500">{{ _("Причины, по которым ты теряешь баллы") }}</span>
+        <h2 id="why-h" style="font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0">{{ _("Где теряешь баллы") }}</h2>
+        <span class="small muted" style="font-size:12px;font-weight:500">{{ _("Причины ошибок") }}</span>
       </div><span class="small" style="color:var(--accent);font-weight:600">{{ week_total }} {{ week_total|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }} {{ _("за неделю") }}</span></div>
     {% set colors = {'careless': '#2B60E5', 'gap': '#153893', 'misread': '#7FA3F3', 'time': '#BBCFF4', None: 'var(--surface-3)'} %}
     {% if week_total %}
@@ -31,24 +31,24 @@
   <section class="card jr-investigation-card" aria-labelledby="darwin-h">
     <div class="row row--between" style="align-items:center">
       <div class="row" style="gap:8px;font-weight:700;font-size:13px;align-items:center">
-        {{ ui.mode_dot("darwin") }}<span>{{ MODES.darwin.name }} · ~{{ MODES.darwin.approx }} {{ _("мин") }}</span>
+        {{ ui.mode_dot("darwin") }}<span>{{ MODES.darwin.name }} · ~{{ fix_minutes }} {{ _("мин") }}</span>
       </div>
       <span class="tag tag--line tag--xs" style="font-weight:700">{{ _("Работа над ошибками") }}</span>
     </div>
 
     <div class="stack-xs" style="gap:6px">
       <h2 id="darwin-h" style="font-size:24px;font-weight:800;letter-spacing:-0.02em;margin:0">
-        {{ _("Расследуй %(n)s открытых записей", n=open_count) }}
+        {{ _("Разбери %(n)s открытых записей", n=open_count) }}
       </h2>
       <p class="text-2 small" style="margin:0;line-height:1.45">
-        {{ _("ИИ-разбор выделит общие паттерны твоих ошибок и сгенерирует похожие практические задачи для закрепления.") }}
+        {{ _("%(n)s задач по темам твоих ошибок — по одной на каждую открытую запись.", n=fix_count) }}
       </p>
     </div>
 
     <div class="jr-investigation-features">
       <div class="jr-inv-pill">
         {{ ui.icon('bolt', 14) }}
-        <span>{{ _("Умная выборка") }}</span>
+        <span>{{ _("Темы твоих ошибок") }}</span>
       </div>
       <div class="jr-inv-pill">
         {{ ui.icon('check', 14) }}
@@ -56,13 +56,14 @@
       </div>
       <div class="jr-inv-pill">
         {{ ui.icon('clock', 14) }}
-        <span>{{ MODES.darwin.approx }} {{ _("мин") }}</span>
+        <span>~{{ fix_minutes }} {{ _("мин") }}</span>
       </div>
     </div>
 
     <form method="post" action="{{ url_for('student.start_session', mode='darwin') }}" style="margin-top:auto">{{ ui.csrf() }}
+      <input type="hidden" name="count" value="{{ fix_count }}">
       <button class="btn btn--primary btn--block btn--sm" style="min-height:42px;font-weight:700" type="submit">
-        {{ ui.icon('play', 16) }} {{ _("Начать расследование") }}
+        {{ ui.icon('play', 16) }} {{ _("Начать работу над ошибками") }}
       </button>
     </form>
   </section>

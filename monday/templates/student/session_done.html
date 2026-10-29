@@ -43,7 +43,7 @@
 <div class="row" style="flex-wrap:wrap">
   {% if wrong %}<form method="post" action="{{ url_for('student.session_retry', attempt_id=att.id) }}">{{ ui.csrf() }}<button class="btn btn--primary" type="submit">{{ ui.icon('retry', 16) }}{{ _("Повторить ошибки (%(n)s)", n=wrong|length) }}</button></form>{% endif %}
   <form method="post" action="{{ url_for('student.session_again', attempt_id=att.id) }}">{{ ui.csrf() }}<button class="btn {{ 'btn--secondary' if wrong else 'btn--primary' }}" type="submit">{{ _("Ещё раз с теми же настройками") if mode_key == 'custom' else _("Ещё одна сессия") }}</button></form>
-  <a class="btn btn--ghost" href="{{ url_for('student.sessions') }}">{{ _("Своя сессия") }}</a>
+  <a class="btn btn--ghost" href="{{ url_for('student.sessions') }}#custom">{{ _("Своя сессия") }}</a>
   <a class="btn btn--ghost" href="{{ url_for('student.journal') }}">{{ _("Журнал ошибок") }}</a>
 </div>
 

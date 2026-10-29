@@ -62,7 +62,7 @@
     {% else %}<span class="small muted" style="font-weight:600">{{ WORK_CATEGORIES.get(w.category, '') }}</span>{% endif %}
   </div>
   <h3 class="work-card__title">{{ w.title }}</h3>
-  <div class="author">{{ avatar(w.author, 'avatar--sm') }}{{ w.author.name }}</div>
+  <div class="author">{{ avatar(w.author, 'avatar--sm') }}{{ w.author.public_name }}</div>
   {% if w.description %}<p class="work-card__desc">{{ w.description }}</p>{% endif %}
   <div class="work-card__meta">
     <span class="meta-item">{{ icon('clock', 16) }}{{ (v.time_limit_min if v else w.time_limit_min)|minutes }}</span>

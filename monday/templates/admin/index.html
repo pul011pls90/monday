@@ -21,9 +21,10 @@
   <a class="card admin-stat{{ ' is-hot' if pending_teachers }}" href="{{ url_for('admin.index', tab='apps') }}">
     <span class="admin-stat__ic">{{ ui.icon('inbox', 22) }}</span>
     <span><b class="num">{{ pending_teachers|length }}</b><span>{{ _("заявок ждут") }}</span></span></a>
-  <a class="card admin-stat{{ ' is-hot' if pending_works }}" href="{{ url_for('admin.index', tab='moderation') }}">
+  {% set to_check = pending_works|length + pending_questions %}{# same number as the «Модерация» tab #}
+  <a class="card admin-stat{{ ' is-hot' if to_check }}" href="{{ url_for('admin.index', tab='moderation') }}">
     <span class="admin-stat__ic">{{ ui.icon('works', 22) }}</span>
-    <span><b class="num">{{ pending_works|length }}</b><span>{{ _("тестов на проверке") }}</span></span></a>
+    <span><b class="num">{{ to_check }}</b><span>{{ _("на модерации · тестов %(w)s, вопросов %(q)s", w=pending_works|length, q=pending_questions) }}</span></span></a>
 </div>
 
 {# ------------------------------------------------------------ tabs #}

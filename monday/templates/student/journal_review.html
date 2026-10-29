@@ -6,7 +6,7 @@
 {% set base = url_for('student.journal_review', attempt_id=att.id) %}
 {% macro link(t=tab, tp=topic, k=None) -%}{{ base }}?tab={{ t }}{% if tp %}&topic={{ tp }}{% endif %}{% if k is not none %}&i={{ k }}{% endif %}{%- endmacro %}
 
-<a href="{{ url_for('student.journal') }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Лабораторный журнал") }}</a>
+<a href="{{ url_for('student.journal') }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Журнал ошибок") }}</a>
 <header class="mr-head">
   <div class="stack-sm">
     <span class="jr-group__kind">{{ kind }}</span>

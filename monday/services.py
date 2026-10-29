@@ -314,6 +314,22 @@ def content_tree(user=None, exam=None, include_archived=False):
     return tree
 
 
+def content_gaps(thin=3):
+    """Skills of the shared map with fewer than `thin` published questions for one of their exams, emptiest first:
+    [{"node", "gaps": [(exam, count), ...], "least"}]. Shown to admins (overview) and assistants (what to add)."""
+    published = Counter()
+    for skill_id, exams in db.session.query(Question.skill_id, Question.exams).filter(Question.status == "published"):
+        for ex in (exams or []):
+            published[(skill_id, ex)] += 1
+    rows = []
+    for n in ContentNode.query.filter_by(level="node", archived=False, owner_id=None).all():
+        gaps = [(ex, published.get((n.id, ex), 0)) for ex in (n.exams or []) if published.get((n.id, ex), 0) < thin]
+        if gaps:
+            rows.append({"node": n, "gaps": gaps, "least": min(c for _e, c in gaps)})
+    rows.sort(key=lambda x: (x["least"], -len(x["gaps"]), x["node"].name))
+    return rows
+
+
 def leaf_nodes(user=None, exam=None):
     return [n for t in content_tree(user, exam) for s in t["subtopics"] for n in s["nodes"]]
 
@@ -594,13 +610,14 @@ def ladder_next(att, cfg):
     return None
 
 
-def pick_practice_questions(user, mode, skill_id=None, exam=None):
-    """exam: the map the student trains from ("all" = any exam); default is the student's own exam."""
+def pick_practice_questions(user, mode, skill_id=None, exam=None, count=None):
+    """exam: the map the student trains from ("all" = any exam); default is the student's own exam.
+    count: how many questions (default: the mode's own number)."""
     if exam == "all":
         exam = None
     elif not exam:
         exam = user.profile.exam if user.profile else None
-    count = MODES[mode]["count"]
+    count = count or MODES[mode]["count"]
     pool = student_pool(exam) or student_pool(None)
     if skill_id:
         focused = [q for q in pool if q.skill_id == skill_id]
@@ -625,8 +642,11 @@ def pick_practice_questions(user, mode, skill_id=None, exam=None):
     if mode == "darwin":
         open_skill_ids = {a.skill_id for a in open_mistakes(user.id)}
         pool_d = [q for q in pool if q.skill_id in open_skill_ids]
-        pool = pool_d or pool
-        return random.sample(pool, min(count, len(pool)))
+        picked = random.sample(pool_d, min(count, len(pool_d)))
+        if len(picked) < count:  # few questions on those topics: top up from the rest of the pool
+            rest = [q for q in pool if q not in picked]
+            picked += random.sample(rest, min(count - len(picked), len(rest)))
+        return picked
 
     # franklin / feynman: weakest skills first, then new ones
     stats = skill_stats(user.id)

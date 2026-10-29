@@ -14,6 +14,7 @@ DEMO_COLLECTIONS = [
     "ОРТ Апрель 2025", "Текстовые задачи", "ОРТ Пробник 2024", "Функции и графики",
 ]
 DEMO_STUDENT = ("student@monday.kg", "Тима Манашов", "Student")
+DEMO_ADMIN = ("admin@monday.kg", "Темирлан Манашов", "Admin Monday")
 
 
 def _once(key, fn):
@@ -37,6 +38,14 @@ def remove_demo_collections():
         for a in Assignment.query.filter_by(work_id=w.id).all():
             db.session.delete(a)
         db.session.delete(w)  # versions go with it
+
+
+def rename_demo_admin():
+    """The admin account had a personal name; it signs ready-made content, so it is now «Admin Monday»."""
+    email, old, new = DEMO_ADMIN
+    user = User.query.filter_by(email=email, name=old).first()
+    if user:
+        user.name = new
 
 
 def rename_demo_student():
@@ -106,3 +115,4 @@ def run_fixes():
     _once("question-source", mark_pack_sources)
     _once("goals-times-capped", fix_goals_and_times)
     _once("princeton-topic-sets-removed", remove_princeton_topic_sets)
+    _once("demo-admin-renamed", rename_demo_admin)

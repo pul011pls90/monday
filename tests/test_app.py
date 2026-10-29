@@ -194,7 +194,7 @@ def test_student_pages_render():
     ok(c, "/collections?exam=SAT&cat=full&sort=short", contains="SAT April 2024")
     ok(c, "/collections?q=Геометрия", contains="Геометрия: площади")
     ok(c, "/homework", contains=["Нужно сделать", "Свойства логарифмов", "hwcal__day", "Проверено"])
-    ok(c, "/journal", contains=["Лабораторный журнал", "Отрицательный прогресс", "Записи"])
+    ok(c, "/journal", contains=["Журнал ошибок", "Где теряешь баллы", "Записи", "Начать работу над ошибками"])
     ok(c, "/journal?show=resolved")
     ok(c, "/monday", contains=["Тест", "Рейтинг прошлой недели", "Дуэль школ"])
     ok(c, "/monday?scope=region")
@@ -666,6 +666,82 @@ def test_clear_recent_sessions_keeps_stats():
     assert 'class="sc-card"' not in body and "Очистить всё" not in body
     with APP.app_context():
         assert Attempt.query.filter_by(user_id=uid).count() == n  # only the list is emptied
+
+
+def test_journal_mistakes_session_has_one_question_per_open_record():
+    from monday.models import Attempt
+    c = login(client(), "student@monday.kg", "student123")
+    body = ok(c, "/journal").data.decode()
+    n = int(re.search(r'name="count" value="(\d+)"', body).group(1))
+    assert 1 <= n <= 30 and "ИИ" not in body
+    r = c.post("/sessions/start/darwin", data={"count": str(n)})
+    with APP.app_context():
+        att = db_get(Attempt, int(r.headers["Location"].rstrip("/").split("/")[-1]))
+        assert len(att.plan) == n
+
+
+def test_ort_trig_comparisons_pack():
+    from monday.models import Question
+    with APP.app_context():
+        qs = Question.query.filter_by(source="ort_trig_compare_2026").all()
+        assert len(qs) == 15 and all(q.exams == ["ORT"] and q.skill.code == "right_trig" for q in qs)
+        assert all(q.material[0]["type"] == "columns" and len(q.options) == 4 for q in qs)
+    c = login(client(), "student@monday.kg", "student123")
+    ok(c, "/skills?exam=ORT&show=list", contains=["Таблица", "Карта"])
+
+
+def test_admin_name_platform_author_and_moderation_count():
+    from monday.models import User
+    with APP.app_context():
+        admin = User.query.filter_by(email="admin@monday.kg").first()
+        assert admin.name == "Admin Monday" and admin.public_name == "Monday Academy"
+    s = login(client(), "student@monday.kg", "student123")
+    ok(s, "/collections", contains="Monday Academy")
+    a = login(client(), "admin@monday.kg", "monday2026")
+    body = ok(a, "/admin/").data.decode()
+    assert "на модерации" in body and "тестов на проверке" not in body
+
+
+def test_assistant_fixes_reported_question_and_gaps():
+    from monday.extensions import db
+    from monday.models import Question, Report
+    with APP.app_context():
+        q = Question.query.filter_by(status="published", answer_type="choice", source=None).first()
+        qid, skill, opts = q.id, q.skill_id, list(q.options)
+    st = login(client(), "student@monday.kg", "student123")
+    st.post("/report", data={"question_id": str(qid), "kind": "typo", "message": "опечатка в условии"})
+    with APP.app_context():
+        rid = Report.query.filter_by(question_id=qid, status="open").first().id
+    a = login(client(), "assistant@monday.kg", "assistant123")
+    ok(a, "/assistant/", contains=["Исправления", "Где мало вопросов"])
+    ok(a, "/assistant/fixes", contains=["опечатка в условии", f"/teacher/questions/new?fix={rid}"])
+    ok(a, "/assistant/gaps", contains="Где мало вопросов")
+    ok(a, f"/teacher/questions/new?fix={rid}", contains=f"Исправление к вопросу #{qid}")
+    data = {"exams": ["ORT"], "skill_id": str(skill), "text": "Исправленное условие задачи", "difficulty": "2",
+            "weight": "1", "language": "ru", "answer_type": "choice", "correct_option": "0"}
+    data.update({f"option{i}": o for i, o in enumerate(opts)})
+    r = a.post(f"/teacher/questions/new?fix={rid}", data=data)
+    assert r.status_code == 302
+    with APP.app_context():
+        fix = Question.query.filter_by(replaces_id=qid).first()
+        assert fix.status == "pending"
+        fix_id = fix.id
+    adm = login(client(), "admin@monday.kg", "monday2026")
+    ok(adm, "/review/questions", contains=f"исправление к #{qid}")
+    adm.post(f"/review/questions/{fix_id}", data={"decision": "approve"})
+    with APP.app_context():
+        assert db.session.get(Question, qid).text == "Исправленное условие задачи"
+        assert db.session.get(Question, fix_id) is None
+        assert db.session.get(Report, rid).status == "fixed"
+    # «нужной ветки нет»: the request reaches the admin's error reports
+    a.post("/assistant/branch-request", data={"parent_id": str(db_get_skill_parent(skill)), "name": "Новый навык X"})
+    ok(adm, "/teacher/reports", contains="Нужна новая ветка: Новый навык X")
+
+
+def db_get_skill_parent(skill_id):
+    from monday.models import ContentNode
+    with APP.app_context():
+        return db_get(ContentNode, skill_id).parent_id
 
 
 def test_formula_sheets():

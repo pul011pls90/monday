@@ -395,7 +395,7 @@ def seed_demo():
     today = local_today()
 
     # ---- users
-    admin = User(email="admin@monday.kg", name="Темирлан Манашов", role="admin")
+    admin = User(email="admin@monday.kg", name="Admin Monday", role="admin")
     admin.set_password("monday2026")
     teachers = {}
     for key, name in [("aibek", "Айбек Токтогулов"), ("nurai", "Нурай Асанова"), ("erkin", "Эркин Садыков"),
