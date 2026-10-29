@@ -652,6 +652,22 @@ def test_ort_math_in_two_parts():
         assert att.finished_at and att.score == 2 and len(att.answers) == 60
 
 
+def test_clear_recent_sessions_keeps_stats():
+    from monday.models import Attempt, User
+    c = login(client(), "student@monday.kg", "student123")
+    with APP.app_context():
+        uid = User.query.filter_by(email="student@monday.kg").first().id
+        n = Attempt.query.filter_by(user_id=uid).count()
+    body = ok(c, "/sessions").data.decode()
+    assert "Очистить всё" in body and 'class="sc-card"' in body
+    r = c.post("/sessions/clear")
+    assert r.status_code == 302
+    body = ok(c, "/sessions", contains="Список недавних сессий очищен").data.decode()
+    assert 'class="sc-card"' not in body and "Очистить всё" not in body
+    with APP.app_context():
+        assert Attempt.query.filter_by(user_id=uid).count() == n  # only the list is emptied
+
+
 def test_formula_sheets():
     import io
     from monday.models import ReferenceSheet

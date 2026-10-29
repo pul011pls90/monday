@@ -245,8 +245,10 @@ def skills():
 @bp.route("/sessions")
 @student_required
 def sessions():
-    recent = (Attempt.query.filter(Attempt.user_id == current_user.id, Attempt.mode.in_(list(MODES.keys())))
-              .order_by(Attempt.started_at.desc()).limit(8).all())
+    recent = Attempt.query.filter(Attempt.user_id == current_user.id, Attempt.mode.in_(list(MODES.keys())))
+    if current_user.profile.sessions_cleared_at:
+        recent = recent.filter(Attempt.started_at > current_user.profile.sessions_cleared_at)
+    recent = recent.order_by(Attempt.started_at.desc()).limit(8).all()
     exam = _exam()
     tmap = skill_map(current_user.id, exam)
     topic_of = {i["skill"].id: t["node"].id for t in tmap for i in t["items"]}
@@ -544,6 +546,16 @@ def session_presets():
         flash(_("Режим «%(n)s» сохранён.", n=name), "success")
     p.session_presets = presets[-6:]
     db.session.commit()
+    return redirect(url_for("student.sessions"))
+
+
+@bp.route("/sessions/clear", methods=["POST"])
+@student_required
+def sessions_clear():
+    """Empty the «Недавние сессии» list. Only the list: answers, progress and practice time stay."""
+    current_user.profile.sessions_cleared_at = utcnow()
+    db.session.commit()
+    flash(_("Список недавних сессий очищен. Прогресс и статистика сохранены."), "success")
     return redirect(url_for("student.sessions"))
 
 

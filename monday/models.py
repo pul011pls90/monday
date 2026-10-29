@@ -109,6 +109,7 @@ class StudentProfile(db.Model):
     onboarded = db.Column(db.Boolean, default=False)
     daily_goal = db.Column(db.Integer, default=15)  # minutes of practice a day (streak on the home page)
     session_presets = db.Column(JSONText, default=list)  # «мои режимы»: [{"name": .., "cfg": {..}}]
+    sessions_cleared_at = db.Column(db.DateTime)  # «Очистить» in recent sessions: older ones are hidden (stats stay)
 
     user = db.relationship("User", back_populates="profile")
 
