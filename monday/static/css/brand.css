@@ -3148,6 +3148,26 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 .cb__play { width: 32px; height: 32px; border-radius: 9px; }
 .cb__actions { padding-top: 14px; }
 .cb__actions .btn--lg { min-height: 44px; }
+/* …and fits a laptop screen (≈ 1440×800) at 100%: title and templates on one row, slider next to the count,
+   smaller chips, «Сбросить» next to «Начать сессию» */
+.cb { padding: 16px 22px; }
+.cb form { gap: 12px; }
+.cb__head { flex-wrap: nowrap; align-items: center; }
+.cb__head > div:first-child { min-width: 0; }
+.cb__lead { font-size: 13px; line-height: 1.4; }
+.cb__presets { flex: none; }
+.cb__stat { padding: 10px 16px; }
+.cb__count { display: flex; align-items: center; gap: 14px; }
+.cb__count .sb__range { flex: 1; min-width: 0; height: 22px; }
+.cb__stat .sb__pace { padding: 6px 10px; font-size: 12px; border-radius: 10px; }
+.cb__filter { padding: 10px 12px; }
+.cb__filter legend { margin-bottom: 6px; }
+.cb-chip span { padding: 4px 10px; font-size: 13px; }
+.cb__chips { gap: 5px; }
+.cb__note { margin-top: 4px; }
+.cb__actions { padding-top: 12px; }
+.cb__reset { margin-left: auto; }
+@media (max-width: 1100px) { .cb__head { flex-wrap: wrap; } }
 
 /* ---------------------------------------------------------------- home: «Сегодня», free-practice strip, three tiles */
 .home-today { gap: 14px; padding: 24px; }
