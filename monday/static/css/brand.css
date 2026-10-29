@@ -1242,6 +1242,11 @@ kbd { font: 700 10px var(--font); padding: 1px 5px; border-radius: 4px; border: 
   .ort-layout .ort-sheet h2 { font-size: 20px; margin-bottom: 12px; }
   .ort-layout .ort-sheet__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(var(--rows2, 10), auto); gap: 6px 12px; }
   .ort-layout .ort-sheet .bubble span { width: 26px; height: 26px; font-size: 11px; }
+  /* five options (А–Д) must fit in a half-width column of the sidebar */
+  .ort-layout .ort-sheet__row { gap: 3px; padding: 3px 2px; }
+  .ort-layout .ort-sheet__num { width: 22px; margin-right: 2px; }
+  .ort-layout:has(.ort-sheet__row .bubble:nth-of-type(5)) { grid-template-columns: minmax(0, 1fr) 400px; }
+  .ort-layout .ort-sheet__row:has(.bubble:nth-of-type(5)) .bubble span { width: 24px; height: 24px; font-size: 10px; }
   .ort-layout .ort-sheet .row.row--between { flex-direction: column; align-items: stretch; gap: 10px; }
   .ort-layout .ort-sheet .btn--lg { width: 100%; justify-content: center; }
 }

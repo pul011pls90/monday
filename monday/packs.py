@@ -5,7 +5,8 @@ A pack is one JSON file plus a folder of figures with the same name:
     monday/data/packs/<pack>.json
     monday/data/packs/<pack>/figures/*.png
 
-Each question carries its master skill code, text with $…$ LaTeX, options or a numeric answer
+Each question carries its master skill code, text with $…$ LaTeX, optional reading material (e.g. ORT
+"columns" for А/Б comparisons), options or a numeric answer
 (several accepted values are separated by "|"), an explanation and an optional figure.
 Each collection lists question ids in order plus its test format (SAT: two 22-question modules, 32 min each).
 
@@ -89,7 +90,7 @@ def import_pack(pack_id, publish=True, author=None):
     for item in pack["questions"]:
         node = nodes.get(item["skill"])
         q = Question(author=author, skill=node, exams=item.get("exams") or [exam], difficulty=item.get("difficulty", 2),
-                     language=item.get("language") or pack.get("language", "en"), material=[], text=item["text"],
+                     language=item.get("language") or pack.get("language", "en"), material=item.get("material") or [], text=item["text"],
                      image_path=f"packs/{pack_id}/{item['image']}" if item.get("image") else None,
                      weight=int(item.get("weight") or 1), rubric=item.get("rubric") or None,
                      answer_type=item["answer_type"], options=item.get("options") or [],
