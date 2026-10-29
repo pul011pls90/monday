@@ -1235,20 +1235,54 @@ kbd { font: 700 10px var(--font); padding: 1px 5px; border-radius: 4px; border: 
 .bubble--square span { border-radius: 6px; }
 .ort-sheet__row.is-fixed .bubble input:disabled + span { opacity: .45; cursor: not-allowed; }
 
+/* ORT in two parts (math: 1–30 comparisons, 31–60): part tabs, one answer key, compact comparison cards */
+.ort-part { display: flex; flex-direction: column; gap: 16px; }
+.ort-parts { display: flex; gap: 8px; margin-bottom: 14px; scroll-margin-top: 150px; }
+.test-body:not(:has(.is-paged)) .ort-parts { display: none; }
+.ort-parts__tab { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 16px; border: 1.5px solid var(--line-strong); border-radius: 14px; background: var(--surface); color: var(--text); font: inherit; cursor: pointer; text-align: left; }
+.ort-parts__tab span { font-size: 13px; color: var(--muted); }
+.ort-parts__tab.is-current { border-color: var(--btn-bg); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--btn-bg); }
+.ort-key { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; padding: 10px 16px; border: 1.5px solid var(--text); border-radius: 12px; background: var(--surface); font-size: 14px; }
+.ort-key i { font-style: normal; font-weight: 800; display: inline-grid; place-items: center; width: 24px; height: 24px; margin-right: 4px; border-radius: 50%; border: 1.5px solid var(--line-strong); font-size: 12px; }
+.ort-grid--cmp { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ort-grid--cmp .ort-q { border: 0; box-shadow: 1px 1px 0 var(--line); padding: 14px 14px 16px; grid-template-columns: 28px minmax(0, 1fr); gap: 4px; }
+.ort-grid--cmp .ort-q__num { font-size: 16px; }
+.ort-grid--cmp .ort-q__body { gap: 8px; }
+.ort-grid--cmp .ort-q__text { font-size: 15px; line-height: 1.45; }
+.ort-grid--cmp .q-columns__title { padding: 6px 10px; font-size: 12px; }
+.ort-grid--cmp .q-columns__body { font-size: 17px; padding: 10px 6px; min-height: 56px; }
+.ort-sheet__sub { text-align: center; font-weight: 700; color: var(--muted); font-size: 14px; margin: -6px 0 12px; }
+.ort-sheet__next { display: flex; flex-direction: column; gap: 8px; padding: 12px; margin-bottom: 12px; border-radius: 14px; background: var(--accent-soft); font-size: 14px; }
+.ort-sheet__next .btn { justify-content: center; }
+@media (max-width: 1100px) { .ort-grid--cmp { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1240px) and (max-width: 1439px) { .ort-grid--cmp { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .ort-grid--cmp { grid-template-columns: minmax(0, 1fr); } }
+
+/* ORT: answer sheet with the hand-in box under it */
+.ort-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.ort-submit { display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); box-shadow: var(--card-shadow); }
+.ort-submit .btn--lg { width: 100%; justify-content: center; }
+.ort-submit p { margin: 0; }
+
 /* ORT "paper" layout on wide screens: questions on the left, the answer sheet stays on the right */
 @media (min-width: 1240px) {
   .ort-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
-  .ort-layout .ort-sheet { position: sticky; top: 92px; max-height: calc(100vh - 200px); overflow: auto; padding: 18px; }
-  .ort-layout .ort-sheet h2 { font-size: 20px; margin-bottom: 12px; }
-  .ort-layout .ort-sheet__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(var(--rows2, 10), auto); gap: 6px 12px; }
-  .ort-layout .ort-sheet .bubble span { width: 26px; height: 26px; font-size: 11px; }
+  /* compact enough that a whole part (15 rows × 2) fits on a laptop screen at 100% zoom */
+  .ort-side { position: sticky; top: 141px; max-height: calc(100vh - 157px); }
+  .ort-layout .ort-sheet { flex: 0 1 auto; min-height: 0; overflow: auto; padding: 14px 14px 16px; border-radius: 18px; }
+  .ort-layout .ort-submit { padding: 12px 14px; border-radius: 18px; }
+  .ort-layout .ort-submit .btn--lg { min-height: 44px; padding-block: 8px; }
+  .ort-layout .ort-submit .text-2 { font-size: 12px; line-height: 1.4; }
+  .ort-layout .ort-sheet h2 { font-size: 17px; margin-bottom: 4px; }
+  .ort-layout .ort-sheet__sub { margin: 0 0 8px; font-size: 13px; }
+  .ort-layout .ort-sheet__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(var(--rows2, 10), auto); gap: 2px 10px; }
+  .ort-layout .ort-sheet .bubble span { width: 24px; height: 24px; font-size: 11px; }
   /* five options (А–Д) must fit in a half-width column of the sidebar */
-  .ort-layout .ort-sheet__row { gap: 3px; padding: 3px 2px; }
+  .ort-layout .ort-sheet__row { gap: 3px; padding: 1px 2px; }
   .ort-layout .ort-sheet__num { width: 22px; margin-right: 2px; }
   .ort-layout:has(.ort-sheet__row .bubble:nth-of-type(5)) { grid-template-columns: minmax(0, 1fr) 400px; }
-  .ort-layout .ort-sheet__row:has(.bubble:nth-of-type(5)) .bubble span { width: 24px; height: 24px; font-size: 10px; }
-  .ort-layout .ort-sheet .row.row--between { flex-direction: column; align-items: stretch; gap: 10px; }
-  .ort-layout .ort-sheet .btn--lg { width: 100%; justify-content: center; }
+  .ort-layout .ort-sheet__row:has(.bubble:nth-of-type(5)) .bubble span { width: 22px; height: 22px; font-size: 10px; }
+  .ort-layout .ort-sheet__next { padding: 10px; gap: 6px; margin-bottom: 8px; font-size: 13px; }
 }
 
 /* work editor: what the chosen test format gives */

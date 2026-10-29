@@ -627,6 +627,31 @@ def test_test_formats_ort_pages_and_sat_grid():
         assert att.finished_at and len(att.answers) == sat_n
 
 
+def test_ort_math_in_two_parts():
+    from monday.models import Attempt, Work
+    c = login(client(), "student@monday.kg", "student123")
+    with APP.app_context():
+        w = Work.query.filter_by(title="ОРТ Математика · Вариант 1 (Monday)").first()
+        wid, items = w.id, w.current_version.items
+    run = c.post(f"/works/{wid}/start").headers["Location"]
+    body = ok(c, run).data.decode()
+    # part 1 (1–30): one answer key, compact cards without the four option lines, sheet with А–Г
+    assert body.count('class="ort-part"') == 2 and body.count("data-sheet-part=") == 2
+    assert "ort-grid--cmp" in body and "больше величина А" in body and "Перейти к части 2" in body
+    part1, part2 = body.split('data-part="1"')[0], body.split('data-part="1"')[1].split('class="ort-sheet"')[0]
+    assert "Величина А больше" not in part1 and part1.count("Сравните величины в колонках") == 1  # only in the key
+    assert 'id="question-30"' in part1 and 'id="question-31"' in part2 and "ort-grid--cmp" not in part2
+    sheet1, sheet2 = body.split('data-sheet-part="0"')[1].split('data-sheet-part="1"')
+    assert 'name="q29"' in sheet1 and 'name="q30"' not in sheet1 and 'name="q30"' in sheet2 and 'name="q59"' in sheet2
+    assert '<span>Д</span>' not in sheet1 and '<span>Д</span>' in sheet2
+    # one timer and one hand-in for both parts
+    r = c.post(run, data={"q0": items[0]["correct"], "q59": items[59]["correct"]})
+    assert "/result" in r.headers["Location"]
+    with APP.app_context():
+        att = db_get(Attempt, int(run.rstrip("/").split("/")[-1]))
+        assert att.finished_at and att.score == 2 and len(att.answers) == 60
+
+
 def test_formula_sheets():
     import io
     from monday.models import ReferenceSheet

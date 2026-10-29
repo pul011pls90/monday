@@ -58,50 +58,97 @@
   {% if layout.nav == 'pages' %}
     {# ============================================================ ORT: pages + bubble answer sheet #}
     {% set per = layout.per_page %}
-    <div class="ort-layout"><div class="ort-main">
-    {% set n = mod.end - mod.start %}
-    {% set pages = ((n + per - 1) // per) %}
-    {% for p in range(pages) %}
-      {% set first = mod.start + p * per %}{% set last = [first + per, mod.end]|min %}
-      <section class="ort-page" data-page="{{ p }}">
-        {% set has_cmp = version.items[first:last]|selectattr('material')|map(attribute='material')|map('first')|selectattr('type', 'equalto', 'columns')|list %}
-        {% if has_cmp %}
-        <div class="ort-instruction">
-          <b>{{ _("Краткая инструкция для вопросов на сравнение") }}</b>
-          <span>{{ _("Ответ: (А), если величина в колонке А больше; (Б), если величина в колонке Б больше; (В), если обе величины равны; (Г), если по имеющейся информации невозможно определить, какая из величин больше.") }}</span>
-        </div>
-        {% endif %}
-        <div class="ort-grid">
-          {% for idx in range(first, last) %}{% set item = version.items[idx]|loc %}
-            <article class="ort-q" id="question-{{ idx + 1 }}">
-              <div class="ort-q__num">{{ idx + 1 }}.</div>
-              <div class="ort-q__body">
-                {{ ui.figure(item) }}
-                {{ ui.material(item) }}
-                {% if item.text %}<div class="ort-q__text math">{{ item.text }}</div>{% endif %}
-                {% if item.answer_type == 'choice' %}
-                  <ol class="ort-q__options">{% for opt in item.options %}<li><b>({{ LETTERS[loop.index0] }})</b> <span class="math">{{ opt }}</span></li>{% endfor %}</ol>
-                {% else %}
-                  <p class="small muted">{{ _("Ответ впишите в бланк ответов.") }} {{ ui.input_hint(item) }}</p>
-                {% endif %}
-              </div>
-            </article>
-          {% endfor %}
-        </div>
-      </section>
+    {# ORT math opens with "compare columns A and Б" questions that all share the same four options.
+       Those form part 1: the options are given once as a key, the cards are compact and more fit on a page.
+       The rest is part 2, with its own pages and its own answer sheet. One timer and one hand-in for both. #}
+    {% set ns = namespace(split=mod.start, opts=None) %}
+    {% for idx in range(mod.start, mod.end) %}{% set it = version.items[idx]|loc %}
+      {% if ns.split == idx and it.answer_type == 'choice' and it.options|length == 4 and it.material and it.material[0].type == 'columns' and (ns.opts is none or it.options == ns.opts) %}
+        {% set ns.split = idx + 1 %}{% set ns.opts = it.options %}
+      {% endif %}
     {% endfor %}
-    <div class="ort-pager" data-pager>
-      <button type="button" class="btn btn--secondary" data-page-prev>{{ ui.icon('arrow-left', 18) }}{{ _("Назад") }}</button>
-      <span class="ort-pager__dots" data-page-dots>{% for p in range(pages) %}<button type="button" data-page-go="{{ p }}" aria-label="{{ _('Страница %(n)s', n=p + 1) }}"></button>{% endfor %}</span>
-      <button type="button" class="btn btn--secondary" data-page-next>{{ _("Вперёд") }}{{ ui.icon('arrow-right', 18) }}</button>
-    </div>
+    {% set parts = [(mod.start, ns.split), (ns.split, mod.end)] if mod.start < ns.split < mod.end else [(mod.start, mod.end)] %}
+    {% set per_cmp = ((per * 2 + 2) // 3) * 3 %}{# three compact cards per row, twice as many per page #}
+    <div class="ort-layout{{ ' ort-layout--parts' if parts|length > 1 }}"><div class="ort-main">
+    {% if parts|length > 1 %}
+      <div class="ort-parts" role="tablist" aria-label="{{ _('Части теста') }}">
+        {% for a, b in parts %}
+          <button type="button" class="ort-parts__tab" role="tab" data-part-go="{{ loop.index0 }}">
+            <b>{{ _("Часть %(k)s", k=loop.index) }}</b><span>{{ _("Вопросы %(a)s–%(b)s", a=a + 1, b=b) }}</span>
+          </button>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% for a, b in parts %}{% set pt = loop.index0 %}{% set cmp = b <= ns.split %}
+      {% set pp = per_cmp if cmp else per %}{% set pages = ((b - a + pp - 1) // pp) %}
+      <div class="ort-part" data-part="{{ pt }}">
+      {% if cmp %}
+        <div class="ort-key">
+          <b>{{ _("Сравните величины в колонках А и Б. Ответ:") }}</b>
+          <span><i>А</i> {{ _("больше величина А") }}</span>
+          <span><i>Б</i> {{ _("больше величина Б") }}</span>
+          <span><i>В</i> {{ _("величины равны") }}</span>
+          <span><i>Г</i> {{ _("недостаточно данных") }}</span>
+        </div>
+      {% endif %}
+      {% for p in range(pages) %}
+        {% set first = a + p * pp %}{% set last = [first + pp, b]|min %}
+        <section class="ort-page" data-page="{{ p }}">
+          {% set has_cmp = not cmp and version.items[first:last]|selectattr('material')|map(attribute='material')|map('first')|selectattr('type', 'equalto', 'columns')|list %}
+          {% if has_cmp %}
+          <div class="ort-instruction">
+            <b>{{ _("Краткая инструкция для вопросов на сравнение") }}</b>
+            <span>{{ _("Ответ: (А), если величина в колонке А больше; (Б), если величина в колонке Б больше; (В), если обе величины равны; (Г), если по имеющейся информации невозможно определить, какая из величин больше.") }}</span>
+          </div>
+          {% endif %}
+          <div class="ort-grid{{ ' ort-grid--cmp' if cmp }}">
+            {% for idx in range(first, last) %}{% set item = version.items[idx]|loc %}
+              <article class="ort-q" id="question-{{ idx + 1 }}">
+                <div class="ort-q__num">{{ idx + 1 }}.</div>
+                <div class="ort-q__body">
+                  {{ ui.figure(item) }}
+                  {{ ui.material(item) }}
+                  {% set text = (item.text|replace('Сравните величины в колонках А и Б.', '')|trim) if cmp else item.text %}{# the key above says it once #}
+                  {% if text %}<div class="ort-q__text math">{{ text }}</div>{% endif %}
+                  {% if cmp %}
+                  {% elif item.answer_type == 'choice' %}
+                    <ol class="ort-q__options">{% for opt in item.options %}<li><b>({{ LETTERS[loop.index0] }})</b> <span class="math">{{ opt }}</span></li>{% endfor %}</ol>
+                  {% else %}
+                    <p class="small muted">{{ _("Ответ впишите в бланк ответов.") }} {{ ui.input_hint(item) }}</p>
+                  {% endif %}
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+      {% endfor %}
+      <div class="ort-pager" data-pager>
+        <button type="button" class="btn btn--secondary" data-page-prev>{{ ui.icon('arrow-left', 18) }}{{ _("Назад") }}</button>
+        <span class="ort-pager__dots" data-page-dots>{% for p in range(pages) %}<button type="button" data-page-go="{{ p }}" aria-label="{{ _('Страница %(n)s', n=p + 1) }}"></button>{% endfor %}</span>
+        <button type="button" class="btn btn--secondary" data-page-next>{{ _("Вперёд") }}{{ ui.icon('arrow-right', 18) }}</button>
+        {% if not loop.last %}<button type="button" class="btn btn--primary" data-part-next hidden>{{ _("К части %(k)s", k=pt + 2) }}{{ ui.icon('arrow-right', 18) }}</button>{% endif %}
+      </div>
+      </div>
+    {% endfor %}
     </div>
 
+    <aside class="ort-side">
     <section class="ort-sheet" aria-labelledby="sheet-h">
       <h2 id="sheet-h">{{ _("Бланк ответов") }}</h2>
+      {% for a, b in parts %}{% set pt = loop.index0 %}
+      <div class="ort-sheet__part" data-sheet-part="{{ pt }}">
+      {% if parts|length > 1 %}<p class="ort-sheet__sub">{{ _("Часть %(k)s · вопросы %(a)s–%(b)s", k=pt + 1, a=a + 1, b=b) }}</p>{% endif %}
+      {% if not loop.last %}
+        <div class="ort-sheet__next" data-part-ready hidden data-ask-title="{{ _('Часть %(k)s заполнена', k=pt + 1) }}"
+             data-ask-text="{{ _('Все ответы части %(k)s отмечены. Перейти к части %(n)s? Вернуться к части %(k)s можно до сдачи работы.', k=pt + 1, n=pt + 2) }}"
+             data-ask-ok="{{ _('Перейти к части %(k)s', k=pt + 2) }}" data-ask-cancel="{{ _('Остаться') }}">
+          <span>{{ _("Часть %(k)s заполнена. Вернуться к ней можно до сдачи работы.", k=pt + 1) }}</span>
+          <button type="button" class="btn btn--primary" data-part-next>{{ _("Перейти к части %(k)s", k=pt + 2) }}{{ ui.icon('arrow-right', 18) }}</button>
+        </div>
+      {% endif %}
       {# numbers run down the columns, like the paper answer sheet #}
-      <div class="ort-sheet__grid" style="--rows: {{ ((mod.end - mod.start + 2) // 3) }}; --rows2: {{ ((mod.end - mod.start + 1) // 2) }}">
-        {% for idx in range(mod.start, mod.end) %}{% set item = version.items[idx]|loc %}{% set val = draft.get('q' ~ idx) %}{% set fixed = ort_once and draft.get('c' ~ idx) %}
+      <div class="ort-sheet__grid" style="--rows: {{ ((b - a + 2) // 3) }}; --rows2: {{ ((b - a + 1) // 2) }}">
+        {% for idx in range(a, b) %}{% set item = version.items[idx]|loc %}{% set val = draft.get('q' ~ idx) %}{% set fixed = ort_once and draft.get('c' ~ idx) %}
           <div class="ort-sheet__row{{ ' is-fixed' if fixed }}" data-sheet-row="{{ idx }}"{% if ort_once and item.answer_type == 'choice' %} data-once{% if fixed %} data-fixed{% endif %}{% endif %}>
             <a class="ort-sheet__num" href="#question-{{ idx + 1 }}" data-goto="{{ idx }}">{{ idx + 1 }}</a>
             {% if item.answer_type == 'choice' %}
@@ -114,12 +161,16 @@
           </div>
         {% endfor %}
       </div>
-      <div class="row row--between" style="margin-top:16px">
-        <p class="text-2 small">{{ _("Ответы сохраняются сами. После сдачи изменить их нельзя.") }}{% if ort_once %}<br>{{ _("Как на бланке ОРТ: ответ можно исправить только один раз — исправленный ответ отмечается квадратом.") }}{% endif %}</p>
-        <button class="btn btn--primary btn--lg" type="submit">{{ _("Сдать работу") }}</button>
       </div>
-      <p class="small submit-hint" data-submit-hint hidden></p>
+      {% endfor %}
     </section>
+    {# hand-in sits under the sheet, in its own box, so it is always in view #}
+    <div class="ort-submit">
+      <button class="btn btn--primary btn--lg" type="submit">{{ _("Сдать работу") }}</button>
+      <p class="small submit-hint" data-submit-hint hidden></p>
+      <p class="text-2 small">{{ _("Ответы сохраняются сами. После сдачи изменить их нельзя.") }}{% if ort_once %}<br>{{ _("Как на бланке ОРТ: ответ можно исправить только один раз — исправленный ответ отмечается квадратом.") }}{% endif %}</p>
+    </div>
+    </aside>
     </div>
 
   {% elif layout.format == 'csca' %}

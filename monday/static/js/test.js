@@ -1,7 +1,8 @@
 /* Monday — test player and question-bank player.
  * grid  (SAT, CSCA, ЕНТ, ЕГЭ, ОГЭ): one question per screen, number grid to jump anywhere,
  *       "mark for review", eliminate options, review screen before handing in.
- * pages (ОРТ): several questions per page, Назад / Вперёд, bubble answer sheet below.
+ * pages (ОРТ): several questions per page, Назад / Вперёд, bubble answer sheet below;
+ *       ORT math comes in two parts (comparisons 1–30, then 31–60), each with its own sheet.
  * Shared: eliminate options, formula-sheet drawer (right), Desmos pane (left, resizable).
  * Without JavaScript every question is simply shown on one page.
  */
@@ -321,30 +322,55 @@
     show(cur);
   }
 
-  /* ORT pages + answer sheet */
+  /* ORT pages + answer sheet. A test may come in parts (ORT math: 1–30 comparisons, 31–60 the rest):
+     only the current part's questions and answer sheet are shown, with a way back until hand-in. */
   if (form.dataset.nav === "pages") {
-    const pages = $$(".ort-page", form);
-    const dots = $$("[data-page-go]", form);
-    let cur = 0;
-    try { cur = Math.min(pages.length - 1, parseInt(sessionStorage.getItem(key("page")) || "0", 10) || 0); } catch (_) {}
+    const parts = $$(".ort-part", form);
+    const sheets = $$("[data-sheet-part]", form);
+    const tabs = $$("[data-part-go]", form);
+    const pageAt = parts.map(() => 0);
+    let part = 0;
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(key("ort")) || "null");
+      if (saved) { part = saved.part || 0; (saved.pages || []).forEach((p, k) => { if (k < pageAt.length) pageAt[k] = p || 0; }); }
+    } catch (_) {}
     form.classList.add("is-paged");
-    const show = (p) => {
-      cur = Math.max(0, Math.min(pages.length - 1, p));
-      try { sessionStorage.setItem(key("page"), String(cur)); } catch (_) {}
+    const partDone = (pt) => $$("[data-sheet-row]", sheets[pt] || form).every((row) => answered(row.dataset.sheetRow));
+    const refreshReady = () => $$("[data-part-ready]", form).forEach((box) => {
+      box.hidden = !partDone(sheets.indexOf(box.closest("[data-sheet-part]")));
+    });
+    const show = (pt, p) => {
+      part = Math.max(0, Math.min(parts.length - 1, pt));
+      const box = parts[part];
+      const pages = $$(".ort-page", box);
+      const cur = pageAt[part] = Math.max(0, Math.min(pages.length - 1, p));
+      try { sessionStorage.setItem(key("ort"), JSON.stringify({ part, pages: pageAt })); } catch (_) {}
+      parts.forEach((el, k) => (el.hidden = k !== part));
+      sheets.forEach((el, k) => (el.hidden = k !== part));
+      tabs.forEach((t, k) => { t.classList.toggle("is-current", k === part); t.setAttribute("aria-selected", String(k === part)); });
       pages.forEach((pg, k) => (pg.hidden = k !== cur));
-      dots.forEach((d, k) => d.classList.toggle("is-current", k === cur));
-      $("[data-page-prev]", form).disabled = cur === 0;
-      $("[data-page-next]", form).disabled = cur === pages.length - 1;
+      $$("[data-page-go]", box).forEach((d, k) => d.classList.toggle("is-current", k === cur));
+      const lastPage = cur === pages.length - 1, onward = $("[data-part-next]", box);
+      $("[data-page-prev]", box).disabled = cur === 0;
+      $("[data-page-next]", box).disabled = lastPage;
+      $("[data-page-next]", box).hidden = lastPage && !!onward;   // last page of part 1: "К части 2" instead
+      if (onward) onward.hidden = !lastPage;
+      refreshReady();
       if (window.MondayRenderMath) window.MondayRenderMath(pages[cur]);
     };
-    $("[data-page-prev]", form).addEventListener("click", () => { show(cur - 1); pages[cur].scrollIntoView({ block: "start" }); });
-    $("[data-page-next]", form).addEventListener("click", () => { show(cur + 1); pages[cur].scrollIntoView({ block: "start" }); });
-    dots.forEach((d) => d.addEventListener("click", () => show(parseInt(d.dataset.pageGo, 10))));
+    const top = () => (tabs[0] ? tabs[0].parentElement : parts[part]).scrollIntoView({ block: "start" });
+    parts.forEach((box, k) => {
+      $("[data-page-prev]", box).addEventListener("click", () => { show(k, pageAt[k] - 1); top(); });
+      $("[data-page-next]", box).addEventListener("click", () => { show(k, pageAt[k] + 1); top(); });
+      $$("[data-page-go]", box).forEach((d) => d.addEventListener("click", () => show(k, parseInt(d.dataset.pageGo, 10))));
+    });
+    tabs.forEach((t, k) => t.addEventListener("click", () => { show(k, pageAt[k]); wasDone = partDone(part); }));
+    $$("[data-part-next]", form).forEach((b) => b.addEventListener("click", () => { show(part + 1, pageAt[part + 1]); wasDone = partDone(part); top(); }));
     $$("[data-goto]", form).forEach((a) => a.addEventListener("click", (e) => {
       e.preventDefault();
       const target = document.getElementById(`question-${parseInt(a.dataset.goto, 10) + 1}`);
-      const page = target.closest(".ort-page");
-      show(pages.indexOf(page));
+      const box = target.closest(".ort-part");
+      show(parts.indexOf(box), $$(".ort-page", box).indexOf(target.closest(".ort-page")));
       target.scrollIntoView({ block: "center" });
       target.classList.add("is-flash");
       setTimeout(() => target.classList.remove("is-flash"), 900);
@@ -365,10 +391,28 @@
       }));
     });
     const markRows = () => $$("[data-sheet-row]", form).forEach((row) => row.classList.toggle("is-answered", answered(row.dataset.sheetRow)));
-    form.addEventListener("change", markRows);
-    form.addEventListener("input", markRows);
+    // the moment the last answer of a part goes in, offer once to move on
+    let wasDone = partDone(part);
+    form.addEventListener("change", () => {
+      markRows(); refreshReady();
+      const done = partDone(part), next = $("[data-part-ready]", sheets[part] || form);
+      if (done && !wasDone && next && window.MondayConfirm) {
+        window.MondayConfirm({ title: next.dataset.askTitle, text: next.dataset.askText, ok: next.dataset.askOk, cancel: next.dataset.askCancel })
+          .then((ok) => { if (ok) { show(part + 1, pageAt[part + 1]); top(); } });
+      }
+      wasDone = done;
+    });
+    form.addEventListener("input", () => { markRows(); refreshReady(); });
     markRows();
-    show(cur);
+    show(part, pageAt[part]);
+    // refresh: the browser would restore the scroll of the full page (all questions shown) and land near the bottom;
+    // keep our own position for the page that is actually shown
+    try { history.scrollRestoration = "manual"; } catch (_) {}
+    const y = parseInt(sessionStorage.getItem(key("y")) || "0", 10) || 0;
+    const restore = () => { if (y) window.scrollTo(0, y); };
+    requestAnimationFrame(restore);
+    if (document.readyState !== "complete") window.addEventListener("load", restore, { once: true });   // after fonts and math have set the height
+    window.addEventListener("pagehide", () => { try { sessionStorage.setItem(key("y"), String(Math.round(window.scrollY))); } catch (_) {} });
   }
 })();
 
