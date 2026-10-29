@@ -3,13 +3,7 @@
 {% block title %}{{ _("Домашние задания") }}{% endblock %}
 {% block content %}
 <div class="page-head">
-  <div class="page-head__text">
-    <h1>{{ _("Домашние задания") }}</h1>
-    <p>{{ _("Задания от твоих учителей: сроки, статус и комментарии после проверки.") }}</p>
-  </div>
-  {% if teachers %}
-  <div class="row small text-2">{{ _("Учителя:") }} {% for r in teachers %}<span class="author">{{ ui.avatar(r.teacher, 'avatar--sm') }}{{ r.teacher.name }}</span>{% endfor %}</div>
-  {% endif %}
+  <div class="page-head__text"><h1>{{ _("Домашние задания") }}</h1></div>
 </div>
 
 {% if not teachers %}
@@ -20,77 +14,145 @@
 </div>
 {% else %}
 
-{% macro left_label(sec) -%}
-{%- set m = (sec|abs) // 60 -%}{%- set d = m // 1440 -%}{%- set h = (m % 1440) // 60 -%}
-{%- if d -%}{{ _("%(d)s д %(h)s ч", d=d, h=h) }}{%- elif h -%}{{ _("%(h)s ч %(m)s мин", h=h, m=m % 60) }}{%- else -%}{{ _("%(m)s мин", m=m) }}{%- endif -%}
-{%- endmacro %}
-
 {% macro title_of(a) -%}{%- set x = a.work.title|replace('ДЗ: ', '') -%}{{ x[:1]|upper }}{{ x[1:] }}{%- endmacro %}
 
-<section class="section" aria-labelledby="todo-h">
-  <div class="section__head"><h2 id="todo-h">{{ _("Нужно сделать") }}</h2><span class="small muted">{{ todo|length }}</span></div>
-  {% if todo %}
-  <div class="hwc-grid">
-    {% for a, state in todo %}
-      {% set v = a.work.current_version %}{% set m = mission[a.id] %}{% set n = v.question_count %}
-      {% set late = m.left is not none and m.left < 0 %}{% set soon = m.left is not none and 0 <= m.left < 86400 %}
-      <article class="hwc{{ ' is-late' if late }}">
-        <div class="hwc__head">
-          <span class="hwc__icon" aria-hidden="true">{{ emoji[a.id] }}</span>
-          <div>
-            <h3 class="hwc__title">{{ title_of(a) }}</h3>
-            <p class="hwc__meta">{{ a.work.exam|exam_label }} · {{ n }} {{ n|plural_ru(_("задача"), _("задачи"), _("задач")) }}{% if v.time_limit_min %} · ~{{ v.time_limit_min|minutes }}{% endif %}</p>
-          </div>
-        </div>
-        {% if a.message %}
-          <blockquote class="hwc__note"><span aria-hidden="true">💬</span><span>«{{ a.message }}»<cite>— {{ a.teacher.name }}</cite></span></blockquote>
-        {% else %}
-          <p class="hwc__from">{{ ui.avatar(a.teacher, 'avatar--sm') }}{{ a.teacher.name }}</p>
-        {% endif %}
-        {% if m.answered %}
-          <div class="hwc__progress"><span class="hwc__bar"><i style="width: {{ (100 * m.answered / n)|round|int if n else 0 }}%"></i></span><small class="num">{{ _("%(a)s из %(n)s", a=m.answered, n=n) }}</small></div>
-        {% endif %}
-        <div class="hwc__foot">
-          <span class="hwc__due{{ ' is-late' if late }}{{ ' is-soon' if soon }}">
-            <span aria-hidden="true">{{ '⏰' if late or soon else '🗓️' }}</span>
-            {% if m.left is none %}{{ _("Без срока") }}{% elif late %}{% set dd = (m.left|abs) // 86400 %}{{ _("Срок прошёл %(t)s назад", t=(_("%(d)s д", d=dd) if dd else left_label(m.left))) }}{% elif soon %}{{ _("Сдать через %(t)s", t=left_label(m.left)) }}{% else %}{{ _("Сдать до %(d)s", d=a.due_at|dt) }}{% endif %}
-          </span>
-          <a class="hwc__go" href="{{ url_for('student.homework_detail', assignment_id=a.id) }}">{{ _("Продолжить") if state == 'in_progress' else _("Начать") }} {{ ui.icon('arrow-right', 18) }}</a>
-        </div>
-      </article>
+{% set month_names = [_("Январь"), _("Февраль"), _("Март"), _("Апрель"), _("Май"), _("Июнь"), _("Июль"), _("Август"), _("Сентябрь"), _("Октябрь"), _("Ноябрь"), _("Декабрь")] %}
+{% set legend = [('new', _("Новое")), ('going', _("В процессе")), ('late', _("Просрочено")), ('done', _("Сдано"))] %}
+
+{% macro kind_of(a, state) -%}
+{%- set m = mission.get(a.id) -%}
+{%- if state in ('submitted', 'checked') -%}done{%- elif m and m.left is not none and m.left < 0 -%}late{%- elif state == 'in_progress' -%}going{%- else -%}new{%- endif -%}
+{%- endmacro %}
+
+<div class="hwtop">
+  {# left: what to do now; after a click on a date — that day's homework #}
+  <section class="hwpanel" aria-live="polite" data-hw-panel>
+    <div class="hwpanel__head">
+      <h2 class="hwpanel__title" data-panel-title data-default="{{ _('Нужно сделать') }}">{{ _("Нужно сделать") }}</h2>
+      <button type="button" class="hwpanel__back" data-panel-back hidden>{{ ui.icon('arrow-left', 16) }}{{ _("Все задания") }}</button>
+    </div>
+    <div class="hwpanel__list">
+      {% for a, state in todo + done %}{% set k = kind_of(a, state) %}
+      <a class="hwrow" href="{{ url_for('student.homework_detail', assignment_id=a.id) }}" data-due="{{ due_day.get(a.id, '') }}" data-todo="{{ '0' if k == 'done' else '1' }}"{% if k == 'done' %} hidden{% endif %}>
+        <i class="hwcal__dot is-{{ k }}"></i>
+        <span class="hwrow__main"><b>{{ title_of(a) }}</b>
+          <small>{% if a.due_at %}{{ _("до") }} {{ a.due_at|dt }}{% else %}{{ _("без срока") }}{% endif %} · {{ a.teacher.name }}</small></span>
+        <span class="hwrow__state is-{{ k }}">{{ _("Просрочено") if k == 'late' else HOMEWORK_STATES[state] }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    <div class="hwpanel__empty" data-panel-empty{% if todo %} hidden{% endif %}>
+      <svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+        <circle cx="24" cy="24" r="20"/><circle cx="17" cy="20" r="1.5" fill="currentColor"/><circle cx="31" cy="20" r="1.5" fill="currentColor"/><path d="M16 29c2 3.5 5 5 8 5s6-1.5 8-5"/>
+      </svg>
+      <p>{{ _("Заданий нет. Отдыхай )") }}</p>
+    </div>
+  </section>
+
+  {# right: the calendar, one month at a time with arrows #}
+  <section class="hwcal" aria-label="{{ _('Календарь сроков') }}" data-hw-cal>
+    {% for mo in months %}
+    <div class="hwcal__month" data-month="{{ loop.index0 }}"{% if mo.first != this_month %} hidden{% endif %}>
+      <div class="hwcal__nav">
+        <button type="button" class="hwcal__arrow" data-step="-1" aria-label="{{ _('Предыдущий месяц') }}"{% if loop.first %} disabled{% endif %}>{{ ui.icon('arrow-left', 18) }}</button>
+        <h2 class="hwcal__name">{{ month_names[mo.first.month - 1] }} {{ mo.first.year }}</h2>
+        <button type="button" class="hwcal__arrow" data-step="1" aria-label="{{ _('Следующий месяц') }}"{% if loop.last %} disabled{% endif %}>{{ ui.icon('arrow-right', 18) }}</button>
+      </div>
+      <div class="hwcal__grid" role="grid">
+        {% for wd in WEEKDAYS %}<div class="hwcal__wd" role="columnheader">{{ wd }}</div>{% endfor %}
+        {% for week in mo.weeks %}{% for day in week %}
+          {% if day.date.month != mo.first.month %}
+          <span class="hwcal__day is-out" role="gridcell" aria-hidden="true"></span>
+          {% else %}
+          <button type="button" role="gridcell" data-day="{{ day.date.isoformat() }}"
+                  class="hwcal__day{{ ' is-today' if day.date == today_d }}">
+            <span class="num">{{ day.date.day }}</span>
+            <span class="hwcal__dots">{% for k in day.kinds %}<i class="hwcal__dot is-{{ k }}"></i>{% endfor %}</span>
+          </button>
+          {% endif %}
+        {% endfor %}{% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+    <ul class="hwcal__legend">
+      {% for key, label in legend %}<li><i class="hwcal__dot is-{{ key }}"></i>{{ label }}</li>{% endfor %}
+    </ul>
+  </section>
+</div>
+
+{# finished work, grouped like the journal: recent, 1–2 weeks ago, a month ago and earlier #}
+{% macro hw_card(a, state) -%}
+{%- set v = a.work.current_version -%}{%- set n = v.question_count -%}
+{%- set last = a.attempts|selectattr('finished_at')|list|last -%}
+<article class="card work-card hw-card">
+  <div class="row row--between">
+    {{ ui.exam_tag(a.work.exam) }}
+    <span class="hwrow__state is-done">{{ HOMEWORK_STATES[state] }}</span>
+  </div>
+  <h3 class="work-card__title">{{ title_of(a) }}</h3>
+  <div class="author">{{ ui.avatar(a.teacher, 'avatar--sm') }}{{ a.teacher.name }}</div>
+  {% if a.teacher_comment %}<p class="work-card__desc">«{{ a.teacher_comment }}»</p>{% endif %}
+  <div class="work-card__meta">
+    <span class="meta-item">{{ ui.icon('calendar', 16) }}{% if a.id in finished_on %}{{ _("сдано") }} {{ finished_on[a.id]|d("d MMMM") }}{% else %}—{% endif %}</span>
+    {% if last and last.total %}<span class="meta-item">{{ ui.icon('check', 16) }}{{ last.score }} {{ _("из") }} {{ last.total }}</span>
+    {% else %}<span class="meta-item">{{ ui.icon('list', 16) }}{{ n }} {{ n|plural_ru(_("задача"), _("задачи"), _("задач")) }}</span>{% endif %}
+  </div>
+  <a class="btn btn--secondary btn--block" href="{{ url_for('student.homework_detail', assignment_id=a.id) }}">{{ _("Открыть") }}</a>
+</article>
+{%- endmacro %}
+
+<section class="section">
+  <div class="section__head"><h2 class="jr-main-heading">{{ _("Выполненные") }}</h2><span class="small muted">{{ done|length }}</span></div>
+  {% if done %}
+  {% set recent, week, older = [], [], [] %}
+  {% for a, state in done %}
+    {% set delta = (today_d - finished_on[a.id]).days if a.id in finished_on else 999 %}
+    {% set _x = (recent if delta <= 7 else week if delta <= 14 else older).append((a, state)) %}
+  {% endfor %}
+  <div class="jr-timeline">
+    {% for items, dot, title, sub in [(recent, 'recent', _("Недавние"), _("За последние 7 дней")), (week, 'week', _("1–2 недели назад"), _("Предыдущая неделя")), (older, 'month', _("Месяц назад и ранее"), _("Более 2 недель назад"))] if items %}
+    <section class="jr-section">
+      <div class="jr-section__head">
+        <h3 class="jr-section__title"><span class="dot--section dot--section-{{ dot }}"></span><span>{{ title }}</span></h3>
+        <span class="jr-section__sub">{{ sub }} · {{ items|length }} {{ items|length|plural_ru(_("задание"), _("задания"), _("заданий")) }}</span>
+      </div>
+      <div class="grid grid-5 work-grid--compact">{% for a, state in items %}{{ hw_card(a, state) }}{% endfor %}</div>
+    </section>
     {% endfor %}
   </div>
   {% else %}
-  <div class="hwc-clear">
-    <span class="hwc-clear__emoji" aria-hidden="true">🎉</span>
-    <div><h3>{{ _("Всё сдано!") }}</h3><p>{{ _("Новых заданий нет. Можно пройти сессию или сборник.") }}</p></div>
-  </div>
+  <p class="text-2">{{ _("Здесь появятся сданные задания.") }}</p>
   {% endif %}
 </section>
 
-<section class="section" aria-labelledby="done-h">
-  <div class="section__head"><h2 id="done-h">{{ _("Выполненные") }}</h2><span class="small muted">{{ done|length }}</span></div>
-  {% if done %}
-  <div class="hwd-list">
-    {% for a, state in done %}
-      {% set last = a.attempts|selectattr('finished_at')|list|last %}
-      {% set perfect = last and last.total and last.score == last.total %}
-      <a class="hwd" href="{{ url_for('student.homework_detail', assignment_id=a.id) }}">
-        <span class="hwd__icon" aria-hidden="true">{{ '⭐' if perfect else '✅' }}</span>
-        <span class="hwd__main">
-          <b>{{ title_of(a) }}</b>
-          <small>{{ emoji[a.id] }} {% if last %}{{ _("сдано") }} {{ last.finished_at|dt }}{% endif %}</small>
-          {% if a.teacher_comment %}<span class="hwd__comment">💬 {{ a.teacher_comment }}</span>{% endif %}
-        </span>
-        <span class="hwd__state">{{ ui.state(state, HOMEWORK_STATES[state]) }}</span>
-        <span class="hwd__score num{{ ' is-perfect' if perfect }}">{% if last %}{{ last.score }}<small>/{{ last.total }}</small>{% else %}—{% endif %}</span>
-        {{ ui.icon('chevron-down', 18) }}
-      </a>
-    {% endfor %}
-  </div>
-  {% else %}
-  <p class="text-2">{{ _("Здесь появятся сданные задания и комментарии учителя.") }}</p>
-  {% endif %}
-</section>
+<script>
+(() => {
+  // calendar months: arrows step one month
+  const cal = document.querySelector('[data-hw-cal]');
+  const months = cal.querySelectorAll('[data-month]');
+  cal.querySelectorAll('[data-step]').forEach((b) => b.addEventListener('click', () => {
+    const cur = b.closest('[data-month]'), i = +cur.dataset.month + +b.dataset.step;
+    if (months[i]) { cur.hidden = true; months[i].hidden = false; }
+  }));
+
+  // any date → the left panel lists that day's homework (or «Заданий нет»)
+  const panel = document.querySelector('[data-hw-panel]');
+  const title = panel.querySelector('[data-panel-title]'), back = panel.querySelector('[data-panel-back]');
+  const empty = panel.querySelector('[data-panel-empty]'), rows = panel.querySelectorAll('.hwrow');
+  const lang = document.documentElement.lang || 'ru';
+  const show = (iso) => {
+    cal.querySelectorAll('.hwcal__day').forEach((d) => d.classList.toggle('is-picked', d.dataset.day === iso));
+    let n = 0;
+    rows.forEach((r) => { r.hidden = iso ? r.dataset.due !== iso : r.dataset.todo !== '1'; if (!r.hidden) n++; });
+    empty.hidden = n > 0;
+    back.hidden = !iso;
+    title.textContent = iso
+      ? new Date(iso + 'T12:00').toLocaleDateString(lang, { weekday: 'long', day: 'numeric', month: 'long' })
+      : title.dataset.default;
+  };
+  cal.querySelectorAll('.hwcal__day').forEach((d) => d.addEventListener('click', () => show(d.classList.contains('is-picked') ? null : d.dataset.day)));
+  back.addEventListener('click', () => show(null));
+})();
+</script>
 {% endif %}
 {% endblock %}

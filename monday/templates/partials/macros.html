@@ -30,7 +30,7 @@
 {%- endmacro %}
 
 {% macro exam_tag(code) -%}
-<span class="tag tag--exam-{{ code }}">{{ code|exam_label }}</span>
+<span class="tag tag--exam tag--exam-{{ code }}">{{ code|exam_label }}</span>
 {%- endmacro %}
 
 {% macro mode_card(key, mode, recommended=false, form=true) -%}
@@ -316,11 +316,11 @@
 
 {# Daily practice goal: minutes today, streak, goal picker. g = student._practice_goal() #}
 {% macro goal_chip(g) -%}
-<div class="goal" aria-label="{{ _('Цель дня') }}">
+<div class="goal {{ 'goal--done' if g.today >= g.goal else 'goal--todo' }}" aria-label="{{ _('Цель дня') }}">
   <div class="goal__ring" style="--p: {{ [100, (100 * g.today / g.goal)|round|int]|min }}"><span class="num">{{ g.today }}</span></div>
   <div class="goal__text">
     <b>{{ _("%(m)s из %(g)s мин сегодня", m=g.today, g=g.goal) }}</b>
-    <span class="small muted">{% if g.streak %}{{ _("Серия: %(n)s", n=g.streak) }} {{ g.streak|plural_ru(_("день"), _("дня"), _("дней")) }}{% else %}{{ _("Начни серию сегодня") }}{% endif %}</span>
+    <span class="small muted">{% if g.streak %}{{ _("Серия: %(n)s", n=g.streak) }} {{ g.streak|plural_ru(_("день"), _("дня"), _("дней")) }}{% else %}{{ _("Начни серию сегодня") }}{% endif %}{% if g.today < g.goal %} · {{ _("осталось %(n)s мин", n=g.goal - g.today) }}{% endif %}</span>
   </div>
   <form method="post" action="{{ url_for('student.set_goal') }}" class="goal__set">{{ csrf() }}<input type="hidden" name="next" value="{{ request.path }}">
     <label class="sr-only" for="goal-min">{{ _("Цель в минутах") }}</label>

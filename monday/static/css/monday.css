@@ -277,7 +277,13 @@ p { margin: 0; }
 .tag--ok { background: var(--ok-soft); color: var(--ok); }
 .tag--bad { background: var(--bad-soft); color: var(--bad); }
 .tag--warn { background: var(--warn-soft); color: var(--warn); }
-.tag--exam-SAT, .tag--exam-CSCA { background: var(--accent); }
+/* 6 Exam categories with the Pinterest palette */
+.tag--exam-ORT  { background: #A0E0C8 !important; color: #0F382A !important; }
+.tag--exam-ENT  { background: #74BFBA !important; color: #0A3230 !important; }
+.tag--exam-EGE  { background: #4F8C9E !important; color: #FFFFFF !important; }
+.tag--exam-OGE  { background: #31557E !important; color: #FFFFFF !important; }
+.tag--exam-SAT  { background: #1B255D !important; color: #FFFFFF !important; }
+.tag--exam-CSCA { background: #120B3C !important; color: #FFFFFF !important; }
 
 .state { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
 .state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }

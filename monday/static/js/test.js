@@ -260,7 +260,7 @@
         if (answered(idx)) b.classList.add("is-answered");
         if ($("[data-mark]", sc).getAttribute("aria-pressed") === "true") b.classList.add("is-marked");
         if (i === cur && !reviewing) b.classList.add("is-current");
-        b.addEventListener("click", () => { reviewing = false; show(i); pop.hidden = true; });
+        b.addEventListener("click", () => { reviewing = false; show(i); if (pop) pop.hidden = true; });
         target.appendChild(b);
       });
     };
@@ -295,12 +295,15 @@
       }
       reviewing = true; show(cur);
     });
-    $("[data-grid-toggle]", form).addEventListener("click", (e) => {
-      pop.hidden = !pop.hidden;
-      e.currentTarget.setAttribute("aria-expanded", String(!pop.hidden));
-      buildGrid(grid);
-    });
-    document.addEventListener("click", (e) => { if (!pop.hidden && !e.target.closest("[data-grid-pop], [data-grid-toggle]")) pop.hidden = true; });
+    const gridToggle = $("[data-grid-toggle]", form);
+    if (gridToggle && pop) {
+      gridToggle.addEventListener("click", (e) => {
+        pop.hidden = !pop.hidden;
+        e.currentTarget.setAttribute("aria-expanded", String(!pop.hidden));
+        buildGrid(grid);
+      });
+      document.addEventListener("click", (e) => { if (pop && !pop.hidden && !e.target.closest("[data-grid-pop], [data-grid-toggle]")) pop.hidden = true; });
+    }
     form.addEventListener("change", () => buildGrid(grid));
     document.addEventListener("keydown", (e) => {
       if (e.target.matches("input, textarea") || e.target.closest(".calc-pane")) return;
@@ -367,4 +370,53 @@
     markRows();
     show(cur);
   }
+})();
+
+/* ------------------------------------------------------------ CSCA Layout Bindings */
+(function() {
+  const form = document.querySelector("#test-form");
+  if (!form) return;
+  const isCsca = document.querySelector(".csca-layout");
+  if (!isCsca) return;
+
+  const nextReal = form.querySelector("[data-next]");
+  const prevReal = form.querySelector("[data-prev]");
+  const finalReal = form.querySelector("[data-final]");
+
+  // Bind all CSCA top Next / Back buttons
+  document.querySelectorAll("[data-next-btn]").forEach(b => {
+    b.addEventListener("click", () => nextReal && nextReal.click());
+  });
+  document.querySelectorAll("[data-prev-btn]").forEach(b => {
+    b.addEventListener("click", () => prevReal && prevReal.click());
+  });
+  document.querySelectorAll("[data-csca-submit]").forEach(b => {
+    b.addEventListener("click", () => {
+      if (confirm("Are you sure you want to submit your CSCA exam?")) {
+        form.requestSubmit();
+      }
+    });
+  });
+
+  // Sync Timer to CSCA timer displays
+  const timerPill = document.querySelector("[data-timer]");
+  if (timerPill) {
+    const updateTimer = () => {
+      document.querySelectorAll("[data-csca-timer]").forEach(el => {
+        el.textContent = timerPill.textContent;
+      });
+    };
+    setInterval(updateTimer, 500);
+  }
+
+  // F4 and F5 keyboard shortcuts (as shown in the CSCA prompt)
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "F4") {
+      e.preventDefault();
+      prevReal && prevReal.click();
+    } else if (e.key === "F5") {
+      e.preventDefault();
+      nextReal && nextReal.click();
+    }
+  });
 })();

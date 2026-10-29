@@ -10,6 +10,7 @@
   <input type="hidden" name="exam" value="{{ view }}">
 </form>
 {% endblock %}
+{% block page_class %}page--city{% endblock %}
 {% block content %}
 {# Header: title on the left; on the right the exam (small dropdown) and how to look at it (map / list). #}
 <div class="page-head skh">
@@ -47,20 +48,24 @@
 <section class="mt" data-metro>
   <div class="mt-next">
     {% if ns.cur %}
-      <span class="mt-next__eyebrow">{{ _("Следующий шаг") }}</span>
-      <span class="mt-next__where">{{ ns.topic.name }} · {{ ns.sub.name }}</span>
-      <b class="mt-next__skill">{{ ns.cur.name }}</b>
+      <span class="mt-next__eyebrow">{{ _("Текущая тема") }}</span>
+      <b class="mt-next__topic">{{ ns.topic.name }}</b>
+      <span class="mt-next__route">
+        <span>{{ _("Линия") }} «<b>{{ ns.sub.name }}</b>»</span>
+        <span class="mt-next__arrow" aria-hidden="true">→</span>
+        <span>{{ _("Следующий шаг") }}: <b class="mt-next__step-name">{{ ns.cur.name }}</b></span>
+      </span>
       <button class="mt-next__go" type="submit" form="mt-start" name="skill_id" value="{{ ns.cur.id }}">{{ _("Продолжить") }} {{ ui.icon('arrow-right', 18) }}</button>
     {% else %}
       <span class="mt-next__eyebrow">{{ _("Маршрут пройден") }}</span>
-      <b class="mt-next__skill">{{ _("Все навыки освоены — можно повторять любые станции") }}</b>
+      <b class="mt-next__topic">{{ _("Все навыки освоены — можно повторять любые станции") }}</b>
     {% endif %}
   </div>
   <div class="mt-stage" data-metro-stage role="group" aria-label="{{ _('Карта навыков') }}"></div>
   <div class="mt-legend" aria-hidden="true">
-    <span><i class="mt-k mt-k--done"></i>{{ _("Освоен") }}</span>
+    <span><i class="mt-k mt-k--done"></i>{{ _("Освоена") }}</span>
     <span><i class="mt-k mt-k--prog"></i>{{ _("В процессе") }}</span>
-    <span><i class="mt-k mt-k--new"></i>{{ _("Новый") }}</span>
+    <span><i class="mt-k mt-k--new"></i>{{ _("Новая") }}</span>
     <span><i class="mt-k mt-k--here"></i>{{ _("Вы здесь") }}</span>
   </div>
 </section>
@@ -69,7 +74,7 @@
 </form>
 <script type="application/json" id="metro-data">{{ metro|tojson }}</script>
 <script type="application/json" id="metro-i18n">{{ {
-  "here": _("Вы здесь"), "start": _("Старт"), "repeat": _("Повторить"), "mastered": _("освоен"), "new": _("новый"),
+  "here": _("Вы здесь"), "start": _("Старт"), "repeat": _("Повторить"), "mastered": _("освоена"), "new": _("новая"),
   "acc": _("точность"), "noq": _("нет вопросов"), "questions": _("вопросов"), "close": _("Закрыть"),
   "skills": _("навыков"), "topic": _("Тема"), "from": _("Начнём с"), "go": _("Начать тему"), "countries": url_for('static', filename='data/countries.json')
 }|tojson }}</script>

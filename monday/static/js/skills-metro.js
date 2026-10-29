@@ -108,8 +108,9 @@
     });
     // measure with the page's own font; a label is never cut inside a word
     const ctx = document.createElement('canvas').getContext('2d');
-    ctx.font = `600 12.5px ${getComputedStyle(stage).fontFamily}`;
-    const tw = (s) => ctx.measureText(s).width;
+    ctx.font = `700 11px ${getComputedStyle(stage).fontFamily}`;
+    // labels are spaced capitals on one line: measure them that way (.1em tracking per letter)
+    const tw = (s) => ctx.measureText(s.toUpperCase()).width + s.length * 1.1;
     // topic names sit under their interchange: reserve that space on the "below" side
     const boxes = { above: [], below: [], high: [] };
     P.filter((p) => p.node.type === 'topic').forEach((p) => {
@@ -121,13 +122,13 @@
       const name = it.sp.node.s.name;
       const el = document.createElement('span'); el.className = 'mt-sub'; el.textContent = name; el.title = name;
       if (phone) { el.style.left = it.sp.x + 28 + 'px'; el.style.top = it.sp.y + 'px'; stage.appendChild(el); return; }
-      const full = tw(name), longest = Math.max(...name.split(/\s+/).map(tw));
-      const c = (it.a + it.b) / 2, room = Math.max(it.b - it.a + 34, 70);
-      const w = Math.ceil(Math.max(longest, Math.min(full, Math.max(room, full / 2 + 14)))) + 4;
-      // try above / below / one level higher, then the same nudged sideways; the label stays near its stations
+      // one line, always above the track; too long for its stretch → ellipsis, full name on hover
+      const c = (it.a + it.b) / 2, room = Math.max(it.b - it.a + 40, 120);
+      const w = Math.ceil(Math.min(tw(name), Math.max(room, 150))) + 4;
+      // try right above, then one level higher, then the same nudged sideways; the label stays near its stations
       let spot = null;
       for (const dx of [0, -30, 30, -60, 60]) {
-        const side = ['above', 'below', 'high'].find((sd) => free(sd, it.row, c + dx - w / 2, c + dx + w / 2));
+        const side = ['above', 'high'].find((sd) => free(sd, it.row, c + dx - w / 2, c + dx + w / 2));
         if (side) { spot = { side, x: c + dx }; break; }
       }
       spot = spot || { side: 'above', x: c };

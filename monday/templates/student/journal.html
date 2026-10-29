@@ -3,12 +3,15 @@
 {% block content %}
 <header class="page-head__text">
   <h1>{{ _("Лабораторный журнал") }}</h1>
-  <p>{{ _("Каждая ошибка — запись. Разберись, почему она случилась, и закрой её.") }}</p>
+  <p class="text-2">{{ _("Ты можешь просмотреть ошибки по своим недавним решениям. И выяснить где у тебя пробелы )") }}</p>
 </header>
 
 <div class="grid grid-2">
   <section class="card" aria-labelledby="why-h">
-    <div class="card__head"><h2 id="why-h" style="font-size:20px">{{ _("Почему ты теряешь баллы") }}</h2><span class="small" style="color:var(--accent);font-weight:600">{{ week_total }} {{ week_total|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }} {{ _("за неделю") }}</span></div>
+    <div class="card__head"><div class="stack-xs" style="gap:2px">
+        <h2 id="why-h" style="font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0">{{ _("Отрицательный прогресс") }}</h2>
+        <span class="small muted" style="font-size:12px;font-weight:500">{{ _("Причины, по которым ты теряешь баллы") }}</span>
+      </div><span class="small" style="color:var(--accent);font-weight:600">{{ week_total }} {{ week_total|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }} {{ _("за неделю") }}</span></div>
     {% set colors = {'careless': '#2B60E5', 'gap': '#153893', 'misread': '#7FA3F3', 'time': '#BBCFF4', None: 'var(--surface-3)'} %}
     {% if week_total %}
       <div class="split-bar" role="img" aria-label="{% for k, label in MISTAKE_REASONS.items() %}{{ label }} {{ breakdown.get(k, 0) }}; {% endfor %}">
@@ -25,61 +28,162 @@
     {% endif %}
   </section>
 
-  <section class="card card--inverse" aria-labelledby="darwin-h">
-    <div class="row" style="font-weight:700">{{ ui.mode_dot("darwin") }}{{ MODES.darwin.name }} · ~{{ MODES.darwin.approx }} {{ _("мин") }}</div>
-    <h2 id="darwin-h" style="font-size:26px;font-weight:800">{{ _("Расследуй %(n)s открытых записей", n=open_count) }}</h2>
-    <p class="text-2">{{ _("Найди закономерность в своих ошибках и реши похожие задачи до конца.") }}</p>
+  <section class="card jr-investigation-card" aria-labelledby="darwin-h">
+    <div class="row row--between" style="align-items:center">
+      <div class="row" style="gap:8px;font-weight:700;font-size:13px;align-items:center">
+        {{ ui.mode_dot("darwin") }}<span>{{ MODES.darwin.name }} · ~{{ MODES.darwin.approx }} {{ _("мин") }}</span>
+      </div>
+      <span class="tag tag--line tag--xs" style="font-weight:700">{{ _("Работа над ошибками") }}</span>
+    </div>
+
+    <div class="stack-xs" style="gap:6px">
+      <h2 id="darwin-h" style="font-size:24px;font-weight:800;letter-spacing:-0.02em;margin:0">
+        {{ _("Расследуй %(n)s открытых записей", n=open_count) }}
+      </h2>
+      <p class="text-2 small" style="margin:0;line-height:1.45">
+        {{ _("ИИ-разбор выделит общие паттерны твоих ошибок и сгенерирует похожие практические задачи для закрепления.") }}
+      </p>
+    </div>
+
+    <div class="jr-investigation-features">
+      <div class="jr-inv-pill">
+        {{ ui.icon('bolt', 14) }}
+        <span>{{ _("Умная выборка") }}</span>
+      </div>
+      <div class="jr-inv-pill">
+        {{ ui.icon('check', 14) }}
+        <span>{{ _("Закрытие пробелов") }}</span>
+      </div>
+      <div class="jr-inv-pill">
+        {{ ui.icon('clock', 14) }}
+        <span>{{ MODES.darwin.approx }} {{ _("мин") }}</span>
+      </div>
+    </div>
+
     <form method="post" action="{{ url_for('student.start_session', mode='darwin') }}" style="margin-top:auto">{{ ui.csrf() }}
-      <button class="btn" style="background:var(--bg);color:var(--text)" type="submit">{{ _("Начать расследование") }}</button>
+      <button class="btn btn--primary btn--block btn--sm" style="min-height:42px;font-weight:700" type="submit">
+        {{ ui.icon('play', 16) }} {{ _("Начать расследование") }}
+      </button>
     </form>
   </section>
 </div>
 
 <section class="section">
   <div class="section__head">
-    <h2>{{ _("Записи") }}</h2>
+    <h2 class="jr-main-heading">{{ _("Записи") }}</h2>
     <div class="chips">
       <a class="chip{{ ' is-active' if show == 'open' }}" href="{{ url_for('student.journal', show='open') }}">{{ _("Открытые") }} <span class="chip__count">{{ open_count }}</span></a>
       <a class="chip{{ ' is-active' if show == 'resolved' }}" href="{{ url_for('student.journal', show='resolved') }}">{{ _("Разобранные") }} <span class="chip__count">{{ resolved_count }}</span></a>
     </div>
   </div>
   {% if days %}
-  <div class="jr-days">
+  {# Partition days into time periods #}
+  {% set recent_days = [] %}
+  {% set week_days = [] %}
+  {% set month_days = [] %}
   {% for day in days %}
     {% set delta = (today_d - day.date).days %}
-    <section class="jr-day card">
-      <header class="jr-day__head">
-        <div>
-          <h3 class="jr-day__title">{% if delta == 0 %}{{ _("Сегодня") }}{% elif delta == 1 %}{{ _("Вчера") }}{% else %}{{ day.date|d("EEEE")|capitalize }}{% endif %}
-            <span class="jr-day__date">{{ day.date|d("d MMMM") }}</span></h3>
-          <p class="small text-2">{{ day.total }} {{ day.total|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }} · {{ day.groups|length }} {{ day.groups|length|plural_ru(_("работа"), _("работы"), _("работ")) }}</p>
-        </div>
-        <div class="jr-topics">
-          {% for name, n in day.topics[:6] %}<span class="tag tag--soft">{{ name }}{% if n > 1 %} <b>×{{ n }}</b>{% endif %}</span>{% endfor %}
-          {% if day.topics|length > 6 %}{% call ui.more_chips(day.topics|length - 6) %}{% for name, n in day.topics[6:] %}<span class="tag tag--soft">{{ name }}{% if n > 1 %} <b>×{{ n }}</b>{% endif %}</span>{% endfor %}{% endcall %}{% endif %}
-        </div>
-      </header>
-
-      {% for g in day.groups %}{% set att = g.attempt %}
-      <details class="jr-group">
-        <summary class="jr-group__head">
-          <span class="jr-group__kind">{{ g.kind }}</span>
-          <span class="jr-group__title">{{ g.title }}</span>
-          <span class="jr-group__meta small muted">{{ att.finished_at|dt("HH:mm") if att.finished_at else '' }} · {{ g.rows|length }} {{ g.rows|length|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }}</span>
-          {{ ui.icon('chevron-down', 18) }}
-        </summary>
-        {% set blank = g.rows|selectattr('answer.given', 'none')|list|length + g.rows|selectattr('answer.given', 'equalto', '')|list|length %}
-        <div class="jr-group__intro">
-          <div class="stack-sm" style="gap:6px;flex:1 1 320px">
-            <div class="small text-2">{{ _("Неверных: %(w)s · без ответа: %(b)s", w=g.rows|length - blank, b=blank) }}</div>
-            <div class="row" style="gap:6px;flex-wrap:wrap">{% for name, n in g.topics[:3] %}<span class="tag tag--soft">{{ name }} ×{{ n }}</span>{% endfor %}{% if g.topics|length > 3 %}{% call ui.more_chips(g.topics|length - 3) %}{% for name, n in g.topics[3:] %}<span class="tag tag--soft">{{ name }} ×{{ n }}</span>{% endfor %}{% endcall %}{% endif %}</div>
-          </div>
-          <a class="btn btn--primary" href="{{ url_for('student.journal_review', attempt_id=att.id) }}">{{ ui.icon('play', 16) }}{{ _("Разобрать ошибки") }} · {{ g.rows|length }}</a>
-        </div>
-      </details>
-      {% endfor %}
-    </section>
+    {% if delta <= 7 %}
+      {% set _ = recent_days.append(day) %}
+    {% elif delta <= 14 %}
+      {% set _ = week_days.append(day) %}
+    {% else %}
+      {% set _ = month_days.append(day) %}
+    {% endif %}
   {% endfor %}
+
+  {% macro render_day_card(day) -%}
+    {% set delta = (today_d - day.date).days %}
+    {% set age_tier = 'today' if delta == 0 else ('yesterday' if delta == 1 else ('this-week' if delta <= 7 else ('last-week' if delta <= 14 else 'older'))) %}
+    <article class="card jr-card jr-card--{{ age_tier }}">
+      <div class="jr-card__header">
+        <div class="jr-card__day-badge jr-day--{{ age_tier }}">
+          {% if delta == 0 %}{{ _("Сегодня") }}{% elif delta == 1 %}{{ _("Вчера") }}{% else %}{{ day.date|d("EEEE")|capitalize }}{% endif %}
+        </div>
+        <span class="jr-card__date-text">{{ day.date|d("d MMMM") }}</span>
+      </div>
+
+      <div class="jr-card__stats">
+        <div class="jr-card__count">
+          <b>{{ day.total }}</b>
+          <span>{{ day.total|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }}</span>
+        </div>
+        <div class="small muted">{{ day.groups|length }} {{ day.groups|length|plural_ru(_("работа"), _("работы"), _("работ")) }}</div>
+      </div>
+
+      <div class="jr-card__topics">
+        {% for name, n in day.topics[:3] %}
+          <span class="tag tag--soft tag--xs" title="{{ name }}">{{ name }}{% if n > 1 %} <b>×{{ n }}</b>{% endif %}</span>
+        {% endfor %}
+        {% if day.topics|length > 3 %}
+          <span class="tag tag--line tag--xs muted">+{{ day.topics|length - 3 }}</span>
+        {% endif %}
+      </div>
+
+      <div class="jr-card__works">
+        {% for g in day.groups %}
+          {% set att = g.attempt %}
+          <a class="jr-card__work-row" href="{{ url_for('student.journal_review', attempt_id=att.id) }}" title="{{ g.title }}">
+            <span class="jr-card__work-kind">{{ g.kind }}</span>
+            <span class="jr-card__work-title">{{ g.title }}</span>
+            <span class="jr-card__work-count">{{ g.rows|length }}</span>
+          </a>
+        {% endfor %}
+      </div>
+
+      {% if day.groups %}
+        <a class="btn btn--primary btn--block btn--sm jr-card__btn" href="{{ url_for('student.journal_review', attempt_id=day.groups[0].attempt.id) }}">
+          {{ ui.icon('play', 14) }}{{ _("Разобрать") }} ({{ day.total }})
+        </a>
+      {% endif %}
+    </article>
+  {%- endmacro %}
+
+  <div class="jr-timeline">
+    {% if recent_days %}
+    <section class="jr-section">
+      <div class="jr-section__head">
+        <h3 class="jr-section__title">
+          <span class="dot--section dot--section-recent"></span>
+          <span>{{ _("Недавние записи") }}</span>
+        </h3>
+        <span class="jr-section__sub">{{ _("За последние 7 дней") }} · {{ recent_days|length }} {{ recent_days|length|plural_ru(_("день"), _("дня"), _("дней")) }}</span>
+      </div>
+      <div class="grid grid-4 jr-grid">
+        {% for day in recent_days %}{{ render_day_card(day) }}{% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if week_days %}
+    <section class="jr-section">
+      <div class="jr-section__head">
+        <h3 class="jr-section__title">
+          <span class="dot--section dot--section-week"></span>
+          <span>{{ _("1–2 недели назад") }}</span>
+        </h3>
+        <span class="jr-section__sub">{{ _("Предыдущая неделя") }} · {{ week_days|length }} {{ week_days|length|plural_ru(_("день"), _("дня"), _("дней")) }}</span>
+      </div>
+      <div class="grid grid-4 jr-grid">
+        {% for day in week_days %}{{ render_day_card(day) }}{% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if month_days %}
+    <section class="jr-section">
+      <div class="jr-section__head">
+        <h3 class="jr-section__title">
+          <span class="dot--section dot--section-month"></span>
+          <span>{{ _("Месяц назад и ранее") }}</span>
+        </h3>
+        <span class="jr-section__sub">{{ _("Более 2 недель назад") }} · {{ month_days|length }} {{ month_days|length|plural_ru(_("день"), _("дня"), _("дней")) }}</span>
+      </div>
+      <div class="grid grid-4 jr-grid">
+        {% for day in month_days %}{{ render_day_card(day) }}{% endfor %}
+      </div>
+    </section>
+    {% endif %}
   </div>
   {% if more %}<div class="row" style="justify-content:center;margin-top:16px"><a class="btn btn--secondary" href="{{ url_for('student.journal', show=show, days=days_shown + 14) }}">{{ _("Показать более ранние дни") }}</a></div>{% endif %}
   {% else %}

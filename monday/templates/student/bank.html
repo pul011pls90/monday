@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/bank-tiles.css') }}">{% endblock %}
 {% block title %}{{ _("Банк вопросов") }}{% endblock %}
+{% block page_class %}bank-page{% endblock %}
 {% block content %}
 {% set chip_labels = {
   'd': [('1', _('Лёгкий')), ('2', _('Средний')), ('3', _('Сложный'))],
@@ -38,31 +39,50 @@
   </div>
 </section>
 
-{# ------------------------------------------------------------ filters: one row of dropdowns (each change applies at once) #}
-<form method="get" class="bk-filters" data-bank-filters aria-label="{{ _('Фильтры') }}">
-  <details class="bk-drop bk-drop--exam is-on">
-    <summary>{{ ui.icon('flag', 16) }}<span class="sr-only">{{ _("Экзамен") }}:</span><b>{{ EXAMS[exam].label if exam in EXAMS else _("Все") }}</b>{{ ui.icon('chevron-down', 16) }}</summary>
-    <div class="bk-drop__menu">
-      {% for code, e in EXAMS.items() %}
-        <label class="bank-chip"><input type="radio" name="exam" value="{{ code }}" {{ 'checked' if code == exam }}><span>{{ e.label }}</span></label>
-      {% endfor %}
+{# ------------------------------------------------------------ filters: in a dedicated card rectangle named "Filters" #}
+<section class="card bk-filter-box" aria-labelledby="bk-filters-heading">
+  <div class="bk-filter-box__head">
+    <span class="bk-filter-box__title" id="bk-filters-heading">
+      {{ ui.icon('filter', 14) }}
+      <span>{{ _("Фильтры") }}</span>
+    </span>
+    <div class="bk-filter-box__meta">
+      <span class="bk-key" aria-hidden="true">
+        <span><i class="bk-diff__1"></i>{{ _("лёгкие") }}</span>
+        <span><i class="bk-diff__2"></i>{{ _("средние") }}</span>
+        <span><i class="bk-diff__3"></i>{{ _("сложные") }}</span>
+      </span>
+      {% if active %}
+        <a class="bk-reset" href="{{ url_for('bank.index', exam=exam) }}">
+          {{ ui.icon('reset', 14) }}{{ _("Сбросить") }}
+        </a>
+      {% endif %}
     </div>
-  </details>
-  <span class="bk-filters__sep" aria-hidden="true"></span>
-  {% for key, ic, title in groups %}
-    <details class="bk-drop{{ ' is-on' if f[key] }}">
-      <summary>{{ ui.icon(ic, 16) }}<span>{{ title }}</span>{% if f[key] %}<b class="bk-drop__n num">{{ f[key]|length }}</b>{% endif %}{{ ui.icon('chevron-down', 16) }}</summary>
+  </div>
+
+  <form method="get" class="bk-filters" data-bank-filters aria-label="{{ _('Фильтры') }}">
+    <details class="bk-drop bk-drop--exam is-on">
+      <summary>{{ ui.icon('flag', 16) }}<span class="sr-only">{{ _("Экзамен") }}:</span><b>{{ EXAMS[exam].label if exam in EXAMS else _("Все") }}</b>{{ ui.icon('chevron-down', 16) }}</summary>
       <div class="bk-drop__menu">
-        {% for val, label in chip_labels[key] %}
-          <label class="bank-chip"><input type="checkbox" name="{{ key }}" value="{{ val }}" {{ 'checked' if val in f[key] }}><span>{{ label }}</span></label>
+        {% for code, e in EXAMS.items() %}
+          <label class="bank-chip"><input type="radio" name="exam" value="{{ code }}" {{ 'checked' if code == exam }}><span>{{ e.label }}</span></label>
         {% endfor %}
       </div>
     </details>
-  {% endfor %}
-  <span class="bk-key" aria-hidden="true"><span><i class="bk-diff__1"></i>{{ _("лёгкие") }}</span><span><i class="bk-diff__2"></i>{{ _("средние") }}</span><span><i class="bk-diff__3"></i>{{ _("сложные") }}</span></span>
-  {% if active %}<a class="bk-reset" href="{{ url_for('bank.index', exam=exam) }}">{{ ui.icon('reset', 15) }}{{ _("Сбросить") }}</a>{% endif %}
-  <noscript><button class="btn btn--primary btn--sm" type="submit">{{ _("Применить") }}</button></noscript>
-</form>
+    <span class="bk-filters__sep" aria-hidden="true"></span>
+    {% for key, ic, title in groups %}
+      <details class="bk-drop{{ ' is-on' if f[key] }}">
+        <summary>{{ ui.icon(ic, 16) }}<span>{{ title }}</span>{% if f[key] %}<b class="bk-drop__n num">{{ f[key]|length }}</b>{% endif %}{{ ui.icon('chevron-down', 16) }}</summary>
+        <div class="bk-drop__menu">
+          {% for val, label in chip_labels[key] %}
+            <label class="bank-chip"><input type="checkbox" name="{{ key }}" value="{{ val }}" {{ 'checked' if val in f[key] }}><span>{{ label }}</span></label>
+          {% endfor %}
+        </div>
+      </details>
+    {% endfor %}
+    <noscript><button class="btn btn--primary btn--sm" type="submit">{{ _("Применить") }}</button></noscript>
+  </form>
+</section>
 
 {# ------------------------------------------------------------ topics (POST start) #}
 <section class="section bk-topics" aria-labelledby="tree-h">

@@ -1,50 +1,76 @@
 {% extends "layout.html" %}
 {% block title %}{{ a.work.title }}{% endblock %}
-{% block page_class %}page--narrow{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/homework.css') }}">{% endblock %}
 {% block content %}
-{% set v = a.work.current_version %}
+{% set v = a.work.current_version %}{% set n = v.question_count %}
+{% set x = a.work.title|replace('ДЗ: ', '') %}
+{% set late = left is not none and left < 0 and state in ('new', 'in_progress', 'overdue') %}
 <a href="{{ url_for('student.homework') }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Все задания") }}</a>
 
-<section class="card" style="gap:20px">
-  <div class="row row--between">{{ ui.state(state, HOMEWORK_STATES[state]) }}<span class="small muted">{{ _("выдано") }} {{ a.created_at|dt }}</span></div>
-  <h1>{{ a.work.title }}</h1>
-  <div class="author">{{ ui.avatar(a.teacher, 'avatar--sm') }}{{ a.teacher.name }}</div>
-  {% if a.work.description %}<p class="text-2" style="font-size:16px">{{ a.work.description }}</p>{% endif %}
-  {% if a.message %}
-    <div class="card card--soft card--tight"><span class="eyebrow" style="color:inherit">{{ _("Сообщение учителя") }}</span><p>{{ a.message }}</p></div>
-  {% endif %}
-  <dl class="kv">
-    <dt>{{ _("Срок сдачи") }}</dt><dd>{{ a.due_at|dt if a.due_at else _("без срока") }}</dd>
-    <dt>{{ _("Вопросов") }}</dt><dd>{{ v.question_count }}</dd>
-    <dt>{{ _("Время") }}</dt><dd>{{ v.time_limit_min|minutes }}</dd>
-  </dl>
+<div class="hwd">
+  <div class="hwd__main">
+    <section class="card hwd__card">
+      {% if late %}
+        {% set dd = (left|abs) // 86400 %}
+        <span class="hwd__chip is-late">{{ _("Просрочено на %(t)s", t=(dd ~ ' ' ~ dd|plural_ru(_("день"), _("дня"), _("дней"))) if dd else _("несколько часов")) }} · {{ _("сдать ещё можно") }}</span>
+      {% else %}
+        <span class="hwd__chip is-{{ state }}">{{ HOMEWORK_STATES[state] }}</span>
+      {% endif %}
+      <h1 class="hwd__title">{{ x[:1]|upper }}{{ x[1:] }}</h1>
 
-  {% if state in ('new', 'overdue') %}
-    <form method="post" action="{{ url_for('student.homework_start', assignment_id=a.id) }}">{{ ui.csrf() }}
-      <button class="btn btn--primary btn--lg" type="submit">{{ _("Начать") }}</button>
-      {% if state == 'overdue' %}<span class="small" style="color:var(--bad);margin-left:12px">{{ _("Срок прошёл, но сдать ещё можно.") }}</span>{% endif %}
-    </form>
-  {% elif state == 'in_progress' %}
-    <a class="btn btn--primary btn--lg" href="{{ url_for('student.attempt_run', attempt_id=open_attempt.id) }}" style="align-self:flex-start">{{ _("Продолжить") }}</a>
-  {% endif %}
-</section>
+      <div class="hwd__teacher">
+        <div class="hwd__who">{{ ui.avatar(a.teacher) }}<span><b>{{ a.teacher.name }}</b><small>{{ _("учитель") }}</small></span></div>
+        {% if a.work.description %}<p class="hwd__task">{{ a.work.description }}</p>{% endif %}
+        {% if a.message %}<p class="hwd__msg">{{ a.message }}</p>{% endif %}
+      </div>
+    </section>
 
-{% if last %}
-<section class="card">
-  <div class="card__head"><h2>{{ _("Результат") }}</h2><a href="{{ url_for('student.attempt_result', attempt_id=last.id) }}">{{ _("Подробный разбор") }}</a></div>
-  <div class="grid grid-3">
-    <div><div class="stat-value num">{{ last.score }} / {{ last.total }}</div><div class="stat-label">{{ _("верно") }}</div></div>
-    <div><div class="stat-value num">{{ last.percent }}%</div><div class="stat-label">{{ _("точность") }}</div></div>
-    <div><div class="stat-value num">{{ last.time_used|duration }}</div><div class="stat-label">{{ _("время") }}</div></div>
+    {% if last %}
+    <section class="card">
+      <div class="card__head"><h2>{{ _("Результат") }}</h2><a href="{{ url_for('student.attempt_result', attempt_id=last.id) }}">{{ _("Подробный разбор") }}</a></div>
+      <div class="grid grid-3">
+        <div><div class="stat-value num">{{ last.score }} / {{ last.total }}</div><div class="stat-label">{{ _("верно") }}</div></div>
+        <div><div class="stat-value num">{{ last.percent }}%</div><div class="stat-label">{{ _("точность") }}</div></div>
+        <div><div class="stat-value num">{{ last.time_used|duration }}</div><div class="stat-label">{{ _("время") }}</div></div>
+      </div>
+      {% if a.checked_at %}
+        <div class="hwd__teacher">
+          <div class="hwd__who">{{ ui.avatar(a.teacher) }}<span><b>{{ a.teacher.name }}</b><small>{{ _("проверил") }} {{ a.checked_at|d("d MMMM") }}</small></span></div>
+          <p class="hwd__msg">{{ a.teacher_comment or _("Проверено без комментария.") }}</p>
+        </div>
+      {% else %}
+        <p class="text-2">{{ _("Учитель ещё не проверил работу. Комментарий появится здесь.") }}</p>
+      {% endif %}
+    </section>
+    {% endif %}
   </div>
-  {% if a.checked_at %}
-    <div class="card card--inverse card--tight">
-      <span class="eyebrow">{{ _("Комментарий учителя") }} · {{ a.checked_at|dt }}</span>
-      <p style="font-size:16px">{{ a.teacher_comment or _("Проверено без комментария.") }}</p>
+
+  <aside class="hwd__side">
+    <div class="hwd__stats">
+      <div class="hwd__stat{{ ' is-late' if late }}">
+        <span class="hwd__ic">{{ ui.icon('calendar', 20) }}</span>
+        <span><small>{{ _("Срок сдачи") }}</small><b>{{ a.due_at|d("d MMMM") if a.due_at else _("без срока") }}</b></span>
+      </div>
+      <div class="hwd__stat">
+        <span class="hwd__ic">{{ ui.icon('list', 20) }}</span>
+        <span><small>{{ _("Задачи") }}</small><b class="num">{{ n }} {{ n|plural_ru(_("задача"), _("задачи"), _("задач")) }}</b></span>
+      </div>
+      <div class="hwd__stat">
+        <span class="hwd__ic">{{ ui.icon('timer', 20) }}</span>
+        <span><small>{{ _("Время") }}</small><b>{{ v.time_limit_min|minutes if v.time_limit_min else _("без лимита") }}</b></span>
+      </div>
     </div>
-  {% else %}
-    <p class="text-2">{{ _("Учитель ещё не проверил работу. Комментарий появится здесь.") }}</p>
-  {% endif %}
-</section>
-{% endif %}
+
+    {% if state in ('new', 'overdue') %}
+      <form method="post" action="{{ url_for('student.homework_start', assignment_id=a.id) }}">{{ ui.csrf() }}
+        <button class="btn btn--primary btn--lg btn--block" type="submit">{{ ui.icon('play', 18) }}{{ _("Начать") }}{% if v.time_limit_min %} · {{ v.time_limit_min|minutes }}{% endif %}</button>
+      </form>
+      <p class="hwd__hint">{{ _("Таймер запустится сразу. Ответы сохраняются — можно выйти и продолжить.") if v.time_limit_min else _("Ответы сохраняются — можно выйти и продолжить.") }}</p>
+    {% elif state == 'in_progress' %}
+      <a class="btn btn--primary btn--lg btn--block" href="{{ url_for('student.attempt_run', attempt_id=open_attempt.id) }}">{{ ui.icon('play', 18) }}{{ _("Продолжить") }}</a>
+    {% elif last %}
+      <a class="btn btn--secondary btn--lg btn--block" href="{{ url_for('student.attempt_result', attempt_id=last.id) }}">{{ _("Подробный разбор") }}</a>
+    {% endif %}
+  </aside>
+</div>
 {% endblock %}

@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block scripts %}<script defer src="{{ url_for('static', filename='js/scenes.js') }}"></script><script defer src="{{ url_for('static', filename='js/ranking.js') }}"></script>{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/scenes.js') }}"></script><script defer src="{{ url_for('static', filename='js/monday-sky.js') }}"></script><script defer src="{{ url_for('static', filename='js/ranking.js') }}"></script>{% endblock %}
 {% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/monday-hero.css') }}">{% endblock %}
 {% block title %}{{ _("Тест понедельника") }}{% endblock %}
 {% block content %}
@@ -37,7 +37,9 @@
       {% endif %}
     </div>
   </div>
-  <canvas class="mh__canvas" data-scene="{{ scene }}" data-mode="{{ scene_mode }}" data-topics='{{ weak_topics|tojson }}'{% if config.MONDAY_TEST_ALWAYS_OPEN %} data-cycle="{{ scene_cycle|join(',') }}"{% endif %} aria-hidden="true"></canvas>
+  <canvas class="mh__sky" data-sky-print aria-hidden="true"></canvas>
+  <canvas class="mh__canvas" data-sky="1" data-scene="{{ scene }}" data-mode="{{ scene_mode }}" data-topics='{{ weak_topics|tojson }}'{% if config.MONDAY_TEST_ALWAYS_OPEN %} data-cycle="{{ scene_cycle|join(',') }}"{% endif %} aria-hidden="true"></canvas>
+  <button type="button" class="mh__next" data-scene-next aria-label="{{ _('Следующая анимация') }}" title="{{ _('Следующая анимация') }}">{{ _("Другая анимация") }} {{ ui.icon('arrow-right', 14) }}</button>
   {% if scene_mode == 'live' %}<span class="mh__badge"><i></i>{{ _("Идёт сейчас") }}</span>{% endif %}
 </section>
 {% if config.MONDAY_TEST_ALWAYS_OPEN and current_user.is_admin %}<p class="small muted">{{ _("Демо-режим: тест открыт в любой день. Отключается настройкой MONDAY_TEST_ALWAYS_OPEN=0.") }}</p>{% endif %}

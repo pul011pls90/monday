@@ -37,7 +37,7 @@
   </div>
 </div>
 
-<main class="page test-page calc-shift{{ ' test-page--ort' if layout.nav == 'pages' }}" style="margin:0 auto;max-width:{{ 'clamp(1440px, 94vw, 2000px)' if layout.nav == 'pages' else 'clamp(1120px, 78vw, 1560px)' }}">
+<main class="page test-page calc-shift{{ ' test-page--ort' if layout.nav == 'pages' else (' test-page--csca' if layout.format == 'csca' else '') }}" style="margin:0 auto;max-width:{{ 'clamp(1440px, 94vw, 2000px)' if layout.nav == 'pages' else ('1240px' if layout.format == 'csca' else 'clamp(1120px, 78vw, 1560px)') }}">
   {{ ui.flashes() }}
   {% if mods|length > 1 and module > 1 and not get_flashed_messages() %}
     <p class="small muted">{% if module == 2 %}{{ _("Ответы модуля 1 сохранены и закрыты.") }}{% else %}{{ _("Ответы модулей 1–%(k)s сохранены и закрыты.", k=module - 1) }}{% endif %}</p>
@@ -122,8 +122,105 @@
     </section>
     </div>
 
+  {% elif layout.format == 'csca' %}
+    {# ============================================================ CSCA Official Academy Layout #}
+    <div class="csca-layout">
+      <!-- Left Column: Student card + 48-circle Question Matrix -->
+      <aside class="csca-sidebar">
+        <div class="csca-student-card">
+          <div class="csca-student-avatar">
+            <span>Your</span>
+            <span>Photo</span>
+          </div>
+          <div class="csca-student-info">
+            <b>{{ current_user.name or 'Candidate' }}</b>
+            <div>ID: {{ '%06d' % current_user.id }}</div>
+            <div>Nationality: Int'l</div>
+          </div>
+        </div>
+        <div class="csca-grid" data-grid></div>
+      </aside>
+
+      <!-- Right Column: Question Display & 2x2 Options Grid -->
+      <div class="csca-main">
+        {% for idx in range(mod.start, mod.end) %}{% set item = version.items[idx]|loc %}
+          <section class="q-screen" data-q="{{ idx }}" id="question-{{ idx + 1 }}" data-elim-scope data-elim-host data-elim-key="att{{ att.id }}-{{ idx }}">
+            <!-- Header: Question X, Report Error, Submit -->
+            <div class="csca-topbar">
+              <h2 class="csca-q-title">Question {{ idx - mod.start + 1 }}</h2>
+              <div class="csca-top-actions">
+                <button type="button" class="csca-btn-report" onclick="alert('Thank you, report received!')">
+                  {{ ui.icon('flag', 16) }}<span>Report Error</span>
+                </button>
+                <button type="button" class="csca-btn-submit" data-csca-submit>Submit</button>
+              </div>
+            </div>
+
+            <!-- Subbar: Mark for review, Save & exit, Back, Next, Timer -->
+            <div class="csca-subbar">
+              <div class="csca-subbar-left">
+                <button type="button" class="csca-btn-mark" data-mark="{{ idx }}" aria-pressed="{{ 'true' if draft.get('r' ~ idx) else 'false' }}">
+                  {{ ui.icon('bookmark', 16) }}<span>Mark for review</span>
+                </button>
+                <a href="{{ close_url }}" class="small muted" style="text-decoration:none">{{ _("Save & exit") }}</a>
+              </div>
+              <div class="csca-subbar-right">
+                <button type="button" class="csca-btn-nav" data-prev-btn>Back <span class="muted small" style="font-size:11px">F4</span></button>
+                <button type="button" class="csca-btn-nav csca-btn-nav--primary" data-next-btn>Next <span class="small" style="font-size:11px;opacity:0.8">F5</span></button>
+                <span class="csca-timer-display" data-csca-timer>--:--</span>
+              </div>
+            </div>
+
+            <!-- Instruction Banner -->
+            <div class="csca-instruction-banner">
+              Each question has several options; only one is correct.
+            </div>
+
+            <!-- Question Text -->
+            <div class="csca-question-body math">
+              {{ item.text }}
+            </div>
+
+            <!-- 2x2 Options Grid -->
+            {% if item.answer_type == 'choice' %}
+            <div class="csca-options-grid" role="radiogroup">
+              {% for opt in item.options %}
+                {% set i = loop.index0|string %}
+                {% set is_sel = draft.get('q' ~ idx) is not none and draft.get('q' ~ idx)|string == i %}
+                <label class="csca-option-item">
+                  <input type="radio" name="q{{ idx }}" value="{{ i }}" {{ 'checked' if is_sel }}>
+                  <div class="csca-option-label">
+                    <span class="opt-letter">({{ 'ABCD'[loop.index0] }})</span>
+                    <span class="math">{{ opt }}</span>
+                  </div>
+                </label>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </section>
+        {% endfor %}
+
+        <section class="q-review" data-review hidden>
+          <h2>{{ _("Review your answers") }}</h2>
+          <p class="small submit-hint" data-submit-hint hidden></p>
+          <p class="text-2">{{ _("Click any question number on the left or below to return to that question.") }}</p>
+          <div class="q-grid q-grid--big" data-grid-review></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Hidden native elements for test.js compatibility -->
+    <div style="display:none">
+      <div class="test-foot">
+        <button type="button" data-prev>Back</button>
+        <div class="test-foot__mid"><span data-counter>1</span><div data-grid-pop></div></div>
+        <button type="button" data-next data-next-label="Next" data-review-label="Review">Next</button>
+        <button class="btn btn--primary" type="submit" data-final>Submit</button>
+      </div>
+    </div>
+
   {% else %}
-    {# ============================================================ grid navigation: SAT, CSCA, ЕНТ, ЕГЭ, ОГЭ #}
+    {# ============================================================ grid navigation: SAT, ЕНТ, ЕГЭ, ОГЭ #}
     {% for idx in range(mod.start, mod.end) %}{% set item = version.items[idx]|loc %}
       <section class="q-screen" data-q="{{ idx }}" id="question-{{ idx + 1 }}" data-elim-scope data-elim-host data-elim-key="att{{ att.id }}-{{ idx }}">
         <div class="q-head">

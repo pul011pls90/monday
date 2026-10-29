@@ -111,10 +111,12 @@ def home():
     rows = monday_ranking(last_monday, limit=None)
     my_place, _a = user_rank(rows, current_user.id)
     left = mondays_left(p.exam_date)
+    week_solved = (AttemptAnswer.query.join(Attempt)
+                   .filter(Attempt.user_id == current_user.id, AttemptAnswer.answered_at >= since).count())
     return render_template(
-        "student/home.html", p=p, summary=summary, mondays=left, minutes=minutes,
+        "student/home.html", p=p, summary=summary, mondays=left, minutes=minutes, week_solved=week_solved,
         recommended=recommended_mode(minutes), monday_countdown=countdown_label(start - local_now()),
-        monday_start=start, breakdown=breakdown, week_mistakes=week_mistakes, assignments=assignments[:3],
+        monday_start=start, breakdown=breakdown, week_mistakes=week_mistakes, assignments=assignments[:3], hw_n=len(assignments),
         my_place=my_place, strip=_monday_strip(left), task=_todays_task(p.exam, summary),
         portrait=skill_map(current_user.id, p.exam), facts=_daily_facts(len(MODES)), daily=_daily_block(),
         replies=_report_replies(), practice=_practice_goal(),
@@ -258,7 +260,14 @@ def sessions():
         if sum(n.values()):
             topics.append({"id": t["node"].id, "name": t["name"], "n": n})
     totals = {d: sum(t["n"][d] for t in topics) for d in (1, 2, 3)}
-    return render_template("student/sessions.html", recent=recent, facts=_daily_facts(len(MODES)), topics=topics,
+    bank_n = sum(totals.values())
+    answered_n = (db.session.query(db.func.count(db.distinct(AttemptAnswer.question_id))).join(Attempt)
+                  .filter(Attempt.user_id == current_user.id).scalar() or 0)
+    spent = (db.session.query(db.func.sum(Attempt.duration_sec))
+             .filter(Attempt.user_id == current_user.id).scalar() or 0)
+    return render_template("student/sessions.html", bank_n=bank_n, answered_n=answered_n,
+                           bank_pct=min(100, round(100 * answered_n / bank_n)) if bank_n else 0,
+                           spent_label=_("%(h)s ч %(m)s мин", h=spent // 3600, m=spent % 3600 // 60), recent=recent, facts=_daily_facts(len(MODES)), topics=topics,
                            totals=totals, presets=current_user.profile.session_presets or [], practice=_practice_goal(),
                            PACE=PACE, SESSION_MINUTES=SESSION_MINUTES)
 
@@ -885,31 +894,42 @@ def homework():
         answered = sum(1 for x in open_att.answers if x.given) if open_att else 0
         left = int((a.due_at - now).total_seconds()) if a.due_at else None
         mission[a.id] = {"answered": answered, "left": left}
-    emoji = {a.id: _homework_emoji(a.work) for a, _s in groups["todo"] + groups["done"]}
+    # calendar: every homework on its due day; months from the earliest due date to three months ahead
+    today_d = local_today()
+    kinds, due_day = defaultdict(list), {}
+    for a, state in groups["todo"] + groups["done"]:
+        if not a.due_at:
+            continue
+        d = local_date(a.due_at)
+        due_day[a.id] = d.isoformat()
+        late = a.id in mission and mission[a.id]["left"] is not None and mission[a.id]["left"] < 0
+        kinds[d].append("done" if state in ("submitted", "checked") else "late" if late else "going" if state == "in_progress" else "new")
+    this_month = today_d.replace(day=1)
+    first = min([this_month] + [d.replace(day=1) for d in kinds])
+    last = max([_add_months(this_month, 3)] + [d.replace(day=1) for d in kinds])
+    months, m = [], first
+    while m <= last and len(months) < 24:
+        start = m - timedelta(days=m.weekday())
+        weeks_n = ((_add_months(m, 1) - start).days + 6) // 7
+        cells = [start + timedelta(days=i) for i in range(weeks_n * 7)]
+        months.append({"first": m, "weeks": [[{"date": d, "kinds": kinds.get(d, [])} for d in cells[w * 7:(w + 1) * 7]]
+                                             for w in range(weeks_n)]})
+        m = _add_months(m, 1)
+    # finished work, for the «recent / 1–2 weeks / earlier» groups
+    finished_on = {}
+    for a, _s in groups["done"]:
+        ends = [x.finished_at for x in a.attempts if x.user_id == current_user.id and x.finished_at]
+        if ends:
+            finished_on[a.id] = local_date(max(ends))
     return render_template("student/homework.html", todo=groups["todo"], done=groups["done"], teachers=teachers,
-                           mission=mission, emoji=emoji)
+                           mission=mission, months=months, this_month=this_month, today_d=today_d, due_day=due_day,
+                           finished_on=finished_on)
 
 
-# one friendly emoji per homework, from the topic most of its questions belong to (falls back to the title)
-_TOPIC_EMOJI = [("геометр", "📐"), ("geometry", "📐"), ("тригоном", "🔺"), ("trigon", "🔺"), ("функц", "📈"), ("анализ", "📈"),
-                ("advanced", "📈"), ("логариф", "📈"), ("вероят", "🎲"), ("статист", "📊"), ("data", "📊"), ("арифм", "🔢"),
-                ("числ", "🔢"), ("процент", "🔢"), ("алгебр", "🧮"), ("algebra", "🧮"), ("уравнен", "🧮"), ("логик", "🧩")]
-
-
-def _homework_emoji(work):
-    v = work.current_version
-    ids = [it.get("skill_id") for it in (v.items or [])] if v else []
-    names = []
-    if ids:
-        nodes = {n.id: n for n in ContentNode.query.filter(ContentNode.id.in_([i for i in ids if i])).all()}
-        tops = Counter((nodes[i].topic_node.name if nodes[i].topic_node else nodes[i].name) for i in ids if i in nodes)
-        names = [n for n, _c in tops.most_common()]
-    for text in names + [work.title or ""]:
-        low = text.lower()
-        for key, e in _TOPIC_EMOJI:
-            if key in low:
-                return e
-    return "📝"
+def _add_months(d, n):
+    """First day of the month n months after d's month."""
+    y, mo = divmod(d.month - 1 + n, 12)
+    return date(d.year + y, mo + 1, 1)
 
 
 def _own_assignment(assignment_id):
@@ -926,7 +946,8 @@ def homework_detail(assignment_id):
     state = homework_state(a, current_user.id)
     last = latest_attempt(a, current_user.id)
     open_attempt = next((x for x in a.attempts if x.user_id == current_user.id and not x.finished_at), None)
-    return render_template("student/homework_detail.html", a=a, state=state, last=last, open_attempt=open_attempt)
+    left = int((a.due_at - utcnow()).total_seconds()) if a.due_at else None
+    return render_template("student/homework_detail.html", a=a, state=state, last=last, open_attempt=open_attempt, left=left)
 
 
 @bp.route("/homework/<int:assignment_id>/start", methods=["POST"])
@@ -1009,7 +1030,8 @@ def journal_days(entries, limit_days):
         g["rows"].append({"answer": e, "item": answer_item(e), "label": label})
         g["topics"][e.skill.name if e.skill else _("Задача")] += 1
     out = []
-    for k in order:
+    # Sort dates newest to oldest so chronological flow is strictly correct
+    for k in sorted(days.keys(), reverse=True):
         day = days[k]
         day["topics"] = sorted(day["topics"].items(), key=lambda t: -t[1])
         day["groups"] = [days[k]["groups"][g] for g in day["group_order"]]

@@ -18,13 +18,13 @@ EXAM_CHOICES = list(EXAMS.keys())
 
 # Session modes, ordered from shortest to longest. Colour keys map to CSS.
 MODES = {
-    "franklin": {"name": _l("Франклин"), "approx": 5, "time": _l("5–10 мин"), "desc": _l("короткий точный разбор слабых тем"), "color": "green", "count": 5, "ready": True},
-    "feynman": {"name": _l("Фейнман"), "approx": 10, "time": _l("10–15 мин"), "desc": _l("объясни тему своими словами"), "color": "yellow", "count": 4, "ready": True},
-    "tesla": {"name": _l("Тесла"), "approx": 15, "time": _l("15 мин"), "desc": _l("графики и фигуры руками"), "color": "orange", "count": 0, "ready": False},
-    "darwin": {"name": _l("Дарвин"), "approx": 20, "time": _l("15–20 мин"), "desc": _l("расследуй свои ошибки"), "color": "red", "count": 6, "ready": True},
-    "einstein": {"name": _l("Эйнштейн"), "approx": 30, "time": _l("20–30 мин"), "desc": _l("сложные задачи, два способа"), "color": "purple", "count": 5, "ready": True},
+    "franklin": {"name": _l("Слабые темы"), "approx": 5, "time": _l("5–10 мин"), "desc": _l("5 задач с проверкой сразу"), "color": "green", "count": 5, "ready": True, "emoji": "🥪"},
+    "feynman": {"name": _l("Объясни сам"), "approx": 10, "time": _l("10–15 мин"), "desc": _l("4 задачи, решение своими словами"), "color": "yellow", "count": 4, "ready": True, "emoji": "☕"},
+    "tesla": {"name": _l("Графики"), "approx": 15, "time": _l("15 мин"), "desc": _l("двигай точки, меняй уравнения"), "color": "orange", "count": 0, "ready": False, "emoji": "⚡"},
+    "darwin": {"name": _l("Работа над ошибками"), "approx": 20, "time": _l("15–20 мин"), "desc": _l("6 задач из журнала ошибок"), "color": "red", "count": 6, "ready": True, "emoji": "🚌"},
+    "einstein": {"name": _l("Сложные задачи"), "approx": 30, "time": _l("20–30 мин"), "desc": _l("5 трудных задач, два способа"), "color": "purple", "count": 5, "ready": True, "emoji": "📚"},
     # built in «Своя сессия»: time, number of questions, difficulty and topics chosen by the student
-    "custom": {"name": _l("Своя сессия"), "approx": 10, "time": _l("сколько захочешь"), "desc": _l("время, число вопросов и сложность — твои"), "color": "blue", "count": 10, "ready": True, "builder": True},
+    "custom": {"name": _l("Своя сессия"), "approx": 10, "time": _l("сколько захочешь"), "desc": _l("время, число вопросов и сложность — твои"), "color": "blue", "count": 10, "ready": True, "builder": True, "emoji": "⚙️"},
 }
 
 # Comfortable time for one question, by difficulty (seconds): drives the pace hint in «Своя сессия».

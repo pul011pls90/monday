@@ -21,8 +21,8 @@
 .sp-key__dot.is-new { background: var(--surface); border: 2px solid var(--line-strong); }
 
 /* chapters */
-.sp-road-wrap { display: grid; gap: 28px; max-width: 640px; }
-.sp-chapter { scroll-margin-top: 90px; }
+.sp-road-wrap { display: grid; gap: 28px; min-width: 0; }
+.sp-chapter { position: relative; scroll-margin-top: 90px; }
 .sp-head { position: sticky; top: 72px; z-index: 3; display: grid; gap: 6px; padding: 18px 22px; border-radius: 20px; color: #fff;
   background: linear-gradient(135deg, #1b2a8f, #0b1456); box-shadow: 0 14px 30px rgba(11, 20, 86, .25); }
 .sp-chapter.is-done .sp-head { background: linear-gradient(135deg, #17795a, #0d4a37); }
@@ -85,4 +85,41 @@
   .sp-path--narrow { display: inline; }
   .sp-label { left: calc(100% + 12px); max-width: 170px; }
   .sp-label b { font-size: 14px; }
+}
+
+
+
+/* Skills page: the whole page is a city map (blueprint style). Two street layers with different tile sizes
+   over a dot halftone; it scrolls with the content, so new blocks keep appearing. */
+body:not(.auth-body):has(.page--city) { background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221200%22%20height%3D%221000%22%20fill%3D%22none%22%20stroke%3D%22%23F3F6FC%22%20stroke-linecap%3D%22square%22%3E%3Cpath%20d%3D%22M-10%20371L1210%20371%22%20stroke-width%3D%2222%22/%3E%3Cpath%20d%3D%22M-10%20444L1210%20444%22%20stroke-width%3D%2222%22/%3E%3Cpath%20d%3D%22M188%20-10L188%201010%22%20stroke-width%3D%2216%22/%3E%3Cpath%20d%3D%22M788%20-10L788%201010%22%20stroke-width%3D%2216%22/%3E%3Cpath%20d%3D%22M-161%200L1039%201000%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M1039%200L2239%201000%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M2239%200L3439%201000%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M-761%200L-1961%201000%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M439%200L-761%201000%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M1639%200L439%201000%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M136%20148L178%20182%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M203%20306L69%20408%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M929%20120L1038%203%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M517%20705L658%20823%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M186%20650L305%20673%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M161%20286L4%20391%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M332%20356L366%20249%22%20stroke-width%3D%229%22/%3E%3C/svg%3E") 0 0 / 1200px 1000px, url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22760%22%20height%3D%221340%22%20fill%3D%22none%22%20stroke%3D%22%23F3F6FC%22%20stroke-linecap%3D%22square%22%3E%3Cpath%20d%3D%22M-10%20966L770%20966%22%20stroke-width%3D%2230%22/%3E%3Cpath%20d%3D%22M-10%20965L770%20965%22%20stroke-width%3D%2222%22/%3E%3Cpath%20d%3D%22M229%20-10L229%201350%22%20stroke-width%3D%2224%22/%3E%3Cpath%20d%3D%22M684%20-10L684%201350%22%20stroke-width%3D%2216%22/%3E%3Cpath%20d%3D%22M-664%200L96%201340%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M96%200L856%201340%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M856%200L1616%201340%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M-303%200L-1063%201340%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M457%200L-303%201340%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M1217%200L457%201340%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M370%20350L236%20445%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M102%201279L124%201330%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M690%20382L829%20209%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M601%20189L451%2027%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M254%20555L381%20390%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M535%20728L580%20850%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M260%201123L199%201270%22%20stroke-width%3D%229%22/%3E%3C/svg%3E") 220px 140px / 760px 1340px, radial-gradient(circle, #C9D8F7 1.15px, transparent 1.6px) 0 0 / 7px 7px, #F3F6FC; }
+[data-theme="dark"] body:not(.auth-body):has(.page--city) { background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221200%22%20height%3D%221000%22%20fill%3D%22none%22%20stroke%3D%22%23040A1E%22%20stroke-linecap%3D%22square%22%3E%3Cpath%20d%3D%22M-10%20371L1210%20371%22%20stroke-width%3D%2222%22/%3E%3Cpath%20d%3D%22M-10%20444L1210%20444%22%20stroke-width%3D%2222%22/%3E%3Cpath%20d%3D%22M188%20-10L188%201010%22%20stroke-width%3D%2216%22/%3E%3Cpath%20d%3D%22M788%20-10L788%201010%22%20stroke-width%3D%2216%22/%3E%3Cpath%20d%3D%22M-161%200L1039%201000%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M1039%200L2239%201000%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M2239%200L3439%201000%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M-761%200L-1961%201000%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M439%200L-761%201000%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M1639%200L439%201000%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M136%20148L178%20182%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M203%20306L69%20408%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M929%20120L1038%203%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M517%20705L658%20823%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M186%20650L305%20673%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M161%20286L4%20391%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M332%20356L366%20249%22%20stroke-width%3D%229%22/%3E%3C/svg%3E") 0 0 / 1200px 1000px, url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22760%22%20height%3D%221340%22%20fill%3D%22none%22%20stroke%3D%22%23040A1E%22%20stroke-linecap%3D%22square%22%3E%3Cpath%20d%3D%22M-10%20966L770%20966%22%20stroke-width%3D%2230%22/%3E%3Cpath%20d%3D%22M-10%20965L770%20965%22%20stroke-width%3D%2222%22/%3E%3Cpath%20d%3D%22M229%20-10L229%201350%22%20stroke-width%3D%2224%22/%3E%3Cpath%20d%3D%22M684%20-10L684%201350%22%20stroke-width%3D%2216%22/%3E%3Cpath%20d%3D%22M-664%200L96%201340%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M96%200L856%201340%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M856%200L1616%201340%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M-303%200L-1063%201340%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M457%200L-303%201340%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M1217%200L457%201340%22%20stroke-width%3D%2218%22/%3E%3Cpath%20d%3D%22M370%20350L236%20445%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M102%201279L124%201330%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M690%20382L829%20209%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M601%20189L451%2027%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M254%20555L381%20390%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M535%20728L580%20850%22%20stroke-width%3D%229%22/%3E%3Cpath%20d%3D%22M260%201123L199%201270%22%20stroke-width%3D%229%22/%3E%3C/svg%3E") 220px 140px / 760px 1340px, radial-gradient(circle, #1A2C66 1.15px, transparent 1.6px) 0 0 / 7px 7px, #040A1E; }
+
+/* panels and labels sit on solid surfaces so the map never fights the text */
+.page--city .mt { position: relative; z-index: 1; }
+/* above the sticky chapter banner (z 3), so the exam menu opens on top of it */
+.page--city .page-head { position: relative; z-index: 5; }
+.page--city .sp-label { background: color-mix(in srgb, var(--surface) 88%, transparent); padding: 6px 10px; border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(10, 26, 92, .06); }
+
+/* street sign per chapter: tiny spaced caps with a metro badge, along the right edge of the road */
+.sp-street { position: absolute; right: -8px; top: 120px; transform: rotate(90deg); transform-origin: right top; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 10px; pointer-events: none; user-select: none;
+  font: 800 11px/1 var(--font); letter-spacing: .32em; text-transform: uppercase; color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.sp-street i { font-style: normal; display: inline-grid; place-items: center; height: 18px; padding: 0 6px; border-radius: 9px; letter-spacing: 0;
+  border: 1.5px solid currentColor; font-size: 10px; }
+
+/* «you are here»: a thin ring around the current level, like the pin on the map */
+.sp-level.is-current::after { content: ""; position: absolute; left: 50%; top: 50%; width: 112px; height: 112px; border-radius: 50%;
+  transform: translate(-50%, -50%); border: 3px solid var(--accent); pointer-events: none; z-index: -1;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--bg) 70%, transparent); }
+[data-theme="dark"] .sp-level.is-current::after { border-color: #fff; }
+
+
+/* road across the full width: down the page, levels sweep left↔right; labels flip to the left on the right side */
+.sp-level { left: var(--x); top: var(--y); }
+.sp-level.is-flip .sp-label { left: auto; right: calc(100% + 16px); text-align: right; justify-items: end; }
+.sp-street { position: static; transform: none; display: inline-flex; margin: 0 0 8px 4px; }
+@media (max-width: 640px) {
+  .sp-level { left: var(--x); }
+  .sp-label { max-width: 130px; }
 }

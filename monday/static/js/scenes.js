@@ -43,7 +43,8 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     state = {}; // scenes rebuild their caches at the new size
   }
-  const lens = (x, y, rad) => ptr.on * Math.max(0, 1 - Math.hypot(x - ptr.x, y - ptr.y) / rad);
+  // the cursor lens: kept small (40% of each scene's own radius) so it nudges the scene rather than covering it
+  const lens = (x, y, rad) => ptr.on * Math.max(0, 1 - Math.hypot(x - ptr.x, y - ptr.y) / (rad * 0.4));
   const pulseAt = (x, y) => { const d = Math.hypot(x - ptr.px, y - ptr.py), age = (t - ptr.pulse) * 520; return Math.max(0, 1 - Math.abs(d - age) / 60) * Math.max(0, 1 - age / 900); };
 
   /* -------------------------------------------------------------- 1. mountains (pixel background) */
@@ -174,6 +175,11 @@
     ctx.fillStyle = C.paper; ctx.beginPath(); ctx.arc(ox + pv[0] * s, oy + pv[1] * s, 3.5, 0, TAU); ctx.fill();
     // labels in IBM Plex Mono
     const n = state.n + 1, f = Math.max(11, Math.min(15, W / 60));
+    // under the bitmap sky the labels would turn into pixel smudges: hand them over as plain text instead
+    if (cv.dataset.sky) {
+      cv._hud = [`ИТЕРАЦИЯ ${String(n).padStart(2, "0")} / ${MAX}`, `отрезков: 2^${n} = ${2 ** n}`, "X → X+YF+   Y → −FX−Y   угол 90°"];
+      return "кривая дракона";
+    }
     ctx.font = `500 ${f}px ${MONO}`; ctx.fillStyle = C.mist; ctx.textBaseline = "top";
     const rx = W - SHIFT - 24, ry = 64;   // top right, under the "live" badge, clear of the greeting
     ctx.textAlign = "right";
@@ -367,10 +373,13 @@
     state.lights.slice(1).forEach((L) => {
       const p = clamp((t - L.born) / 1.6, 0, 1); if (!p || L.dying) return;
       const [x, y] = at(...L.c), mx = (hub[0] + x) / 2, my = Math.min(hub[1], y) - Math.hypot(x - hub[0], y - hub[1]) * .28;
-      ctx.globalAlpha = .38; ctx.strokeStyle = C.mist; ctx.lineWidth = 1;
+      // dashed, with the dashes marching from the hub to the city, so the arc itself is always moving
+      ctx.globalAlpha = .55; ctx.strokeStyle = C.mist; ctx.lineWidth = 1.4;
+      ctx.setLineDash([3, 9]); ctx.lineDashOffset = -t * 26;
       ctx.beginPath(); ctx.moveTo(...hub);
       const N = 30; for (let i = 1; i <= N * p; i++) { const u = i / N; ctx.lineTo((1 - u) ** 2 * hub[0] + 2 * (1 - u) * u * mx + u * u * x, (1 - u) ** 2 * hub[1] + 2 * (1 - u) * u * my + u * u * y); }
       ctx.stroke();
+      ctx.setLineDash([]);
       // a spark travelling along the finished arc
       if (p === 1) { const u = ((t * .35 + L.tw) % 1); ctx.globalAlpha = .9; ctx.fillStyle = C.paper; ctx.beginPath(); ctx.arc((1 - u) ** 2 * hub[0] + 2 * (1 - u) * u * mx + u * u * x, (1 - u) ** 2 * hub[1] + 2 * (1 - u) * u * my + u * u * y, 1.6, 0, TAU); ctx.fill(); }
     });
@@ -403,9 +412,10 @@
     // the scene is the hero's background: centred objects move to the right half so the text stays readable
     const shift = SHIFT = W > 900 && [1, 2, 4, 5].includes(cur) ? W * .2 : 0;
     ctx.save(); ctx.translate(shift, 0);
+    cv.dataset.cur = cur;   // lets the bitmap sky add scene-specific touches (the map's moving graticule)
     DRAW[cur]();
     ctx.restore();
-    if (MODE[mode].veil) { ctx.globalAlpha = MODE[mode].veil; ctx.fillStyle = C.ink; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+    if (MODE[mode].veil && !cv.dataset.sky) { ctx.globalAlpha = MODE[mode].veil; ctx.fillStyle = C.ink; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
   }
   const FRAME = 1000 / 30;   // an ambient background: 30 fps is plenty and keeps laptops cool
   function loop(now) {
@@ -437,18 +447,26 @@
   const greetEl = document.querySelector("[data-scene-greet]");
   let lines = [];
   try { lines = JSON.parse(cv.dataset.lines || "[]"); } catch (e) { lines = []; }
-  if (cycle.length > 1 && !reduce) {
-    let k = Math.max(0, cycle.indexOf(cur));
-    setInterval(() => {
-      cv.classList.add("is-fading"); if (greetEl && mode === "before") greetEl.classList.add("is-fading");
-      setTimeout(() => {
-        k = (k + 1) % cycle.length; cur = cycle[k]; state = {}; t = 0;
-        if (greetEl && mode === "before" && lines[cur]) greetEl.textContent = lines[cur];
-        draw();
-        cv.classList.remove("is-fading"); if (greetEl) greetEl.classList.remove("is-fading");
-      }, 1400);
-    }, 20000);
+  // the order to step through: the demo cycle if there is one, otherwise all seven scenes from today's
+  const order = cycle.length > 1 ? cycle : [0, 1, 2, 3, 4, 5, 6];
+  let k = Math.max(0, order.indexOf(cur)), switching = false, timer = null;
+  function nextScene() {
+    if (switching) return;
+    switching = true;
+    cv.classList.add("is-fading"); if (greetEl && mode === "before") greetEl.classList.add("is-fading");
+    setTimeout(() => {
+      k = (k + 1) % order.length; cur = order[k]; state = {}; t = 0; cv._hud = null;
+      if (greetEl && mode === "before" && lines[cur]) greetEl.textContent = lines[cur];
+      draw();
+      cv.classList.remove("is-fading"); if (greetEl) greetEl.classList.remove("is-fading");
+      switching = false;
+    }, reduce ? 0 : 700);
   }
+  const autoplay = () => { if (cycle.length > 1 && !reduce) { clearInterval(timer); timer = setInterval(nextScene, 20000); } };
+  autoplay();
+  // the «next scene» button in the hero's corner; a manual skip restarts the 20 s demo timer
+  const skip = document.querySelector("[data-scene-next]");
+  if (skip) skip.addEventListener("click", () => { nextScene(); autoplay(); });
   resize();
   if (reduce) draw(); else requestAnimationFrame(loop);
 })();

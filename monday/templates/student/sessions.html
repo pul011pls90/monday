@@ -4,7 +4,7 @@
 <div class="page-head">
   <div class="page-head__text">
     <h1>{{ _("Сессии") }}</h1>
-    <p>{{ _("Собери свою сессию: сколько минут, сколько вопросов, какая сложность. Или возьми готовый режим.") }}</p>
+    <p>{{ _("Выбери проверенный готовый режим или собери свою сессию под конкретную цель.") }}</p>
   </div>
   {{ ui.goal_chip(practice) }}
 </div>
@@ -17,136 +17,250 @@
   ('einstein', {'minutes': 30, 'count': 5, 'level': 'hard', 'topics': 'all', 'explain': 'now'}),
 ] %}
 
-<section class="card sb" aria-labelledby="sb-h" data-sb>
-  <div class="sb__head">
-    <h2 id="sb-h">{{ _("Своя сессия") }}</h2>
-    <div class="chips sb__presets" role="group" aria-label="{{ _('Готовые настройки') }}">
-      {% for key, c in builtin %}<button type="button" class="chip" data-sb-preset='{{ c|tojson }}'>{{ ui.mode_dot(key) }}{{ MODES[key].name }}</button>{% endfor %}
-      {% for pr in presets %}
-        <span class="chip chip--own"><button type="button" data-sb-preset='{{ pr.cfg|tojson }}'>{{ ui.icon('bookmark', 14) }}{{ pr.name }}</button>
-          <form method="post" action="{{ url_for('student.session_presets') }}">{{ ui.csrf() }}<input type="hidden" name="action" value="delete"><input type="hidden" name="index" value="{{ loop.index0 }}">
-            <button type="submit" aria-label="{{ _('Удалить режим %(n)s', n=pr.name) }}" title="{{ _('Удалить') }}">×</button></form></span>
+<!-- Sessions Tab Navigation -->
+<div class="sessions-tabs-wrap">
+  <div class="sessions-tabs-nav" role="tablist" aria-label="{{ _('Выбор формата') }}">
+    <button type="button" class="sessions-tab-btn is-active" data-tab="ready" aria-selected="true" role="tab" id="tab-btn-ready" aria-controls="pane-ready">
+      {{ ui.icon('bolt', 16) }}
+      <span>{{ _("Готовые режимы") }}</span>
+      <span class="badge-pill">{{ _("4 режима") }}</span>
+    </button>
+    <button type="button" class="sessions-tab-btn" data-tab="custom" aria-selected="false" role="tab" id="tab-btn-custom" aria-controls="pane-custom">
+      {{ ui.icon('settings', 16) }}
+      <span>{{ _("Своя сессия (конструктор)") }}</span>
+    </button>
+  </div>
+</div>
+
+<!-- Tab Pane 1: Ready Modes -->
+<div id="pane-ready" class="sessions-tab-pane is-active" role="tabpanel" aria-labelledby="tab-btn-ready">
+  {{ ui.time_cards(facts) }}
+</div>
+
+<!-- Tab Pane 2: Custom Session Builder (Balanced Rows Layout) -->
+<div id="pane-custom" class="sessions-tab-pane" role="tabpanel" aria-labelledby="tab-btn-custom" hidden>
+  <section class="cb" aria-labelledby="sb-h" data-sb>
+    <form method="post" action="{{ url_for('student.session_custom') }}" id="sb-form">
+    {{ ui.csrf() }}
+    <div class="cb__head">
+      <div>
+        <h2 id="sb-h" class="cb__title">{{ _("Собери свою сессию") }}</h2>
+        <p class="cb__lead">{{ _("Настрой фильтры ниже. Отметь несколько тем галочками и нажми «Начать сессию» — или запусти одну тему кнопкой ▶.") }}</p>
+      </div>
+      <div class="cb__presets" role="group" aria-label="{{ _('Шаблоны') }}">
+        {% for key, c in builtin %}
+          <button type="button" class="cb__preset" data-sb-preset='{{ c|tojson }}'><span>{{ MODES[key].emoji }}</span>{{ MODES[key].name }}</button>
+        {% endfor %}
+        {% for pr in presets %}
+          <span class="cb__preset cb__preset--own"><button type="button" data-sb-preset='{{ pr.cfg|tojson }}'>{{ ui.icon('bookmark', 14) }}{{ pr.name }}</button>
+            <button type="submit" form="preset-del-{{ loop.index0 }}" aria-label="{{ _('Удалить режим %(n)s', n=pr.name) }}" title="{{ _('Удалить') }}">×</button></span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="cb__stats">
+      <div class="cb__stat">
+        <div class="cb__eyebrow">{{ _("Прогресс по банку") }}</div>
+        <div class="cb__big num">{{ bank_pct }}<small>%</small></div>
+        <div class="cb__sub">{{ _("%(a)s из %(t)s задач решено", a=answered_n, t=bank_n) }}</div>
+      </div>
+      <div class="cb__stat">
+        <div class="cb__eyebrow">{{ _("Время в практике") }}</div>
+        <div class="cb__big num">{{ spent_label }}</div>
+        <div class="cb__sub">{{ _("за все сессии") }}</div>
+      </div>
+      <div class="cb__stat">
+        <div class="cb__eyebrow">{{ _("Вопросов в сессии") }}</div>
+        <div class="cb__big num"><output data-sb-count-out>10</output></div>
+        <input class="sb__range" type="range" name="count" min="1" max="30" value="10" data-sb-count aria-label="{{ _('Сколько вопросов') }}">
+        <div class="sb__pace" data-sb-pace aria-live="polite"
+             data-pace='{{ PACE|tojson }}'
+             data-t-free="{{ _('Без лимита — в своём темпе') }}"
+             data-t-ok="{{ _('≈ {s} на вопрос · успеешь спокойно') }}"
+             data-t-tight="{{ _('≈ {s} на вопрос · придётся спешить') }}"
+             data-t-bad="{{ _('Мало времени: нужно ≈ {need}, выходит {s}') }}"
+             data-t-fix-count="{{ _('Взять {n} вопр.') }}" data-t-fix-min="{{ _('Поставить {m} мин') }}"
+             data-t-sec="{{ _('{n} с') }}" data-t-min="{{ _('{m} мин {s} с') }}">
+          <span data-sb-pace-text></span>
+          <span class="sb__fix" data-sb-fix></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cb__sec">
+      <div>
+        <h3 class="cb__h">{{ _("Общие фильтры") }}</h3>
+        <p class="cb__lead">{{ _("Задай время, сложность и проверку, затем выбери темы ниже.") }}</p>
+      </div>
+      <button type="reset" class="btn btn--secondary">{{ ui.icon('reset', 16) }}{{ _("Сбросить") }}</button>
+    </div>
+
+    <div class="cb__filters">
+      <fieldset class="cb__filter">
+        <legend>{{ ui.icon('clock', 16) }}{{ _("Время") }}</legend>
+        <div class="cb__chips">
+          {% for m in SESSION_MINUTES %}<label class="cb-chip"><input type="radio" name="minutes" value="{{ m }}" {{ 'checked' if m == 15 }}><span>{{ m }} {{ _("мин") }}</span></label>{% endfor %}
+          <label class="cb-chip"><input type="radio" name="minutes" value="0"><span>{{ _("без лимита") }}</span></label>
+        </div>
+      </fieldset>
+      <fieldset class="cb__filter">
+        <legend>{{ ui.icon('chart', 16) }}{{ _("Сложность") }}</legend>
+        <div class="cb__chips">
+          <label class="cb-chip"><input type="radio" name="level" value="ladder" checked><span>{{ _("Лестница") }}</span></label>
+          <label class="cb-chip"><input type="radio" name="level" value="easy"><span>{{ _("Лёгкие") }} <small class="num">{{ totals[1] }}</small></span></label>
+          <label class="cb-chip"><input type="radio" name="level" value="medium"><span>{{ _("Средние") }} <small class="num">{{ totals[2] }}</small></span></label>
+          <label class="cb-chip"><input type="radio" name="level" value="hard"><span>{{ _("Сложные") }} <small class="num">{{ totals[3] }}</small></span></label>
+          <label class="cb-chip"><input type="radio" name="level" value="mix"><span>{{ _("Микс") }}</span></label>
+        </div>
+        <p class="cb__note" data-sb-ladder-note>{{ _("Два верных подряд — уровень выше, ошибка — ниже.") }}</p>
+      </fieldset>
+      <fieldset class="cb__filter">
+        <legend>{{ ui.icon('list', 16) }}{{ _("Откуда задачи") }}</legend>
+        <div class="cb__chips">
+          <label class="cb-chip"><input type="radio" name="topics" value="weak" checked><span>{{ _("Слабые темы") }}</span></label>
+          <label class="cb-chip"><input type="radio" name="topics" value="all"><span>{{ _("Все темы") }}</span></label>
+          <label class="cb-chip"><input type="radio" name="topics" value="mistakes"><span>{{ _("Ошибки") }}</span></label>
+          <input type="radio" name="topics" value="pick" data-sb-pick hidden>
+        </div>
+      </fieldset>
+      <fieldset class="cb__filter">
+        <legend>{{ ui.icon('check', 16) }}{{ _("Проверка") }}</legend>
+        <div class="cb__chips">
+          <label class="cb-chip"><input type="radio" name="explain" value="now" checked><span>{{ _("Сразу") }}</span></label>
+          <label class="cb-chip"><input type="radio" name="explain" value="end"><span>{{ _("В конце") }}</span></label>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="cb__sec">
+      <div>
+        <h3 class="cb__h">{{ _("Выбор по темам") }}</h3>
+        <p class="cb__lead">{{ _("Отметь темы галочками и нажми «Начать сессию» внизу. Или нажми ▶, чтобы сразу начать по одной теме.") }}</p>
+      </div>
+    </div>
+    <div class="cb__topics" data-sb-topics>
+      {% for t in topics %}
+      <div class="cb__topic">
+        <label class="cb__topic-main">
+          <input type="checkbox" name="topic" value="{{ t.id }}">
+          <span class="cb__topic-ic">{{ ui.icon('calculator', 18) }}</span>
+          <span><b>{{ t.name }}</b>{% set tn = t.n[1] + t.n[2] + t.n[3] %}<small class="num">{{ tn }} {{ tn|plural_ru(_("задача"), _("задачи"), _("задач")) }}</small></span>
+        </label>
+        <button type="button" class="cb__play" data-sb-play="{{ t.id }}" aria-label="{{ _('Начать по теме %(n)s', n=t.name) }}">{{ ui.icon('play', 16) }}</button>
+      </div>
       {% endfor %}
     </div>
-  </div>
 
-  <form method="post" action="{{ url_for('student.session_custom') }}" class="sb__form" id="sb-form">
-    {{ ui.csrf() }}
-    <fieldset class="sb__row">
-      <legend>{{ _("Время") }}</legend>
-      <div class="seg">
-        {% for m in SESSION_MINUTES %}<label><input type="radio" name="minutes" value="{{ m }}" {{ 'checked' if m == 15 }}><span>{{ m }} {{ _("мин") }}</span></label>{% endfor %}
-        <label><input type="radio" name="minutes" value="0"><span>{{ _("без лимита") }}</span></label>
-      </div>
-    </fieldset>
-
-    <fieldset class="sb__row">
-      <legend>{{ _("Вопросов") }} <output class="sb__count num" data-sb-count-out>10</output></legend>
-      <input class="sb__range" type="range" name="count" min="1" max="30" value="10" data-sb-count aria-label="{{ _('Сколько вопросов') }}">
-      <div class="sb__ticks small muted" aria-hidden="true"><span>1</span><span>10</span><span>20</span><span>30</span></div>
-    </fieldset>
-
-    <fieldset class="sb__row">
-      <legend>{{ _("Сложность") }}</legend>
-      <div class="seg">
-        <label><input type="radio" name="level" value="ladder" checked><span>{{ _("Лестница") }}<small>{{ _("от лёгких к сложным") }}</small></span></label>
-        <label><input type="radio" name="level" value="easy"><span>{{ _("Лёгкие") }}<small class="num">{{ totals[1] }}</small></span></label>
-        <label><input type="radio" name="level" value="medium"><span>{{ _("Средние") }}<small class="num">{{ totals[2] }}</small></span></label>
-        <label><input type="radio" name="level" value="hard"><span>{{ _("Сложные") }}<small class="num">{{ totals[3] }}</small></span></label>
-        <label><input type="radio" name="level" value="mix"><span>{{ _("Вперемешку") }}<small>{{ _("по возрастанию") }}</small></span></label>
-      </div>
-      <p class="small muted sb__note" data-sb-ladder-note>{{ _("Лестница: начинаешь с лёгкой задачи. Два верных ответа подряд — уровень выше, ошибка — уровень ниже.") }}</p>
-    </fieldset>
-
-    <fieldset class="sb__row">
-      <legend>{{ _("Темы") }}</legend>
-      <div class="seg">
-        <label><input type="radio" name="topics" value="weak" checked><span>{{ _("Слабые") }}</span></label>
-        <label><input type="radio" name="topics" value="all"><span>{{ _("Все") }}</span></label>
-        <label><input type="radio" name="topics" value="mistakes"><span>{{ _("Ошибки из журнала") }}</span></label>
-        <label><input type="radio" name="topics" value="pick" data-sb-pick><span>{{ _("Выбрать") }}</span></label>
-      </div>
-      <div class="sb__topics" data-sb-topics hidden>
-        {% for t in topics %}<label class="check-chip"><input type="checkbox" name="topic" value="{{ t.id }}"><span>{{ t.name }} <small class="num muted">{{ t.n[1] + t.n[2] + t.n[3] }}</small></span></label>{% endfor %}
-      </div>
-    </fieldset>
-
-    <fieldset class="sb__row">
-      <legend>{{ _("Объяснение") }}</legend>
-      <div class="seg">
-        <label><input type="radio" name="explain" value="now" checked><span>{{ _("Сразу после ответа") }}</span></label>
-        <label><input type="radio" name="explain" value="end"><span>{{ _("В конце, как на экзамене") }}</span></label>
-      </div>
-    </fieldset>
-
-    <div class="sb__pace" data-sb-pace aria-live="polite"
-         data-pace='{{ PACE|tojson }}'
-         data-t-free="{{ _('Без лимита — решай в своём темпе.') }}"
-         data-t-ok="{{ _('≈ {s} на вопрос — успеешь спокойно.') }}"
-         data-t-tight="{{ _('≈ {s} на вопрос — придётся поторопиться.') }}"
-         data-t-bad="{{ _('Слишком мало времени: на такой вопрос нужно около {need}, а выходит {s}.') }}"
-         data-t-fix-count="{{ _('Взять {n} вопр.') }}" data-t-fix-min="{{ _('Поставить {m} мин') }}"
-         data-t-sec="{{ _('{n} с') }}" data-t-min="{{ _('{m} мин {s} с') }}">
-      <span data-sb-pace-text></span>
-      <span class="sb__fix" data-sb-fix></span>
-    </div>
-
-    <div class="sb__actions">
-      <button class="btn btn--primary btn--lg" type="submit">{{ ui.icon('play', 18) }}{{ _("Начать") }}</button>
+    <div class="cb__actions">
+      <button class="btn btn--primary btn--lg" type="submit">{{ ui.icon('play', 18) }}{{ _("Начать сессию") }}</button>
       <details class="sb__save">
         <summary class="btn btn--secondary">{{ ui.icon('bookmark', 16) }}{{ _("Сохранить как мой режим") }}</summary>
         <div class="sb__save-panel">
           <label class="label" for="preset-name">{{ _("Название") }}</label>
-          <input class="input" id="preset-name" name="name" maxlength="40" placeholder="{{ _('Например, «Утро: 10 лёгких»') }}" form="sb-form">
-          <button class="btn btn--primary btn--sm" type="submit" form="sb-form" formaction="{{ url_for('student.session_presets') }}">{{ _("Сохранить") }}</button>
+          <input class="input" id="preset-name" name="name" maxlength="40" placeholder="{{ _('Например, «Утро: 10 лёгких»') }}">
+          <button class="btn btn--primary btn--sm" type="submit" formaction="{{ url_for('student.session_presets') }}">{{ _("Сохранить") }}</button>
         </div>
       </details>
     </div>
-  </form>
-</section>
-
-<h2>{{ _("Быстрый старт") }}</h2>
-{{ ui.time_cards(facts) }}
-
-<h2>{{ _("Как устроены режимы") }}</h2>
-<div class="grid grid-2">
-  {% for key, m in MODES.items() if not m.builder %}
-  <div class="card card--tight">
-    <div class="row">{{ ui.mode_dot(key) }}<b>{{ m.name }}</b><span class="muted small">~{{ m.approx }} {{ _("мин") }}</span></div>
-    <p class="text-2 small">
-      {% if key == 'franklin' %}{{ _("Пять задач из самых слабых навыков. Каждая — по одной, сразу с проверкой и объяснением.") }}
-      {% elif key == 'feynman' %}{{ _("Решаешь задачу и объясняешь решение своими словами. Объяснения сохраняются — позже их проверит ИИ-наставник.") }}
-      {% elif key == 'tesla' %}{{ _("Интерактивные графики и фигуры: двигай точки и смотри, как меняется уравнение. В разработке.") }}
-      {% elif key == 'darwin' %}{{ _("Задачи по темам, где у тебя открытые ошибки в журнале. Ищешь закономерность — и закрываешь её.") }}
-      {% else %}{{ _("Только сложные задачи. Попробуй решить каждую двумя разными способами.") }}{% endif %}
-    </p>
-  </div>
-  {% endfor %}
+    </form>
+    {% for pr in presets %}
+    <form method="post" action="{{ url_for('student.session_presets') }}" id="preset-del-{{ loop.index0 }}" hidden>{{ ui.csrf() }}<input type="hidden" name="action" value="delete"><input type="hidden" name="index" value="{{ loop.index0 }}"></form>
+    {% endfor %}
+  </section>
 </div>
 
-<section class="section">
-  <h2>{{ _("Недавние сессии") }}</h2>
+<!-- Recent Sessions History -->
+<section class="section" style="margin-top: 36px;">
+  <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px;">
+    <h2 style="font-size: 24px; font-weight: 800; margin: 0; letter-spacing: -0.02em;">{{ _("Недавние сессии") }}</h2>
+    {% if recent %}<span class="muted small">{{ _("Всего: %(n)s", n=recent|length) }}</span>{% endif %}
+  </div>
   {% if recent %}
-  <div class="table-wrap">
-    <table class="table">
-      <thead><tr><th>{{ _("Режим") }}</th><th>{{ _("Когда") }}</th><th>{{ _("Результат") }}</th><th></th></tr></thead>
-      <tbody>
-      {% for a in recent %}
-        {% set m = MODES[a.mode] %}
-        <tr>
-          <td><span class="row" style="gap:8px">{{ ui.mode_dot(a.mode) }}<b>{{ m.name }}</b></span></td>
-          <td class="muted">{{ a.started_at|dt }}</td>
-          <td class="num">{% if a.finished_at %}{{ a.score }} / {{ a.answers|length }}{% else %}<span class="state state--in_progress">{{ _("не закончена") }}</span>{% endif %}</td>
-          <td style="text-align:right">
-            <a href="{{ url_for('student.session_play', attempt_id=a.id) if not a.finished_at else url_for('student.session_done', attempt_id=a.id) }}">{{ _("Продолжить") if not a.finished_at else _("Итоги") }}</a>
-          </td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+  <div class="grid grid-4 sc-grid">
+    {% for a in recent %}
+      {% set m = MODES[a.mode] %}
+      <article class="sc-card">
+        <div class="sc-card__header">
+          <div class="sc-card__mode-badge">
+            {% if m.emoji %}<span>{{ m.emoji }}</span>{% else %}{{ ui.mode_dot(a.mode) }}{% endif %}
+            <span>{{ m.name }}</span>
+          </div>
+          <span class="sc-card__date-text">{{ a.started_at|dt }}</span>
+        </div>
+
+        <div class="sc-card__stats">
+          <div class="sc-card__score">
+            {% if a.finished_at %}
+              <b>{{ a.score }}</b>
+              <span class="sc-card__total">/ {{ a.answers|length }}</span>
+              {% if a.total %}<span class="sc-card__percent">{{ a.percent }}%</span>{% endif %}
+            {% else %}
+              <b>{{ a.answers|length }}</b>
+              <span class="sc-card__total">/ {{ a.plan|length if a.plan else '?' }}</span>
+              <span class="sc-card__state-txt">{{ _("вопросов") }}</span>
+            {% endif %}
+          </div>
+          {% if a.finished_at %}
+            <span class="tag tag--ok tag--xs">{{ _("Завершена") }}</span>
+          {% else %}
+            <span class="tag tag--xs sc-tag--progress">{{ _("В процессе") }}</span>
+          {% endif %}
+        </div>
+
+        <div class="sc-card__info">
+          <span class="sc-card__desc">{{ m.desc }}</span>
+          {% if a.duration_sec %}
+            <span class="sc-card__time-spent">
+              {{ ui.icon('clock', 12) }} {{ (a.duration_sec // 60) }} {{ _("мин") }}
+            </span>
+          {% endif %}
+        </div>
+
+        {% if not a.finished_at %}
+          <a href="{{ url_for('student.session_play', attempt_id=a.id) }}" class="btn btn--primary btn--block btn--sm sc-card__btn">
+            {{ ui.icon('play', 14) }}{{ _("Продолжить") }}
+          </a>
+        {% else %}
+          <a href="{{ url_for('student.session_done', attempt_id=a.id) }}" class="btn btn--secondary btn--block btn--sm sc-card__btn">
+            {{ ui.icon('check', 14) }}{{ _("Итоги") }}
+          </a>
+        {% endif %}
+      </article>
+    {% endfor %}
   </div>
   {% else %}
-  <div class="empty"><h3>{{ _("Ещё ни одной сессии") }}</h3><p>{{ _("Начни с Франклина — это 5 минут.") }}</p></div>
+  <div class="empty"><h3>{{ _("Ещё ни одной сессии") }}</h3><p>{{ _("Начни с 5-минутной сессии по слабым темам.") }}</p></div>
   {% endif %}
 </section>
+
+<script>
+(() => {
+  const tabBtns = document.querySelectorAll('.sessions-tab-btn[data-tab]');
+  const panes = {
+    ready: document.getElementById('pane-ready'),
+    custom: document.getElementById('pane-custom')
+  };
+
+  function setTab(name) {
+    tabBtns.forEach(btn => {
+      const active = btn.dataset.tab === name;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    if (panes.ready) panes.ready.hidden = name !== 'ready';
+    if (panes.custom) panes.custom.hidden = name !== 'custom';
+    if (window.location.hash !== '#' + name) {
+      history.replaceState(null, '', '#' + name);
+    }
+  }
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => setTab(btn.dataset.tab));
+  });
+
+  if (window.location.hash === '#custom') {
+    setTab('custom');
+  }
+})();
+</script>
 {% endblock %}

@@ -856,7 +856,6 @@ document.addEventListener("click", async (e) => {
   const human = (s) => (s < 60 ? pace.dataset.tSec.replace("{n}", s) : pace.dataset.tMin.replace("{m}", Math.floor(s / 60)).replace("{s}", s % 60));
   const update = () => {
     out.textContent = range.value;
-    topics.hidden = val("topics") !== "pick";
     const note = form.querySelector("[data-sb-ladder-note]");
     if (note) note.hidden = val("level") !== "ladder";
     const minutes = parseInt(val("minutes") || "0", 10), count = parseInt(range.value, 10);
@@ -889,8 +888,20 @@ document.addEventListener("click", async (e) => {
     box.querySelectorAll("[data-sb-preset]").forEach((x) => x.classList.toggle("is-active", x === b));
     update();
   }));
+  // ticking a topic switches the source to «выбрать вручную»; unticking all goes back to weak topics
+  topics.addEventListener("change", () => {
+    const any = [...topics.querySelectorAll("input[name=topic]")].some((cb) => cb.checked);
+    if (any) set("topics", "pick");
+    else if (val("topics") === "pick") set("topics", "weak");
+  });
+  topics.querySelectorAll("[data-sb-play]").forEach((b) => b.addEventListener("click", () => {
+    topics.querySelectorAll("input[name=topic]").forEach((cb) => { cb.checked = cb.value === b.dataset.sbPlay; });
+    set("topics", "pick");
+    form.requestSubmit();
+  }));
   form.addEventListener("input", update);
   form.addEventListener("change", update);
+  form.addEventListener("reset", () => setTimeout(update));
   update();
 })();
 
