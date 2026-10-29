@@ -3166,7 +3166,16 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 .cb__chips { gap: 5px; }
 .cb__note { margin-top: 4px; }
 .cb__actions { padding-top: 12px; }
-.cb__reset { margin-left: auto; }
+.cb__start { margin-left: auto; }
+.cb__actions { align-items: center; }
+/* filter names readable at a glance */
+.cb__filter legend { font-size: 15px; gap: 10px; margin-bottom: 10px; }
+.cb__filter legend .ic { width: 20px; height: 20px; }
+/* pace hint: small text, small fix chips, same height whatever it says (no jumping) */
+.cb__stat .sb__pace { display: flex !important; flex-wrap: wrap; align-content: center; gap: 4px 8px !important; min-height: 56px !important;
+  padding: 6px 10px !important; border-radius: 10px !important; font-size: 12px !important; line-height: 1.35; }
+.cb__stat .sb__fix { gap: 6px; }
+.cb__stat .sb__fix .chip { padding: 2px 10px; min-height: 0; font-size: 12px; line-height: 1.5; }
 @media (max-width: 1100px) { .cb__head { flex-wrap: wrap; } }
 
 /* ---------------------------------------------------------------- home: «Сегодня», free-practice strip, three tiles */
