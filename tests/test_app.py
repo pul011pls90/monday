@@ -181,7 +181,7 @@ def test_register_teacher_needs_approval():
 
 def test_student_pages_render():
     c = login(client(), "student@monday.kg", "student123")
-    ok(c, "/home", contains=["Привет, Тима", "21", "Франклин", "Задача на сегодня", "Ты в точках", "Факт дня", "~5 мин"])
+    ok(c, "/home", contains=["Привет, Тима", "21", "Слабые темы", "Сегодня", "Ты в точках", "Свободная практика", "~5 мин"])
     ok(c, "/home?t=30")
     ok(c, "/skills?show=list", contains=["Карта навыков", "Свойства логарифмов"])
     body = ok(c, "/skills").data.decode()  # the list choice is remembered
@@ -193,8 +193,8 @@ def test_student_pages_render():
     ok(c, "/collections", contains=["Сборники", "Рекомендуем тебе", "ОРТ Май 2026"])
     ok(c, "/collections?exam=SAT&cat=full&sort=short", contains="SAT April 2024")
     ok(c, "/collections?q=Геометрия", contains="Геометрия: площади")
-    ok(c, "/homework", contains=["Нужно сделать", "Свойства логарифмов", "hwc__icon", "Проверено"])
-    ok(c, "/journal", contains=["Лабораторный журнал", "Почему ты теряешь баллы"])
+    ok(c, "/homework", contains=["Нужно сделать", "Свойства логарифмов", "hwcal__day", "Проверено"])
+    ok(c, "/journal", contains=["Лабораторный журнал", "Отрицательный прогресс", "Записи"])
     ok(c, "/journal?show=resolved")
     ok(c, "/monday", contains=["Тест", "Рейтинг прошлой недели", "Дуэль школ"])
     ok(c, "/monday?scope=region")

@@ -71,7 +71,9 @@
 {% set plan = [] %}
 {% if daily['items'] %}{% set dn = daily['items']|length %}{% set dleft = dn - daily.done %}
   {% set _x = plan.append({'kind': 'daily', 'done': not dleft, 'title': _("Вопрос дня") if dn == 1 else _("Вопросы дня"),
-      'meta': (_("готово · верно %(ok)s из %(n)s", ok=daily['items']|selectattr('answer')|map(attribute='answer')|selectattr('is_correct')|list|length, n=dn) if not dleft else _("~%(m)s мин · серия %(s)s", m=2 * dleft, s=daily.streak)),
+      'meta': (_("готово · верно %(ok)s из %(n)s", ok=daily['items']|selectattr('answer')|map(attribute='answer')|selectattr('is_correct')|list|length, n=dn) if not dleft
+               else ((_("Monday подобрал вопрос на сегодня") if daily.auto else _("%(t)s выбрал %(n)s %(w)s", t=daily.authors|join(', '), n=dn, w=dn|plural_ru(_("вопрос"), _("вопроса"), _("вопросов"))) ~ ' · ')
+                     ~ _("~%(m)s мин · серия %(s)s", m=2 * dleft, s=daily.streak))),
       'href': url_for('daily.play'), 'icon': 'bulb'}) %}
 {% endif %}
 {% if task %}
@@ -147,7 +149,10 @@
 <section class="card home-times" aria-labelledby="time-h">
   <div class="home-times__head">
     <h2 id="time-h">{{ _("Свободная практика") }}</h2>
-    <a class="small" href="{{ url_for('student.sessions') }}#custom" style="font-weight:600">{{ _("Своя сессия") }} →</a>
+    <div class="home-times__tools">
+      <a class="small" href="{{ url_for('student.sessions') }}#custom" style="font-weight:600">{{ _("Своя сессия") }} →</a>
+      {{ ui.goal_chip(practice) }}
+    </div>
   </div>
   {{ ui.time_cards(None) }}
 </section>
