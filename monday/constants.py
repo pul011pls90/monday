@@ -18,11 +18,16 @@ EXAM_CHOICES = list(EXAMS.keys())
 
 # Session modes, ordered from shortest to longest. Colour keys map to CSS.
 MODES = {
-    "franklin": {"name": _l("Слабые темы"), "approx": 5, "time": _l("5–10 мин"), "desc": _l("5 задач с проверкой сразу"), "color": "green", "count": 5, "ready": True, "emoji": "🥪"},
-    "feynman": {"name": _l("Объясни сам"), "approx": 10, "time": _l("10–15 мин"), "desc": _l("4 задачи, решение своими словами"), "color": "yellow", "count": 4, "ready": True, "emoji": "☕"},
-    "tesla": {"name": _l("Графики"), "approx": 15, "time": _l("15 мин"), "desc": _l("двигай точки, меняй уравнения"), "color": "orange", "count": 0, "ready": False, "emoji": "⚡"},
-    "darwin": {"name": _l("Работа над ошибками"), "approx": 20, "time": _l("15–20 мин"), "desc": _l("6 задач из журнала ошибок"), "color": "red", "count": 6, "ready": True, "emoji": "🚌"},
-    "einstein": {"name": _l("Сложные задачи"), "approx": 30, "time": _l("20–30 мин"), "desc": _l("5 трудных задач, два способа"), "color": "purple", "count": 5, "ready": True, "emoji": "📚"},
+    "franklin": {"name": _l("Слабые темы"), "approx": 5, "time": _l("5–10 мин"), "desc": _l("5 задач с проверкой сразу"), "color": "green", "count": 5, "ready": True, "emoji": "🥪",
+                 "points": [_l("5 задач"), _l("из твоих самых слабых тем, каждая из новой темы"), _l("ответ проверяется сразу")]},
+    "feynman": {"name": _l("Объясни сам"), "approx": 10, "time": _l("10–15 мин"), "desc": _l("4 задачи, решение своими словами"), "color": "yellow", "count": 4, "ready": True, "emoji": "☕",
+                "points": [_l("4 задачи из слабых тем"), _l("перед проверкой пишешь решение своими словами"), _l("учит понимать, а не угадывать")]},
+    "tesla": {"name": _l("Графики"), "approx": 15, "time": _l("15 мин"), "desc": _l("двигай точки, меняй уравнения"), "color": "orange", "count": 0, "ready": False, "emoji": "⚡",
+              "points": [_l("двигаешь точки и меняешь уравнения"), _l("видишь, как меняется график"), _l("режим в разработке")]},
+    "darwin": {"name": _l("Работа над ошибками"), "approx": 20, "time": _l("15–20 мин"), "desc": _l("6 задач из журнала ошибок"), "color": "red", "count": 6, "ready": True, "emoji": "🚌",
+               "points": [_l("6 задач"), _l("по темам из твоего журнала ошибок (похожие задачи, не те же самые)"), _l("ответ проверяется сразу")]},
+    "einstein": {"name": _l("Сложные задачи"), "approx": 30, "time": _l("20–30 мин"), "desc": _l("5 трудных задач, два способа"), "color": "purple", "count": 5, "ready": True, "emoji": "📚",
+                 "points": [_l("5 задач высокой сложности"), _l("темы вперемешку"), _l("попробуй решить двумя способами")]},
     # built in «Своя сессия»: time, number of questions, difficulty and topics chosen by the student
     "custom": {"name": _l("Своя сессия"), "approx": 10, "time": _l("сколько захочешь"), "desc": _l("время, число вопросов и сложность — твои"), "color": "blue", "count": 10, "ready": True, "builder": True, "emoji": "⚙️"},
 }

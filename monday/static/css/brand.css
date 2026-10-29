@@ -238,6 +238,9 @@ button.time-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rg
 .time-card__time small { flex: none; font: 800 clamp(13px, 8cqw, 22px)/1 var(--font-display); letter-spacing: -.01em; opacity: .7; margin-top: 4px; }
 .time-card__name { font-size: 13px; font-weight: 700; opacity: .85; }
 .time-card__desc { font-size: 13px; opacity: .8; line-height: 1.35; }
+.time-card__points { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; font-size: 13px; line-height: 1.35; }
+.time-card__points span { position: relative; padding-left: 14px; opacity: .85; }
+.time-card__points span::before { content: ""; position: absolute; left: 2px; top: .5em; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .6; }
 
 @media (max-width: 1100px) {
   .time-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -3223,7 +3226,7 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 .home-times__tools { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .home-times__head h2 { margin: 0; font: 800 22px/1.15 var(--font-display); letter-spacing: -.02em; }
 .home-times .time-card { padding: 14px 16px; gap: 2px; }
-.home-times .time-card__desc { display: none; }
+.home-times .time-card__desc, .home-times .time-card__points { display: none; }
 .home-times .time-card__time b { font-size: clamp(36px, 40cqw, 72px); }
 .home-times .time-card__time small { font-size: 14px; }
 

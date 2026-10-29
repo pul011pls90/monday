@@ -250,7 +250,8 @@
     {% else %}<div class="time-card-wrap"><div class="time-card shade-{{ n }} is-soon">{% endif %}
         <span class="time-card__time" aria-label="{{ _('около %(n)s мин', n=m.approx) }}"><b>{{ m.approx }}</b><small>{{ _("мин") }}</small></span>
         <span class="time-card__name">{{ m.name }}{% if not m.ready %} · {{ _("скоро") }}{% endif %}</span>
-        <span class="time-card__desc">{{ m.desc }}</span>
+        {# what the mode consists of; the short «desc» line is for lists of past sessions #}
+        <span class="time-card__points" role="list">{% for pt in m.points %}<span role="listitem">{{ pt }}</span>{% endfor %}</span>
     {% if m.ready %}</button></form>{% else %}</div></div>{% endif %}
   {% endfor %}
 </div>
