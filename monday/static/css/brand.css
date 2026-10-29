@@ -3176,6 +3176,10 @@ body.has-rv-foot .page { padding-bottom: 110px; }
   padding: 6px 10px !important; border-radius: 10px !important; font-size: 12px !important; line-height: 1.35; }
 .cb__stat .sb__fix { gap: 6px; }
 .cb__stat .sb__fix .chip { padding: 2px 10px; min-height: 0; font-size: 12px; line-height: 1.5; }
+/* counts like «182 задачи» read better with normal digits (fixed-width ones look like «1 8 2») */
+.cb__topic-main small.num, .cb-chip small.num, .cb__sub { font-variant-numeric: normal; }
+/* the ladder note keeps its place when another level is picked, so the topics below don't jump */
+.cb__note[hidden] { display: block !important; visibility: hidden; }
 @media (max-width: 1100px) { .cb__head { flex-wrap: wrap; } }
 
 /* ---------------------------------------------------------------- home: «Сегодня», free-practice strip, three tiles */
