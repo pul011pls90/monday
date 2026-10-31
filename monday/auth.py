@@ -173,8 +173,10 @@ def pending():
 @bp.route("/prefs/theme", methods=["POST"])
 def toggle_theme():
     current = current_user.theme if current_user.is_authenticated else request.cookies.get("theme", "light")
+    if current == "system":  # the toggle button flips what is on screen right now
+        current = request.form.get("shown") or "light"
     new = request.form.get("theme") or ("dark" if current == "light" else "light")
-    if new not in ("light", "dark"):
+    if new not in ("light", "dark", "system"):
         new = "light"
     if current_user.is_authenticated:
         current_user.theme = new
@@ -185,6 +187,21 @@ def toggle_theme():
         resp = make_response(redirect(_safe_next(request.form.get("next")) or url_for("auth.index")))
     resp.set_cookie("theme", new, max_age=60 * 60 * 24 * 365, samesite="Lax")
     return resp
+
+
+@bp.route("/about")
+def about():
+    return render_template("info/about.html")
+
+
+@bp.route("/terms")
+def terms():
+    return render_template("info/terms.html")
+
+
+@bp.route("/privacy")
+def privacy():
+    return render_template("info/privacy.html")
 
 
 @bp.route("/prefs/lang", methods=["POST"])

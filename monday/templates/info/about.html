@@ -1,0 +1,26 @@
+{% extends "layout.html" if current_user.is_authenticated else "info/_public.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ _("О нас") }}{% endblock %}
+{% block page_class %}page--narrow info-page{% endblock %}
+{% block content %}
+<section class="card info-card">
+  <h1>{{ _("О нас") }}</h1>
+  <p class="info-lead">{{ _("Monday — курсы математики в Бишкеке. Готовим к SAT, ОРТ и ЕГЭ онлайн и офлайн. За время работы у нас учились более 15 000 студентов.") }}</p>
+  <h2>{{ _("Что есть в приложении") }}</h2>
+  <ul class="info-list">
+    <li><b>{{ _("Банк вопросов") }}</b> — {{ _("задания по темам и сложности, с проверкой и разбором решения.") }}</li>
+    <li><b>{{ _("Сборники и пробные тесты") }}</b> — {{ _("варианты в формате настоящего экзамена, с таймером и бланком ответов.") }}</li>
+    <li><b>{{ _("Сессии") }}</b> — {{ _("короткие тренировки на 5–30 минут: слабые темы, работа над ошибками, сложные задачи.") }}</li>
+    <li><b>{{ _("Журнал ошибок") }}</b> — {{ _("все ошибки в одном месте, чтобы разобрать их и закрыть пробелы.") }}</li>
+    <li><b>{{ _("Учителя") }}</b> — {{ _("домашние задания, тест понедельника и отчёты о прогрессе.") }}</li>
+  </ul>
+  <h2>{{ _("Связаться с нами") }}</h2>
+  <div class="info-contacts">
+    {% if CONTACTS.instagram %}<a class="btn btn--secondary" href="{{ CONTACTS.instagram }}" target="_blank" rel="noopener">{{ ui.icon('camera', 16) }}Instagram · monday_edc</a>{% endif %}
+    {% if CONTACTS.telegram %}<a class="btn btn--secondary" href="{{ CONTACTS.telegram }}" target="_blank" rel="noopener">{{ ui.icon('send', 16) }}Telegram</a>{% endif %}
+    {% if CONTACTS.whatsapp %}<a class="btn btn--secondary" href="{{ CONTACTS.whatsapp }}" target="_blank" rel="noopener">{{ ui.icon('chat', 16) }}WhatsApp</a>{% endif %}
+    {% if CONTACTS.trial_lesson %}<a class="btn btn--primary" href="{{ CONTACTS.trial_lesson }}" target="_blank" rel="noopener">{{ _("Записаться на пробный урок") }}</a>{% endif %}
+  </div>
+  {% if CONTACTS.address %}<p class="info-addr">{{ ui.icon('pin', 16) }}{{ CONTACTS.address }}</p>{% endif %}
+</section>
+{% endblock %}

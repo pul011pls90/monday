@@ -54,7 +54,8 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(16), nullable=False, default="student")  # student | teacher | assistant | admin
     is_approved = db.Column(db.Boolean, nullable=False, default=True)  # teachers need approval
     language = db.Column(db.String(8), nullable=False, default="ru")
-    theme = db.Column(db.String(8), nullable=False, default="light")
+    theme = db.Column(db.String(8), nullable=False, default="light")  # light | dark | system
+    prefs = db.Column(JSONText)  # personal settings from the profile: text size, motion, study days, practice options
     avatar_path = db.Column(db.String(255))  # profile picture, file name inside instance/uploads
     is_blocked = db.Column(db.Boolean, nullable=False, default=False)  # admin can block an account
     is_methodist = db.Column(db.Boolean, nullable=False, default=False)  # teacher who reviews assistants' questions
@@ -62,6 +63,14 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=utcnow)
 
     profile = db.relationship("StudentProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
+
+    def pref(self, key, default=None):
+        return (self.prefs or {}).get(key, default)
+
+    def set_prefs(self, **values):
+        prefs = dict(self.prefs or {})
+        prefs.update(values)
+        self.prefs = prefs  # reassign so the JSON column is saved
 
     def set_password(self, raw):
         self.password_hash = generate_password_hash(raw)

@@ -31,7 +31,7 @@
     </div>
     {{ ui.report_button(question.id) }}
   </div>
-  <span class="bank-timer" aria-label="{{ _('Время на этом вопросе') }}">{{ ui.icon('timer', 18) }}<span class="num" data-qtimer>00:00</span></span>
+  <span class="bank-timer"{% if PREFS.bank_timer == false %} hidden{% endif %} aria-label="{{ _('Время на этом вопросе') }}">{{ ui.icon('timer', 18) }}<span class="num" data-qtimer>00:00</span></span>
   <div class="row" style="gap:8px">
     {% if exam == 'SAT' %}<button type="button" class="btn btn--secondary btn--sm" data-drawer-open="entry" aria-label="{{ _('Правильная запись ответа') }}">{{ ui.icon('info', 16) }}<span class="btn-label">{{ _("Запись ответа") }}</span></button>{% endif %}
     <button type="button" class="btn btn--secondary btn--sm" data-drawer-open="ref" aria-label="{{ _('Формулы') }}">{{ ui.icon('journal', 16) }}<span class="btn-label">{{ _("Формулы") }}</span></button>

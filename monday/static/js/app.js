@@ -21,6 +21,13 @@
   window.MondayRenderMath = renderMath;
   window.addEventListener("load", () => renderMath());
 
+  /* ---------- account menu under the avatar: closes on outside click and Escape ---------- */
+  const acct = document.querySelector("[data-acct-menu]");
+  if (acct) {
+    document.addEventListener("click", (e) => { if (acct.open && !acct.contains(e.target)) acct.open = false; });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && acct.open) { acct.open = false; acct.querySelector("summary").focus(); } });
+  }
+
   /* ---------- theme toggle without reload ---------- */
   $$("form[data-theme-toggle]").forEach((form) => {
     form.addEventListener("submit", async (e) => {
@@ -28,6 +35,7 @@
       const html = document.documentElement;
       const next = html.dataset.theme === "dark" ? "light" : "dark";
       html.dataset.theme = next;
+      html.removeAttribute("data-theme-auto");  // an explicit choice replaces «as on the device»
       const data = new FormData(form);
       data.set("theme", next);
       try {

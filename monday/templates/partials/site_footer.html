@@ -1,0 +1,29 @@
+{% import "partials/macros.html" as ui with context %}
+{# Site footer on every main page: who we are, contacts, info pages. Not shown on test screens. #}
+<footer class="site-foot">
+  <div class="site-foot__in">
+    <div class="site-foot__brand">
+      <span class="rail__logo site-foot__logo" aria-hidden="true">M</span>
+      <div>
+        <b>Monday</b>
+        <span>{{ _("Подготовка к SAT, ОРТ и ЕГЭ · онлайн и офлайн") }}</span>
+      </div>
+    </div>
+    <nav class="site-foot__links" aria-label="{{ _('Информация') }}">
+      <a href="{{ url_for('auth.about') }}">{{ _("О нас") }}</a>
+      <a href="{{ url_for('auth.terms') }}">{{ _("Условия использования") }}</a>
+      <a href="{{ url_for('auth.privacy') }}">{{ _("Конфиденциальность") }}</a>
+      {% if CONTACTS.trial_lesson %}<a href="{{ CONTACTS.trial_lesson }}" target="_blank" rel="noopener">{{ _("Записаться на пробный урок") }}</a>{% endif %}
+    </nav>
+    <div class="site-foot__social">
+      {% if CONTACTS.instagram %}<a class="icon-btn" href="{{ CONTACTS.instagram }}" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram">{{ ui.icon('camera', 18) }}</a>{% endif %}
+      {% if CONTACTS.threads %}<a class="icon-btn" href="{{ CONTACTS.threads }}" target="_blank" rel="noopener" aria-label="Threads" title="Threads">{{ ui.icon('at', 18) }}</a>{% endif %}
+      {% if CONTACTS.telegram %}<a class="icon-btn" href="{{ CONTACTS.telegram }}" target="_blank" rel="noopener" aria-label="Telegram" title="Telegram">{{ ui.icon('send', 18) }}</a>{% endif %}
+      {% if CONTACTS.whatsapp %}<a class="icon-btn" href="{{ CONTACTS.whatsapp }}" target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp">{{ ui.icon('chat', 18) }}</a>{% endif %}
+    </div>
+  </div>
+  <div class="site-foot__base">
+    <span>© {{ CURRENT_YEAR or 2026 }} Monday</span>
+    {% if CONTACTS.address %}<span class="site-foot__addr">{{ ui.icon('pin', 14) }}{{ CONTACTS.address }}</span>{% endif %}
+  </div>
+</footer>

@@ -282,9 +282,14 @@ def _practice_goal(days=14):
                                   Attempt.finished_at >= since).all():
         per_day[local_date(a.finished_at)] += (a.time_used or 0) / 60
     today = local_today()
+    # days off (not among the study days chosen in the profile) neither count nor break the streak
+    off = set(range(7)) - set(current_user.pref("study_days") or range(7))
     streak, day = 0, today if per_day[today] >= goal else today - timedelta(days=1)
-    while per_day[day] >= goal:
-        streak += 1
+    for _step in range(days + 7):
+        if per_day[day] >= goal:
+            streak += 1
+        elif day.weekday() not in off:
+            break
         day -= timedelta(days=1)
     week = [{"day": today - timedelta(days=k), "min": round(per_day[today - timedelta(days=k)])} for k in range(6, -1, -1)]
     return {"goal": goal, "today": round(per_day[today]), "streak": streak, "week": week}
@@ -1319,6 +1324,43 @@ def profile():
         elif action == "join":
             ok, msg = link_invite_code(current_user, request.form.get("invite_code"))
             flash(msg, "success" if ok else "error")
+        elif action == "appearance":
+            theme = request.form.get("theme")
+            if theme in ("light", "dark", "system"):
+                current_user.theme = theme
+            current_user.set_prefs(text="large" if request.form.get("text") == "large" else "normal",
+                                   motion="reduce" if request.form.get("motion") else "full")
+            db.session.commit()
+            flash(_("Оформление сохранено."), "success")
+            resp = redirect(url_for("student.profile") + "#appearance")
+            if theme in ("light", "dark", "system"):
+                resp.set_cookie("theme", theme, max_age=60 * 60 * 24 * 365, samesite="Lax")
+            return resp
+        elif action == "study":
+            try:
+                minutes = int(request.form.get("daily_goal", ""))
+            except ValueError:
+                minutes = p.daily_goal or 15
+            p.daily_goal = max(5, min(minutes, 240))
+            days = sorted({int(d) for d in request.form.getlist("study_days") if d.isdigit() and 0 <= int(d) <= 6})
+            current_user.set_prefs(study_days=days or list(range(7)))
+            db.session.commit()
+            flash(_("Цель сохранена."), "success")
+            return redirect(url_for("student.profile") + "#study")
+        elif action == "practice":
+            current_user.set_prefs(bank_timer=bool(request.form.get("bank_timer")), calc_open=bool(request.form.get("calc_open")))
+            db.session.commit()
+            flash(_("Настройки практики сохранены."), "success")
+            return redirect(url_for("student.profile") + "#practice")
+        elif action == "delete":
+            if not current_user.check_password(request.form.get("password", "")):
+                flash(_("Пароль неверный — аккаунт не удалён."), "error")
+                return redirect(url_for("student.profile") + "#data")
+            _delete_account(current_user)
+            from flask_login import logout_user
+            logout_user()
+            flash(_("Аккаунт удалён."), "success")
+            return redirect(url_for("auth.login"))
         elif action == "password":
             if not current_user.check_password(request.form.get("current", "")):
                 flash(_("Текущий пароль неверный."), "error")
@@ -1331,6 +1373,45 @@ def profile():
         return redirect(url_for("student.profile"))
     teachers = StudentRecord.query.filter_by(student_user_id=current_user.id).all()
     return render_template("student/profile.html", p=p, teachers=teachers)
+
+
+def _delete_account(user):
+    """Removes everything that identifies the student; results stay as anonymous numbers in teachers' statistics."""
+    import secrets
+    user.name = _("Удалённый пользователь")
+    user.email = f"deleted-{user.id}-{secrets.token_hex(4)}@deleted.monday"
+    user.set_password(secrets.token_urlsafe(32))
+    user.avatar_path = None
+    user.prefs = None
+    user.is_blocked = True
+    if user.profile:
+        user.profile.grade = user.profile.region = user.profile.school = user.profile.country = None
+    for rec in StudentRecord.query.filter_by(student_user_id=user.id).all():
+        rec.student_user_id = None
+    db.session.commit()
+
+
+@bp.route("/profile/export.csv")
+@student_required
+def profile_export():
+    """All finished work of the student as a table: date, what it was, score, time."""
+    import csv
+    import io
+    out = io.StringIO()
+    out.write("\ufeff")  # Excel opens UTF-8 with Cyrillic correctly
+    w = csv.writer(out, delimiter=";")
+    w.writerow([_("Дата"), _("Тип"), _("Название"), _("Баллы"), _("Из"), _("Минут")])
+    from .constants import WORK_KINDS
+    kinds = {**{k: str(v) for k, v in WORK_KINDS.items()}, **{k: str(m["name"]) for k, m in MODES.items()}}
+    for a in (Attempt.query.filter(Attempt.user_id == current_user.id, Attempt.finished_at.isnot(None))
+              .order_by(Attempt.finished_at.desc()).all()):
+        title = a.work_version.title if a.work_version else kinds.get(a.mode, a.mode)
+        w.writerow([local_date(a.finished_at).isoformat(), kinds.get(a.mode, a.mode), title,
+                    a.score if a.score is not None else "", a.total or "", round((a.time_used or 0) / 60)])
+    resp = make_response(out.getvalue())
+    resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+    resp.headers["Content-Disposition"] = "attachment; filename=monday-results.csv"
+    return resp
 
 
 # --------------------------------------------------------------------------- formula sheets

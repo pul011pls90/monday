@@ -17,8 +17,10 @@
         ('teacher.questions', 'questions', _('Вопросы'), ['teacher.questions', 'teacher.question_new', 'teacher.question_edit', 'assistant.home', 'assistant.import_preview', 'assistant.import_save', 'assistant.mine']),
         ('reports.inbox', 'flag', _('Исправления'), ['reports.inbox']),
       ] %}
+      {% set tail = [('teacher.account', 'settings', _('Настройки'), ['teacher.account'])] %}
       {% if current_user.can_review %}{% set items = items + [('review.queue', 'check', _('Модерация'), ['review.queue'])] %}{% endif %}
       {% if current_user.is_admin %}{% set items = items + [('admin.index', 'shield', _('Админ'), ['admin.index'])] %}{% endif %}
+      {% set items = items + tail %}
       {% set primary = ['teacher.dashboard', 'teacher.students', 'teacher.works', 'teacher.review', 'teacher.bank'] %}
     {% elif current_user.is_assistant %}
       <a class="rail__logo" href="{{ url_for('assistant.home') }}" aria-label="Monday">M</a>
@@ -27,6 +29,7 @@
         ('assistant.mine', 'questions', _('Мои вопросы'), ['assistant.mine', 'teacher.question_new', 'teacher.question_edit']),
         ('assistant.fixes', 'flag', _('Исправления'), ['assistant.fixes']),
         ('assistant.gaps', 'skills', _('Пробелы'), ['assistant.gaps']),
+        ('teacher.account', 'settings', _('Настройки'), ['teacher.account']),
       ] %}
       {% set primary = ['assistant.home', 'assistant.mine', 'assistant.fixes', 'assistant.gaps'] %}
     {% else %}
@@ -41,6 +44,7 @@
         ('student.homework', 'homework', _('Домашка'), ['student.homework', 'student.homework_detail']),
         ('student.journal', 'journal', _('Журнал'), ['student.journal']),
         ('student.formulas', 'list', _('Формулы'), ['student.formulas']),
+        ('student.profile', 'settings', _('Настройки'), ['student.profile']),
       ] %}
       {% set primary = ['student.monday', 'student.home', 'student.sessions', 'bank.index', 'student.homework'] %}
     {% endif %}
@@ -87,8 +91,14 @@
             <span data-theme-icon="light">{{ ui.icon('moon') }}</span><span data-theme-icon="dark">{{ ui.icon('sun') }}</span>
           </button>
         </form>
-        <a class="icon-btn" href="{{ url_for('teacher.account') if (current_user.is_teacher or current_user.is_assistant) else url_for('student.profile') + '#settings' }}" aria-label="{{ _('Настройки') }}" title="{{ _('Настройки') }}">{{ ui.icon('settings') }}</a>
-        <a href="{{ url_for('teacher.account') if (current_user.is_teacher or current_user.is_assistant) else url_for('student.profile') }}" aria-label="{{ _('Аккаунт') }}" title="{{ current_user.name }}" style="text-decoration:none">{{ ui.avatar(current_user, text=current_user.initials[:1]) }}</a>
+        {# the avatar opens a small account card: who is signed in and «Выйти»; settings live in the side menu #}
+        <details class="acct-menu" data-acct-menu>
+          <summary aria-label="{{ _('Аккаунт') }}" title="{{ current_user.name }}">{{ ui.avatar(current_user, text=current_user.initials[:1]) }}</summary>
+          <div class="acct-menu__pop" role="menu">
+            <div class="acct-menu__who">{{ ui.avatar(current_user) }}<div><b>{{ current_user.name }}</b><span>{{ current_user.email }}</span></div></div>
+            <form method="post" action="{{ url_for('auth.logout') }}">{{ ui.csrf() }}<button class="btn btn--secondary acct-menu__out" type="submit" role="menuitem">{{ ui.icon('logout', 18) }}{{ _("Выйти") }}</button></form>
+          </div>
+        </details>
       </div>
     </header>
     {% endblock %}
@@ -99,6 +109,7 @@
       {% block content %}{% endblock %}
     </main>
     {% endblock %}
+    {% block footer %}{% include "partials/site_footer.html" %}{% endblock %}
   </div>
 </div>
 {% endblock %}

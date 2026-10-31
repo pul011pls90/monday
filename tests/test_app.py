@@ -359,6 +359,53 @@ def test_profile_updates_and_invalid_code():
     assert 'data-theme="dark"' in c.get("/home").data.decode()
 
 
+def test_profile_settings_export_and_delete():
+    from monday.extensions import db
+    from monday.models import StudentProfile, User
+    c = login(client(), "student@monday.kg", "student123")
+    html = c.get("/profile").data.decode()
+    for part in ("Оформление", "Учёба", "Практика", "Данные и аккаунт", "site-foot", "monday_edc"):
+        assert part in html
+    c.post("/profile", data={"action": "appearance", "theme": "system", "text": "large", "motion": "reduce"})
+    html = c.get("/home").data.decode()
+    assert "data-theme-auto" in html and 'data-text="large"' in html and 'data-motion="reduce"' in html
+    c.post("/profile", data={"action": "appearance", "theme": "light", "text": "normal"})
+    c.post("/profile", data={"action": "study", "daily_goal": "30", "study_days": ["0", "2", "4"]})
+    c.post("/profile", data={"action": "practice", "calc_open": "1"})
+    with APP.app_context():
+        u = User.query.filter_by(email="student@monday.kg").first()
+        assert u.pref("study_days") == [0, 2, 4] and u.pref("bank_timer") is False and u.pref("calc_open") is True
+        assert u.profile.daily_goal == 30
+        u.set_prefs(bank_timer=True, calc_open=False, study_days=list(range(7)))
+        u.profile.daily_goal = 15
+        db.session.commit()
+    r = c.get("/profile/export.csv")
+    assert r.status_code == 200 and "text/csv" in r.headers["Content-Type"] and "Баллы" in r.data.decode("utf-8-sig")
+    # deleting an account wipes who the student was and blocks sign-in
+    with APP.app_context():
+        v = User(email="leaving@monday.kg", name="Уходящий Ученик", role="student")
+        v.set_password("leaving123")
+        v.profile = StudentProfile(exam="ORT", onboarded=True, school="Школа 5")
+        db.session.add(v)
+        db.session.commit()
+        vid = v.id
+    d = login(client(), "leaving@monday.kg", "leaving123")
+    r = d.post("/profile", data={"action": "delete", "password": "wrong"}, follow_redirects=True)
+    assert "аккаунт не удалён" in r.data.decode()
+    d.post("/profile", data={"action": "delete", "password": "leaving123"})
+    with APP.app_context():
+        v = db.session.get(User, vid)
+        assert v.is_blocked and "leaving" not in v.email and v.name != "Уходящий Ученик" and v.profile.school is None
+    r = client().post("/login", data={"email": "leaving@monday.kg", "password": "leaving123"})
+    assert r.status_code != 302
+
+
+def test_info_pages_for_everyone():
+    for url, text in (("/about", "15 000"), ("/terms", "Условия использования"), ("/privacy", "Cookies")):
+        ok(client(), url, contains=[text, "instagram.com/monday_edc"])
+    ok(login(client(), "student@monday.kg", "student123"), "/about", contains=["rail", "Записаться на пробный урок"])
+
+
 # --------------------------------------------------------------------------- teacher pages
 
 
