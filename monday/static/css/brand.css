@@ -3490,10 +3490,15 @@ a.t-today__stat:hover { background: var(--surface-2); }
 
 /* every blue button in the app uses one colour: Pulse #0F1DF3 (both themes). --btn-bg covers primary buttons, question
    numbers, badges and current markers; the rules below catch the buttons that had their own blue. */
-:root, [data-theme="dark"] { --btn-bg: #0F1DF3; --btn-text: #FFFFFF; --pulse: #0F1DF3; }
+:root, [data-theme="dark"] { --btn-bg: #0F1DF3; --btn-text: #FFFFFF; --pulse: #0F1DF3; --nav-active-bg: #0F1DF3; --nav-active-text: #FFFFFF; }
 .btn--accent { background: var(--pulse); border-color: var(--pulse); color: #FFFFFF; }
 .rm-card__btn--franklin { background: var(--pulse); }
-.jr-card--today .jr-card__btn { background: var(--pulse) !important; }
+.jr-card__btn, .jr-card--today .jr-card__btn, .jr-card--yesterday .jr-card__btn, .jr-card--this-week .jr-card__btn,
+.jr-card--last-week .jr-card__btn, .jr-card--older .jr-card__btn { background: var(--pulse) !important; color: #FFFFFF !important; }
+.jr-day--today, .jr-day--yesterday, .jr-day--this-week { background: var(--pulse) !important; color: #FFFFFF !important; }
+.avatar, .session-bar .avatar, [data-theme="dark"] .avatar { background: var(--pulse); color: #FFFFFF; }
+.cb-chip input:checked + span { background: var(--pulse); border-color: var(--pulse); color: #FFFFFF; }
+body .mt-stage, [data-theme="dark"] body .mt-stage { --mt-here: var(--pulse); }
 .btn--primary:hover, .btn--accent:hover { filter: brightness(1.12); }
 
 /* dark theme: every block (cards, panels, filter groups, bars) gets the same 2px outline as the controls */
