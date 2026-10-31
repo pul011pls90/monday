@@ -32,7 +32,11 @@ html[data-theme="dark"] { background: #000000; }
 html:has(.page--city) { background: #F3F6FC; }
 html[data-theme="dark"]:has(.page--city) { background: #040A1E; }
 
+/* the page background is painted on <body>; on short pages the body ended mid-screen and the white <html> showed
+   below it, so the body always fills at least the window */
 body:not(.auth-body) {
+  min-height: 100vh;
+  min-height: 100dvh;
   background:
     radial-gradient(1000px 600px at 100% -10%, #EAF0FA 0%, rgba(234, 240, 250, 0) 70%),
     linear-gradient(160deg, #FFFFFF 0%, #F7F8FB 45%, #EEF1F6 100%) fixed;
