@@ -3589,3 +3589,14 @@ button.ts__row:focus-visible { outline: 2px solid var(--pulse); outline-offset: 
   .rv-foot { left: var(--rail); --rv-area: calc(100vw - var(--rail));
     padding-inline: max(24px, calc((var(--rv-area) - min(var(--rv-area), clamp(1240px, 90vw, 1880px))) / 2 + clamp(16px, 3vw, 64px))); }
 }
+
+/* profile: two columns — identity, teachers and sign-out | settings */
+.page--profile { max-width: clamp(1080px, 80vw, 1440px); }
+.profile-cols { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 24px; align-items: start; }
+.profile-cols__side, .profile-cols__main { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.profile-cols__side .profile-head { flex-direction: column; align-items: flex-start; gap: 16px; }
+.profile-cols__side .profile-head h1 { font-size: 26px; }
+.profile-cols__side #join form.row { flex-wrap: wrap; }
+.profile-cols__side #join form .btn { width: 100%; justify-content: center; }
+.profile-cols__side > form .btn--danger { width: 100%; justify-content: center; }
+@media (max-width: 900px) { .profile-cols { grid-template-columns: minmax(0, 1fr); } }
