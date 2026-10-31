@@ -218,60 +218,12 @@ body:not(.auth-body) {
 .portrait__legend span { display: inline-flex; align-items: center; gap: 6px; }
 .portrait__legend .portrait__dot.is-mastered { width: 12px; height: 12px; }
 
-.time-cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
-.time-card-wrap { display: flex; margin: 0; }
-.time-card {
-  width: 100%; text-align: left; font: inherit; cursor: pointer; border: 1px solid transparent; border-radius: 20px;
-  padding: 18px 16px 16px; display: flex; flex-direction: column; gap: 6px; position: relative; overflow: hidden;
-  transition: transform .15s ease, box-shadow .15s ease;
-}
-/* session cards: a ramp from pale to Pulse #0F1DF3 — the longer the session, the stronger the blue */
-button.time-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(15, 29, 243, .22); }
-.time-card.shade-1 { background: #EEF0FE; color: #060B5E; }
-.time-card.shade-2 { background: #D3D6FD; color: #060B5E; }
-.time-card.shade-3 { background: #A6ACFA; color: #060B5E; }
-.time-card.shade-4 { background: #4F59F6; color: #FFFFFF; }
-.time-card.shade-5 { background: #0F1DF3; color: #FFFFFF; }
-.time-card.is-soon { cursor: default; }
-.time-card.is-soon > * { opacity: .6; }  /* "soon" card keeps its blue; only its text is muted */
-[data-theme="dark"] .time-card.shade-1 { background: #0A0E3A; color: #FFFFFF; }
-[data-theme="dark"] .time-card.shade-2 { background: #0C1468; color: #FFFFFF; }
-[data-theme="dark"] .time-card.shade-3 { background: #0D1AA6; color: #FFFFFF; }
-[data-theme="dark"] .time-card.shade-4 { background: #0E1BD0; color: #FFFFFF; }
-[data-theme="dark"] .time-card.shade-5 { background: #0F1DF3; color: #FFFFFF; }
-[data-theme="dark"] button.time-card:hover { box-shadow: 0 14px 30px rgba(15, 29, 243, .35); }
-/* the minutes fill the top of the card: number from the left edge, «мин» at the top right; sized to the card's width */
-.time-card { container-type: inline-size; }
-.time-card__time { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin: -4px 0 6px; }
-.time-card__time b { font: 800 clamp(44px, 44cqw, 128px)/.82 var(--font-display); letter-spacing: -.05em; white-space: nowrap; }
-.time-card__time small { flex: none; font: 800 clamp(13px, 8cqw, 22px)/1 var(--font-display); letter-spacing: -.01em; opacity: .7; margin-top: 4px; }
-.time-card__name { font-size: 13px; font-weight: 700; opacity: .85; }
-.time-card__desc { font-size: 13px; opacity: .8; line-height: 1.35; }
-.time-card__points { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; font-size: 13px; line-height: 1.35; }
-.time-card__points span { position: relative; padding-left: 14px; opacity: .85; }
-.time-card__points span::before { content: ""; position: absolute; left: 2px; top: .5em; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .6; }
-/* phones: one compact row per mode — the number on the left, name and points beside it */
-@media (max-width: 560px) {
-  .time-card { display: grid; grid-template-columns: 76px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 12px; row-gap: 4px;
-    align-items: center; padding: 12px 14px; }
-  .time-card__time { grid-row: 1 / span 2; flex-direction: column; align-items: flex-start; gap: 2px; margin: 0; }
-  .time-card__time b { font-size: 44px; }
-  .time-card__time small { font-size: 12px; margin: 0; }
-  .time-card__name { font-size: 15px; }
-  .time-card__points { flex-direction: row; flex-wrap: wrap; gap: 2px 12px; margin: 0; font-size: 12px; }
-  .time-card__points span { padding-left: 10px; }
-  .time-card__points span::before { left: 0; width: 4px; height: 4px; }
-}
-
-@media (max-width: 1100px) {
-  .time-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
+/* session modes: one row each, the length of the bar is the length of the session on a 0–30 min scale (see .ts below) */
 @media (max-width: 760px) {
   .hero--home { padding: 24px 20px 20px; }
   .home-ring { width: 132px; height: 132px; }
   .home-ring__value { font-size: 30px; }
   .home-row { grid-template-columns: minmax(0, 1fr); }
-  .time-cards { grid-template-columns: minmax(0, 1fr); }
   .home-task__title { font-size: 24px; }
 }
 @media (prefers-reduced-motion: reduce) { .home-strip__dot.is-now { animation: none; } }
@@ -3515,3 +3467,56 @@ body .mt-stage, [data-theme="dark"] body .mt-stage { --mt-here: var(--pulse); }
 [data-theme="dark"] .jr-investigation-card, [data-theme="dark"] .jr-card--yesterday { border: 2px solid var(--line) !important; }
 [data-theme="dark"] .jr-card--today { border: 2px solid var(--pulse, #0F1DF3) !important; }
 [data-theme="dark"] .daily-t__slot { border-width: 2px; }
+
+/* ---------------------------------------------------------------- session modes as a time scale
+   name and points on the left, a bar as long as the session on a 0–30 min scale, a round start button on the right.
+   Bars go from pale to Pulse as sessions get longer. */
+.ts { background: var(--surface); border: var(--bw, 1px) solid var(--line); border-radius: 22px; padding: 18px 24px 8px; }
+.ts__scale, .ts__row { display: grid; grid-template-columns: minmax(200px, 300px) minmax(0, 1fr) 48px; column-gap: 24px; align-items: center; }
+.ts__ticks { position: relative; height: 20px; border-bottom: 1px solid var(--line); }
+.ts__ticks span { position: absolute; bottom: 5px; transform: translateX(-50%); white-space: nowrap; font-size: 11px; font-weight: 600; color: var(--muted); }
+.ts__ticks span:first-child { transform: none; }
+.ts__ticks span:last-child { transform: translateX(-100%); }
+.ts__ticks i { position: absolute; bottom: -1px; width: 1px; height: 5px; background: var(--line-strong); opacity: .5; }
+.ts__item { margin: 0; }
+.ts__row { width: 100%; padding: 14px 0; border: 0; border-bottom: 1px solid var(--line); background: none; color: inherit; font: inherit;
+  text-align: left; cursor: pointer; border-radius: 0; }
+.ts__item:last-child .ts__row { border-bottom: 0; }
+.ts__name { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ts__name b { font-size: 17px; font-weight: 700; line-height: 1.2; }
+.ts__pts { font-size: 13px; line-height: 1.4; color: var(--muted); }
+.ts__pts span + span::before { content: " · "; }
+.ts__track { position: relative; height: 42px; }
+.ts__bar { height: 100%; min-width: 74px; border-radius: 12px; display: flex; align-items: center; gap: 6px; padding: 0 14px;
+  transition: filter .15s ease, transform .15s ease; transform-origin: left center; }
+.ts__bar b { font: 800 18px/1 var(--font-display); letter-spacing: -.02em; }
+.ts__bar small { font-size: 11px; font-weight: 700; opacity: .75; }
+.ts__go { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--text); display: grid; place-items: center; justify-self: end;
+  transition: background .15s ease, border-color .15s ease, color .15s ease; }
+button.ts__row:hover .ts__go, button.ts__row:focus-visible .ts__go { background: var(--pulse); border-color: var(--pulse); color: #FFFFFF; }
+button.ts__row:hover .ts__bar { filter: brightness(1.06); transform: scaleX(1.01); }
+button.ts__row:focus-visible { outline: 2px solid var(--pulse); outline-offset: 2px; border-radius: 12px; }
+.ts__soon { justify-self: end; font-size: 12px; font-weight: 600; color: var(--muted); border: 1.5px solid var(--line); border-radius: 999px; padding: 5px 12px; }
+.ts__row.is-soon { cursor: default; }
+.ts__row.is-soon .ts__name { opacity: .6; }
+/* the ramp: pale → Pulse */
+.ts__bar.shade-1 { background: #D3D6FD; color: #060B5E; }
+.ts__bar.shade-2 { background: #A6ACFA; color: #060B5E; }
+.ts__bar.shade-3 { background: #7A82F8; color: #FFFFFF; }
+.ts__bar.shade-4 { background: #4F59F6; color: #FFFFFF; }
+.ts__bar.shade-5 { background: #0F1DF3; color: #FFFFFF; }
+[data-theme="dark"] .ts__bar.shade-1 { background: #141C66; color: #FFFFFF; }
+[data-theme="dark"] .ts__bar.shade-2 { background: #121D99; color: #FFFFFF; }
+[data-theme="dark"] .ts__bar.shade-3 { background: #1120C2; color: #FFFFFF; }
+[data-theme="dark"] .ts__bar.shade-4 { background: #1022DE; color: #FFFFFF; }
+[data-theme="dark"] .ts__bar.shade-5 { background: #0F1DF3; color: #FFFFFF; }
+/* a mode that isn't ready yet: striped bar in its own shade */
+.ts__row.is-soon .ts__bar { background: repeating-linear-gradient(135deg, transparent 0 8px, rgba(255, 255, 255, .55) 8px 16px), #DDE0FD; color: #060B5E; }
+[data-theme="dark"] .ts__row.is-soon .ts__bar { background: repeating-linear-gradient(135deg, transparent 0 8px, rgba(255, 255, 255, .08) 8px 16px), #0C1240; color: rgba(255, 255, 255, .75); }
+@media (max-width: 760px) {
+  .ts { padding: 6px 16px 4px; }
+  .ts__scale { display: none; }
+  .ts__row { grid-template-columns: minmax(0, 1fr) 44px; row-gap: 10px; }
+  .ts__name { grid-column: 1 / -1; }
+  .ts__track { height: 38px; }
+}

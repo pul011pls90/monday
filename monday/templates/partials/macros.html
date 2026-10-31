@@ -244,18 +244,19 @@
 </div>
 {%- endmacro %}
 
-{# The five session modes as time cards in shades of the brand blue, each with a fact of the day. #}
-{# Ready session modes: a big minutes number across the top of each card. #}
+{# The session modes as a time scale: each mode is a row whose bar is as long as the session on a 0–30 min scale. #}
 {% macro time_cards() -%}
-<div class="time-cards">
+<div class="ts">
+  <div class="ts__scale" aria-hidden="true"><span></span>
+    <div class="ts__ticks">{% for t in (0, 5, 10, 15, 20, 25, 30) %}<span style="left: {{ (t / 30 * 100)|round(2) }}%">{{ t }}{% if t == 30 %} {{ _("мин") }}{% endif %}</span><i style="left: {{ (t / 30 * 100)|round(2) }}%"></i>{% endfor %}</div>
+  <span></span></div>
   {% for key, m in MODES.items() if not m.builder %}
     {% set n = loop.index %}
-    {% if m.ready %}<form method="post" action="{{ url_for('student.start_session', mode=key) }}" class="time-card-wrap">{{ csrf() }}<button type="submit" class="time-card shade-{{ n }}">
-    {% else %}<div class="time-card-wrap"><div class="time-card shade-{{ n }} is-soon">{% endif %}
-        <span class="time-card__time" aria-label="{{ _('около %(n)s мин', n=m.approx) }}"><b>{{ m.approx }}</b><small>{{ _("мин") }}</small></span>
-        <span class="time-card__name">{{ m.name }}{% if not m.ready %} · {{ _("скоро") }}{% endif %}</span>
-        {# what the mode consists of; the short «desc» line is for lists of past sessions #}
-        <span class="time-card__points" role="list">{% for pt in m.points %}<span role="listitem">{{ pt }}</span>{% endfor %}</span>
+    {% if m.ready %}<form method="post" action="{{ url_for('student.start_session', mode=key) }}" class="ts__item">{{ csrf() }}<button type="submit" class="ts__row">
+    {% else %}<div class="ts__item"><div class="ts__row is-soon">{% endif %}
+      <span class="ts__name"><b>{{ m.name }}</b><span class="ts__pts" role="list">{% for pt in m.points if not (not m.ready and pt == _('скоро')) %}<span role="listitem">{{ pt }}</span>{% endfor %}</span></span>
+      <span class="ts__track"><span class="ts__bar shade-{{ n }}" style="width: {{ (m.approx / 30 * 100)|round(2) }}%" aria-label="{{ _('около %(n)s мин', n=m.approx) }}"><b>{{ m.approx }}</b><small>{{ _("мин") }}</small></span></span>
+      {% if m.ready %}<span class="ts__go" aria-hidden="true">{{ icon('arrow-right', 18) }}</span>{% else %}<span class="ts__soon">{{ _("скоро") }}</span>{% endif %}
     {% if m.ready %}</button></form>{% else %}</div></div>{% endif %}
   {% endfor %}
 </div>
