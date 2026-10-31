@@ -3396,3 +3396,38 @@ a.t-today__stat:hover { background: var(--surface-2); }
 @media (max-width: 760px) {
   .bb-grid, .bb-grid.ort-grid--cmp { grid-template-columns: minmax(0, 1fr); }
 }
+/* the answer sheet is as tall as the question column; the check button, progress and pages sit at its bottom */
+@media (min-width: 1240px) {
+  .ort-layout.bb { align-items: stretch; }
+  .ort-layout.bb .ort-main { display: flex; flex-direction: column; }
+  .ort-layout.bb .ort-main .bb-grid { flex: 1; align-content: start; }
+  .ort-layout.bb .ort-sheet { position: static; max-height: none; display: flex; flex-direction: column; }
+  .ort-layout.bb .bb-check { margin-top: auto; }
+}
+/* page switcher under the questions: back · page map · next */
+.bb-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 0; }
+.bb-jump { position: relative; }
+.bb-jump > summary { list-style: none; cursor: pointer; font-weight: 700; }
+.bb-jump > summary::-webkit-details-marker { display: none; }
+.bb-jump__pop { position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); z-index: 30; width: min(560px, 86vw);
+  max-height: min(400px, 50vh); overflow: auto; padding: 16px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--card-shadow); }
+.bb-jump__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.bb-jump__grid a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; height: 52px; border-radius: 10px;
+  border: 1px solid var(--line-strong); color: var(--text); text-decoration: none; line-height: 1.1; }
+.bb-jump__grid a small { font-size: 11px; color: var(--muted); }
+.bb-jump__grid a.is-ok { background: var(--ok-soft); border-color: var(--ok); }
+.bb-jump__grid a.is-part { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.bb-jump__grid a.is-current { background: var(--btn-bg); border-color: var(--btn-bg); color: var(--btn-text); }
+.bb-jump__grid a.is-current small { color: var(--btn-text); opacity: .8; }
+.lg.bb-lg-part { border: 1.5px solid var(--accent); }
+.bb-progress { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.bb-progress p { margin: 0; }
+@media (min-width: 1240px) {
+  .ort-layout.bb .ort-main { grid-column: 1; grid-row: 1; }
+  .ort-layout.bb .bb-sheet { grid-column: 2; grid-row: 1; }
+  .ort-layout.bb .bb-nav { grid-column: 1; grid-row: 2; margin-top: 0; }
+}
+.bb-jump__pop { position: absolute; }
+.bb-jump__grid { position: relative; }
+/* line breaks written in a question (I. / II. / III. lists) show as new lines */
+.ort-q__text { white-space: pre-line; }

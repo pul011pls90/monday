@@ -28,7 +28,7 @@
   <form id="bank-sheet" class="ort-layout bb" data-bank-sheet onsubmit="return false"
         data-check="{{ url_for('bank.check', attempt_id=att.id) }}" data-reveal="{{ url_for('bank.reveal', attempt_id=att.id) }}"
         data-ok-label="{{ _('Верно') }}" data-bad-label="{{ _('Неверно') }}" data-answer-label="{{ _('Верный ответ:') }}"
-        data-none-label="{{ _('Отметь ответы в бланке, затем проверь страницу.') }}">
+        data-total="{{ n }}" data-none-label="{{ _('Отметь ответы в бланке, затем проверь страницу.') }}">
     {{ ui.csrf() }}
     <div class="ort-main">
       {% if page.compare %}
@@ -66,12 +66,6 @@
         </article>
         {% endfor %}{% endfor %}
       </div>
-      <div class="ort-pager">
-        {% if p > 0 %}<a class="btn btn--secondary" href="{{ url_for('bank.sheet', attempt_id=att.id, p=p - 1) }}">{{ ui.icon('arrow-left', 18) }}{{ _("Назад") }}</a>
-        {% else %}<span class="btn btn--secondary" aria-disabled="true" style="opacity:.45">{{ ui.icon('arrow-left', 18) }}{{ _("Назад") }}</span>{% endif %}
-        {% if p + 1 < pages|length %}<a class="btn btn--secondary" href="{{ url_for('bank.sheet', attempt_id=att.id, p=p + 1) }}">{{ _("Вперёд") }}{{ ui.icon('arrow-right', 18) }}</a>
-        {% else %}<a class="btn btn--secondary" href="{{ url_for('bank.index', exam=exam) }}">{{ _("Завершить") }}</a>{% endif %}
-      </div>
     </div>
 
     <aside class="ort-sheet bb-sheet" aria-labelledby="sheet-h">
@@ -94,16 +88,27 @@
       </div>
       <button type="button" class="btn btn--primary bb-check" data-check-page>{{ ui.icon('check', 18) }}{{ _("Проверить страницу") }}</button>
       <p class="small muted bb-note" data-note hidden></p>
-      <p class="small" style="margin:10px 0 6px">{{ _("Проверено:") }} <b class="num" data-checked>{{ checked }}</b> {{ _("из") }} {{ n }}</p>
-      <nav class="bb-pages" aria-label="{{ _('Страницы') }}">
-        {% set last = page_state|length - 1 %}{% set ns = namespace(gap=false) %}
-        {% for st in page_state %}{% set k = loop.index0 %}
-          {% if k == 0 or k == last or (k - p)|abs <= 2 %}{% set ns.gap = false %}
-            <a href="{{ url_for('bank.sheet', attempt_id=att.id, p=k) }}" class="{{ st }}{{ ' is-current' if k == p }}">{{ k + 1 }}</a>
-          {% elif not ns.gap %}{% set ns.gap = true %}<span class="bb-pages__gap">…</span>{% endif %}
-        {% endfor %}
-      </nav>
+      <div class="bb-progress">
+        <p class="small">{{ _("Проверено:") }} <b class="num" data-checked>{{ checked }}</b> {{ _("из") }} {{ n }}</p>
+        <div class="bar"><span data-checked-bar style="width: {{ (100 * checked / n)|round(1) if n else 0 }}%"></span></div>
+      </div>
     </aside>
+      {# page switcher: back / "page k of n" (opens a map of all pages with their questions) / next; ← → keys work too #}
+      <nav class="bb-nav" aria-label="{{ _('Страницы') }}">
+        {% if p > 0 %}<a class="btn btn--secondary" href="{{ url_for('bank.sheet', attempt_id=att.id, p=p - 1) }}" data-prev>{{ ui.icon('arrow-left', 18) }}<span class="btn-label">{{ _("Назад") }}</span></a>
+        {% else %}<span class="btn btn--secondary" aria-disabled="true" style="opacity:.45">{{ ui.icon('arrow-left', 18) }}<span class="btn-label">{{ _("Назад") }}</span></span>{% endif %}
+        <details class="bb-jump" data-jump>
+          <summary class="btn btn--ghost">{{ _("Страница %(k)s из %(n)s", k=p + 1, n=pages|length) }} <span class="muted">· {{ _("вопросы") }} {{ ranges[p] }}</span> ▾</summary>
+          <div class="bb-jump__pop">
+            <div class="bb-jump__grid">
+              {% for st in page_state %}<a href="{{ url_for('bank.sheet', attempt_id=att.id, p=loop.index0) }}" class="{{ st }}{{ ' is-current' if loop.index0 == p }}"><b>{{ loop.index }}</b><small>{{ ranges[loop.index0] }}</small></a>{% endfor %}
+            </div>
+            <div class="q-grid__legend small muted"><span><i class="lg is-ok"></i>{{ _("всё верно") }}</span><span><i class="lg bb-lg-part"></i>{{ _("начата") }}</span><span><i class="lg"></i>{{ _("не начата") }}</span></div>
+          </div>
+        </details>
+        {% if p + 1 < pages|length %}<a class="btn btn--primary" href="{{ url_for('bank.sheet', attempt_id=att.id, p=p + 1) }}" data-next><span class="btn-label">{{ _("Вперёд") }}</span>{{ ui.icon('arrow-right', 18) }}</a>
+        {% else %}<a class="btn btn--primary" href="{{ url_for('bank.index', exam=exam) }}">{{ _("Завершить") }}</a>{% endif %}
+      </nav>
   </form>
 </main>
 
