@@ -39,8 +39,8 @@
 /* the scene may pass behind the text: a soft halo in the card colour keeps every line readable */
 .mh__title { color: var(--text); text-shadow: 0 0 18px var(--surface), 0 0 6px var(--surface); }
 .mhb-facts dt, .mhb-facts dd, .mhb-cell span { text-shadow: 0 0 10px var(--surface), 0 0 4px var(--surface); }
-.mh__badge { background: var(--surface); color: var(--text); border: 1px solid var(--line); }
-.mh__score { background: var(--surface); border: 1px solid var(--line); }
+.mh__badge { background: var(--surface); color: var(--text); border: var(--bw, 1px) solid var(--line); }
+.mh__score { background: var(--surface); border: var(--bw, 1px) solid var(--line); }
 .mh__score span { color: var(--text-2); }
 .mhb-cell span, .mhb-facts dt { color: var(--text-2); }
 .mhb-cell + .mhb-cell::before { background: var(--line-strong); box-shadow: 0 16px 0 var(--line-strong); }
@@ -54,7 +54,7 @@
 /* small «next animation» button, bottom left of the hero */
 .mh__next { position: absolute; z-index: 2; left: clamp(16px, 2vw, 28px); bottom: clamp(14px, 1.6vw, 22px);
   display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; cursor: pointer;
-  font: 600 12px/1 var(--font); color: var(--text-2); background: var(--surface); border: 1px solid var(--line); }
+  font: 600 12px/1 var(--font); color: var(--text-2); background: var(--surface); border: var(--bw, 1px) solid var(--line); }
 .mh__next:hover { color: var(--accent); border-color: var(--accent); }
 [data-theme="dark"] .mh { --sky-ink: 127, 163, 243; --sky-solid: #9DB8F2; border-color: rgba(255, 255, 255, .22); box-shadow: none; }
 [data-theme="dark"] .mh__pix { filter: none; }

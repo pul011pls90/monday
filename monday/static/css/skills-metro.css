@@ -16,7 +16,7 @@
 .skh-exam > summary .ic { opacity: .8; transition: transform .15s; }
 .skh-exam[open] > summary .ic { transform: rotate(180deg); }
 .skh-exam__menu { position: absolute; z-index: 30; top: calc(100% + 8px); right: 0; display: grid; min-width: 240px; padding: 8px; border-radius: 18px;
-  background: var(--surface); border: 1px solid var(--line); box-shadow: 0 20px 44px rgba(2, 11, 41, .18); }
+  background: var(--surface); border: var(--bw, 1px) solid var(--line); box-shadow: 0 20px 44px rgba(2, 11, 41, .18); }
 .skh-exam__menu a { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "n c" "s c"; align-items: center; min-height: 48px; padding: 6px 12px; border-radius: 12px;
   color: var(--text); text-decoration: none; }
 .skh-exam__menu a b { grid-area: n; font-size: 15px; }
@@ -29,7 +29,7 @@
 
 /* next step */
 .mt-next { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "eye go" "topic go" "route go"; align-items: center; column-gap: 20px; row-gap: 2px;
-  padding: 16px 22px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--card-shadow); }
+  padding: 16px 22px; border-radius: 20px; background: var(--surface); border: var(--bw, 1px) solid var(--line); box-shadow: var(--card-shadow); }
 .mt-next__eyebrow { grid-area: eye; font: 750 11px/1.3 var(--font); text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
 .mt-next__topic { grid-area: topic; font-size: 22px; line-height: 1.25; font-weight: 850; letter-spacing: -.02em; color: var(--text); }
 .mt-next__route { grid-area: route; color: var(--text-2); font-size: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
