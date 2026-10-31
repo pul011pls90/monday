@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{# Question bank as a booklet: several questions per page (short ones two in a row, long ones a full row),
+   answers on a sheet beside them, checked a page at a time. ORT puts comparisons first under one key. #}
+{% set L = letters or "АБВГДЕЖЗ" %}
+{% set first_i = (page.rows[0][0][0]) if page.rows else 0 %}
+{% block title %}{{ _("Банк вопросов") }} · {{ _("страница") }} {{ p + 1 }}{% endblock %}
+{% block body_class %}test-body bank-body{% endblock %}
+{% block body %}
+{% with close_url=url_for('bank.index', exam=exam), label=_('Банк вопросов') ~ ((' · ' ~ exam) if exam else ''),
+        dot_color=None, steps=None, counter=None, timer_seconds=None %}
+  {% include "partials/session_bar.html" %}
+{% endwith %}
+
+<div class="test-tools bank-tools" data-calc-top>
+  <div class="row" style="gap:8px">
+    <a class="btn btn--secondary btn--sm" href="{{ url_for('bank.play', attempt_id=att.id, i=first_i) }}">{{ ui.icon('arrow-right', 16) }}<span class="btn-label">{{ _("По одному вопросу") }}</span></a>
+  </div>
+  <span class="small muted">{{ _("Страница %(k)s из %(n)s", k=p + 1, n=pages|length) }}</span>
+  <div class="row" style="gap:8px">
+    <button type="button" class="btn btn--secondary btn--sm" data-drawer-open="ref" aria-label="{{ _('Формулы') }}">{{ ui.icon('journal', 16) }}<span class="btn-label">{{ _("Формулы") }}</span></button>
+    {% if calculator %}<button type="button" class="btn btn--secondary btn--sm" data-calc-open aria-pressed="false" aria-label="{{ _('Калькулятор') }}">{{ ui.icon('calculator', 16) }}<span class="btn-label">{{ _("Калькулятор") }}</span></button>{% endif %}
+  </div>
+</div>
+
+<main class="page test-page bank-page calc-shift" style="margin:0 auto;max-width:clamp(1040px, 78vw, 1480px)">
+  {{ ui.flashes() }}
+  <form id="bank-sheet" class="ort-layout bb" data-bank-sheet onsubmit="return false"
+        data-check="{{ url_for('bank.check', attempt_id=att.id) }}" data-reveal="{{ url_for('bank.reveal', attempt_id=att.id) }}"
+        data-ok-label="{{ _('Верно') }}" data-bad-label="{{ _('Неверно') }}" data-answer-label="{{ _('Верный ответ:') }}"
+        data-none-label="{{ _('Отметь ответы в бланке, затем проверь страницу.') }}">
+    {{ ui.csrf() }}
+    <div class="ort-main">
+      {% if page.compare %}
+      <div class="ort-instruction">
+        <b>{{ _("Сравните величины в колонках А и Б") }}</b>
+        <span>{{ _("Ответ: (А), если величина в колонке А больше; (Б), если величина в колонке Б больше; (В), если обе величины равны; (Г), если по имеющейся информации невозможно определить, какая из величин больше.") }}</span>
+      </div>
+      {% endif %}
+      <div class="ort-grid bb-grid{{ ' ort-grid--cmp' if page.compare }}">
+        {% for row in page.rows %}{% for i, item in row %}{% set d = done.get(i) %}
+        <article class="ort-q{{ ' bb-wide' if row|length == 1 }}{{ ' bb-left' if row|length == 2 and loop.first }}{{ (' is-ok' if d.ok else ' is-bad') if d }}"
+                 id="question-{{ i + 1 }}" data-q="{{ i }}" data-type="{{ item.answer_type }}">
+          <div class="ort-q__num">{{ i + 1 }}.</div>
+          <div class="ort-q__body">
+            {% set cmp = item.material and item.material[0].type == 'columns' %}
+            {% set text = (item.text|replace('Сравните величины в колонках А и Б.', '')|trim) if cmp else item.text %}
+            {% if text %}<div class="ort-q__text math">{{ text }}</div>{% endif %}
+            {{ ui.figure(item) }}
+            {{ ui.material(item) }}
+            {% if item.answer_type == 'choice' and not cmp %}
+              <ol class="ort-q__options bb-options">{% for opt in item.options %}
+                <li><label><input type="radio" name="c{{ i }}" value="{{ loop.index0 }}" {{ 'checked' if d and d.given == loop.index0|string }}><b>({{ L[loop.index0] }})</b> <span class="math">{{ opt }}</span></label></li>{% endfor %}
+              </ol>
+            {% elif item.answer_type != 'choice' %}
+              <p class="small muted">{{ _("Ответ впишите в бланк ответов.") }}</p>
+            {% endif %}
+            <div class="bb-fb small" data-fb {{ 'hidden' if not d }}>{% if d %}<b>{{ _("Верно") if d.ok else _("Неверно") }}</b>{% endif %}
+              <button type="button" class="btn btn--ghost btn--sm" data-reveal-btn {{ 'hidden' if not d }}>{{ ui.icon('bulb', 14) }}{{ _("Решение") }}</button>
+            </div>
+            <section class="explain bb-explain" data-explain hidden>
+              <p class="small" data-explain-answer></p>
+              <div class="explain__text math" data-explain-text></div>
+            </section>
+          </div>
+        </article>
+        {% endfor %}{% endfor %}
+      </div>
+      <div class="ort-pager">
+        {% if p > 0 %}<a class="btn btn--secondary" href="{{ url_for('bank.sheet', attempt_id=att.id, p=p - 1) }}">{{ ui.icon('arrow-left', 18) }}{{ _("Назад") }}</a>
+        {% else %}<span class="btn btn--secondary" aria-disabled="true" style="opacity:.45">{{ ui.icon('arrow-left', 18) }}{{ _("Назад") }}</span>{% endif %}
+        {% if p + 1 < pages|length %}<a class="btn btn--secondary" href="{{ url_for('bank.sheet', attempt_id=att.id, p=p + 1) }}">{{ _("Вперёд") }}{{ ui.icon('arrow-right', 18) }}</a>
+        {% else %}<a class="btn btn--secondary" href="{{ url_for('bank.index', exam=exam) }}">{{ _("Завершить") }}</a>{% endif %}
+      </div>
+    </div>
+
+    <aside class="ort-sheet bb-sheet" aria-labelledby="sheet-h">
+      <h2 id="sheet-h">{{ _("Бланк ответов") }}</h2>
+      <p class="small muted" style="text-align:center;margin:-6px 0 10px">{{ _("Страница %(k)s из %(n)s", k=p + 1, n=pages|length) }}</p>
+      {% if has_number %}
+        <p class="small muted bb-hint">{{ _("Ответ можно ввести целым числом (12), дробью (3/4) или десятичной дробью (0,75).") }}</p>
+      {% endif %}
+      <div class="bb-sheet__rows">
+        {% for row in page.rows %}{% for i, item in row %}{% set d = done.get(i) %}
+        <div class="ort-sheet__row{{ (' is-ok' if d.ok else ' is-bad') if d }}" data-sheet-row="{{ i }}">
+          <a class="ort-sheet__num" href="#question-{{ i + 1 }}">{{ i + 1 }}</a>
+          {% if item.answer_type == 'choice' %}
+            {% for opt in item.options %}<label class="bubble"><input type="radio" name="q{{ i }}" value="{{ loop.index0 }}" {{ 'checked' if d and d.given == loop.index0|string }}><span>{{ L[loop.index0] }}</span></label>{% endfor %}
+          {% else %}
+            <input class="input input--mono ort-sheet__input" name="q{{ i }}" value="{{ d.given if d else '' }}" autocomplete="off" aria-label="{{ _('Ответ на вопрос %(n)s', n=i + 1) }}">
+          {% endif %}
+        </div>
+        {% endfor %}{% endfor %}
+      </div>
+      <button type="button" class="btn btn--primary bb-check" data-check-page>{{ ui.icon('check', 18) }}{{ _("Проверить страницу") }}</button>
+      <p class="small muted bb-note" data-note hidden></p>
+      <p class="small" style="margin:10px 0 6px">{{ _("Проверено:") }} <b class="num" data-checked>{{ checked }}</b> {{ _("из") }} {{ n }}</p>
+      <nav class="bb-pages" aria-label="{{ _('Страницы') }}">
+        {% set last = page_state|length - 1 %}{% set ns = namespace(gap=false) %}
+        {% for st in page_state %}{% set k = loop.index0 %}
+          {% if k < 2 or k > last - 2 or (k - p)|abs <= 3 %}{% set ns.gap = false %}
+            <a href="{{ url_for('bank.sheet', attempt_id=att.id, p=k) }}" class="{{ st }}{{ ' is-current' if k == p }}">{{ k + 1 }}</a>
+          {% elif not ns.gap %}{% set ns.gap = true %}<span class="bb-pages__gap">…</span>{% endif %}
+        {% endfor %}
+      </nav>
+    </aside>
+  </form>
+</main>
+
+{% with sat_ref=exam == 'SAT' %}{% include "partials/tool_panes.html" %}{% endwith %}
+{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/test.js') }}"></script><script defer src="{{ url_for('static', filename='js/bank_sheet.js') }}"></script>{% endblock %}

@@ -738,6 +738,35 @@ def test_practice_pool_has_no_repeated_questions():
         assert twin.id not in {x.id for x in student_pool("CSCA")}
 
 
+def test_bank_booklet_pages_and_check():
+    from monday.bank import booklet_pages
+    from monday.models import Question
+    c = login(client(), "student@monday.kg", "student123")
+    r = c.post("/bank/start", data={"exam": "ORT"})
+    assert "/sheet" in r.headers["Location"]
+    body = ok(c, r.headers["Location"]).data.decode()
+    assert 'class="ort-sheet bb-sheet"' in body and "Проверить страницу" in body
+    att_id = int(r.headers["Location"].split("/s/")[1].split("/")[0])
+    with APP.app_context():
+        from monday.models import Attempt
+        att = db_get(Attempt, att_id)
+        qs = [db_get(Question, i) for i in att.plan]
+        kinds = [any((b or {}).get("type") == "columns" for b in (q.material or [])) for q in qs]
+        assert kinds == sorted(kinds, reverse=True)  # ORT: comparisons first
+        first = qs[0]
+        items = [(k, q.snapshot()) for k, q in enumerate(qs)]
+        pages = booklet_pages(items)
+        assert [i for pg in pages for row in pg["rows"] for i, _ in row] == list(range(len(qs)))
+        assert all(len(pg["rows"]) * 2 <= 8 for pg in pages)
+        assert all(len({pg["compare"]}) == 1 for pg in pages)
+    r = c.post(f"/bank/s/{att_id}/check", data={"i": "0", "given": first.correct})
+    assert r.get_json()["ok"] is True
+    body = ok(c, f"/bank/s/{att_id}/sheet").data.decode()
+    assert 'data-sheet-row="0"' in body and "is-ok" in body
+    r = c.post("/bank/start", data={"exam": "ORT", "view": "one"})
+    assert "/sheet" not in r.headers["Location"]
+
+
 def test_old_ort_monday_collections_are_replaced():
     from monday.cleanup import replace_ort_monday_variants
     from monday.extensions import db
@@ -990,7 +1019,7 @@ def test_question_bank_filters_and_play():
     r = c.get("/bank/?exam=SAT&d=3&t=number")
     assert r.status_code == 200
     token = ""
-    r = c.post("/bank/start", data={"csrf_token": token, "exam": "SAT", "d": "2"})
+    r = c.post("/bank/start", data={"csrf_token": token, "exam": "SAT", "d": "2", "view": "one"})
     assert r.status_code == 302 and "/bank/s/" in r.headers["Location"]
     play = r.headers["Location"]
     att_id = int(play.rstrip("/").split("/")[-1])
