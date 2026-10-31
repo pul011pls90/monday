@@ -235,13 +235,14 @@ def play(attempt_id):
     states = _states(current_user.id, plan)
     last = _last_answers(current_user.id)
     checked_ids = {a.question_id for a in att.answers}
+    diff = dict(db.session.query(Question.id, Question.difficulty).filter(Question.id.in_(plan)).all())
     grid = []
     for k, qid in enumerate(plan):
         st = states.get(qid)
         state = ""
         if st and st.attempts:
             state = "is-ok" if st.last_correct else "is-bad"
-        grid.append({"n": k + 1, "state": state, "marked": bool(st and st.marked)})
+        grid.append({"n": k + 1, "state": state, "marked": bool(st and st.marked), "d": diff.get(qid) or 2})
     fmt = TEST_FORMATS.get(FORMAT_FOR_EXAM.get(exam, ""), TEST_FORMATS["plain"])
     sheets = (ReferenceSheet.query.filter_by(user_id=current_user.id, enabled=True)
               .order_by(ReferenceSheet.position, ReferenceSheet.id).all())

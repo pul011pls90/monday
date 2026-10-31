@@ -75,10 +75,23 @@
     <span class="bank-foot__progress small">{{ ui.icon('check', 14) }}{{ _("Проверено в сессии:") }} <b class="num" data-checked>{{ checked }}</b> {{ _("из") }} {{ n }}</span>
     <button type="button" class="btn btn--ghost test-foot__counter" data-grid-toggle aria-expanded="false"><span class="cnt-long">{{ _("Вопрос %(k)s из %(n)s", k=i + 1, n=n) }}</span><span class="cnt-short num">{{ i + 1 }} / {{ n }}</span> ▾</button>
     <div class="q-grid-pop" data-grid-pop hidden>
-      <div class="q-grid">
-        {% for g in grid %}<a href="{{ url_for('bank.play', attempt_id=att.id, i=g.n - 1) }}" class="{{ g.state }}{{ ' is-marked' if g.marked }}{{ ' is-current' if g.n == i + 1 }}">{{ g.n }}</a>{% endfor %}
+      {# two pages: where you are (answers) and how hard each question is #}
+      <div class="q-grid-tabs" role="tablist">
+        <button type="button" role="tab" class="is-active" aria-selected="true" data-grid-tab="answers">{{ _("Вопросы") }}</button>
+        <button type="button" role="tab" aria-selected="false" data-grid-tab="levels">{{ _("Сложность") }}</button>
       </div>
-      <div class="q-grid__legend small muted"><span><i class="lg is-ok"></i>{{ _("верно") }}</span><span><i class="lg is-bad"></i>{{ _("неверно") }}</span><span><i class="lg"></i>{{ _("не решён") }}</span><span><i class="lg is-marked"></i>{{ _("на проверку") }}</span></div>
+      <div data-grid-panel="answers">
+        <div class="q-grid">
+          {% for g in grid %}<a href="{{ url_for('bank.play', attempt_id=att.id, i=g.n - 1) }}" class="{{ g.state }}{{ ' is-marked' if g.marked }}{{ ' is-current' if g.n == i + 1 }}">{{ g.n }}</a>{% endfor %}
+        </div>
+        <div class="q-grid__legend small muted"><span><i class="lg is-ok"></i>{{ _("верно") }}</span><span><i class="lg is-bad"></i>{{ _("неверно") }}</span><span><i class="lg"></i>{{ _("не решён") }}</span><span><i class="lg is-marked"></i>{{ _("на проверку") }}</span></div>
+      </div>
+      <div data-grid-panel="levels" hidden>
+        <div class="q-grid q-grid--levels">
+          {% for g in grid %}<a href="{{ url_for('bank.play', attempt_id=att.id, i=g.n - 1) }}" class="lvl-{{ g.d }}{{ ' is-current' if g.n == i + 1 }}" title="{{ DIFFICULTIES[g.d] }}">{{ g.n }}</a>{% endfor %}
+        </div>
+        <div class="q-grid__legend small muted">{% for d, name in DIFFICULTIES.items() %}<span><i class="lg lvl-{{ d }}"></i>{{ name }} · {{ grid|selectattr('d', 'equalto', d)|list|length }}</span>{% endfor %}</div>
+      </div>
     </div>
   </div>
   <div class="row bank-foot__actions" style="gap:10px">
