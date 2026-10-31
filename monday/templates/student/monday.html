@@ -44,7 +44,9 @@
 </section>
 {% if config.MONDAY_TEST_ALWAYS_OPEN and current_user.is_admin %}<p class="small muted">{{ _("Демо-режим: тест открыт в любой день. Отключается настройкой MONDAY_TEST_ALWAYS_OPEN=0.") }}</p>{% endif %}
 
-<div class="rk-grid">
+{% set rankings = config.MONDAY_RANKINGS %}
+<div class="rk-grid{{ '' if rankings else ' rk-grid--solo' }}">
+  {% if rankings %}
   <section class="card rk" data-rank aria-labelledby="rank-h"
            data-scope="{{ scope if scope in ('country', 'region', 'school') else 'country' }}"
            data-t-you="{{ _('Ты') }}" data-t-more="{{ _('ещё %(n)s участников', n='{n}') }}" data-t-new="{{ _('новый') }}"
@@ -66,6 +68,7 @@
     <div class="rk__me" data-rk-me></div>
     <script type="application/json" data-rank-data>{{ ranks|tojson }}</script>
   </section>
+  {% endif %}
 
   <div class="rk-side">
     <section class="card rk-last" aria-labelledby="last-h">
@@ -74,7 +77,7 @@
       <div class="rk-last__stats">
         <div><canvas data-pixtext="{{ my_attempt.score }}/{{ my_attempt.total }}" aria-hidden="true"></canvas><span class="sr-only">{{ my_attempt.score }}/{{ my_attempt.total }}</span><div class="stat-label">{{ _("верно") }}</div></div>
         <div><canvas data-pixtext="{{ (my_attempt.time_used // 60) if my_attempt.time_used else 0 }}" aria-hidden="true"></canvas><span class="sr-only">{{ (my_attempt.time_used // 60) if my_attempt.time_used else 0 }}</span><div class="stat-label">{{ _("мин из %(n)s", n=previous.time_limit_min) }}</div></div>
-        <div><canvas data-pixtext="#{{ country_place }}" data-accent aria-hidden="true"></canvas><span class="sr-only">#{{ country_place }}</span><div class="stat-label">{{ _("место") }}</div></div>
+        {% if rankings %}<div><canvas data-pixtext="#{{ country_place }}" data-accent aria-hidden="true"></canvas><span class="sr-only">#{{ country_place }}</span><div class="stat-label">{{ _("место") }}</div></div>{% endif %}
       </div>
       {% if strip %}<div class="rk-strip" role="img" aria-label="{{ _('Ответы: %(n)s верно из %(t)s', n=strip|select|list|length, t=strip|length) }}">{% for ok in strip %}<i class="{{ 'is-ok' if ok else 'is-bad' }}" style="--d:{{ loop.index0 }}"></i>{% endfor %}</div>{% endif %}
       <a href="{{ url_for('student.attempt_result', attempt_id=my_attempt.id) }}" class="rk-link">{{ _("Разбор и ошибки") }} →</a>
@@ -83,6 +86,7 @@
       {% endif %}
     </section>
 
+    {% if rankings %}
     <section class="card card--inverse rk-duel" aria-labelledby="duel-h" data-duel>
       <div class="eyebrow">{{ _("Дуэль школ") }}</div>
       {% if duel %}
@@ -104,6 +108,7 @@
         <a class="btn btn--light btn--sm" href="{{ url_for('student.profile') }}">{{ _("Открыть профиль") }}</a>
       {% endif %}
     </section>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

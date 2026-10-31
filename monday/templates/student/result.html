@@ -17,7 +17,7 @@
       {% if att.mode == 'homework' %}
         <a class="btn btn--primary" href="{{ url_for('student.homework_detail', assignment_id=att.assignment_id) }}">{{ _("К заданию") }}</a>
       {% elif att.mode == 'monday' %}
-        <a class="btn btn--primary" href="{{ url_for('student.monday') }}">{{ _("К рейтингу") }}</a>
+        <a class="btn btn--primary" href="{{ url_for('student.monday') }}">{{ _("К рейтингу") if config.MONDAY_RANKINGS else _("К тесту понедельника") }}</a>
       {% else %}
         <a class="btn btn--primary" href="{{ url_for('student.collections') }}">{{ _("Другие сборники") }}</a>
       {% endif %}

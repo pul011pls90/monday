@@ -196,9 +196,13 @@ def test_student_pages_render():
     ok(c, "/homework", contains=["Нужно сделать", "Свойства логарифмов", "hwcal__day", "Проверено"])
     ok(c, "/journal", contains=["Журнал ошибок", "Где теряешь баллы", "Записи", "Начать работу над ошибками"])
     ok(c, "/journal?show=resolved")
+    body = ok(c, "/monday", contains=["Тест", "Твой прошлый тест"]).data.decode()
+    assert "Рейтинг прошлой недели" not in body and "Дуэль школ" not in body   # rankings are off by default
+    APP.config["MONDAY_RANKINGS"] = True
     ok(c, "/monday", contains=["Тест", "Рейтинг прошлой недели", "Дуэль школ"])
     ok(c, "/monday?scope=region")
     ok(c, "/monday?scope=school")
+    APP.config["MONDAY_RANKINGS"] = False
     ok(c, "/profile", contains=["Мои учителя", "Айбек Токтогулов"])
     # students cannot open teacher pages
     assert c.get("/teacher/").status_code == 403
@@ -335,7 +339,7 @@ def test_journal_update_and_monday_test():
     r = c.post("/monday/start")
     assert r.status_code == 302 and "/attempts/" in r.headers["Location"]
     r = c.post(r.headers["Location"], data={})
-    ok(c, r.headers["Location"], contains="К рейтингу")
+    ok(c, r.headers["Location"], contains="К тесту понедельника")
     ok(c, "/monday", contains="Мой результат")
 
 

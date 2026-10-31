@@ -178,10 +178,7 @@
       {% set m = MODES[a.mode] %}
       <article class="sc-card">
         <div class="sc-card__header">
-          <div class="sc-card__mode-badge">
-            {% if m.emoji %}<span>{{ m.emoji }}</span>{% else %}{{ ui.mode_dot(a.mode) }}{% endif %}
-            <span>{{ m.name }}</span>
-          </div>
+          <span class="sc-card__mode-badge sc-mode--{{ a.mode }}">{{ m.name }}</span>
           <span class="sc-card__date-text">{{ a.started_at|dt }}</span>
         </div>
 

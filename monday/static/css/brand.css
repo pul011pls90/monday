@@ -1437,6 +1437,7 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 /* ================================================================ Monday ranking */
 .rk-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
 .rk-side { display: grid; gap: 20px; }
+.rk-grid--solo { grid-template-columns: minmax(0, 1fr); max-width: 640px; }
 .rk { display: grid; gap: 18px; padding: clamp(18px, 2vw, 28px); }
 .rk__head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .rk__head h2 { font-size: 20px; margin: 0; }
@@ -2993,15 +2994,31 @@ body.has-rv-foot .page { padding-bottom: 110px; }
   gap: 8px;
 }
 
+/* the mode name as a coloured label: each mode has its own colour */
 .sc-card__mode-badge {
-  font-size: 14.5px !important;
-  font-weight: 850 !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
   letter-spacing: -0.01em !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 6px;
-  color: var(--text);
+  padding: 5px 10px;
+  border-radius: 8px;
+  line-height: 1.25;
+  background: var(--mode-bg, var(--accent-soft));
+  color: var(--mode-ink, var(--accent-ink));
 }
+.sc-mode--franklin { --mode-bg: #FCE6E6; --mode-ink: #B42323; }   /* weak topics — red */
+.sc-mode--darwin   { --mode-bg: #FFEBD9; --mode-ink: #B4500A; }   /* work on mistakes — orange */
+.sc-mode--feynman  { --mode-bg: #FDF3D0; --mode-ink: #8A6200; }   /* explain it — yellow */
+.sc-mode--tesla    { --mode-bg: #DDF5F1; --mode-ink: #0D7466; }   /* graphs — teal */
+.sc-mode--einstein { --mode-bg: #EEE7FD; --mode-ink: #6236C9; }   /* hard problems — purple */
+.sc-mode--custom   { --mode-bg: #E3ECFD; --mode-ink: #1F4FC9; }   /* own session — blue */
+[data-theme="dark"] .sc-mode--franklin { --mode-bg: #3A1515; --mode-ink: #FF8E8E; }
+[data-theme="dark"] .sc-mode--darwin   { --mode-bg: #3A2412; --mode-ink: #FFB273; }
+[data-theme="dark"] .sc-mode--feynman  { --mode-bg: #33290F; --mode-ink: #F2CC5C; }
+[data-theme="dark"] .sc-mode--tesla    { --mode-bg: #0F2D29; --mode-ink: #63DECB; }
+[data-theme="dark"] .sc-mode--einstein { --mode-bg: #261C42; --mode-ink: #BFA5FF; }
+[data-theme="dark"] .sc-mode--custom   { --mode-bg: #13234A; --mode-ink: #9DBBFF; }
 
 .sc-card__date-text {
   font-size: 13px !important;
