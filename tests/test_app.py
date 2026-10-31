@@ -656,6 +656,50 @@ def test_ort_math_in_two_parts():
         assert att.finished_at and att.score == 2 and len(att.answers) == 60
 
 
+def test_ort_monday_variants_mixed_with_pictures():
+    import os
+    from monday.models import Question, Work
+    c = login(client(), "student@monday.kg", "student123")
+    with APP.app_context():
+        works = Work.query.filter(Work.title.like("ОРТ Математика · Вариант % (Monday)")).all()
+        assert sorted(w.title[-10] for w in works) == ["1", "2", "3", "4"]
+        seen = set()
+        for w in works:
+            items = w.current_version.items
+            assert len(items) == 60 and w.format == "ort" and w.time_limit_min == 90
+            assert all(len(it["options"]) == 4 for it in items[:30]) and all(len(it["options"]) == 5 for it in items[30:])
+            assert 6 <= sum(1 for it in items if it.get("image_path")) <= 10
+            skills = [db_get(Question, i).skill_id for i in w.draft_question_ids]
+            assert len(set(skills[:30])) >= 8 and len(set(skills[30:])) >= 8  # topics are mixed
+            assert not seen & set(w.draft_question_ids)  # no question in two variants
+            seen |= set(w.draft_question_ids)
+        pic = next(it["image_path"] for it in works[0].current_version.items if it.get("image_path"))
+    assert c.get(f"/uploads/{pic}").status_code == 200
+
+
+def test_old_ort_monday_collections_are_replaced():
+    from monday.cleanup import replace_ort_monday_variants
+    from monday.extensions import db
+    from monday.models import Question, Work
+    from monday.services import publish_work
+    with APP.app_context():
+        q = Question.query.filter_by(source="ort_monday_mix_2026").first()
+        old = Question(author=q.author, text="старый вопрос", answer_type="choice", options=["1", "2"], correct="0",
+                       status="published", source="ort_monday_book_2026", exams=["ORT"], material=[])
+        db.session.add(old)
+        db.session.flush()
+        w = Work(author=q.author, kind="collection", category="full", exam="ORT", format="ort", title="ОРТ Математика · Вариант 1 (Monday)",
+                 time_limit_min=90, status="draft", draft_question_ids=[old.id])
+        db.session.add(w)
+        db.session.flush()
+        publish_work(w)
+        wid, qid = w.id, old.id
+        replace_ort_monday_variants()
+        db.session.commit()
+        assert db.session.get(Work, wid) is None and db.session.get(Question, qid).status == "draft"
+        assert Work.query.filter(Work.title.like("ОРТ Математика · Вариант % (Monday)")).count() == 4
+
+
 def test_clear_recent_sessions_keeps_stats():
     from monday.models import Attempt, User
     c = login(client(), "student@monday.kg", "student123")

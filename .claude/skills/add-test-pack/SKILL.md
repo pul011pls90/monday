@@ -51,7 +51,7 @@ Render after deploy. Read `monday/packs.py` before starting; it is short and is 
 | `difficulty` | 1–3 |
 | `exams`, `language` | optional; default to the pack's |
 | `material` | optional reading blocks; ORT comparison: `[{"type": "columns", "left_title": "Колонка А", "left": "$a+b$", "right_title": "Колонка Б", "right": "$a+c$"}]` |
-| `image` | optional `figures/<file>.png` inside the pack folder |
+| `image` | optional file name (no folder) of a picture in `<pack_id>/figures/` |
 | `weight`, `rubric` | `written` only (ЕГЭ part 2): max points and `[{"points": 2, "text": "…"}, …]` |
 | `tags`, `source` | free; `source` = `{"book": "…", "where": "тема 1, №2"}` |
 
@@ -74,7 +74,7 @@ Render after deploy. Read `monday/packs.py` before starting; it is short and is 
   `["Величина А больше", "Величина Б больше", "Величины равны", "Недостаточно данных"]`, a `columns`
   material, text ending «Сравните величины в колонках А и Б.»; **31–60** five options (А–Д).
   Keep that order: the page detects the leading comparison block and shows it as part 1 (one key,
-  compact cards, sheet 1–30), the rest as part 2 (sheet 31–60). Example: `ort_monday_book_2026.json`.
+  compact cards, sheet 1–30), the rest as part 2 (sheet 31–60). Example: `ort_monday_mix_2026.json` (topics mixed; `image` is the bare file name in `<pack>/figures`).
 - **SAT** (`format: "sat"`, grid, Desmos, two modules with locked answers): 44 questions,
   `"module_split": 22`, `"minutes_per_module": 35`, `"calculator": true`, English. `choice` (4 options)
   and `number` (student-produced: accepted forms like `"7/2|3.5"`). Example: `princeton_dsat_2025.json`.
