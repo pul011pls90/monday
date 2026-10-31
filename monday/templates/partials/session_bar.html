@@ -1,7 +1,9 @@
-{# Navy/green session header used by practice sessions and tests.
+{# White session header with the Monday wordmark and drifting halftone dots (js/bar-dots.js); used by practice sessions and tests.
    Expects: close_url, label, dot_color (optional), steps (list of 'is-done'|'is-wrong'|'is-current'|''),
    counter (optional text), timer_seconds (optional int) #}
 <header class="session-bar">
+  <canvas class="session-bar__dots" data-bar-dots aria-hidden="true"></canvas>
+  <div class="session-bar__brand" aria-hidden="true">{% for ch in "MONDAY" %}<span>{{ ch }}</span>{% endfor %}</div>
   <div class="row session-bar__left" style="gap:16px">
     <a class="icon-btn" href="{{ close_url }}" aria-label="{{ _('Выйти') }}"
        {% if timer_seconds is not none or exit_confirm %}data-exit-confirm data-exit-title="{{ _('Выйти из теста?') }}"
@@ -25,3 +27,4 @@
     <a href="{{ url_for('student.profile') if not current_user.is_teacher else url_for('teacher.account') }}" aria-label="{{ _('Аккаунт') }}" class="session-bar__avatar" style="text-decoration:none">{{ ui.avatar(current_user, text=current_user.initials[:1]) }}</a>
   </div>
 </header>
+<script defer src="{{ url_for('static', filename='js/bar-dots.js') }}"></script>
