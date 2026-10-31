@@ -3476,3 +3476,18 @@ a.t-today__stat:hover { background: var(--surface-2); }
 [data-theme="dark"] :is(.btn, .icon-btn, .input, .option__box, .q-head, .timer-pill, .bank-timer, .q-grid a, .bb-jump__grid a,
   .bb-pages a, .q-columns, .ort-instruction) { border-width: 2px; }
 [data-theme="dark"] .bubble span { border-width: 2px; }
+
+/* bank question selector on wide screens: a panel on the right (moved to <body> by bank.js, so the footer's blur
+   doesn't trap it), and the page moves left so the question stays visible */
+@media (min-width: 1100px) {
+  .bank-body > .q-grid-pop { position: fixed; top: 150px; bottom: 120px; right: 20px; left: auto; width: 360px; transform: none;
+    display: flex; flex-direction: column; z-index: 40; }
+  .bank-body > .q-grid-pop[hidden] { display: none; }
+  .bank-body > .q-grid-pop [data-grid-panel]:not([hidden]) { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+  .bank-body > .q-grid-pop .q-grid { max-height: none; flex: 1; min-height: 0; overflow-y: auto; align-content: start; }
+  .bank-body:has(> .q-grid-pop:not([hidden])) main.test-page { margin-left: 24px !important; margin-right: 400px !important; }
+}
+/* booklet page map: same right-hand panel, over the answer sheet instead of the questions */
+@media (min-width: 1240px) {
+  .bb-jump__pop { position: fixed; top: 150px; bottom: auto; right: 20px; left: auto; transform: none; width: 380px; max-height: calc(100vh - 280px); }
+}
