@@ -2,9 +2,11 @@
 
 /bank                      filters (difficulty, status, marked, answer type) + topics with checkboxes
 /bank/start                builds a session from the chosen skills and filters
+/bank/s/<id>/sheet?p=k     booklet: several questions per page with an answer sheet (default view)
 /bank/s/<id>?i=k           one question, Bluebook-like: mark, eliminate, attempts, check, explanation
 /bank/s/<id>/check|reveal  answers without reloading; /bank/mark and /bank/time keep the student's state
 """
+import re
 from collections import Counter, defaultdict
 
 from flask import Blueprint, abort, jsonify, redirect, render_template, request, url_for
@@ -188,7 +190,10 @@ def start():
     if only in ks:
         chosen = [only]
     leaves = set().union(*(ks[k] for k in chosen)) if chosen else set()
-    plan = [q.id for q, _st in rows if not chosen or q.skill_id in leaves]
+    picked = [q for q, _st in rows if not chosen or q.skill_id in leaves]
+    if exam == "ORT":  # like the paper test: comparisons (part 1) before the other questions (part 2)
+        picked.sort(key=lambda q: 0 if _is_compare(q.material) else 1)
+    plan = [q.id for q in picked]
     if not plan:
         from flask import flash
         flash(_("По этим фильтрам вопросов нет. Сними часть фильтров."), "error")
@@ -196,7 +201,9 @@ def start():
     att = Attempt(user=current_user, mode="bank", plan=plan, position=0, total=len(plan), draft={"exam": exam})
     db.session.add(att)
     db.session.commit()
-    return redirect(url_for("bank.play", attempt_id=att.id))
+    if request.form.get("view") == "one":
+        return redirect(url_for("bank.play", attempt_id=att.id))
+    return redirect(url_for("bank.sheet", attempt_id=att.id))
 
 
 def _own_bank_attempt(attempt_id):
@@ -243,6 +250,105 @@ def play(attempt_id):
                            item=localize(question.snapshot()), state=state, grid=grid, checked=len(checked_ids),
                            letters=_letters(exam), exam=exam, calculator=fmt["calculator"] or exam is None,
                            sheets=sheets, seen_before=question.id in last)
+
+
+# --------------------------------------------------------------------------- booklet view
+
+PAGE_UNITS = 8  # a page holds 8 half-width cells: 4 rows of two short questions, or fewer long ones
+
+
+def _is_compare(material):
+    return any((b or {}).get("type") == "columns" for b in (material or []))
+
+
+def _plain_len(text):
+    """Rough printed length: LaTeX commands and braces don't take space on the page."""
+    t = re.sub(r"\\[a-zA-Z]+", "", text or "")
+    return len(re.sub(r"[{}$^_\\]", "", t))
+
+
+def _is_wide(item):
+    """Long questions get a full row; short ones share a row with a neighbour."""
+    if _is_compare(item.get("material")):
+        return False
+    if any((b or {}).get("type") == "passage" for b in (item.get("material") or [])):
+        return True
+    opts = item.get("options") or []
+    return (_plain_len(item.get("text")) > 170 or any(_plain_len(o) > 42 for o in opts)
+            or sum(_plain_len(o) for o in opts) > 150)
+
+
+def booklet_pages(items):
+    """items: [(index, item)] → pages: [{"rows": [[(i, item), …], …], "compare": bool}].
+    Comparisons and other questions never share a page (ORT parts); rows keep the question order;
+    a row is two short questions or one long one, and a page holds PAGE_UNITS // 2 rows."""
+    pages, state = [], {"rows": [], "kind": None}
+
+    def close():
+        if state["rows"]:
+            pages.append({"rows": state["rows"], "compare": state["kind"]})
+        state["rows"] = []
+
+    def add(row):
+        if len(state["rows"]) * 2 + 2 > PAGE_UNITS:
+            close()
+        state["rows"].append(row)
+
+    pending = None  # a short question waiting for a neighbour
+    for i, item in items:
+        cmp = _is_compare(item.get("material"))
+        if state["kind"] is not None and cmp != state["kind"]:
+            if pending:
+                add([pending])
+                pending = None
+            close()
+        state["kind"] = cmp
+        if _is_wide(item):
+            if pending:
+                add([pending])
+                pending = None
+            add([(i, item)])
+        elif pending:
+            add([pending, (i, item)])
+            pending = None
+        else:
+            pending = (i, item)
+    if pending:
+        add([pending])
+    close()
+    return pages
+
+
+@bp.route("/s/<int:attempt_id>/sheet")
+@student_required
+def sheet(attempt_id):
+    att = _own_bank_attempt(attempt_id)
+    plan = att.plan or []
+    exam = (att.draft or {}).get("exam")
+    qs = {q.id: q for q in Question.query.filter(Question.id.in_(plan)).all()}
+    items = [(k, localize(qs[qid].snapshot())) for k, qid in enumerate(plan) if qid in qs]
+    pages = booklet_pages(items)
+    p = max(0, min(len(pages) - 1, request.args.get("p", type=int) or 0))
+    done = {}
+    for a in sorted(att.answers, key=lambda a: a.id):  # the latest check of each question in this session
+        done[a.index] = {"given": a.given, "ok": a.is_correct}
+    st = _states(current_user.id, plan)
+    for k, qid in enumerate(plan):  # later re-checks live in the bank state
+        s_ = st.get(qid)
+        if k in done and s_ and s_.attempts:
+            done[k] = {"given": s_.last_given, "ok": bool(s_.last_correct), "revealed": bool(s_.revealed)}
+    page_state = []
+    for pg in pages:
+        idx = [i for row in pg["rows"] for i, _it in row]
+        page_state.append("is-ok" if idx and all(done.get(i, {}).get("ok") for i in idx)
+                          else ("is-part" if any(i in done for i in idx) else ""))
+    fmt = TEST_FORMATS.get(FORMAT_FOR_EXAM.get(exam, ""), TEST_FORMATS["plain"])
+    return render_template("student/bank_sheet.html", att=att, exam=exam, pages=pages, p=p, page_state=page_state,
+                           page=pages[p] if pages else {"rows": [], "compare": False}, done=done, n=len(plan),
+                           letters=_letters(exam), calculator=fmt["calculator"] or exam is None,
+                           checked=len({a.question_id for a in att.answers}),
+                           has_number=any(it.get("answer_type") == "number" for row in (pages[p]["rows"] if pages else [])
+                                          for _i, it in row))
 
 
 def _state_for(qid):
