@@ -3373,13 +3373,20 @@ a.t-today__stat:hover { background: var(--surface-2); }
 .bb-sheet .ort-sheet__row.is-ok { background: var(--ok-soft); }
 .bb-sheet .ort-sheet__row.is-bad { background: var(--bad-soft); }
 .bb-check { width: 100%; justify-content: center; margin-top: 14px; }
-.bb-pages { display: flex; flex-wrap: wrap; gap: 6px; }
-.bb-pages a { min-width: 30px; height: 30px; padding: 0 6px; border-radius: 8px; border: 1px solid var(--line-strong); display: grid; place-items: center; font-size: 12px; font-weight: 700; color: var(--muted); text-decoration: none; }
+.bb-pages { display: flex; flex-wrap: nowrap; align-items: center; justify-content: center; gap: 4px; }
+.bb-pages a { flex: none; width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line-strong); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; line-height: 1; color: var(--muted); text-decoration: none; }
 .bb-pages a.is-ok { background: var(--ok-soft); border-color: var(--ok); color: var(--text); }
 .bb-pages a.is-part { border-color: var(--accent); color: var(--text); }
 .bb-pages a.is-current { background: var(--btn-bg); border-color: var(--btn-bg); color: var(--btn-text); }
 @media (max-width: 760px) {
   .bb-grid .ort-q.bb-left { border-right: 0; }
 }
-.bb-pages__gap { min-width: 20px; height: 30px; display: grid; place-items: center; color: var(--muted); }
+.bb-pages__gap { flex: none; width: 18px; height: 32px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; color: var(--muted); }
 .bb-hint { margin: -4px 0 10px; text-align: center; }
+/* the bank page has a tools bar under the header: the sticky sheet starts below both and scrolls inside */
+@media (min-width: 1240px) {
+  .ort-layout.bb .ort-sheet { top: 140px; max-height: calc(100vh - 160px); }
+}
+.bb-sheet .ort-sheet__row { gap: 6px; }
+.bb-sheet .ort-sheet__num { width: 34px; margin-right: 4px; flex: none; text-align: right; font-variant-numeric: tabular-nums; }
+.bb-sheet .ort-sheet__input { max-width: 170px; }

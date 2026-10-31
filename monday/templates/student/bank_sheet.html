@@ -98,7 +98,7 @@
       <nav class="bb-pages" aria-label="{{ _('Страницы') }}">
         {% set last = page_state|length - 1 %}{% set ns = namespace(gap=false) %}
         {% for st in page_state %}{% set k = loop.index0 %}
-          {% if k < 2 or k > last - 2 or (k - p)|abs <= 3 %}{% set ns.gap = false %}
+          {% if k == 0 or k == last or (k - p)|abs <= 2 %}{% set ns.gap = false %}
             <a href="{{ url_for('bank.sheet', attempt_id=att.id, p=k) }}" class="{{ st }}{{ ' is-current' if k == p }}">{{ k + 1 }}</a>
           {% elif not ns.gap %}{% set ns.gap = true %}<span class="bb-pages__gap">…</span>{% endif %}
         {% endfor %}
