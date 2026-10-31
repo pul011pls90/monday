@@ -62,9 +62,30 @@
       if (res.status !== 200) continue;
       mark(i, res.ok);
       if (res.explanation) showAnswer(i, res);
-      if (res.checked != null) $("[data-checked]", form).textContent = res.checked;
+      if (res.checked != null) {
+        $("[data-checked]", form).textContent = res.checked;
+        const bar = $("[data-checked-bar]", form);
+        if (bar) bar.style.width = `${(100 * res.checked) / Number(form.dataset.total || 1)}%`;
+      }
     }
     btn.disabled = false;
+  });
+
+  // ← → switch pages (not while typing an answer); the page map closes on outside click
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest("input, textarea, select") || e.metaKey || e.ctrlKey || e.altKey) return;
+    const link = e.key === "ArrowRight" ? $("[data-next]") : e.key === "ArrowLeft" ? $("[data-prev]") : null;
+    if (link) location.href = link.href;
+  });
+  const jumpEl = $("[data-jump]");
+  if (jumpEl) jumpEl.addEventListener("toggle", () => {
+    const cur = jumpEl.open && $(".is-current", jumpEl);
+    const pop = $(".bb-jump__pop", jumpEl);
+    if (cur && pop) pop.scrollTop = cur.offsetTop - pop.clientHeight / 2 + cur.offsetHeight / 2;
+  });
+  document.addEventListener("click", (e) => {
+    const jump = $("[data-jump]");
+    if (jump && jump.open && !jump.contains(e.target)) jump.open = false;
   });
 
   form.addEventListener("click", async (e) => {

@@ -350,7 +350,11 @@ def sheet(attempt_id):
         page_state.append("is-ok" if idx and all(done.get(i, {}).get("ok") for i in idx)
                           else ("is-part" if any(i in done for i in idx) else ""))
     fmt = TEST_FORMATS.get(FORMAT_FOR_EXAM.get(exam, ""), TEST_FORMATS["plain"])
-    return render_template("student/bank_sheet.html", att=att, exam=exam, pages=pages, p=p, page_state=page_state,
+    ranges = []
+    for pg in pages:
+        idx = [i for row in pg["rows"] for i, _it in row]
+        ranges.append(f"{idx[0] + 1}" if len(idx) == 1 else f"{idx[0] + 1}–{idx[-1] + 1}")
+    return render_template("student/bank_sheet.html", att=att, exam=exam, pages=pages, p=p, page_state=page_state, ranges=ranges,
                            page=pages[p] if pages else {"rows": [], "compare": False}, done=done, n=len(plan),
                            letters=_letters(exam), calculator=fmt["calculator"] or exam is None,
                            checked=len({a.question_id for a in att.answers}),
