@@ -3453,8 +3453,7 @@ a.t-today__stat:hover { background: var(--surface-2); }
 .session-bar .steps span.is-current { background: transparent; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
 [data-theme="dark"] .session-bar { background: #0B1020; border-bottom-color: rgba(255, 255, 255, .12); }
 [data-theme="dark"] .session-bar .icon-btn { background: transparent; color: #FFFFFF; border-color: rgba(255, 255, 255, .25); }
-[data-theme="dark"] .session-bar__brand span:nth-child(5) { color: #6F93F0; }
-[data-theme="dark"] .session-bar__brand span:nth-child(6) { color: #FFFFFF; }
+[data-theme="dark"] .session-bar__brand span { color: #FFFFFF; }
 @media (max-width: 900px) { .session-bar__brand { display: none; } }
 /* question selector: two pages — answers and difficulty */
 .q-grid-tabs { display: flex; gap: 4px; padding: 4px; margin-bottom: 14px; border-radius: 12px; background: var(--bg-soft, rgba(10, 26, 92, .06)); }
@@ -3471,3 +3470,9 @@ a.t-today__stat:hover { background: var(--surface-2); }
 .bb-sheet .bb-progress { padding-top: 18px; }
 .bb-sheet .bb-check { margin-top: 14px; }
 .view-switch { width: 40px; padding: 0; justify-content: center; }
+
+/* dark theme: hairline white outlines glare on black — controls get 2px outlines in a slightly softer white */
+[data-theme="dark"] { --line-strong: rgba(255, 255, 255, .82); }
+[data-theme="dark"] :is(.btn, .icon-btn, .input, .option__box, .q-head, .timer-pill, .bank-timer, .q-grid a, .bb-jump__grid a,
+  .bb-pages a, .q-columns, .ort-instruction) { border-width: 2px; }
+[data-theme="dark"] .bubble span { border-width: 2px; }
