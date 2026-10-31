@@ -3,7 +3,7 @@
 .sp-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 40px; align-items: start; margin-top: 8px; }
 
 /* chapter index (left, sticky) */
-.sp-index { position: sticky; top: 96px; display: grid; gap: 4px; padding: 16px; border-radius: 20px; border: 1px solid var(--line);
+.sp-index { position: sticky; top: 96px; display: grid; gap: 4px; padding: 16px; border-radius: 20px; border: var(--bw, 1px) solid var(--line);
   background: var(--surface); box-shadow: var(--card-shadow); }
 .sp-index__title { font: 700 12px/1 var(--font); text-transform: uppercase; letter-spacing: .1em; color: var(--text-2); margin: 2px 6px 8px; }
 .sp-index__item { display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 10px; min-height: 44px; padding: 6px 8px;

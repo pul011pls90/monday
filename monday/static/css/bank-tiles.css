@@ -22,7 +22,7 @@
 .bk-head { align-items: center; }
 .bk-progress { --ok: #1fae74; --bad: #ef5a56; --new: #8a93b8; --mark: #e79a1a; --time: #3b5bff;
   display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 10px 20px; margin-top: 0; padding: 16px 22px 14px;
-  border-radius: 18px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(2, 11, 41, .06); position: relative; overflow: hidden; }
+  border-radius: 18px; background: var(--surface); border: var(--bw, 1px) solid var(--line); box-shadow: 0 8px 24px rgba(2, 11, 41, .06); position: relative; overflow: hidden; }
 .bk-progress::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, #3b5bff, #8b5cf6, #1fae74); }
 .bk-progress__count { display: grid; gap: 2px; font-size: 15px; color: var(--text-2); }
 .bk-progress__count b { font-size: 34px; line-height: 1; font-weight: 850; letter-spacing: -.03em; margin-right: 4px;
@@ -59,7 +59,7 @@ a.bk-pchip.is-on .ic, a.bk-pchip.is-on b { color: #fff; }
 /* filters: card container rectangle */
 .bk-filter-box {
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: var(--bw, 1px) solid var(--line);
   border-radius: 18px;
   padding: 12px 18px 14px;
   box-shadow: 0 4px 16px rgba(2, 11, 41, .04);
