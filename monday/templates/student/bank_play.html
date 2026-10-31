@@ -33,6 +33,7 @@
   </div>
   <span class="bank-timer" aria-label="{{ _('Время на этом вопросе') }}">{{ ui.icon('timer', 18) }}<span class="num" data-qtimer>00:00</span></span>
   <div class="row" style="gap:8px">
+    {% if exam == 'SAT' %}<button type="button" class="btn btn--secondary btn--sm" data-drawer-open="entry" aria-label="{{ _('Правильная запись ответа') }}">{{ ui.icon('info', 16) }}<span class="btn-label">{{ _("Запись ответа") }}</span></button>{% endif %}
     <button type="button" class="btn btn--secondary btn--sm" data-drawer-open="ref" aria-label="{{ _('Формулы') }}">{{ ui.icon('journal', 16) }}<span class="btn-label">{{ _("Формулы") }}</span></button>
     {% if calculator %}<button type="button" class="btn btn--secondary btn--sm" data-calc-open aria-pressed="false" aria-label="{{ _('Калькулятор') }}">{{ ui.icon('calculator', 16) }}<span class="btn-label">{{ _("Калькулятор") }}</span></button>{% endif %}
   </div>
@@ -57,7 +58,7 @@
       {% if (question.weight or 1) > 1 %}<span class="tag tag--line tag--xs" style="margin-left:auto;margin-right:10px">{{ question.weight }} {{ question.weight|plural_ru(_("балл"), _("балла"), _("баллов")) }}</span>{% endif %}
     </div>
     <div class="q-card q-card--test q-card--flat">
-      {{ ui.question_body(item, 'given', selected=state.last_given if state and state.attempts and state.last_correct else None, letters=letters, weight_tag=False) }}
+      {{ ui.question_body(item, 'given', selected=state.last_given if state and state.attempts and state.last_correct else None, letters=letters, weight_tag=False, sat=exam == 'SAT') }}
     </div>
     <div class="feedback" data-feedback hidden aria-live="polite"></div>
     <section class="explain" data-explain hidden aria-labelledby="expl-h">
@@ -102,6 +103,6 @@
   </div>
 </div>
 
-{% with sat_ref=exam == 'SAT' %}{% include "partials/tool_panes.html" %}{% endwith %}
+{% with sat_ref=exam == 'SAT', entry_rules='sat' if exam == 'SAT' else None %}{% include "partials/tool_panes.html" %}{% endwith %}
 {% endblock %}
 {% block scripts %}<script defer src="{{ url_for('static', filename='js/test.js') }}"></script><script defer src="{{ url_for('static', filename='js/bank.js') }}"></script>{% endblock %}

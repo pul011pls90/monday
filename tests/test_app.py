@@ -774,6 +774,17 @@ def test_bank_booklet_pages_and_check():
     assert 'id="question-6"' in ok(c, r.headers["Location"] + "/sheet?q=5").data.decode()
 
 
+def test_sat_bank_shows_entry_rules_for_typed_answers():
+    from monday.models import Attempt, Question
+    c = login(client(), "student@monday.kg", "student123")
+    r = c.post("/bank/start", data={"exam": "SAT", "t": "number", "view": "one"})
+    loc = r.headers["Location"]
+    body = ok(c, loc).data.decode()
+    assert "Без запятых, % и $" in body and 'data-drawer-open="entry"' in body and "Правильная запись ответа" in body
+    sheet = ok(c, loc + "/sheet").data.decode()
+    assert "Без запятых, % и $" in sheet
+
+
 def test_old_ort_monday_collections_are_replaced():
     from monday.cleanup import replace_ort_monday_variants
     from monday.extensions import db
