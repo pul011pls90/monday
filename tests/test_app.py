@@ -364,7 +364,7 @@ def test_profile_settings_export_and_delete():
     from monday.models import StudentProfile, User
     c = login(client(), "student@monday.kg", "student123")
     html = c.get("/profile").data.decode()
-    for part in ("Оформление", "Учёба", "Практика", "Данные и аккаунт", "site-foot", "monday_edc"):
+    for part in ("Оформление", "Учёба", "Практика", "Данные и аккаунт"):
         assert part in html
     c.post("/profile", data={"action": "appearance", "theme": "system", "text": "large", "motion": "reduce"})
     html = c.get("/home").data.decode()
@@ -401,8 +401,8 @@ def test_profile_settings_export_and_delete():
 
 
 def test_info_pages_for_everyone():
-    for url, text in (("/about", "15 000"), ("/terms", "Условия использования"), ("/privacy", "Cookies")):
-        ok(client(), url, contains=[text, "instagram.com/monday_edc"])
+    for url, text in (("/about", "instagram.com/monday_edc"), ("/terms", "Условия использования"), ("/privacy", "Cookies")):
+        ok(client(), url, contains=text)
     ok(login(client(), "student@monday.kg", "student123"), "/about", contains=["rail", "Записаться на пробный урок"])
 
 

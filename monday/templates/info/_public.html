@@ -7,6 +7,5 @@
     <a class="btn btn--secondary btn--sm" href="{{ url_for('auth.login') }}">{{ _("Войти") }}</a>
   </header>
   <main class="page {% block page_class %}{% endblock %}">{% block content %}{% endblock %}</main>
-  {% include "partials/site_footer.html" %}
 </div>
 {% endblock %}
