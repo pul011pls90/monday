@@ -106,10 +106,10 @@
               <article class="ort-q" id="question-{{ idx + 1 }}">
                 <div class="ort-q__num">{{ idx + 1 }}.</div>
                 <div class="ort-q__body">
+                  {% set text = (item.text|replace('Сравните величины в колонках А и Б.', '')|trim) if cmp else item.text %}{# the key above says it once #}
+                  {% if text %}<div class="ort-q__text math">{{ text }}</div>{% endif %}{# like the paper test: condition, then picture, then columns #}
                   {{ ui.figure(item) }}
                   {{ ui.material(item) }}
-                  {% set text = (item.text|replace('Сравните величины в колонках А и Б.', '')|trim) if cmp else item.text %}{# the key above says it once #}
-                  {% if text %}<div class="ort-q__text math">{{ text }}</div>{% endif %}
                   {% if cmp %}
                   {% elif item.answer_type == 'choice' %}
                     <ol class="ort-q__options">{% for opt in item.options %}<li><b>({{ LETTERS[loop.index0] }})</b> <span class="math">{{ opt }}</span></li>{% endfor %}</ol>

@@ -677,6 +677,26 @@ def test_ort_monday_variants_mixed_with_pictures():
     assert c.get(f"/uploads/{pic}").status_code == 200
 
 
+def test_ort_monday_sync_restores_order_easy_to_hard():
+    import json, os
+    from monday.extensions import db
+    from monday.models import Question, Work
+    from monday.packs import PACK_DIR, sync_pack
+    with open(os.path.join(PACK_DIR, "ort_monday_mix_2026.json"), encoding="utf-8") as f:
+        pack = json.load(f)
+    with APP.app_context():
+        w = Work.query.filter_by(kind="collection", title="ОРТ Математика · Вариант 1 (Monday)").first()
+        want = list(w.draft_question_ids)
+        w.draft_question_ids = list(reversed(want))
+        db.session.commit()
+        sync_pack("ort_monday_mix_2026")
+        w = db.session.get(Work, w.id)
+        assert w.draft_question_ids == want and len(w.current_version.items) == 60
+        diffs = [db.session.get(Question, i).difficulty for i in want]
+        assert diffs[:10] == [1] * 10 and diffs[30:40] == [1] * 10 and diffs[29] == diffs[59] == 3
+        assert len(pack["collections"]) == 4
+
+
 def test_old_ort_monday_collections_are_replaced():
     from monday.cleanup import replace_ort_monday_variants
     from monday.extensions import db

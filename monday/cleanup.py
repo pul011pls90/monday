@@ -124,6 +124,12 @@ def replace_ort_monday_variants():
         q.status = "draft"
 
 
+def order_ort_monday_variants():
+    """ORT variants 1–4: questions now go from easy to hard; a book item with non-real roots was swapped out."""
+    from .packs import sync_pack
+    sync_pack("ort_monday_mix_2026")
+
+
 def run_fixes():
     if not current_app.config.get("DATA_FIXES", True):
         return
@@ -134,3 +140,4 @@ def run_fixes():
     _once("princeton-topic-sets-removed", remove_princeton_topic_sets)
     _once("demo-admin-renamed", rename_demo_admin)
     _once("ort-monday-mixed-variants", replace_ort_monday_variants)
+    _once("ort-monday-easy-to-hard", order_ort_monday_variants)

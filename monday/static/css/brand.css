@@ -347,6 +347,11 @@ button.time-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rg
 .ort-q__text { font-size: 16px; line-height: 1.55; }
 .ort-q__options { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 16px; }
 .ort-q .q-columns__body { font-size: 18px; padding: 14px 8px; }
+/* pictures in ORT cards: compact, on white like the paper, left-aligned with the text */
+.ort-q .q-figure { align-items: flex-start; }
+.ort-q .q-figure__frame { background: #fff; padding: 6px; justify-content: flex-start; }
+.ort-q .q-figure img { width: auto; max-width: 100%; max-height: 190px; }
+.ort-q .q-figure figcaption { display: none; }
 .ort-pager { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 18px 0; }
 .ort-pager__dots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
 .ort-pager__dots button { width: 10px; height: 10px; border-radius: 50%; border: 0; padding: 0; background: var(--line-strong); cursor: pointer; }

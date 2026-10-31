@@ -121,6 +121,46 @@ def import_pack(pack_id, publish=True, author=None):
     return len(by_key), works
 
 
+def sync_pack(pack_id, publish=True):
+    """Bring an already imported pack in line with its file: questions are matched by their explanation and answer
+    (text and difficulty may change), new ones are created, each collection gets the file's question order and is
+    republished when it changed. Questions of the pack that no collection uses any more go back to drafts."""
+    from .services import publish_work
+    if not is_imported(pack_id):
+        return import_pack(pack_id, publish=publish)
+    _copy_figures(pack_id)
+    with open(os.path.join(PACK_DIR, pack_id + ".json"), encoding="utf-8") as f:
+        pack = json.load(f)
+    author = User.query.filter_by(role="admin").order_by(User.id).first()
+    nodes = {n.code: n for n in ContentNode.query.filter(ContentNode.code.isnot(None)).all()}
+    have = {(q.explanation, q.correct): q for q in Question.query.filter_by(source=pack_id).all()}
+    by_key = {}
+    for item in pack["questions"]:
+        q = have.pop((item.get("explanation", ""), item["correct"]), None)
+        if q is None:
+            q = Question(author=author, source=pack_id, status="published" if publish else "draft", exams=item.get("exams") or [pack.get("exam", "SAT")],
+                         language=item.get("language") or pack.get("language", "en"), answer_type=item["answer_type"],
+                         correct=item["correct"], explanation=item.get("explanation", ""), tags=item.get("tags") or [])
+            db.session.add(q)
+        q.skill = nodes.get(item["skill"]) or q.skill
+        q.text, q.difficulty, q.options = item["text"], item.get("difficulty", 2), item.get("options") or []
+        q.material = item.get("material") or []
+        q.image_path = f"packs/{pack_id}/{item['image']}" if item.get("image") else None
+        by_key[item["id"]] = q
+    for q in have.values():
+        q.status = "draft"
+    db.session.flush()
+    for c in pack.get("collections", []):
+        ids = [by_key[k].id for k in c["questions"]]
+        w = Work.query.filter_by(kind="collection", title=c["title"][:160]).order_by(Work.id.desc()).first()
+        if w is None or w.draft_question_ids == ids:
+            continue
+        w.draft_question_ids = ids
+        db.session.flush()
+        publish_work(w, note="Порядок заданий: от простых к сложным")
+    db.session.commit()
+
+
 def ensure_packs():
     """Import every shipped pack that this database doesn't have yet (runs at start-up)."""
     if not current_app.config.get("IMPORT_PACKS", True):
