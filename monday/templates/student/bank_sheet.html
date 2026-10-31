@@ -14,7 +14,7 @@
 
 <div class="test-tools bank-tools" data-calc-top>
   <div class="row" style="gap:8px">
-    <a class="btn btn--secondary btn--sm" href="{{ url_for('bank.play', attempt_id=att.id, i=first_i) }}">{{ ui.icon('arrow-right', 16) }}<span class="btn-label">{{ _("По одному вопросу") }}</span></a>
+    {{ ui.view_switch(url_for('bank.play', attempt_id=att.id, i=first_i), 'one') }}
   </div>
   <span class="small muted">{{ _("Страница %(k)s из %(n)s", k=p + 1, n=pages|length) }}</span>
   <div class="row" style="gap:8px">
