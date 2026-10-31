@@ -62,8 +62,9 @@ body:not(.auth-body) {
 [data-theme="dark"] .rail__item.is-active { background: var(--nav-active-bg); color: var(--nav-active-text); }
 .rail__logo {
   width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center;
-  background: var(--surface); color: var(--pulse, #0F1DF3); border: 2px solid var(--text); font-size: 19px;
+  background: var(--surface); color: var(--pulse, #0F1DF3); border: 2px solid var(--pulse, #0F1DF3); font-size: 19px;
 }
+[data-theme="dark"] .rail__logo { color: #FFFFFF; border-color: #FFFFFF; }
 
 /* ---------------------------------------------------------------- cards */
 
