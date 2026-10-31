@@ -113,6 +113,7 @@
 
   // grid popover
   const gridBtn = $("[data-grid-toggle]"), gridPop = $("[data-grid-pop]");
+  if (matchMedia("(min-width: 1100px)").matches) document.body.appendChild(gridPop);  // side panel (see brand.css)
   gridBtn.addEventListener("click", () => {
     gridPop.hidden = !gridPop.hidden;
     gridBtn.setAttribute("aria-expanded", String(!gridPop.hidden));
