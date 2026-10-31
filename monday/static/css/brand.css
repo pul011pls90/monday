@@ -288,6 +288,17 @@ button.time-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rg
 .hero > .home-ring + .stack-sm { flex: 1 1 260px; min-width: 0; }
 .hero:has(> .home-ring) { justify-content: flex-start; gap: 36px; align-items: center; }
 .home-ring__value.is-long { font-size: 30px; }
+/* on the white Home card the ring draws in the accent blue instead of white */
+.hero--home .home-ring circle { fill: var(--line-strong); }
+.hero--home .home-ring circle.is-on { fill: var(--accent); }
+.hero--home .home-ring__value { color: var(--accent); }
+.hero--home .btn--primary { background: var(--btn-bg); color: var(--btn-text); }
+/* result: the Home card, sized to its content — ring and text side by side, the sky on the right */
+.hero--result { min-height: 0; padding: 40px 48px; flex-wrap: nowrap; }   /* a wrapping column card sizes itself as if the ring and text were stacked */
+.result-hero { display: flex; align-items: center; gap: 36px; flex-wrap: wrap; max-width: 760px; }
+.result-hero > .stack-sm { flex: 1 1 260px; min-width: 0; }
+.hero--result .hero__unit { font-size: 26px; }
+@media (max-width: 760px) { .hero--result { padding: 24px 20px; } .result-hero { gap: 20px; } .hero--result .hero__unit { font-size: 22px; } }
 .hero:has(> .home-ring) .hero__unit { font-size: 26px; }
 
 /* ---------------------------------------------------------------- test player */

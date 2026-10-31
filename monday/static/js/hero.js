@@ -41,7 +41,7 @@
     ctx.imageSmoothingEnabled = false;
     cols = Math.ceil(W / CELL); rows = Math.ceil(H / CELL);
     ink = getComputedStyle(hero).getPropertyValue("--sky-ink").trim() || "255, 255, 255"; // white on blue, blue on white
-    textBoxes = Array.from(hero.querySelectorAll(".home-hero__count, .home-goal, .home-strip, .home-hero__note")).map((b) => {
+    textBoxes = Array.from(hero.querySelectorAll(".home-hero__count, .home-goal, .home-strip, .home-hero__note, .result-hero")).map((b) => {
       const q = b.getBoundingClientRect();
       return [q.left - r.left, q.top - r.top, q.right - r.left, q.bottom - r.top];
     });

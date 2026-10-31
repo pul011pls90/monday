@@ -229,7 +229,7 @@
   <svg viewBox="0 0 180 180" aria-hidden="true">
     {% for k in range(48) %}
       {% set ang = (k / 48) * 6.2832 - 1.5708 %}
-      <circle cx="{{ (90 + 76 * ang|cos)|round(2) }}" cy="{{ (90 + 76 * ang|sin)|round(2) }}" r="{{ 4.2 if k < filled else 2.4 }}"
+      <circle{% if k < filled %} class="is-on"{% endif %} cx="{{ (90 + 76 * ang|cos)|round(2) }}" cy="{{ (90 + 76 * ang|sin)|round(2) }}" r="{{ 4.2 if k < filled else 2.4 }}"
               fill="{{ '#FFFFFF' if k < filled else 'rgba(255,255,255,.28)' }}" {% if k < filled %}opacity="{{ (0.55 + 0.45 * k / 48)|round(2) }}"{% endif %}/>
     {% endfor %}
   </svg>

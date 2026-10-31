@@ -4,12 +4,15 @@
 {% block content %}
 {% set n = answers|length %}
 {% set shown = (score|round(1)|string).replace('.0', '').replace('.', ',') %}
-<section class="hero" style="align-items:center">
-  {{ ui.dot_ring(shown ~ '/' ~ n, (score / n) if n else 0, _("верно")) }}
-  <div class="stack-sm">
-    <div class="eyebrow">{{ mode.name if mode else '' }} · {{ _("сессия завершена") }}</div>
-    <div class="hero__unit">{% if n and score == n %}{{ _("Чисто. Ни одной ошибки.") }}{% elif n and score * 2 >= n %}{{ _("Неплохо. Ошибки уже в журнале.") }}{% else %}{{ _("Это и есть тренировка — ошибки ждут в журнале.") }}{% endif %}</div>
-    <div class="hero-muted">{{ att.time_used|duration }}{% if cfg.minutes %} · {{ _("лимит %(m)s мин", m=cfg.minutes) }}{% endif %}{% if hinted %} · {{ _("с подсказкой: %(n)s (по половине балла)", n=hinted) }}{% endif %}</div>
+<section class="hero hero--home hero--result" data-hero>
+  <canvas class="hero__canvas" data-hero-dots aria-hidden="true"></canvas>
+  <div class="result-hero">
+    {{ ui.dot_ring(shown ~ '/' ~ n, (score / n) if n else 0, _("верно")) }}
+    <div class="stack-sm">
+      <div class="eyebrow">{{ mode.name if mode else '' }} · {{ _("сессия завершена") }}</div>
+      <div class="hero__unit">{% if n and score == n %}{{ _("Чисто. Ни одной ошибки.") }}{% elif n and score * 2 >= n %}{{ _("Неплохо. Ошибки уже в журнале.") }}{% else %}{{ _("Это и есть тренировка — ошибки ждут в журнале.") }}{% endif %}</div>
+      <div class="hero-muted">{{ att.time_used|duration }}{% if cfg.minutes %} · {{ _("лимит %(m)s мин", m=cfg.minutes) }}{% endif %}{% if hinted %} · {{ _("с подсказкой: %(n)s (по половине балла)", n=hinted) }}{% endif %}</div>
+    </div>
   </div>
 </section>
 
@@ -71,3 +74,4 @@
   {% endfor %}
 </div>
 {% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/hero.js') }}"></script>{% endblock %}
