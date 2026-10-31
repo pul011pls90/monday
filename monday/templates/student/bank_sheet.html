@@ -16,7 +16,6 @@
   <div class="row" style="gap:8px">
     {{ ui.view_switch(url_for('bank.play', attempt_id=att.id, i=first_i), 'one') }}
   </div>
-  <span class="small muted">{{ _("Страница %(k)s из %(n)s", k=p + 1, n=pages|length) }}</span>
   <div class="row" style="gap:8px">
     {% if exam == 'SAT' %}<button type="button" class="btn btn--secondary btn--sm" data-drawer-open="entry" aria-label="{{ _('Правильная запись ответа') }}">{{ ui.icon('info', 16) }}<span class="btn-label">{{ _("Запись ответа") }}</span></button>{% endif %}
     <button type="button" class="btn btn--secondary btn--sm" data-drawer-open="ref" aria-label="{{ _('Формулы') }}">{{ ui.icon('journal', 16) }}<span class="btn-label">{{ _("Формулы") }}</span></button>
@@ -24,7 +23,7 @@
   </div>
 </div>
 
-<main class="page test-page bank-page calc-shift" style="margin:0 auto;max-width:clamp(1040px, 78vw, 1480px)">
+<main class="page test-page bank-page calc-shift">
   {{ ui.flashes() }}
   <form id="bank-sheet" class="ort-layout bb" data-bank-sheet onsubmit="return false"
         data-check="{{ url_for('bank.check', attempt_id=att.id) }}" data-reveal="{{ url_for('bank.reveal', attempt_id=att.id) }}"
@@ -71,7 +70,6 @@
 
     <aside class="ort-sheet bb-sheet" aria-labelledby="sheet-h">
       <h2 id="sheet-h">{{ _("Бланк ответов") }}</h2>
-      <p class="small muted" style="text-align:center;margin:-6px 0 10px">{{ _("Страница %(k)s из %(n)s", k=p + 1, n=pages|length) }}</p>
       {% if has_number %}
         <p class="small muted bb-hint">{% if exam == 'SAT' %}{{ _("Не больше 5 символов (6 с минусом). Дробь или десятичное через точку: 7/2 или 3.5. Без запятых, %% и $.") }}{% else %}{{ _("Ответ можно ввести целым числом (12), дробью (3/4) или десятичной дробью (0,75).") }}{% endif %}</p>
       {% endif %}

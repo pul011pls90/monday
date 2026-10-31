@@ -32,7 +32,6 @@
       <div class="q-head">
         <span class="q-head__num">{{ loop.index }}</span>
         <span class="q-head__btn q-head__btn--static">{{ it.pick.question.skill.name if it.pick.question.skill }}</span>
-        <span class="q-head__btn q-head__btn--static" style="margin-left:auto">{{ _("Вопрос %(k)s из %(n)s", k=loop.index, n=n) }}</span>
       </div>
       <div class="q-card q-card--test q-card--flat">
         {{ ui.question_body(it['item'], 'dq' ~ it.pick.id, selected=a.given if a else None, reveal=a is not none, disabled=a is not none, letters=daily.letters) }}

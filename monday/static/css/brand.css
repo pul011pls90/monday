@@ -3516,3 +3516,76 @@ button.ts__row:focus-visible { outline: 2px solid var(--pulse); outline-offset: 
 .topbar__brand { z-index: 0; }
 .topbar > :not(.topbar__brand) { position: relative; z-index: 1; }
 @media (max-width: 900px) { .topbar__brand { display: none; } }
+
+/* ================================================================ layout rules (all test-like screens)
+   1. one centred frame: tools bar, content and bottom bar line up to the same edges
+   2. main column + fixed side column; page-wide things (page navigation) span both
+   3. blocks are as tall as their content, side-by-side blocks align to the top
+   4. text inside blocks is left-aligned; only a lone status in the middle of a bar is centred
+   5. inputs and buttons inside a block fill its width
+   6. each piece of information is shown once
+   7. spacing from 8 / 16 / 24 / 32, blocks have 24px padding and 24px gaps */
+.test-body { --frame: clamp(1120px, 78vw, 1560px); --frame-pad: clamp(16px, 3vw, 64px); }
+.bank-body { --frame: clamp(1040px, 78vw, 1480px); }
+.test-body:has(.test-page--ort) { --frame: clamp(1440px, 94vw, 2000px); }
+.test-body:has(.test-page--csca) { --frame: 1240px; }
+.test-body .test-page { max-width: var(--frame); margin-inline: auto; }
+@media (min-width: 761px) { .test-body .test-tools, .test-body .test-foot { padding-inline: max(24px, calc((100% - var(--frame)) / 2 + var(--frame-pad))); } }
+/* the test title never runs under the wordmark */
+@media (min-width: 901px) { .session-bar__left { min-width: 0; max-width: calc(50% - 130px); } }
+.session-bar__label { min-width: 0; }
+.session-bar__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* booklet: questions | answer sheet, navigation under both */
+@media (min-width: 1240px) {
+  .ort-layout.bb { align-items: start; gap: 24px; }
+  .ort-layout.bb .ort-main { display: block; }
+  .ort-layout.bb .ort-main .bb-grid { flex: none; }
+  .ort-layout.bb .bb-nav { grid-column: 1 / -1; margin: 0; }
+  .ort-layout.bb .bb-progress { margin-top: 0; }
+}
+.bb-nav { margin: 24px 0 0; }
+.bb-sheet { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.bb-sheet h2 { text-align: left; color: var(--text); margin: 0; }
+.bb-sheet .bb-hint { text-align: left; margin: 0; }
+.bb-sheet .ort-sheet__row { padding: 0; }
+.bb-sheet .ort-sheet__num { width: auto; min-width: 28px; text-align: left; }
+.bb-sheet .ort-sheet__input { max-width: none; flex: 1; min-width: 0; }
+.bb-sheet .bb-progress { padding-top: 0; }
+.bb-sheet .bb-check { margin-top: 0; }
+.bb-note { margin: 0; }
+.bank-tools > .row:last-child { grid-column: 3; }
+@media (min-width: 1240px) { .ort-layout.bb .bb-sheet { padding: 24px; border-radius: 22px; } }
+.bb-grid .ort-q, .bb-grid.ort-grid--cmp .ort-q { padding: 24px; }
+@media (min-width: 1061px) {
+  .bank-tools { grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr); }
+  .bank-tools > .row { flex-wrap: nowrap; }
+}
+/* when the frame is narrow, the left tools show icons only so the bar stays inside the frame */
+@media (max-width: 1439px) {
+  .bank-tools > .row:first-child .btn-label, .bank-tools > .row:first-child .qr__btn > span:last-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .bank-tools > .row:first-child .btn--sm { padding-inline: 10px; }
+}
+/* answer sheets: heading left-aligned in the text colour (the part is already named by the tabs above the questions) */
+.ort-sheet h2 { text-align: left; color: var(--text); }
+/* CSCA: the answer palette is wider and as tall as the question block; the 48 numbers spread to fill it */
+.test-body:has(.test-page--csca) { --frame-pad: 16px; }
+@media (min-width: 901px) {
+  .csca-layout { align-items: stretch !important; }
+  .csca-sidebar { flex-basis: 340px !important; width: 340px !important; padding: 24px !important; gap: 24px !important; align-self: stretch !important; }
+  .csca-grid { flex: 1 1 auto; grid-template-columns: repeat(8, 32px) !important; align-content: space-between !important; row-gap: 12px !important; }
+  .csca-grid button { width: 32px !important; height: 32px !important; min-width: 32px !important; font-size: 12.5px !important; }
+}
+.session-bar__left { flex-wrap: nowrap !important; }
+/* a single question inside a card starts at the card's padding, not centred in it */
+.q-card .q-layout--single { margin-inline: 0; }
+/* review: each question card is as tall as its content; very long ones scroll inside, capped at the old fixed height */
+@media (min-width: 761px) {
+  .rv.is-paged .rv-screen { height: auto; }
+  .rv.is-paged .rv-explain, .rv.is-paged .rv-question { max-height: var(--rv-h, 70vh); }
+}
+/* review footer lines up with the review page's frame (right of the side menu) */
+@media (min-width: 761px) {
+  .rv-foot { left: var(--rail); --rv-area: calc(100vw - var(--rail));
+    padding-inline: max(24px, calc((var(--rv-area) - min(var(--rv-area), clamp(1240px, 90vw, 1880px))) / 2 + clamp(16px, 3vw, 64px))); }
+}
