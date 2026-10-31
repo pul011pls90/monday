@@ -225,16 +225,21 @@ body:not(.auth-body) {
   padding: 18px 16px 16px; display: flex; flex-direction: column; gap: 6px; position: relative; overflow: hidden;
   transition: transform .15s ease, box-shadow .15s ease;
 }
-button.time-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(21, 56, 147, .18); }
-.time-card.shade-1 { background: #E8EEFB; color: #0A1A5C; }
-.time-card.shade-2 { background: #C9D8F7; color: #0A1A5C; }
-.time-card.shade-3 { background: #9DB8F2; color: #0A1A5C; }
-.time-card.shade-4 { background: #2B60E5; color: #FFFFFF; }
-.time-card.shade-5 { background: #153893; color: #FFFFFF; }
-.time-card.is-soon { cursor: default; opacity: .75; }
-[data-theme="dark"] .time-card.shade-1 { background: #0B1638; color: #DCE6FB; }
-[data-theme="dark"] .time-card.shade-2 { background: #10204F; color: #DCE6FB; }
-[data-theme="dark"] .time-card.shade-3 { background: #152B6A; color: #FFFFFF; }
+/* session cards: a ramp from pale to Pulse #0F1DF3 — the longer the session, the stronger the blue */
+button.time-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(15, 29, 243, .22); }
+.time-card.shade-1 { background: #EEF0FE; color: #060B5E; }
+.time-card.shade-2 { background: #D3D6FD; color: #060B5E; }
+.time-card.shade-3 { background: #A6ACFA; color: #060B5E; }
+.time-card.shade-4 { background: #4F59F6; color: #FFFFFF; }
+.time-card.shade-5 { background: #0F1DF3; color: #FFFFFF; }
+.time-card.is-soon { cursor: default; }
+.time-card.is-soon > * { opacity: .6; }  /* "soon" card keeps its blue; only its text is muted */
+[data-theme="dark"] .time-card.shade-1 { background: #0A0E3A; color: #FFFFFF; }
+[data-theme="dark"] .time-card.shade-2 { background: #0C1468; color: #FFFFFF; }
+[data-theme="dark"] .time-card.shade-3 { background: #0D1AA6; color: #FFFFFF; }
+[data-theme="dark"] .time-card.shade-4 { background: #0E1BD0; color: #FFFFFF; }
+[data-theme="dark"] .time-card.shade-5 { background: #0F1DF3; color: #FFFFFF; }
+[data-theme="dark"] button.time-card:hover { box-shadow: 0 14px 30px rgba(15, 29, 243, .35); }
 /* the minutes fill the top of the card: number from the left edge, «мин» at the top right; sized to the card's width */
 .time-card { container-type: inline-size; }
 .time-card__time { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin: -4px 0 6px; }
