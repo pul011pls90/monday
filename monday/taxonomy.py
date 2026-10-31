@@ -12,7 +12,7 @@ ALL = ["ORT", "ENT", "EGE", "OGE", "SAT", "CSCA"]
 NO_SAT = ["ORT", "ENT", "EGE", "OGE", "CSCA"]
 SCHOOL = ["ORT", "ENT", "EGE", "OGE"]
 UPPER = ["ENT", "EGE", "CSCA"]  # senior school: logs, trig equations, calculus
-TAXONOMY_VERSION = "2"
+TAXONOMY_VERSION = "3"
 
 # branch code, branch name, [(subtopic code, subtopic name, [(skill code, skill name, exams, weight)])]
 MASTER = [
@@ -173,6 +173,20 @@ MASTER = [
         ]),
     ]),
 ]
+
+# CSCA is a senior-school exam (functions, trig, sequences, analytic geometry, vectors, complex numbers, probability).
+# Middle-school skills are not on it: arithmetic, percents, basic algebra drills, plane-geometry basics, data reading.
+CSCA_BELOW_LEVEL = {
+    "fractions", "percents", "proportions", "abs_value", "rounding", "divisibility", "primes", "powers_int", "powers_frac",
+    "radicals", "sci_notation", "identities", "poly_ops", "rational_expr", "linear_eq", "word_problems", "word_mix",
+    "word_money", "units", "angles", "triangle_types", "pythagoras", "similarity", "quadrilaterals", "polygons", "circle",
+    "arcs", "inscribed", "data_read", "spread", "scatter", "inference", "stat_claims",
+}
+for _b, _bn, _subs in MASTER:
+    for _s, _sn, _skills in _subs:
+        for _i, (_code, _name, _exams, _w) in enumerate(_skills):
+            if _code in CSCA_BELOW_LEVEL and "CSCA" in _exams:
+                _skills[_i] = (_code, _name, [e for e in _exams if e != "CSCA"], _w)
 
 # SAT: the official domains → skills, each pointing to master skills.
 SAT_VIEW = [

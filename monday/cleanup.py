@@ -130,6 +130,19 @@ def order_ort_monday_variants():
     sync_pack("ort_monday_mix_2026")
 
 
+def csca_only_fitting_questions():
+    """CSCA is taken in English and covers senior-school maths: Russian questions and middle-school skills
+    (fractions, percents, basic geometry…) lose the CSCA tag. They stay in the bank for their other exams."""
+    from .models import Question
+    from .taxonomy import CSCA_BELOW_LEVEL
+    for q in Question.query.all():
+        if "CSCA" not in (q.exams or []):
+            continue
+        code = q.skill.code if q.skill else None
+        if (q.language or "ru") != "en" or code is None or code in CSCA_BELOW_LEVEL:
+            q.exams = [e for e in q.exams if e != "CSCA"]
+
+
 def run_fixes():
     if not current_app.config.get("DATA_FIXES", True):
         return
@@ -141,3 +154,4 @@ def run_fixes():
     _once("demo-admin-renamed", rename_demo_admin)
     _once("ort-monday-mixed-variants", replace_ort_monday_variants)
     _once("ort-monday-easy-to-hard", order_ort_monday_variants)
+    _once("csca-fitting-questions", csca_only_fitting_questions)

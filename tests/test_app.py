@@ -697,6 +697,29 @@ def test_ort_monday_sync_restores_order_easy_to_hard():
         assert len(pack["collections"]) == 4
 
 
+def test_csca_pool_is_english_and_senior_school():
+    from monday.cleanup import csca_only_fitting_questions
+    from monday.extensions import db
+    from monday.models import ContentNode, Question
+    from monday.services import student_pool
+    from monday.taxonomy import CSCA_BELOW_LEVEL
+    with APP.app_context():
+        fr = ContentNode.query.filter_by(code="fractions").first()
+        assert "CSCA" not in fr.exams
+        q = Question.query.filter_by(language="ru").first()
+        q.exams = list(q.exams or []) + ["CSCA"]
+        db.session.commit()
+        pool = student_pool("CSCA")
+        assert pool and all(p.language == "en" for p in pool)
+        assert not any(p.skill and p.skill.code in CSCA_BELOW_LEVEL for p in pool)
+        csca_only_fitting_questions()
+        db.session.commit()
+        assert "CSCA" not in db.session.get(Question, q.id).exams
+        bad = [x for x in Question.query.all() if "CSCA" in (x.exams or [])
+               and (x.language != "en" or not x.skill or x.skill.code in CSCA_BELOW_LEVEL)]
+        assert not bad
+
+
 def test_old_ort_monday_collections_are_replaced():
     from monday.cleanup import replace_ort_monday_variants
     from monday.extensions import db

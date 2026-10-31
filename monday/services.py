@@ -448,6 +448,19 @@ def exam_language(exam):
     return "en" if exam in ("SAT", "CSCA") else "ru"
 
 
+def _fits(exam):
+    """Whether a question (row or object with language and skill_id) belongs in the exam's practice pool:
+    SAT and CSCA are taken in English, and CSCA only covers senior-school skills (see CSCA_BELOW_LEVEL)."""
+    lang = exam_language(exam)
+    if exam not in ("SAT", "CSCA"):
+        return lambda r: True
+    below = set()
+    if exam == "CSCA":
+        from .taxonomy import CSCA_BELOW_LEVEL
+        below = {n.id for n in ContentNode.query.filter(ContentNode.code.in_(CSCA_BELOW_LEVEL)).all()}
+    return lambda r: (r.language or "ru") == lang and r.skill_id not in below
+
+
 _POOL_CACHE = {}  # exam → (stamp, [(id, skill_id, difficulty), ...]); one per worker process
 
 
@@ -469,13 +482,14 @@ def pool_index(exam):
     if not exam:
         out = [(r.id, r.skill_id, r.difficulty or 2) for r in rows]
     else:
-        own = [r for r in rows if exam in (r.exams or [])]
-        have = Counter(r.skill_id for r in own)
         lang = exam_language(exam)
+        fits = _fits(exam)
+        own = [r for r in rows if exam in (r.exams or []) and fits(r)]
+        have = Counter(r.skill_id for r in own)
         thin = {r.skill_id for r in rows if have[r.skill_id] < TOP_UP}
         extra = []
         for r in sorted(rows, key=lambda r: (r.difficulty or 2, r.id)):
-            if (r.skill_id in thin and r.source and exam not in (r.exams or [])
+            if (r.skill_id in thin and r.source and exam not in (r.exams or []) and fits(r)
                     and (r.language or "ru") == lang and have[r.skill_id] < TOP_UP_MAX):
                 extra.append(r)
                 have[r.skill_id] += 1
@@ -494,13 +508,14 @@ def student_pool(exam, questions=None):
         base = [q for q in questions if q.answer_type != "written"]
         if not exam:
             return base
-        own = [q for q in base if exam in (q.exams or [])]
+        fits = _fits(exam)
+        own = [q for q in base if exam in (q.exams or []) and fits(q)]
         have = Counter(q.skill_id for q in own)
         lang = exam_language(exam)
         thin = {q.skill_id for q in base if have[q.skill_id] < TOP_UP}
         extra = []
         for q in sorted(base, key=lambda q: (q.difficulty or 2, q.id)):
-            if (q.skill_id in thin and q.source and exam not in (q.exams or [])
+            if (q.skill_id in thin and q.source and exam not in (q.exams or []) and fits(q)
                     and (q.language or "ru") == lang and have[q.skill_id] < TOP_UP_MAX):
                 extra.append(q)
                 have[q.skill_id] += 1
