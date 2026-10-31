@@ -119,6 +119,12 @@
     if (!gridPop.hidden) { const cur = $(".is-current", gridPop); if (cur) cur.scrollIntoView({ block: "nearest" }); }
   });
   document.addEventListener("click", (e) => { if (!gridPop.hidden && !e.target.closest("[data-grid-pop], [data-grid-toggle]")) gridPop.hidden = true; });
+  $$("[data-grid-tab]", gridPop).forEach((tab) => tab.addEventListener("click", () => {
+    $$("[data-grid-tab]", gridPop).forEach((t) => { const on = t === tab; t.classList.toggle("is-active", on); t.setAttribute("aria-selected", String(on)); });
+    $$("[data-grid-panel]", gridPop).forEach((p) => { p.hidden = p.dataset.gridPanel !== tab.dataset.gridTab; });
+    const cur = $(`[data-grid-panel="${tab.dataset.gridTab}"] .is-current`, gridPop);
+    if (cur) cur.scrollIntoView({ block: "nearest" });
+  }));
 
   // keyboard: ← → move between questions (not while typing or in the calculator)
   document.addEventListener("keydown", (e) => {
