@@ -3484,6 +3484,10 @@ a.t-today__stat:hover { background: var(--surface-2); }
 .q-grid-pop .q-grid-tabs button { height: 30px; }
 .bb-jump__pop { max-height: 172px; }
 
-/* primary buttons, question numbers, badges, current page/question: black (white on the dark theme) instead of dark blue */
-:root { --btn-bg: #0A0A0A; --btn-text: #FFFFFF; }
-[data-theme="dark"] { --btn-bg: #FFFFFF; --btn-text: #0A0A0A; }
+/* every blue button in the app uses one colour: Pulse #0F1DF3 (both themes). --btn-bg covers primary buttons, question
+   numbers, badges and current markers; the rules below catch the buttons that had their own blue. */
+:root, [data-theme="dark"] { --btn-bg: #0F1DF3; --btn-text: #FFFFFF; --pulse: #0F1DF3; }
+.btn--accent { background: var(--pulse); border-color: var(--pulse); color: #FFFFFF; }
+.rm-card__btn--franklin { background: var(--pulse); }
+.jr-card--today .jr-card__btn { background: var(--pulse) !important; }
+.btn--primary:hover, .btn--accent:hover { filter: brightness(1.12); }
