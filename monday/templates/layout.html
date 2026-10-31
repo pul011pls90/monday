@@ -77,6 +77,7 @@
     {% block topbar scoped %}
     <header class="topbar">
       {% if extras %}<button class="icon-btn nav-burger{{ ' has-active' if ns.extra_active }}" type="button" data-nav-open aria-controls="nav-drawer" aria-expanded="false" aria-label="{{ _('Меню') }}">{{ ui.icon('menu') }}</button>{% endif %}
+      <div class="session-bar__brand topbar__brand" aria-hidden="true">{% for ch in "MONDAY" %}<span>{{ ch }}</span>{% endfor %}</div>
       <div class="topbar__context">{% block context %}{% if current_user.profile and current_user.profile.exam %}{{ current_user.profile.exam|exam_label }} · {{ _("математика") }}{% elif current_user.is_teacher %}{{ _("Кабинет учителя") }}{% elif current_user.is_assistant %}{{ _("Кабинет ассистента") }}{% endif %}{% endblock %}</div>
       <div class="topbar__tools">
         {% block topbar_extra %}{% endblock %}
