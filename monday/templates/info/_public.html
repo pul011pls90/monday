@@ -1,0 +1,12 @@
+{# Info pages for visitors who are not signed in: logo, sign-in button, the page and the footer. #}
+{% extends "base.html" %}
+{% block body %}
+<div class="info-public">
+  <header class="info-public__head">
+    <a class="rail__logo" href="{{ url_for('auth.index') }}" aria-label="Monday">M</a>
+    <a class="btn btn--secondary btn--sm" href="{{ url_for('auth.login') }}">{{ _("Войти") }}</a>
+  </header>
+  <main class="page {% block page_class %}{% endblock %}">{% block content %}{% endblock %}</main>
+  {% include "partials/site_footer.html" %}
+</div>
+{% endblock %}

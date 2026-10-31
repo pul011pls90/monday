@@ -172,7 +172,7 @@ def _register_template_helpers(app):
     from .constants import BIG_TEST_QUESTIONS, TEST_FORMATS
     from .taxonomy import TAGS as QUESTION_TAGS
     from .constants import (DIFFICULTIES, EXAMS, HOMEWORK_STATES, MISTAKE_REASONS, MODES, QUESTION_STATUSES,
-                            REPORT_KINDS, WEEKDAYS, WORK_CATEGORIES, WORK_KINDS, WORK_STATUSES)
+                            REPORT_KINDS, WEEKDAYS, WORK_CATEGORIES, WORK_KINDS, WORK_STATUSES, CONTACTS)
 
     from .models import utcnow
 
@@ -196,8 +196,11 @@ def _register_template_helpers(app):
             theme = current_user.theme
         else:
             theme = request.cookies.get("theme", "light")
+        prefs = (current_user.prefs or {}) if current_user.is_authenticated else {}
         return {
             "THEME": theme if theme in ("light", "dark") else "light",
+            "THEME_AUTO": theme == "system",
+            "PREFS": prefs,
             "LANGUAGES": app.config["LANGUAGES"],
             "CURRENT_LANG": select_locale(),
             "EXAMS": EXAMS,
@@ -214,6 +217,7 @@ def _register_template_helpers(app):
             "open_reports": _open_reports,
             "HOMEWORK_STATES": HOMEWORK_STATES,
             "WEEKDAYS": WEEKDAYS,
+            "CONTACTS": CONTACTS,
             "now": utcnow(),
         }
 

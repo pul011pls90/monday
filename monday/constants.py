@@ -91,3 +91,13 @@ REPORT_KINDS = {
     "other": _l("Другое"),
     "node": _l("Правка карты"),
 }
+
+# Monday's public contacts, shown in the site footer and on «О нас». Empty values are not shown.
+CONTACTS = {
+    "instagram": "https://www.instagram.com/monday_edc",
+    "threads": "https://www.threads.net/@monday_edc",
+    "telegram": "https://t.me/mondayhelp",
+    "whatsapp": "",  # e.g. https://wa.me/996XXXXXXXXX
+    "trial_lesson": "https://forms.gle/rsER8wVX9Lpg1P7R6",
+    "address": "Токтогула 77, Бишкек",
+}

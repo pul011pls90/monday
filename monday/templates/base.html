@@ -1,7 +1,8 @@
 <!doctype html>
-<html lang="{{ CURRENT_LANG }}" data-theme="{{ THEME }}">
+<html lang="{{ CURRENT_LANG }}" data-theme="{{ THEME }}"{% if THEME_AUTO %} data-theme-auto{% endif %}{% if PREFS.text == 'large' %} data-text="large"{% endif %}{% if PREFS.motion == 'reduce' %} data-motion="reduce"{% endif %}{% if PREFS.calc_open %} data-calc-auto{% endif %}>
 <head>
   <meta charset="utf-8">
+  {% if THEME_AUTO %}<script>(function(){var d=document.documentElement,m=window.matchMedia&&matchMedia("(prefers-color-scheme: dark)");function f(){if(d.hasAttribute("data-theme-auto"))d.setAttribute("data-theme",m&&m.matches?"dark":"light")}f();m&&m.addEventListener&&m.addEventListener("change",f)})();</script>{% endif %}
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{% block title %}Monday{% endblock %} · Monday</title>
   <meta name="theme-color" content="{{ '#000000' if THEME == 'dark' else '#F7F8FB' }}">

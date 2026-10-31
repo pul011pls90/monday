@@ -170,7 +170,7 @@
       write("monday-calc-w", width);
       if (calc && calc.resize) calc.resize();
     });
-    if (read("monday-calc-open", false)) open(true);
+    if (document.documentElement.hasAttribute("data-calc-auto") || read("monday-calc-open", false)) open(true);
   }
 
   /* ------------------------------------------------------------ timed tests */

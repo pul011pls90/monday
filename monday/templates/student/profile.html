@@ -2,7 +2,7 @@
 {% block title %}{{ _("Профиль") }}{% endblock %}
 {% block page_class %}page--profile{% endblock %}
 {% block content %}
-{# two columns: who you are, your teachers and sign-out on the left; the settings on the right #}
+{# two columns: who you are and your teachers on the left; the settings on the right (sign-out is in the avatar menu) #}
 <div class="profile-cols">
 <aside class="profile-cols__side">
 {% with subtitle=None %}{% include "partials/profile_head.html" %}{% endwith %}
@@ -26,7 +26,6 @@
     <button class="btn btn--primary" type="submit">{{ _("Подключиться") }}</button>
   </form>
 </section>
-<form method="post" action="{{ url_for('auth.logout') }}">{{ ui.csrf() }}<button class="btn btn--danger" type="submit">{{ ui.icon('logout', 18) }}{{ _("Выйти") }}</button></form>
 </aside>
 <div class="profile-cols__main">
 
@@ -50,6 +49,49 @@
 </form>
 
 
+{% set theme = current_user.theme %}
+<form method="post" class="card settings-card" id="appearance">
+  {{ ui.csrf() }}<input type="hidden" name="action" value="appearance">
+  <h2>{{ _("Оформление") }}</h2>
+  <div class="settings-row"><span class="settings-row__label">{{ _("Тема") }}</span>
+    <div class="settings-chips">
+      <label class="cb-chip"><input type="radio" name="theme" value="light" {{ 'checked' if theme == 'light' }}><span>{{ _("Светлая") }}</span></label>
+      <label class="cb-chip"><input type="radio" name="theme" value="dark" {{ 'checked' if theme == 'dark' }}><span>{{ _("Тёмная") }}</span></label>
+      <label class="cb-chip"><input type="radio" name="theme" value="system" {{ 'checked' if theme == 'system' }}><span>{{ _("Как на устройстве") }}</span></label>
+    </div></div>
+  <div class="settings-row"><span class="settings-row__label">{{ _("Размер текста") }}</span>
+    <div class="settings-chips">
+      <label class="cb-chip"><input type="radio" name="text" value="normal" {{ 'checked' if PREFS.text != 'large' }}><span>{{ _("Обычный") }}</span></label>
+      <label class="cb-chip"><input type="radio" name="text" value="large" {{ 'checked' if PREFS.text == 'large' }}><span>{{ _("Крупный") }}</span></label>
+    </div></div>
+  <label class="check"><input type="checkbox" name="motion" value="reduce" {{ 'checked' if PREFS.motion == 'reduce' }}>{{ _("Меньше анимации") }}</label>
+  <div><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></div>
+</form>
+
+{% set days = PREFS.study_days if PREFS.study_days is not none else [0, 1, 2, 3, 4, 5, 6] %}
+<form method="post" class="card settings-card" id="study">
+  {{ ui.csrf() }}<input type="hidden" name="action" value="study">
+  <h2>{{ _("Учёба") }}</h2>
+  <div class="settings-row"><label class="settings-row__label" for="daily_goal">{{ _("Цель в день") }}</label>
+    <div class="settings-chips">{% for m in (10, 15, 20, 30, 45, 60) %}
+      <label class="cb-chip"><input type="radio" name="daily_goal" value="{{ m }}" {{ 'checked' if (p.daily_goal or 15) == m }}><span>{{ m }} {{ _("мин") }}</span></label>{% endfor %}
+    </div></div>
+  <div class="settings-row"><span class="settings-row__label">{{ _("Дни занятий") }}</span>
+    <div class="settings-chips">{% for d in WEEKDAYS %}
+      <label class="cb-chip"><input type="checkbox" name="study_days" value="{{ loop.index0 }}" {{ 'checked' if loop.index0 in days }}><span>{{ d }}</span></label>{% endfor %}
+    </div></div>
+  <p class="small muted">{{ _("Выходные дни не прерывают серию дней с выполненной целью.") }}</p>
+  <div><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></div>
+</form>
+
+<form method="post" class="card settings-card" id="practice">
+  {{ ui.csrf() }}<input type="hidden" name="action" value="practice">
+  <h2>{{ _("Практика") }}</h2>
+  <label class="check"><input type="checkbox" name="bank_timer" value="1" {{ 'checked' if PREFS.bank_timer != false }}>{{ _("Таймер на вопросе в банке вопросов") }}</label>
+  <label class="check"><input type="checkbox" name="calc_open" value="1" {{ 'checked' if PREFS.calc_open }}>{{ _("Открывать калькулятор сразу, где он разрешён (SAT)") }}</label>
+  <div><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></div>
+</form>
+
 <form method="post" class="card">
   {{ ui.csrf() }}<input type="hidden" name="action" value="password">
   <h2>{{ _("Пароль") }}</h2>
@@ -60,6 +102,21 @@
   <div><button class="btn btn--secondary" type="submit">{{ _("Изменить пароль") }}</button></div>
 </form>
 
+
+<section class="card settings-card" id="data">
+  <h2>{{ _("Данные и аккаунт") }}</h2>
+  <div class="settings-row"><span class="settings-row__label">{{ _("Мои результаты") }}</span>
+    <a class="btn btn--secondary" href="{{ url_for('student.profile_export') }}">{{ ui.icon('arrow-down', 16) }}{{ _("Скачать таблицу (CSV)") }}</a></div>
+  <details class="settings-danger">
+    <summary>{{ _("Удалить аккаунт") }}</summary>
+    <form method="post" class="stack" data-confirm="{{ _('Удалить аккаунт? Имя, почта и фото будут стёрты, войти снова будет нельзя.') }}">
+      {{ ui.csrf() }}<input type="hidden" name="action" value="delete">
+      <p class="small muted">{{ _("Имя, почта и фото стираются, войти снова будет нельзя. Результаты остаются у учителя без твоего имени.") }}</p>
+      <div class="field"><label for="del_pw">{{ _("Пароль для подтверждения") }}</label><input class="input" type="password" id="del_pw" name="password" autocomplete="current-password" required></div>
+      <div><button class="btn btn--danger" type="submit">{{ ui.icon('trash', 16) }}{{ _("Удалить аккаунт") }}</button></div>
+    </form>
+  </details>
+</section>
 </div>
 </div>
 {% endblock %}

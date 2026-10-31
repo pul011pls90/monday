@@ -3600,3 +3600,73 @@ button.ts__row:focus-visible { outline: 2px solid var(--pulse); outline-offset: 
 .profile-cols__side #join form .btn { width: 100%; justify-content: center; }
 .profile-cols__side > form .btn--danger { width: 100%; justify-content: center; }
 @media (max-width: 900px) { .profile-cols { grid-template-columns: minmax(0, 1fr); } }
+
+/* profile settings blocks */
+.settings-card { gap: 16px; }
+.settings-row { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; }
+.settings-row__label { flex: 0 0 140px; font-weight: 700; font-size: 14px; }
+.settings-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.settings-chips .cb-chip span { padding: 7px 14px; }
+.cb-chip input[type="checkbox"]:checked + span { background: var(--pulse); border-color: var(--pulse); color: #FFFFFF; }
+.cb-chip input:checked + span { background: var(--pulse); border-color: var(--pulse); }
+.cb-chip input:focus-visible + span { outline: 2px solid var(--pulse); outline-offset: 2px; }
+.settings-danger { border-top: 1px solid var(--line); padding-top: 16px; }
+.settings-danger > summary { cursor: pointer; font-weight: 700; color: var(--bad); list-style: none; }
+.settings-danger > summary::-webkit-details-marker { display: none; }
+.settings-danger[open] > summary { margin-bottom: 12px; }
+@media (max-width: 560px) { .settings-row__label { flex-basis: 100%; } }
+
+/* larger text: the whole interface scales a little */
+html[data-text="large"] body { zoom: 1.1; }
+/* less motion: transitions and animations are switched off */
+html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-motion="reduce"] *::after {
+  animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important;
+}
+
+/* ---------------------------------------------------------------- site footer */
+.site-foot { margin-top: 32px; border-top: 1px solid var(--line); padding: 32px clamp(16px, 3vw, 64px) calc(24px + env(safe-area-inset-bottom)); }
+.site-foot__in, .site-foot__base { max-width: calc(clamp(1180px, 84vw, 1760px) - 2 * clamp(16px, 3vw, 64px)); margin-inline: auto; }
+.site-foot__in { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 2fr) auto; gap: 24px; align-items: center; }
+.site-foot__brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.site-foot__brand b { display: block; font: 800 18px/1.2 var(--font-display); }
+.site-foot__brand div span { display: block; font-size: 13px; color: var(--muted); }
+.site-foot__logo { flex: none; margin: 0; width: 40px; height: 40px; font-size: 17px; }
+.site-foot__links { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.site-foot__links a { font-size: 14px; font-weight: 600; color: var(--text); text-decoration: none; }
+.site-foot__links a:hover { color: var(--pulse); }
+.site-foot__social { display: flex; gap: 8px; }
+.site-foot__social .icon-btn:hover { background: var(--pulse); border-color: var(--pulse); color: #FFFFFF; }
+.site-foot__base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.site-foot__addr { display: inline-flex; align-items: center; gap: 6px; }
+@media (max-width: 900px) {
+  .site-foot__in { grid-template-columns: minmax(0, 1fr); }
+  .site-foot { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }  /* room for the phone tab bar */
+}
+/* pages with a fixed bottom bar (review) keep the footer clear of it */
+body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
+
+/* ---------------------------------------------------------------- info pages */
+.info-card { gap: 16px; }
+.info-card h1 { font-size: 32px; }
+.info-card h2 { font-size: 19px; margin-top: 8px; }
+.info-card p, .info-list { line-height: 1.6; color: var(--text); }
+.info-lead { font-size: 17px; }
+.info-list { display: flex; flex-direction: column; gap: 8px; padding-left: 20px; margin: 0; }
+.info-contacts { display: flex; flex-wrap: wrap; gap: 8px; }
+.info-addr { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
+.info-public__head { display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(16px, 3vw, 64px); max-width: 900px; margin: 0 auto; }
+.info-public__head .rail__logo { margin: 0; text-decoration: none; }
+.site-foot .site-foot__logo, .info-public__head .rail__logo { display: grid !important; }  /* the side-menu logo is hidden on phones; these copies stay */
+
+/* ---------------------------------------------------------------- account menu under the avatar */
+.acct-menu { position: relative; }
+.acct-menu > summary { list-style: none; cursor: pointer; border-radius: 50%; display: block; }
+.acct-menu > summary::-webkit-details-marker { display: none; }
+.acct-menu > summary:focus-visible { outline: 2px solid var(--pulse); outline-offset: 2px; }
+.acct-menu__pop { position: absolute; right: 0; top: calc(100% + 8px); z-index: 40; width: 280px; padding: 16px; display: flex; flex-direction: column; gap: 16px;
+  background: var(--surface); border: var(--bw, 1px) solid var(--line); border-radius: 16px; box-shadow: 0 16px 40px rgba(10, 10, 40, .14); }
+.acct-menu__who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.acct-menu__who > div { min-width: 0; }
+.acct-menu__who b { display: block; font-size: 15px; }
+.acct-menu__who span:not(.avatar) { display: block; font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct-menu__out { width: 100%; justify-content: center; }
