@@ -3432,10 +3432,9 @@ a.t-today__stat:hover { background: var(--surface-2); }
 /* line breaks written in a question (I. / II. / III. lists) show as new lines */
 .ort-q__text { white-space: pre-line; }
 
-/* ---------------------------------------------------------------- session bar: white, wordmark in the middle, halftone dots */
+/* ---------------------------------------------------------------- session bar: white, wordmark in the middle */
 .session-bar { position: sticky; background: #FFFFFF; color: var(--text); border-bottom: 1px solid var(--line); overflow: hidden; isolation: isolate; }
-.session-bar > :not(.session-bar__dots):not(.session-bar__brand) { position: relative; z-index: 2; }
-.session-bar__dots { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.session-bar > :not(.session-bar__brand) { position: relative; z-index: 2; }
 .session-bar__brand { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 1; pointer-events: none;
   font: 800 26px/1 var(--font-display); letter-spacing: -.02em; white-space: nowrap; }
 .session-bar__brand span:nth-child(1) { color: #7FA3F3; }
