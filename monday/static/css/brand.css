@@ -3470,7 +3470,7 @@ body .mt-stage, [data-theme="dark"] body .mt-stage { --mt-here: var(--pulse); }
 
 /* ---------------------------------------------------------------- session modes as a time scale
    name and points on the left, a bar as long as the session on a 0–30 min scale, a round start button on the right.
-   Bars go from pale to Pulse as sessions get longer. */
+   Each bar is in its mode's own colour. */
 .ts { background: var(--surface); border: var(--bw, 1px) solid var(--line); border-radius: 22px; padding: 18px 24px 8px; }
 .ts__scale, .ts__row { display: grid; grid-template-columns: minmax(200px, 300px) minmax(0, 1fr) 48px; column-gap: 24px; align-items: center; }
 .ts__ticks { position: relative; height: 20px; border-bottom: 1px solid var(--line); }
@@ -3499,20 +3499,10 @@ button.ts__row:focus-visible { outline: 2px solid var(--pulse); outline-offset: 
 .ts__soon { justify-self: end; font-size: 12px; font-weight: 600; color: var(--muted); border: 1.5px solid var(--line); border-radius: 999px; padding: 5px 12px; }
 .ts__row.is-soon { cursor: default; }
 .ts__row.is-soon .ts__name { opacity: .6; }
-/* the ramp: pale → Pulse */
-.ts__bar.shade-1 { background: #D3D6FD; color: #060B5E; }
-.ts__bar.shade-2 { background: #A6ACFA; color: #060B5E; }
-.ts__bar.shade-3 { background: #7A82F8; color: #FFFFFF; }
-.ts__bar.shade-4 { background: #4F59F6; color: #FFFFFF; }
-.ts__bar.shade-5 { background: #0F1DF3; color: #FFFFFF; }
-[data-theme="dark"] .ts__bar.shade-1 { background: #141C66; color: #FFFFFF; }
-[data-theme="dark"] .ts__bar.shade-2 { background: #121D99; color: #FFFFFF; }
-[data-theme="dark"] .ts__bar.shade-3 { background: #1120C2; color: #FFFFFF; }
-[data-theme="dark"] .ts__bar.shade-4 { background: #1022DE; color: #FFFFFF; }
-[data-theme="dark"] .ts__bar.shade-5 { background: #0F1DF3; color: #FFFFFF; }
-/* a mode that isn't ready yet: striped bar in its own shade */
-.ts__row.is-soon .ts__bar { background: repeating-linear-gradient(135deg, transparent 0 8px, rgba(255, 255, 255, .55) 8px 16px), #DDE0FD; color: #060B5E; }
-[data-theme="dark"] .ts__row.is-soon .ts__bar { background: repeating-linear-gradient(135deg, transparent 0 8px, rgba(255, 255, 255, .08) 8px 16px), #0C1240; color: rgba(255, 255, 255, .75); }
+/* each mode in its own colour — the same pair as its tag on the past-session cards */
+.ts__bar[class*="sc-mode--"] { background: var(--mode-bg); color: var(--mode-ink); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--mode-ink) 22%, transparent); }
+/* a mode that isn't ready yet: the same colour, striped */
+.ts__row.is-soon .ts__bar { background: repeating-linear-gradient(135deg, transparent 0 8px, color-mix(in srgb, var(--surface) 55%, transparent) 8px 16px), var(--mode-bg); }
 @media (max-width: 760px) {
   .ts { padding: 6px 16px 4px; }
   .ts__scale { display: none; }

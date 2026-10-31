@@ -255,7 +255,7 @@
     {% if m.ready %}<form method="post" action="{{ url_for('student.start_session', mode=key) }}" class="ts__item">{{ csrf() }}<button type="submit" class="ts__row">
     {% else %}<div class="ts__item"><div class="ts__row is-soon">{% endif %}
       <span class="ts__name"><b>{{ m.name }}</b><span class="ts__pts" role="list">{% for pt in m.points if not (not m.ready and pt == _('скоро')) %}<span role="listitem">{{ pt }}</span>{% endfor %}</span></span>
-      <span class="ts__track"><span class="ts__bar shade-{{ n }}" style="width: {{ (m.approx / 30 * 100)|round(2) }}%" aria-label="{{ _('около %(n)s мин', n=m.approx) }}"><b>{{ m.approx }}</b><small>{{ _("мин") }}</small></span></span>
+      <span class="ts__track"><span class="ts__bar sc-mode--{{ key }}" style="width: {{ (m.approx / 30 * 100)|round(2) }}%" aria-label="{{ _('около %(n)s мин', n=m.approx) }}"><b>{{ m.approx }}</b><small>{{ _("мин") }}</small></span></span>
       {% if m.ready %}<span class="ts__go" aria-hidden="true">{{ icon('arrow-right', 18) }}</span>{% else %}<span class="ts__soon">{{ _("скоро") }}</span>{% endif %}
     {% if m.ready %}</button></form>{% else %}</div></div>{% endif %}
   {% endfor %}
