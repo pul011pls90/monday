@@ -3670,3 +3670,19 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .acct-menu__who b { display: block; font-size: 15px; }
 .acct-menu__who span:not(.avatar) { display: block; font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .acct-menu__out { width: 100%; justify-content: center; }
+
+/* profile as rows of three cards (replaces the two long columns) */
+.page--profile { max-width: clamp(1180px, 84vw, 1760px); }
+.profile-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: stretch; }
+.profile-grid > .card { margin: 0; min-width: 0; }
+.profile-grid > .pg-wide { grid-column: span 2; }
+.profile-grid .profile-head { flex-direction: column; align-items: flex-start; justify-content: center; gap: 16px; }
+.profile-grid .profile-head h1 { font-size: 26px; }
+.profile-grid > .card:not(.pg-wide) .grid-2 { grid-template-columns: minmax(0, 1fr); }
+.profile-grid .settings-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+.profile-grid .settings-row__label { flex: none; }
+.profile-grid > .card > div:last-child:has(> .btn[type="submit"]), .profile-grid > form.card > div:last-child { margin-top: auto; }
+.profile-grid #join form.row { flex-wrap: wrap; }
+.profile-grid #join form .btn { width: 100%; justify-content: center; }
+@media (max-width: 1100px) { .profile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .profile-grid > .pg-wide { grid-column: 1 / -1; } }
+@media (max-width: 700px) { .profile-grid { grid-template-columns: minmax(0, 1fr); } }

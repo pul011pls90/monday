@@ -2,10 +2,29 @@
 {% block title %}{{ _("Профиль") }}{% endblock %}
 {% block page_class %}page--profile{% endblock %}
 {% block content %}
-{# two columns: who you are and your teachers on the left; the settings on the right (sign-out is in the avatar menu) #}
-<div class="profile-cols">
-<aside class="profile-cols__side">
+{# a grid of cards in rows of three: who you are | profile and exam (wide); teachers | appearance | study; practice | password | data #}
+{% set theme = current_user.theme %}
+{% set days = PREFS.study_days if PREFS.study_days is not none else [0, 1, 2, 3, 4, 5, 6] %}
+<div class="profile-grid">
 {% with subtitle=None %}{% include "partials/profile_head.html" %}{% endwith %}
+<form method="post" class="card pg-wide" id="settings">
+  {{ ui.csrf() }}<input type="hidden" name="action" value="profile">
+  <h2>{{ _("Профиль и экзамен") }}</h2>
+  <div class="grid grid-2">
+    <div class="field"><label for="name">{{ _("Имя и фамилия") }}</label><input class="input" id="name" name="name" value="{{ current_user.name }}" required></div>
+    <div class="field"><label for="exam">{{ _("Экзамен") }}</label>
+      <select class="select" id="exam" name="exam">{% for code, e in EXAMS.items() %}<option value="{{ code }}" data-min="{{ e.min }}" data-max="{{ e.max }}" {{ 'selected' if p.exam == code }}>{{ e.label }} · {{ e.country }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="exam_date">{{ _("Дата экзамена") }}</label><input class="input" type="date" id="exam_date" name="exam_date" value="{{ p.exam_date.isoformat() if p.exam_date }}"></div>
+    <div class="field"><label for="goal_score">{{ _("Целевой балл") }}</label><input class="input" type="number" id="goal_score" name="goal_score" value="{{ p.goal_score or '' }}" min="{{ EXAMS[p.exam].min if p.exam in EXAMS else 0 }}" max="{{ EXAMS[p.exam].max if p.exam in EXAMS else 1600 }}" data-goal-for="exam"><span class="field__hint" data-goal-hint>{% if p.exam in EXAMS %}{{ _("от %(a)s до %(b)s", a=EXAMS[p.exam].min, b=EXAMS[p.exam].max) }}{% endif %}</span></div>
+    <div class="field"><label for="grade">{{ _("Класс") }}</label><input class="input" id="grade" name="grade" value="{{ p.grade or '' }}"></div>
+    <div class="field"><label for="language">{{ _("Язык интерфейса и объяснений") }}</label>
+      <select class="select" id="language" name="language">{% for code, label in LANGUAGES.items() %}<option value="{{ code }}" {{ 'selected' if current_user.language == code }}>{{ label }}</option>{% endfor %}</select>
+      <span class="field__hint">{{ _("Переводы, кроме русского, появятся позже.") }}</span></div>
+    <div class="field"><label for="region">{{ _("Город или область") }}</label><input class="input" id="region" name="region" value="{{ p.region or '' }}"></div>
+    <div class="field"><label for="school">{{ _("Школа") }}</label><input class="input" id="school" name="school" value="{{ p.school or '' }}"></div>
+  </div>
+  <div><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></div>
+</form>
 <section class="card" id="join">
   <h2>{{ _("Мои учителя") }}</h2>
   {% if teachers %}
@@ -26,30 +45,6 @@
     <button class="btn btn--primary" type="submit">{{ _("Подключиться") }}</button>
   </form>
 </section>
-</aside>
-<div class="profile-cols__main">
-
-<form method="post" class="card" id="settings">
-  {{ ui.csrf() }}<input type="hidden" name="action" value="profile">
-  <h2>{{ _("Профиль и экзамен") }}</h2>
-  <div class="grid grid-2">
-    <div class="field"><label for="name">{{ _("Имя и фамилия") }}</label><input class="input" id="name" name="name" value="{{ current_user.name }}" required></div>
-    <div class="field"><label for="exam">{{ _("Экзамен") }}</label>
-      <select class="select" id="exam" name="exam">{% for code, e in EXAMS.items() %}<option value="{{ code }}" data-min="{{ e.min }}" data-max="{{ e.max }}" {{ 'selected' if p.exam == code }}>{{ e.label }} · {{ e.country }}</option>{% endfor %}</select></div>
-    <div class="field"><label for="exam_date">{{ _("Дата экзамена") }}</label><input class="input" type="date" id="exam_date" name="exam_date" value="{{ p.exam_date.isoformat() if p.exam_date }}"></div>
-    <div class="field"><label for="goal_score">{{ _("Целевой балл") }}</label><input class="input" type="number" id="goal_score" name="goal_score" value="{{ p.goal_score or '' }}" min="{{ EXAMS[p.exam].min if p.exam in EXAMS else 0 }}" max="{{ EXAMS[p.exam].max if p.exam in EXAMS else 1600 }}" data-goal-for="exam"><span class="field__hint" data-goal-hint>{% if p.exam in EXAMS %}{{ _("от %(a)s до %(b)s", a=EXAMS[p.exam].min, b=EXAMS[p.exam].max) }}{% endif %}</span></div>
-    <div class="field"><label for="grade">{{ _("Класс") }}</label><input class="input" id="grade" name="grade" value="{{ p.grade or '' }}"></div>
-    <div class="field"><label for="language">{{ _("Язык интерфейса и объяснений") }}</label>
-      <select class="select" id="language" name="language">{% for code, label in LANGUAGES.items() %}<option value="{{ code }}" {{ 'selected' if current_user.language == code }}>{{ label }}</option>{% endfor %}</select>
-      <span class="field__hint">{{ _("Переводы, кроме русского, появятся позже.") }}</span></div>
-    <div class="field"><label for="region">{{ _("Город или область") }}</label><input class="input" id="region" name="region" value="{{ p.region or '' }}"></div>
-    <div class="field"><label for="school">{{ _("Школа") }}</label><input class="input" id="school" name="school" value="{{ p.school or '' }}"></div>
-  </div>
-  <div><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></div>
-</form>
-
-
-{% set theme = current_user.theme %}
 <form method="post" class="card settings-card" id="appearance">
   {{ ui.csrf() }}<input type="hidden" name="action" value="appearance">
   <h2>{{ _("Оформление") }}</h2>
@@ -67,8 +62,6 @@
   <label class="check"><input type="checkbox" name="motion" value="reduce" {{ 'checked' if PREFS.motion == 'reduce' }}>{{ _("Меньше анимации") }}</label>
   <div><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></div>
 </form>
-
-{% set days = PREFS.study_days if PREFS.study_days is not none else [0, 1, 2, 3, 4, 5, 6] %}
 <form method="post" class="card settings-card" id="study">
   {{ ui.csrf() }}<input type="hidden" name="action" value="study">
   <h2>{{ _("Учёба") }}</h2>
@@ -83,7 +76,6 @@
   <p class="small muted">{{ _("Выходные дни не прерывают серию дней с выполненной целью.") }}</p>
   <div><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></div>
 </form>
-
 <form method="post" class="card settings-card" id="practice">
   {{ ui.csrf() }}<input type="hidden" name="action" value="practice">
   <h2>{{ _("Практика") }}</h2>
@@ -91,7 +83,6 @@
   <label class="check"><input type="checkbox" name="calc_open" value="1" {{ 'checked' if PREFS.calc_open }}>{{ _("Открывать калькулятор сразу, где он разрешён (SAT)") }}</label>
   <div><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></div>
 </form>
-
 <form method="post" class="card">
   {{ ui.csrf() }}<input type="hidden" name="action" value="password">
   <h2>{{ _("Пароль") }}</h2>
@@ -101,8 +92,6 @@
   </div>
   <div><button class="btn btn--secondary" type="submit">{{ _("Изменить пароль") }}</button></div>
 </form>
-
-
 <section class="card settings-card" id="data">
   <h2>{{ _("Данные и аккаунт") }}</h2>
   <div class="settings-row"><span class="settings-row__label">{{ _("Мои результаты") }}</span>
@@ -117,6 +106,5 @@
     </form>
   </details>
 </section>
-</div>
 </div>
 {% endblock %}
