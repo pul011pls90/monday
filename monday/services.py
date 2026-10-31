@@ -3,6 +3,7 @@
 Everything that computes progress, mastery, rankings or picks questions lives
 here so pages stay thin and the rules are in one place.
 """
+import json
 import random
 import re
 from collections import Counter, defaultdict
@@ -448,6 +449,29 @@ def exam_language(exam):
     return "en" if exam in ("SAT", "CSCA") else "ru"
 
 
+def question_signature(q):
+    """What a student sees and answers: text, the set of options, the right answer, reading material and picture.
+    Two questions with the same signature are the same question (e.g. one problem in two official tests)."""
+    norm = lambda v: re.sub(r"\s+", " ", str(v or "")).strip()
+    opts = q.options or []
+    right = q.correct
+    if q.answer_type == "choice" and str(q.correct).isdigit() and int(q.correct) < len(opts):
+        right = opts[int(q.correct)]
+    return (norm(q.text), tuple(sorted(norm(o) for o in opts)), norm(right),
+            json.dumps(q.material or [], sort_keys=True, ensure_ascii=False), q.image_path or "")
+
+
+def _unique(rows):
+    """Drop repeats of the same question, keeping the first (oldest) copy."""
+    seen, out = set(), []
+    for r in rows:
+        key = question_signature(r)
+        if key not in seen:
+            seen.add(key)
+            out.append(r)
+    return out
+
+
 def _fits(exam):
     """Whether a question (row or object with language and skill_id) belongs in the exam's practice pool:
     SAT and CSCA are taken in English, and CSCA only covers senior-school skills (see CSCA_BELOW_LEVEL)."""
@@ -476,9 +500,10 @@ def pool_index(exam):
     hit = _POOL_CACHE.get(exam)
     if hit and hit[0] == stamp:
         return hit[1]
-    rows = (db.session.query(Question.id, Question.skill_id, Question.exams, Question.language, Question.source,
-                             Question.difficulty)
-            .filter(Question.status == "published", Question.answer_type != "written").all())
+    rows = _unique(db.session.query(Question.id, Question.skill_id, Question.exams, Question.language, Question.source,
+                                    Question.difficulty, Question.text, Question.options, Question.correct,
+                                    Question.material, Question.image_path, Question.answer_type)
+                   .filter(Question.status == "published", Question.answer_type != "written").order_by(Question.id).all())
     if not exam:
         out = [(r.id, r.skill_id, r.difficulty or 2) for r in rows]
     else:
@@ -505,7 +530,7 @@ def student_pool(exam, questions=None):
     compilation questions of the same skill from other exams, in the exam's language.
     """
     if questions is not None:  # an explicit list (tests): filter it the same way
-        base = [q for q in questions if q.answer_type != "written"]
+        base = _unique([q for q in questions if q.answer_type != "written"])
         if not exam:
             return base
         fits = _fits(exam)

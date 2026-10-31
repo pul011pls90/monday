@@ -720,6 +720,24 @@ def test_csca_pool_is_english_and_senior_school():
         assert not bad
 
 
+def test_practice_pool_has_no_repeated_questions():
+    from monday.extensions import db
+    from monday.models import Question
+    from monday.services import question_signature, student_pool
+    with APP.app_context():
+        q = next(x for x in Question.query.filter_by(status="published", answer_type="choice").all() if "CSCA" in (x.exams or []))
+        opts = list(q.options)
+        twin = Question(author=q.author, skill=q.skill, text=q.text, answer_type="choice", options=list(reversed(opts)),
+                        correct=str(len(opts) - 1 - int(q.correct)), status="published", exams=["CSCA"], language=q.language,
+                        material=q.material or [], image_path=q.image_path, source=q.source)
+        db.session.add(twin)
+        db.session.commit()
+        for exam in ("CSCA", "SAT", "ORT", "ENT", "EGE", "OGE"):
+            sigs = [question_signature(x) for x in student_pool(exam)]
+            assert len(sigs) == len(set(sigs)), exam
+        assert twin.id not in {x.id for x in student_pool("CSCA")}
+
+
 def test_old_ort_monday_collections_are_replaced():
     from monday.cleanup import replace_ort_monday_variants
     from monday.extensions import db
