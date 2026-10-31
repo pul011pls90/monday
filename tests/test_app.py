@@ -757,7 +757,11 @@ def test_bank_booklet_pages_and_check():
         items = [(k, q.snapshot()) for k, q in enumerate(qs)]
         pages = booklet_pages(items)
         assert [i for pg in pages for row in pg["rows"] for i, _ in row] == list(range(len(qs)))
-        assert all(len(pg["rows"]) * 2 <= 8 for pg in pages)
+        assert all(len(pg["rows"]) <= 2 for pg in pages)
+        for pg in pages:
+            its = [it for row in pg["rows"] for _i, it in row]
+            assert len(its) <= 4
+            assert not any(it.get("image_path") for it in its) or len(its) == 1
         assert all(len({pg["compare"]}) == 1 for pg in pages)
     r = c.post(f"/bank/s/{att_id}/check", data={"i": "0", "given": first.correct})
     assert r.get_json()["ok"] is True

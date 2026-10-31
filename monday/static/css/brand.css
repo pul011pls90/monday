@@ -3390,3 +3390,9 @@ a.t-today__stat:hover { background: var(--surface-2); }
 .bb-sheet .ort-sheet__row { gap: 6px; }
 .bb-sheet .ort-sheet__num { width: 34px; margin-right: 4px; flex: none; text-align: right; font-variant-numeric: tabular-nums; }
 .bb-sheet .ort-sheet__input { max-width: 170px; }
+/* the booklet always has two columns (the ORT test's comparison grid has three) and room for 3-digit numbers */
+.bb-grid, .bb-grid.ort-grid--cmp { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.bb-grid .ort-q, .bb-grid.ort-grid--cmp .ort-q { grid-template-columns: 46px minmax(0, 1fr); gap: 6px; padding: 18px 20px; box-shadow: none; border-bottom: 1px solid var(--line); }
+@media (max-width: 760px) {
+  .bb-grid, .bb-grid.ort-grid--cmp { grid-template-columns: minmax(0, 1fr); }
+}
