@@ -254,7 +254,7 @@ def play(attempt_id):
 
 # --------------------------------------------------------------------------- booklet view
 
-PAGE_UNITS = 8  # a page holds 8 half-width cells: 4 rows of two short questions, or fewer long ones
+# A page shows 4 short questions (2 rows of 2), or 2 long ones (one per row), or 1 question with a picture.
 
 
 def _is_compare(material):
@@ -280,8 +280,8 @@ def _is_wide(item):
 
 def booklet_pages(items):
     """items: [(index, item)] → pages: [{"rows": [[(i, item), …], …], "compare": bool}].
-    Comparisons and other questions never share a page (ORT parts); rows keep the question order;
-    a row is two short questions or one long one, and a page holds PAGE_UNITS // 2 rows."""
+    Short questions go two to a row, long ones one to a row, at most 2 rows a page; a question with a picture
+    has a page of its own. Comparisons and other questions never share a page (ORT parts); order is kept."""
     pages, state = [], {"rows": [], "kind": None}
 
     def close():
@@ -290,7 +290,7 @@ def booklet_pages(items):
         state["rows"] = []
 
     def add(row):
-        if len(state["rows"]) * 2 + 2 > PAGE_UNITS:
+        if len(state["rows"]) >= 2:
             close()
         state["rows"].append(row)
 
@@ -303,7 +303,14 @@ def booklet_pages(items):
                 pending = None
             close()
         state["kind"] = cmp
-        if _is_wide(item):
+        if item.get("image_path"):
+            if pending:
+                add([pending])
+                pending = None
+            close()
+            state["rows"].append([(i, item)])
+            close()
+        elif _is_wide(item):
             if pending:
                 add([pending])
                 pending = None
