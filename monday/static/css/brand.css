@@ -3686,3 +3686,47 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .profile-grid #join form .btn { width: 100%; justify-content: center; }
 @media (max-width: 1100px) { .profile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .profile-grid > .pg-wide { grid-column: 1 / -1; } }
 @media (max-width: 700px) { .profile-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------------------------------------------------------------- settings: header, tabs, one row per setting */
+.page--settings { max-width: calc(860px + 2 * clamp(16px, 3vw, 64px)); }
+.set-hero { display: flex; align-items: center; gap: 24px; padding: 28px 32px; border-radius: 22px; background: #0A0A0A; color: #FFFFFF; }
+[data-theme="dark"] .set-hero { background: var(--surface); border: var(--bw, 1px) solid var(--line); }
+.set-hero__photo { flex: none; }
+.set-hero__who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.set-hero__who h1 { font-size: 28px; color: inherit; margin: 0; }
+.set-hero__who span { color: rgba(255, 255, 255, .7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.set-hero__badge { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1.5px solid rgba(255, 255, 255, .3); font-weight: 700; font-size: 14px; }
+.set-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: var(--surface-2); align-self: flex-start; flex-wrap: wrap; }
+.set-tabs a { padding: 8px 14px; border-radius: 10px; font-weight: 600; font-size: 14px; color: var(--muted); text-decoration: none; }
+.set-tabs a:hover { color: var(--text); }
+.set-tabs a.is-active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
+[data-theme="dark"] .set-tabs a.is-active { box-shadow: inset 0 0 0 2px var(--line); }
+.set-pane, .set-stack { display: flex; flex-direction: column; gap: 16px; }
+.set-pane[hidden] { display: none; }
+.set-row { display: flex; flex-direction: column; gap: 6px; padding: 24px; border-radius: 18px; background: var(--surface); border: var(--bw, 1px) solid var(--line); }
+.set-row__head { display: flex; align-items: center; gap: 10px; }
+.set-row__head h3 { font-size: 18px; margin: 0; }
+.set-row__desc { margin: 0; color: var(--muted); font-size: 14px; }
+.set-line, .set-edit > summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+.set-line + .set-line { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.set-edit__value { font-size: 16px; font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
+.set-edit > summary { list-style: none; cursor: pointer; }
+.set-edit > summary::-webkit-details-marker { display: none; }
+.set-edit[open] > summary .btn { display: none; }
+.set-edit__form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.set-edit__form .input, .set-edit__form .select { flex: 1 1 220px; min-width: 0; }
+.set-row--danger { border-color: color-mix(in srgb, var(--bad) 45%, var(--line)); background: color-mix(in srgb, var(--bad) 5%, var(--surface)); }
+.set-row--danger .set-row__head { color: var(--bad); }
+/* on/off switch */
+.set-switch { position: relative; display: inline-flex; cursor: pointer; }
+.set-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.set-switch > span { width: 46px; height: 28px; border-radius: 999px; background: var(--line-strong); position: relative; transition: background .15s ease; }
+.set-switch > span::after { content: ""; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; transition: transform .15s ease; box-shadow: 0 1px 3px rgba(0, 0, 0, .2); }
+.set-switch input:checked + span { background: var(--pulse); }
+.set-switch input:checked + span::after { transform: translateX(18px); }
+.set-switch input:focus-visible + span { outline: 2px solid var(--pulse); outline-offset: 2px; }
+[data-theme="dark"] .set-switch > span { background: rgba(255, 255, 255, .25); }
+@media (max-width: 640px) {
+  .set-hero { flex-wrap: wrap; padding: 20px; gap: 16px; }
+  .set-row { padding: 18px; }
+}
