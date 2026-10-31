@@ -37,7 +37,7 @@
   </div>
 </div>
 
-<main class="page test-page calc-shift{{ ' test-page--ort' if layout.nav == 'pages' else (' test-page--csca' if layout.format == 'csca' else '') }}" style="margin:0 auto;max-width:{{ 'clamp(1440px, 94vw, 2000px)' if layout.nav == 'pages' else ('1240px' if layout.format == 'csca' else 'clamp(1120px, 78vw, 1560px)') }}">
+<main class="page test-page calc-shift{{ ' test-page--ort' if layout.nav == 'pages' else (' test-page--csca' if layout.format == 'csca' else '') }}">
   {{ ui.flashes() }}
   {% if mods|length > 1 and module > 1 and not get_flashed_messages() %}
     <p class="small muted">{% if module == 2 %}{{ _("Ответы модуля 1 сохранены и закрыты.") }}{% else %}{{ _("Ответы модулей 1–%(k)s сохранены и закрыты.", k=module - 1) }}{% endif %}</p>
@@ -137,7 +137,6 @@
       <h2 id="sheet-h">{{ _("Бланк ответов") }}</h2>
       {% for a, b in parts %}{% set pt = loop.index0 %}
       <div class="ort-sheet__part" data-sheet-part="{{ pt }}">
-      {% if parts|length > 1 %}<p class="ort-sheet__sub">{{ _("Часть %(k)s · вопросы %(a)s–%(b)s", k=pt + 1, a=a + 1, b=b) }}</p>{% endif %}
       {% if not loop.last %}
         <div class="ort-sheet__next" data-part-ready hidden data-ask-title="{{ _('Часть %(k)s заполнена', k=pt + 1) }}"
              data-ask-text="{{ _('Все ответы части %(k)s отмечены. Перейти к части %(n)s? Вернуться к части %(k)s можно до сдачи работы.', k=pt + 1, n=pt + 2) }}"
