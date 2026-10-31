@@ -62,7 +62,7 @@ body:not(.auth-body) {
 [data-theme="dark"] .rail__item.is-active { background: var(--nav-active-bg); color: var(--nav-active-text); }
 .rail__logo {
   width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center;
-  background: var(--text); color: var(--bg); font-size: 19px;
+  background: var(--surface); color: var(--pulse, #0F1DF3); border: 2px solid var(--text); font-size: 19px;
 }
 
 /* ---------------------------------------------------------------- cards */
@@ -3510,3 +3510,8 @@ button.ts__row:focus-visible { outline: 2px solid var(--pulse); outline-offset: 
   .ts__name { grid-column: 1 / -1; }
   .ts__track { height: 38px; }
 }
+
+/* the MONDAY wordmark sits in the middle of every top bar, not only in tests */
+.topbar__brand { z-index: 0; }
+.topbar > :not(.topbar__brand) { position: relative; z-index: 1; }
+@media (max-width: 900px) { .topbar__brand { display: none; } }
