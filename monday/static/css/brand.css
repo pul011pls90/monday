@@ -3431,3 +3431,29 @@ a.t-today__stat:hover { background: var(--surface-2); }
 .bb-jump__grid { position: relative; }
 /* line breaks written in a question (I. / II. / III. lists) show as new lines */
 .ort-q__text { white-space: pre-line; }
+
+/* ---------------------------------------------------------------- session bar: white, wordmark in the middle, halftone dots */
+.session-bar { position: sticky; background: #FFFFFF; color: var(--text); border-bottom: 1px solid var(--line); overflow: hidden; isolation: isolate; }
+.session-bar > :not(.session-bar__dots):not(.session-bar__brand) { position: relative; z-index: 2; }
+.session-bar__dots { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.session-bar__brand { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 1; pointer-events: none;
+  font: 800 26px/1 var(--font-display); letter-spacing: -.02em; white-space: nowrap; }
+.session-bar__brand span:nth-child(1) { color: #7FA3F3; }
+.session-bar__brand span:nth-child(2) { color: #4275E9; }
+.session-bar__brand span:nth-child(3) { color: #2B60E5; }
+.session-bar__brand span:nth-child(4) { color: #2456D9; }
+.session-bar__brand span:nth-child(5) { color: #153893; }
+.session-bar__brand span:nth-child(6) { color: #020B29; }
+.session-bar:has(.steps) .session-bar__brand { display: none; }   /* practice sessions keep their progress dots in the middle */
+.session-bar .icon-btn { background: #FFFFFF; color: var(--text); border-color: var(--line-strong); }
+.session-bar .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+.session-bar .avatar { background: var(--btn-bg); color: var(--btn-text); }
+.session-bar .steps span { background: var(--line-strong); }
+.session-bar .steps span.is-done { background: var(--accent); }
+.session-bar .steps span.is-wrong { background: var(--bad); }
+.session-bar .steps span.is-current { background: transparent; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+[data-theme="dark"] .session-bar { background: #0B1020; border-bottom-color: rgba(255, 255, 255, .12); }
+[data-theme="dark"] .session-bar .icon-btn { background: transparent; color: #FFFFFF; border-color: rgba(255, 255, 255, .25); }
+[data-theme="dark"] .session-bar__brand span:nth-child(5) { color: #6F93F0; }
+[data-theme="dark"] .session-bar__brand span:nth-child(6) { color: #FFFFFF; }
+@media (max-width: 900px) { .session-bar__brand { display: none; } }
