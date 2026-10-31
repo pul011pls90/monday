@@ -107,6 +107,23 @@ def remove_princeton_topic_sets():
     _delete_works(works)
 
 
+OLD_ORT_PACKS = ("ort_monday_book_2026", "ort_monday_book_2026_b")
+
+
+def replace_ort_monday_variants():
+    """ORT variants 1–4 were rebuilt as one pack (ort_monday_mix_2026): topics mixed like the real ORT, 8 picture
+    questions each. The old collections go (nobody had taken them); their questions leave the bank (kept as drafts,
+    so nothing that may point at them breaks)."""
+    from .models import Question
+    old = Question.query.filter(Question.source.in_(OLD_ORT_PACKS)).all()
+    old_ids = {q.id for q in old}
+    works = [w for w in Work.query.filter_by(kind="collection").all()
+             if old_ids & set(w.draft_question_ids or [])]
+    _delete_works(works)
+    for q in old:
+        q.status = "draft"
+
+
 def run_fixes():
     if not current_app.config.get("DATA_FIXES", True):
         return
@@ -116,3 +133,4 @@ def run_fixes():
     _once("goals-times-capped", fix_goals_and_times)
     _once("princeton-topic-sets-removed", remove_princeton_topic_sets)
     _once("demo-admin-renamed", rename_demo_admin)
+    _once("ort-monday-mixed-variants", replace_ort_monday_variants)
