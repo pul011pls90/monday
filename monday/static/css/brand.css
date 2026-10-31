@@ -3402,7 +3402,7 @@ a.t-today__stat:hover { background: var(--surface-2); }
   .ort-layout.bb .ort-main { display: flex; flex-direction: column; }
   .ort-layout.bb .ort-main .bb-grid { flex: 1; align-content: start; }
   .ort-layout.bb .ort-sheet { position: static; max-height: none; display: flex; flex-direction: column; }
-  .ort-layout.bb .bb-check { margin-top: auto; }
+  .ort-layout.bb .bb-progress { margin-top: auto; }
 }
 /* page switcher under the questions: back · page map · next */
 .bb-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 0; }
@@ -3467,3 +3467,6 @@ a.t-today__stat:hover { background: var(--surface-2); }
 [data-theme="dark"] .q-grid--levels a.lvl-1, [data-theme="dark"] .lg.lvl-1 { background: rgba(47, 158, 91, .18); }
 [data-theme="dark"] .q-grid--levels a.lvl-2, [data-theme="dark"] .lg.lvl-2 { background: rgba(217, 154, 11, .18); }
 [data-theme="dark"] .q-grid--levels a.lvl-3, [data-theme="dark"] .lg.lvl-3 { background: rgba(214, 69, 69, .18); }
+/* sheet bottom: progress first, then the check button, always with room above them */
+.bb-sheet .bb-progress { padding-top: 18px; }
+.bb-sheet .bb-check { margin-top: 14px; }

@@ -86,12 +86,12 @@
         </div>
         {% endfor %}{% endfor %}
       </div>
-      <button type="button" class="btn btn--primary bb-check" data-check-page>{{ ui.icon('check', 18) }}{{ _("Проверить страницу") }}</button>
-      <p class="small muted bb-note" data-note hidden></p>
       <div class="bb-progress">
         <p class="small">{{ _("Проверено:") }} <b class="num" data-checked>{{ checked }}</b> {{ _("из") }} {{ n }}</p>
         <div class="bar"><span data-checked-bar style="width: {{ (100 * checked / n)|round(1) if n else 0 }}%"></span></div>
       </div>
+      <button type="button" class="btn btn--primary bb-check" data-check-page>{{ ui.icon('check', 18) }}{{ _("Проверить страницу") }}</button>
+      <p class="small muted bb-note" data-note hidden></p>
     </aside>
       {# page switcher: back / "page k of n" (opens a map of all pages with their questions) / next; ← → keys work too #}
       <nav class="bb-nav" aria-label="{{ _('Страницы') }}">
