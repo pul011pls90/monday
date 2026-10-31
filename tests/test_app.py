@@ -364,8 +364,15 @@ def test_profile_settings_export_and_delete():
     from monday.models import StudentProfile, User
     c = login(client(), "student@monday.kg", "student123")
     html = c.get("/profile").data.decode()
-    for part in ("Оформление", "Учёба", "Практика", "Данные и аккаунт"):
+    for part in ("Оформление", "Учёба", "Безопасность", "Калькулятор сразу", "Удалить аккаунт", "data-set-tab"):
         assert part in html
+    # one row saved on its own
+    r = c.post("/profile", data={"action": "field", "field": "school", "value": "Лицей 61", "tab": "exam"})
+    assert r.headers["Location"].endswith("/profile#exam")
+    assert "Лицей 61" in c.get("/profile").data.decode()
+    c.post("/profile", data={"action": "field", "field": "school", "value": "Гимназия №1, Токмок", "tab": "exam"})
+    r = c.post("/profile", data={"action": "field", "field": "name", "value": "x"}, follow_redirects=True)
+    assert "Не получилось сохранить" in r.data.decode()
     c.post("/profile", data={"action": "appearance", "theme": "system", "text": "large", "motion": "reduce"})
     html = c.get("/home").data.decode()
     assert "data-theme-auto" in html and 'data-text="large"' in html and 'data-motion="reduce"' in html
@@ -1035,7 +1042,7 @@ def test_profile_photo_and_name():
     from monday.models import User
     for email, pw, page in [("student@monday.kg", "student123", "/profile"), ("aibek@monday.kg", "teacher123", "/teacher/account")]:
         c = login(client(), email, pw)
-        ok(c, page, contains=["Изменить имя", "data-avatar-input"])
+        ok(c, page, contains=["Изменить" if page == "/profile" else "Изменить имя", "data-avatar-input"])
         png = (b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89"
                b"\x00\x00\x00\rIDATx\x9cc\xf8\xff\xff?\x00\x05\xfe\x02\xfe\xa7V\x8d\xf1\x00\x00\x00\x00IEND\xaeB`\x82")
         r = c.post("/prefs/avatar", data={"next": page, "avatar": (io.BytesIO(png), "me.png")},

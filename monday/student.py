@@ -1324,6 +1324,31 @@ def profile():
         elif action == "join":
             ok, msg = link_invite_code(current_user, request.form.get("invite_code"))
             flash(msg, "success" if ok else "error")
+        elif action == "field":
+            # one setting row saved on its own (the settings page edits a single value at a time)
+            field, value = request.form.get("field"), request.form.get("value", "").strip()
+            tab = request.form.get("tab") or "profile"
+            if field == "name" and len(value) >= 2:
+                current_user.name = value
+            elif field == "exam" and value in EXAMS:
+                p.exam = value
+                e = EXAMS[value]
+                if p.goal_score is not None and not e["min"] <= p.goal_score <= e["max"]:
+                    p.goal_score = None  # the old goal belongs to another exam's scale
+            elif field == "exam_date":
+                p.exam_date = _parse_date(value) or p.exam_date
+            elif field == "goal_score":
+                p.goal_score = _goal_for(p.exam, value, p.goal_score)
+            elif field in ("grade", "region", "school"):
+                setattr(p, field, value or None)
+            elif field == "language" and value in current_app.config["LANGUAGES"]:
+                current_user.language = value
+            else:
+                flash(_("Не получилось сохранить — проверь значение."), "error")
+                return redirect(url_for("student.profile") + "#" + tab)
+            db.session.commit()
+            flash(_("Сохранено."), "success")
+            return redirect(url_for("student.profile") + "#" + tab)
         elif action == "appearance":
             theme = request.form.get("theme")
             if theme in ("light", "dark", "system"):
@@ -1332,7 +1357,7 @@ def profile():
                                    motion="reduce" if request.form.get("motion") else "full")
             db.session.commit()
             flash(_("Оформление сохранено."), "success")
-            resp = redirect(url_for("student.profile") + "#appearance")
+            resp = redirect(url_for("student.profile") + "#look")
             if theme in ("light", "dark", "system"):
                 resp.set_cookie("theme", theme, max_age=60 * 60 * 24 * 365, samesite="Lax")
             return resp
@@ -1351,11 +1376,11 @@ def profile():
             current_user.set_prefs(bank_timer=bool(request.form.get("bank_timer")), calc_open=bool(request.form.get("calc_open")))
             db.session.commit()
             flash(_("Настройки практики сохранены."), "success")
-            return redirect(url_for("student.profile") + "#practice")
+            return redirect(url_for("student.profile") + "#study")
         elif action == "delete":
             if not current_user.check_password(request.form.get("password", "")):
                 flash(_("Пароль неверный — аккаунт не удалён."), "error")
-                return redirect(url_for("student.profile") + "#data")
+                return redirect(url_for("student.profile") + "#security")
             _delete_account(current_user)
             from flask_login import logout_user
             logout_user()
@@ -1370,7 +1395,7 @@ def profile():
                 current_user.set_password(request.form["new"])
                 db.session.commit()
                 flash(_("Пароль изменён."), "success")
-        return redirect(url_for("student.profile"))
+        return redirect(url_for("student.profile") + ("#profile" if action == "join" else "#security" if action == "password" else "#exam"))
     teachers = StudentRecord.query.filter_by(student_user_id=current_user.id).all()
     return render_template("student/profile.html", p=p, teachers=teachers)
 
