@@ -11,8 +11,8 @@
     {{ ui.dot_ring(att.percent ~ '%', att.percent / 100, att.score ~ ' / ' ~ att.total ~ ' ' ~ _("баллов")) }}
     <div class="stack-sm">
       <div class="eyebrow">{{ v.title }}</div>
-      <div class="hero__unit">{% if att.percent >= 80 %}{{ _("Отличная работа.") }}{% elif att.percent >= 50 %}{{ _("Хорошая основа — разбери ошибки ниже.") }}{% else %}{{ _("Ошибки — это карта. Начни с разбора ниже.") }}{% endif %}</div>
-      <div class="hero-muted">{{ _("Время:") }} {{ att.time_used|duration }} · {{ att.finished_at|dt }}</div>
+      <div class="hero__unit">{{ _("Процент ошибок:") }} <span class="num">{{ 100 - att.percent }}%</span></div>
+      <div class="hero-muted">{{ _("Время:") }} {{ att.time_used|duration }}</div>
       <div class="row" style="gap:10px;margin-top:14px">
       {% if att.mode == 'homework' %}
         <a class="btn btn--primary" href="{{ url_for('student.homework_detail', assignment_id=att.assignment_id) }}">{{ _("К заданию") }}</a>
