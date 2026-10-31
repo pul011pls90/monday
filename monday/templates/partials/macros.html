@@ -74,17 +74,21 @@
 {%- endmacro %}
 
 {# What a free-input answer may look like — shown under the input box. #}
-{% macro input_hint(item) -%}
+{% macro input_hint(item, sat=False) -%}
+{% if sat %}{# SAT student-produced response: the Bluebook rules in one line #}
+<span class="field__hint">{{ _("Не больше 5 символов (6 с минусом). Дробь или десятичное через точку: 7/2 или 3.5. Без запятых, %% и $.") }}</span>
+{%- else %}
 {% set f = item.input_formats or ['whole', 'fraction', 'decimal'] %}
 {% set kinds = [] %}
 {% if 'whole' in f %}{% set _d = kinds.append(_("целое число (12)")) %}{% endif %}
 {% if 'fraction' in f %}{% set _d = kinds.append(_("дробь (3/4)")) %}{% endif %}
 {% if 'decimal' in f %}{% set _d = kinds.append(_("десятичное число (0,75)")) %}{% endif %}
 <span class="field__hint">{{ _("Можно ввести: %(kinds)s.", kinds=kinds|join(', ')) }}{% if item.precision == 1 %} {{ _("Округлите до десятых.") }}{% elif item.precision == 2 %} {{ _("Округлите до сотых.") }}{% endif %}</span>
+{%- endif %}
 {%- endmacro %}
 
 {# Render the answer controls for a question snapshot (dict) inside a form. #}
-{% macro option_inputs(item, name, selected=None, reveal=False, disabled=False, letters=None, photo=None) -%}
+{% macro option_inputs(item, name, selected=None, reveal=False, disabled=False, letters=None, photo=None, sat=False) -%}
 {% set L = letters or LETTERS %}
 {% if item.answer_type == 'written' %}
   {% if not reveal %}
@@ -105,7 +109,7 @@
     <label for="{{ name }}">{{ _("Ваш ответ") }}</label>
     <input class="input input--mono" id="{{ name }}" name="{{ name }}" inputmode="text" autocomplete="off" spellcheck="false"
            value="{{ selected or '' }}" {{ 'disabled' if disabled }}>
-    {% if not reveal %}{{ input_hint(item) }}{% endif %}
+    {% if not reveal %}{{ input_hint(item, sat=sat) }}{% endif %}
   </div>
   {% if reveal %}<p class="small">{{ _("Верный ответ:") }} <b>{{ item.correct|answer }}</b></p>{% endif %}
 {% else %}
@@ -154,7 +158,7 @@
 {# The one question layout used everywhere.
    With material (picture, passage, columns): material on the left, question + answers on the right.
    Without: one centred column — question on top, answers underneath. #}
-{% macro question_body(item, name, selected=None, reveal=False, disabled=False, number=None, letters=None, photo=None, weight_tag=True) -%}
+{% macro question_body(item, name, selected=None, reveal=False, disabled=False, number=None, letters=None, photo=None, weight_tag=True, sat=False) -%}
 {% set has_material = item.image_path or item.material %}
 <div class="q-layout {{ 'q-layout--split' if has_material else 'q-layout--single' }}">
   {% if has_material %}
@@ -174,7 +178,7 @@
     <a class="q-lang" href="{{ url_for('content_i18n.toggle_original', next=request.full_path) }}">{{ icon('globe', 14) }}{{ _("Показать перевод") if item._original_shown else _("Показать оригинал") }}</a>
     {% endif %}
     {% if item.text %}<div class="q-text math">{{ item.text }}</div>{% endif %}
-    {{ option_inputs(item, name, selected=selected, reveal=reveal, disabled=disabled, letters=letters, photo=photo) }}
+    {{ option_inputs(item, name, selected=selected, reveal=reveal, disabled=disabled, letters=letters, photo=photo, sat=sat) }}
   </div>
 </div>
 {%- endmacro %}
