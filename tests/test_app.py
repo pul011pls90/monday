@@ -769,6 +769,9 @@ def test_bank_booklet_pages_and_check():
     assert 'data-sheet-row="0"' in body and "is-ok" in body
     r = c.post("/bank/start", data={"exam": "ORT", "view": "one"})
     assert "/sheet" not in r.headers["Location"]
+    one = ok(c, r.headers["Location"] + "?i=5").data.decode()
+    assert "/sheet?q=5" in one  # and back to pages
+    assert 'id="question-6"' in ok(c, r.headers["Location"] + "/sheet?q=5").data.decode()
 
 
 def test_old_ort_monday_collections_are_replaced():

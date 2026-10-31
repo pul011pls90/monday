@@ -337,6 +337,9 @@ def sheet(attempt_id):
     items = [(k, localize(qs[qid].snapshot())) for k, qid in enumerate(plan) if qid in qs]
     pages = booklet_pages(items)
     p = max(0, min(len(pages) - 1, request.args.get("p", type=int) or 0))
+    q = request.args.get("q", type=int)  # coming from the one-question view: open the page with that question
+    if q is not None:
+        p = next((k for k, pg in enumerate(pages) if any(i == q for row in pg["rows"] for i, _it in row)), p)
     done = {}
     for a in sorted(att.answers, key=lambda a: a.id):  # the latest check of each question in this session
         done[a.index] = {"given": a.given, "ok": a.is_correct}
