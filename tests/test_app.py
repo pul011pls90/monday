@@ -196,8 +196,8 @@ def test_student_pages_render():
     ok(c, "/homework", contains=["Нужно сделать", "Свойства логарифмов", "hwcal__day", "Проверено"])
     ok(c, "/journal", contains=["Журнал ошибок", "Где теряешь баллы", "Записи", "Начать работу над ошибками"])
     ok(c, "/journal?show=resolved")
-    body = ok(c, "/monday", contains=["Тест", "Твой прошлый тест"]).data.decode()
-    assert "Рейтинг прошлой недели" not in body and "Дуэль школ" not in body   # rankings are off by default
+    body = ok(c, "/monday", contains="Тест").data.decode()
+    assert "Рейтинг прошлой недели" not in body and "Дуэль школ" not in body and "Твой прошлый тест" not in body   # off by default
     APP.config["MONDAY_RANKINGS"] = True
     ok(c, "/monday", contains=["Тест", "Рейтинг прошлой недели", "Дуэль школ"])
     ok(c, "/monday?scope=region")

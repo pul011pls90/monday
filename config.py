@@ -74,7 +74,7 @@ class Config:
     # Demo convenience: lets students take the Monday test any day.
     # Set MONDAY_TEST_ALWAYS_OPEN=0 to enforce the Monday 19:00–24:00 window.
     MONDAY_TEST_ALWAYS_OPEN = os.environ.get("MONDAY_TEST_ALWAYS_OPEN", "1") == "1"
-    # Rankings of the Monday test (leaderboard, school duel, places) are hidden for now; MONDAY_RANKINGS=1 shows them.
+    # Rankings of the Monday test (leaderboard, last test, school duel, places) are hidden for now; MONDAY_RANKINGS=1 shows them.
     MONDAY_RANKINGS = os.environ.get("MONDAY_RANKINGS", "0") == "1"
 
     # Content packs shipped in monday/data/packs/ (e.g. the Princeton Review SAT practice tests) are imported

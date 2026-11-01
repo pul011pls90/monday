@@ -8,14 +8,14 @@
  */
 (function () {
   "use strict";
-  const card = document.querySelector("[data-rank]");   // absent while rankings are switched off: only the "last test" card is drawn
-  if (!card && !document.querySelector(".rk-last")) return;
+  const card = document.querySelector("[data-rank]");
+  if (!card) return;
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let data = {};
   try { data = JSON.parse(card.querySelector("[data-rank-data]").textContent); } catch (e) { data = {}; }
-  const T = card ? card.dataset : {};
-  const podium = card?.querySelector("[data-podium]"), list = card?.querySelector("[data-rk-list]");
-  const more = card?.querySelector("[data-rk-more]"), meBox = card?.querySelector("[data-rk-me]");
+  const T = card.dataset;
+  const podium = card.querySelector("[data-podium]"), list = card.querySelector("[data-rk-list]");
+  const more = card.querySelector("[data-rk-more]"), meBox = card.querySelector("[data-rk-me]");
   const fade = (color, a) => { const m = color.match(/[\d.]+/g) || [0, 0, 0]; return `rgba(${m[0]},${m[1]},${m[2]},${a})`; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const delta = (d) => d === false ? "" : d === null || d === undefined ? `<span class="rk-delta rk-delta--new">${esc(T.tNew)}</span>`
@@ -79,23 +79,21 @@
   }
 
   // segmented switch: the highlight slides to the chosen scope; no page reload
-  if (card) {
-    const seg = card.querySelector(".seg-switch"), thumb = seg.querySelector(".seg-switch__thumb");
-    const moveThumb = (a) => { thumb.style.width = a.offsetWidth + "px"; thumb.style.transform = `translateX(${a.offsetLeft}px)`; };
-    const links = [...seg.querySelectorAll("[data-scope-link]")];
-    links.forEach((a) => a.addEventListener("click", (e) => {
-      e.preventDefault();
-      links.forEach((x) => x.setAttribute("aria-selected", String(x === a)));
-      moveThumb(a); card.dataset.scope = a.dataset.scopeLink;
-      render(a.dataset.scopeLink, true);
-      try { history.replaceState(null, "", a.href); } catch (err) { /* ignore */ }
-    }));
-    const current = links.find((a) => a.getAttribute("aria-selected") === "true") || links[0];
-    requestAnimationFrame(() => moveThumb(current));
-    window.addEventListener("resize", () => moveThumb(links.find((a) => a.getAttribute("aria-selected") === "true") || links[0]));
+  const seg = card.querySelector(".seg-switch"), thumb = seg.querySelector(".seg-switch__thumb");
+  const moveThumb = (a) => { thumb.style.width = a.offsetWidth + "px"; thumb.style.transform = `translateX(${a.offsetLeft}px)`; };
+  const links = [...seg.querySelectorAll("[data-scope-link]")];
+  links.forEach((a) => a.addEventListener("click", (e) => {
+    e.preventDefault();
+    links.forEach((x) => x.setAttribute("aria-selected", String(x === a)));
+    moveThumb(a); card.dataset.scope = a.dataset.scopeLink;
+    render(a.dataset.scopeLink, true);
+    try { history.replaceState(null, "", a.href); } catch (err) { /* ignore */ }
+  }));
+  const current = links.find((a) => a.getAttribute("aria-selected") === "true") || links[0];
+  requestAnimationFrame(() => moveThumb(current));
+  window.addEventListener("resize", () => moveThumb(links.find((a) => a.getAttribute("aria-selected") === "true") || links[0]));
 
-    render(card.dataset.scope, false);
-  }
+  render(card.dataset.scope, false);
   // pixel numbers in the "last test" card
   const drawLast = () => document.querySelectorAll("[data-pixtext]").forEach((c) => {
     const cs = getComputedStyle(c.parentElement), ink = cs.color, acc = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#2747d8";
@@ -103,7 +101,7 @@
   });
   drawLast();
   // redraw the pixel numbers when the theme changes
-  new MutationObserver(() => { drawLast(); if (card) render(card.dataset.scope, false); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  new MutationObserver(() => { drawLast(); render(card.dataset.scope, false); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   // play the entrance once, when the cards scroll into view
   const play = (el) => el.classList.add("is-in");
   if (reduce || !("IntersectionObserver" in window)) { document.querySelectorAll(".rk, .rk-last, .rk-duel").forEach(play); return; }
