@@ -60,8 +60,13 @@
       const adv = (g) => {
         if (u + g > L) { s += L - u + Math.PI * r + 30; row++; u = 30; } else { u += g; s += g; }
       };
+      let lastTopic = null;   // topic names are up to 184px wide: two on one row keep at least that apart
       seq.forEach((node, i) => {
-        if (node.type === 'topic') { if (i) adv(76); P.push({ node, ...pos() }); adv(70); }
+        if (node.type === 'topic') {
+          if (i) adv(76);
+          if (lastTopic && lastTopic.row === row && u - lastTopic.u < 200) adv(200 - (u - lastTopic.u));
+          P.push({ node, ...pos() }); lastTopic = { row, u }; adv(70);
+        }
         else if (node.type === 'sub') { if (seq[i - 1].type !== 'topic') adv(22); open = { node, ...pos(), parts: [] }; }
         else if (node.type === 'skill') { if (seq[i - 1].type !== 'sub' || seq[i - 2].type !== 'topic') adv(40); P.push({ node, ...pos() }); }
         else { subSpans.push(open); }
@@ -74,7 +79,7 @@
         if (k < rows - 1) path += ` L${dirR ? x1 : x0},${y} A${r},${r} 0 0 ${dirR ? 1 : 0} ${dirR ? x1 : x0},${y + 2 * r}`;
         else path += ` L${dirR ? x0 + Math.min(L, endU) : x1 - Math.min(L, endU)},${y}`;
       }
-      H = top + (rows - 1) * 2 * r + 120;
+      H = top + (rows - 1) * 2 * r + 150;   // room for a two-line topic name above the legend
     }
     stage.style.height = H + 'px';
     const cur = P.find((p) => p.node.type === 'skill' && p.node.k.id === data.current);
@@ -125,11 +130,15 @@
       // one line, always above the track; too long for its stretch → ellipsis, full name on hover
       const c = (it.a + it.b) / 2, room = Math.max(it.b - it.a + 40, 120);
       const w = Math.ceil(Math.min(tw(name), Math.max(room, 150))) + 4;
-      // try right above, then one level higher, then the same nudged sideways; the label stays near its stations
+      // try right above, then one level higher, then the same nudged sideways; the label stays near its stations.
+      // When both levels are taken nearby, it goes under the track rather than on top of another name.
       let spot = null;
-      for (const dx of [0, -30, 30, -60, 60]) {
-        const side = ['above', 'high'].find((sd) => free(sd, it.row, c + dx - w / 2, c + dx + w / 2));
-        if (side) { spot = { side, x: c + dx }; break; }
+      for (const sides of [['above', 'high'], ['below']]) {
+        for (const dx of [0, -30, 30, -60, 60, -100, 100, -150, 150]) {
+          const side = sides.find((sd) => free(sd, it.row, c + dx - w / 2, c + dx + w / 2));
+          if (side) { spot = { side, x: c + dx }; break; }
+        }
+        if (spot) break;
       }
       spot = spot || { side: 'above', x: c };
       boxes[spot.side].push({ row: it.row, l: spot.x - w / 2, r: spot.x + w / 2 });
