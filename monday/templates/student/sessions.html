@@ -46,7 +46,7 @@
       <h2 id="sb-h" class="cb__title">{{ _("Собери свою сессию") }}</h2>
       <div class="cb__presets" role="group" aria-label="{{ _('Шаблоны') }}">
         {% for key, c in builtin %}
-          <button type="button" class="cb__preset" data-sb-preset='{{ c|tojson }}'>{{ MODES[key].name }}</button>
+          <button type="button" class="cb__preset sc-mode--{{ key }}" data-sb-preset='{{ c|tojson }}'>{{ MODES[key].name }}</button>
         {% endfor %}
         {% for pr in presets %}
           <span class="cb__preset cb__preset--own"><button type="button" data-sb-preset='{{ pr.cfg|tojson }}'>{{ ui.icon('bookmark', 14) }}{{ pr.name }}</button>
