@@ -847,6 +847,11 @@ document.addEventListener("click", async (e) => {
   const form = box.querySelector("#sb-form");
   const range = form.querySelector("[data-sb-count]");
   const out = form.querySelector("[data-sb-count-out]");
+  const minRange = form.querySelector("[data-sb-min]"), minOut = form.querySelector("[data-sb-min-out]");
+  const minVal = form.querySelector("[data-sb-min-val]");
+  const NO_LIMIT = parseInt(minRange.max, 10);   // the slider's last stop
+  const getMinutes = () => parseInt(minVal.value || "0", 10);
+  const setMinutes = (m) => { minRange.value = m > 0 ? Math.min(m, NO_LIMIT - 5) : NO_LIMIT; };
   const pace = form.querySelector("[data-sb-pace]");
   const topics = form.querySelector("[data-sb-topics]");
   const P = JSON.parse(pace.dataset.pace);
@@ -856,9 +861,12 @@ document.addEventListener("click", async (e) => {
   const human = (s) => (s < 60 ? pace.dataset.tSec.replace("{n}", s) : pace.dataset.tMin.replace("{m}", Math.floor(s / 60)).replace("{s}", s % 60));
   const update = () => {
     out.textContent = range.value;
+    const free = parseInt(minRange.value, 10) >= NO_LIMIT;
+    minVal.value = free ? 0 : minRange.value;
+    minOut.innerHTML = free ? minOut.dataset.tFree : `${minRange.value} <small>${minOut.dataset.tMin}</small>`;
     const note = form.querySelector("[data-sb-ladder-note]");
     if (note) note.hidden = val("level") !== "ladder";
-    const minutes = parseInt(val("minutes") || "0", 10), count = parseInt(range.value, 10);
+    const minutes = getMinutes(), count = parseInt(range.value, 10);
     const text = pace.querySelector("[data-sb-pace-text]"), fix = pace.querySelector("[data-sb-fix]");
     fix.innerHTML = "";
     pace.className = "sb__pace";
@@ -869,15 +877,14 @@ document.addEventListener("click", async (e) => {
     pace.classList.add("is-bad");
     text.textContent = pace.dataset.tBad.replace("{need}", human(n)).replace("{s}", human(per));
     const fitCount = Math.max(1, Math.floor((minutes * 60) / n));
-    const opts = [...form.querySelectorAll("input[name=minutes]")].map((i) => parseInt(i.value, 10)).filter((m) => m > 0);
-    const fitMin = opts.find((m) => (m * 60) / count >= n);
+    const fitMin = Math.ceil((n * count) / 60 / 5) * 5;   // the shortest slider stop that gives enough time
     const btn = (label, fn) => { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = label; b.onclick = () => { fn(); update(); }; fix.appendChild(b); };
     btn(pace.dataset.tFixCount.replace("{n}", fitCount), () => { range.value = fitCount; });
-    if (fitMin) btn(pace.dataset.tFixMin.replace("{m}", fitMin), () => set("minutes", fitMin));
+    if (fitMin < NO_LIMIT) btn(pace.dataset.tFixMin.replace("{m}", fitMin), () => setMinutes(fitMin));
   };
   box.querySelectorAll("[data-sb-preset]").forEach((b) => b.addEventListener("click", () => {
     const c = JSON.parse(b.dataset.sbPreset);
-    if (c.minutes !== undefined) set("minutes", c.minutes);
+    if (c.minutes !== undefined) setMinutes(c.minutes);
     if (c.count) range.value = c.count;
     if (c.level) set("level", c.level);
     if (Array.isArray(c.topics)) {

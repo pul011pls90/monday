@@ -69,11 +69,19 @@
         <div class="cb__big num">{{ spent_label }}</div>
         <div class="cb__sub">{{ _("за все сессии") }}</div>
       </div>
-      <div class="cb__stat">
-        <div class="cb__eyebrow">{{ _("Вопросов в сессии") }}</div>
-        <div class="cb__count">
+      {# questions and time: two sliders in one block, the pace hint under them #}
+      <div class="cb__stat cb__stat--size">
+        <div class="cb__slider">
+          <div class="cb__eyebrow">{{ _("Вопросов в сессии") }}</div>
           <div class="cb__big num"><output data-sb-count-out>10</output></div>
           <input class="sb__range" type="range" name="count" min="1" max="30" value="10" data-sb-count aria-label="{{ _('Сколько вопросов') }}">
+        </div>
+        {# the last stop (65) means «без лимита»; the form sends the hidden minutes field #}
+        <div class="cb__slider">
+          <div class="cb__eyebrow">{{ _("Время") }}</div>
+          <div class="cb__big num"><output data-sb-min-out data-t-free="{{ _('без лимита') }}" data-t-min="{{ _('мин') }}">15 <small>{{ _("мин") }}</small></output></div>
+          <input class="sb__range" type="range" min="5" max="65" step="5" value="15" data-sb-min aria-label="{{ _('Время') }}">
+          <input type="hidden" name="minutes" value="15" data-sb-min-val>
         </div>
         <div class="sb__pace" data-sb-pace aria-live="polite"
              data-pace='{{ PACE|tojson }}'
@@ -90,13 +98,6 @@
     </div>
 
     <div class="cb__filters">
-      <fieldset class="cb__filter">
-        <legend>{{ ui.icon('clock', 20) }}{{ _("Время") }}</legend>
-        <div class="cb__chips">
-          {% for m in SESSION_MINUTES %}<label class="cb-chip"><input type="radio" name="minutes" value="{{ m }}" {{ 'checked' if m == 15 }}><span>{{ m }} {{ _("мин") }}</span></label>{% endfor %}
-          <label class="cb-chip"><input type="radio" name="minutes" value="0"><span>{{ _("без лимита") }}</span></label>
-        </div>
-      </fieldset>
       <fieldset class="cb__filter">
         <legend>{{ ui.icon('chart', 20) }}{{ _("Сложность") }}</legend>
         <div class="cb__chips">
