@@ -11,10 +11,19 @@
   if (filters) {
     // keep the scroll position across the reload a chip causes
     try { const y = ss && ss.getItem("monday-bank-y"); if (y) { window.scrollTo(0, parseInt(y, 10)); ss.removeItem("monday-bank-y"); } } catch (_) {}
-    filters.addEventListener("change", () => {
+    // any chip of the form — including the exam switch in the page head (form="bk-filters") — applies at once
+    document.addEventListener("change", (e) => {
+      if (e.target.form !== filters) return;
       try { ss && ss.setItem("monday-bank-y", String(window.scrollY)); } catch (_) {}
       filters.submit();
     });
+    // phones: the filter boxes fold behind the «Фильтры» row; wider screens always show them
+    const fold = $("[data-bank-fold]");
+    const wide = window.matchMedia("(min-width: 641px)");
+    const sync = () => { if (fold) fold.open = wide.matches; };
+    sync();
+    if (wide.addEventListener) wide.addEventListener("change", sync);
+    if (fold) $("summary", fold).addEventListener("click", (e) => { if (wide.matches) e.preventDefault(); });
   }
 
   const tree = $("[data-bank-tree]");
