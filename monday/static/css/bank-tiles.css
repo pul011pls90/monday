@@ -19,7 +19,7 @@
 }
 
 /* progress card: compact and crisp */
-.bk-head { align-items: center; position: relative; z-index: 20; }
+.bk-head { align-items: center; }
 .bk-progress { --ok: #1fae74; --bad: #ef5a56; --new: #8a93b8; --mark: #e79a1a; --time: #3b5bff;
   display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 10px 20px; margin-top: 0; padding: 16px 22px 14px;
   border-radius: 18px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(2, 11, 41, .06); position: relative; overflow: hidden; }
@@ -101,18 +101,7 @@ a.bk-pchip.is-on .ic, a.bk-pchip.is-on b { color: #fff; }
 .bk-fold__chev { display: none; color: var(--muted); }
 .bk-fold[open] > summary { margin-bottom: 10px; }
 .bk-filter-box__reset { position: absolute; top: 10px; right: 14px; }
-/* exam switch, now in the page head */
-.bk-drop { position: relative; }
-.bk-drop > summary { list-style: none; display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 13px 0 14px;
-  border-radius: 999px; border: 1.5px solid var(--line-strong); background: var(--surface); font-weight: 650; font-size: 14px; cursor: pointer; user-select: none; }
-.bk-drop > summary::-webkit-details-marker { display: none; }
-.bk-drop > summary svg:last-child { transition: transform .15s; }
-.bk-drop[open] > summary svg:last-child { transform: rotate(180deg); }
-.bk-drop--exam > summary { background: var(--btn-bg); color: var(--btn-text); border-color: var(--btn-bg); }
-.bk-drop--exam > summary svg:last-child { color: currentColor; opacity: .8; }
 .bk-drop__n { min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--btn-bg); color: var(--btn-text); font-size: 11px; display: inline-grid; place-items: center; letter-spacing: 0; }
-.bk-drop__menu { position: absolute; z-index: 20; top: calc(100% + 6px); right: 0; display: flex; flex-wrap: wrap; gap: 8px; min-width: 240px; max-width: 320px;
-  padding: 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); box-shadow: 0 16px 36px rgba(2, 11, 41, .16); }
 .bk-reset { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 6px; font-weight: 600; font-size: 13px; color: var(--accent); text-decoration: none; }
 
 /* topics section & tiles */

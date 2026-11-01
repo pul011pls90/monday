@@ -16,15 +16,6 @@
   <div class="page-head__text">
     <h1>{{ _("Банк вопросов") }}</h1>
   </div>
-  {# the exam switch belongs to the filters form below (form="bk-filters") #}
-  <details class="bk-drop bk-drop--exam is-on">
-    <summary>{{ ui.icon('flag', 16) }}<span class="sr-only">{{ _("Экзамен") }}:</span><b>{{ EXAMS[exam].label if exam in EXAMS else _("Все") }}</b>{{ ui.icon('chevron-down', 16) }}</summary>
-    <div class="bk-drop__menu">
-      {% for code, e in EXAMS.items() %}
-        <label class="bank-chip"><input type="radio" name="exam" value="{{ code }}" form="bk-filters" {{ 'checked' if code == exam }}><span>{{ e.label }}</span></label>
-      {% endfor %}
-    </div>
-  </details>
 </div>
 
 {# ------------------------------------------------------------ progress: the main number of the page #}
@@ -60,6 +51,14 @@
       <span class="bk-fold__chev">{{ ui.icon('chevron-down', 16) }}</span>
     </summary>
     <form method="get" class="bk-filters" id="bk-filters" data-bank-filters aria-label="{{ _('Фильтры') }}">
+      <fieldset class="cb__filter bk-filter bk-filter--exam">
+        <legend>{{ ui.icon('flag', 18) }}{{ _("Экзамен") }}</legend>
+        <div class="cb__chips">
+          {% for code, e in EXAMS.items() %}
+            <label class="cb-chip"><input type="radio" name="exam" value="{{ code }}" {{ 'checked' if code == exam }}><span>{{ e.label }}</span></label>
+          {% endfor %}
+        </div>
+      </fieldset>
       {% for key, ic, title in groups %}
         <fieldset class="cb__filter bk-filter{{ ' is-on' if f[key] }}">
           <legend>{{ ui.icon(ic, 18) }}{{ title }}</legend>
