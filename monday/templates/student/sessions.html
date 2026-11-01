@@ -43,10 +43,7 @@
     <form method="post" action="{{ url_for('student.session_custom') }}" id="sb-form">
     {{ ui.csrf() }}
     <div class="cb__head">
-      <div>
-        <h2 id="sb-h" class="cb__title">{{ _("Собери свою сессию") }}</h2>
-        <p class="cb__lead">{{ _("Настрой фильтры ниже. Отметь несколько тем галочками и нажми «Начать сессию» — или запусти одну тему кнопкой ▶.") }}</p>
-      </div>
+      <h2 id="sb-h" class="cb__title">{{ _("Собери свою сессию") }}</h2>
       <div class="cb__presets" role="group" aria-label="{{ _('Шаблоны') }}">
         {% for key, c in builtin %}
           <button type="button" class="cb__preset" data-sb-preset='{{ c|tojson }}'>{{ MODES[key].name }}</button>
@@ -57,6 +54,8 @@
         {% endfor %}
       </div>
     </div>
+
+    <p class="cb__lead cb__lead--wide">{{ _("Настрой фильтры ниже. Отметь несколько тем галочками и нажми «Начать сессию» — или запусти одну тему кнопкой ▶.") }}</p>
 
     <div class="cb__stats">
       <div class="cb__stat">

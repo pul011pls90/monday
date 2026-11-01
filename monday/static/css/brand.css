@@ -3195,7 +3195,8 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 .cb { padding: 16px 22px; }
 .cb form { gap: 12px; }
 .cb__head { flex-wrap: nowrap; align-items: center; }
-.cb__head > div:first-child { min-width: 0; }
+.cb__head > .cb__title { min-width: 0; }
+.cb__lead--wide { max-width: none; margin-top: -6px; }   /* under the title row, one line on a laptop */
 .cb__lead { font-size: 13px; line-height: 1.4; }
 .cb__presets { flex: none; }
 .cb__stat { padding: 10px 16px; }
