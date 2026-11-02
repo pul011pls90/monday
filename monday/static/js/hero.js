@@ -7,6 +7,8 @@
   const hero = document.querySelector("[data-hero]");
   if (!hero) return;
   const canvas = hero.querySelector("[data-hero-dots]");
+  // background mode (home page): the sky fills the whole window behind the cards, quieter, and follows the cursor
+  const bg = hero.hasAttribute("data-hero-bg");
   const ctx = canvas.getContext("2d");
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -49,6 +51,7 @@
 
   // the sky lives in the right part of the card; the text column on the left stays clean
   const quietAt = (x, y) => {
+    if (bg) return 1;
     let q = smooth(W * 0.36, W * 0.52, x);
     if (q <= 0) return 0;
     for (const b of textBoxes) {
@@ -62,16 +65,17 @@
   // every whole tile in the sky reacts to hover and click; the text blocks over the sky have solid backgrounds,
   // so tiles simply pass behind them. Tiles that touch no text at all are the ones that light up by themselves.
   // the sky starts at 40% of the card, or right of the left text column if that reaches further
-  const skyLeft = () => Math.max(W * 0.4, ...textBoxes.filter((x) => x[0] < W * 0.4).map((x) => x[2] + 16));
+  const skyLeft = () => bg ? 0 : Math.max(W * 0.4, ...textBoxes.filter((x) => x[0] < W * 0.4).map((x) => x[2] + 16));
   const inSky = (i, j) => j >= 0 && j < rows && i < cols && i * CELL >= skyLeft();
   const tileFree = (i, j) => {
     const l = i * CELL, t = j * CELL, r = l + CELL, b = t + CELL;
-    if (l < W * 0.45) return false;
+    if (!bg && l < W * 0.45) return false;
     return !textBoxes.some((x) => l < x[2] + 12 && r > x[0] - 12 && t < x[3] + 12 && b > x[1] - 12);
   };
 
   // tiles change by themselves now and then, so the sky never stands still
   function shuffleTiles() {
+    if (bg) return;  // no pink tiles behind the page: they would show through text that has no card under it
     tiles.forEach((t) => { if (!t.painted) t.to = 0; });
     const free = [];
     for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) if (tileFree(i, j)) free.push(`${i},${j}`);
@@ -86,7 +90,7 @@
   function draw(t) {
     ctx.clearRect(0, 0, W, H);
     const pi = Math.floor(pointer.cx / CELL), pj = Math.floor(pointer.cy / CELL);
-    const pc = pointer.presence > 0.01 && inSky(pi, pj) ? `${pi},${pj}` : null;
+    const pc = !bg && pointer.presence > 0.01 && inSky(pi, pj) ? `${pi},${pj}` : null;
 
     // tiles: pink squares under the clouds (hover fades in fast and out quickly, so no trail is left behind)
     tiles.forEach((tile, key) => {
@@ -119,12 +123,13 @@
         else if (!inTile && (ix % 3 === 0) && (jy % 3 === 0) && q > 0.6) sky.rect(x + 1, y + 1, 2, 2); // sparse sky grain
       }
     }
-    ctx.fillStyle = `rgba(${ink}, 0.1)`; ctx.fill(sky);
-    ctx.fillStyle = `rgba(${ink}, 0.4)`; ctx.fill(white);
+    const k = bg ? 0.6 : 1;  // the background version is a little lighter
+    ctx.fillStyle = `rgba(${ink}, ${0.1 * k})`; ctx.fill(sky);
+    ctx.fillStyle = `rgba(${ink}, ${0.4 * k})`; ctx.fill(white);
     ctx.globalAlpha = 0.6; ctx.fillStyle = ORANGE; ctx.fill(warm); ctx.globalAlpha = 1;
 
     // the grid
-    ctx.strokeStyle = `rgba(${ink}, 0.14)`; ctx.lineWidth = 1;
+    ctx.strokeStyle = `rgba(${ink}, ${bg ? 0.1 : 0.14})`; ctx.lineWidth = 1;
     ctx.beginPath();
     for (let i = 1; i < cols; i++) { ctx.moveTo(i * CELL + 0.5, 0); ctx.lineTo(i * CELL + 0.5, H); }
     for (let j = 1; j < rows; j++) { ctx.moveTo(0, j * CELL + 0.5); ctx.lineTo(W, j * CELL + 0.5); }
@@ -142,15 +147,15 @@
     if (!reduce) requestAnimationFrame(frame);
   }
 
-  hero.addEventListener("pointermove", (e) => {
+  (bg ? window : hero).addEventListener("pointermove", (e) => {
     const r = hero.getBoundingClientRect();
     pointer.x = e.clientX - r.left; pointer.y = e.clientY - r.top;
     if (!pointer.inside) { pointer.cx = pointer.x; pointer.cy = pointer.y; }
     pointer.inside = true;
   });
-  hero.addEventListener("pointerleave", () => { pointer.inside = false; });
+  (bg ? document.documentElement : hero).addEventListener("pointerleave", () => { pointer.inside = false; });
   // a click on the sky (not on a link or button) paints that tile, a second click clears it
-  hero.addEventListener("click", (e) => {
+  if (!bg) hero.addEventListener("click", (e) => {
     if (e.target.closest("a, button, input, select, label")) return;
     const r = hero.getBoundingClientRect();
     const ci = Math.floor((e.clientX - r.left) / CELL), cj = Math.floor((e.clientY - r.top) / CELL);
@@ -166,4 +171,25 @@
   shuffleTiles();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(resize);
   requestAnimationFrame(frame);
+})();
+
+/* Home: live countdown to the exam date (the day starts at local midnight) */
+(function () {
+  "use strict";
+  const box = document.querySelector("[data-countdown]");
+  if (!box) return;
+  const [y, m, d] = box.dataset.countdown.split("-").map(Number);
+  const end = new Date(y, m - 1, d).getTime();
+  const cell = (k) => box.querySelector(`[data-cd="${k}"]`);
+  const pad = (n) => String(n).padStart(2, "0");
+  function tick() {
+    let left = Math.max(0, Math.floor((end - Date.now()) / 1000));
+    const days = Math.floor(left / 86400); left %= 86400;
+    cell("d").textContent = days;
+    cell("h").textContent = pad(Math.floor(left / 3600));
+    cell("m").textContent = pad(Math.floor((left % 3600) / 60));
+    cell("s").textContent = pad(left % 60);
+  }
+  tick();
+  setInterval(tick, 1000);
 })();

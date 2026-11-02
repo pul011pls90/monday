@@ -181,7 +181,7 @@ def test_register_teacher_needs_approval():
 
 def test_student_pages_render():
     c = login(client(), "student@monday.kg", "student123")
-    ok(c, "/home", contains=["Привет, Тима", "21", "Сегодня", "Ты в точках", "мин сегодня", "К сессиям"])
+    ok(c, "/home", contains=["Привет, Тима", "data-countdown", "План на сегодня", "Целевой балл", "Ты в точках", "мин сегодня", "К сессиям"])
     ok(c, "/home?t=30")
     ok(c, "/skills?show=list", contains=["Карта навыков", "Свойства логарифмов"])
     body = ok(c, "/skills").data.decode()  # the list choice is remembered
