@@ -143,6 +143,17 @@ def csca_only_fitting_questions():
             q.exams = [e for e in q.exams if e != "CSCA"]
 
 
+def retag_ort_monday_word_mix():
+    """ORT variants 1–4: most questions filed under «Смеси, сплавы, концентрации» weren't about mixtures
+    (factorials, progressions, defined operations, word problems…); each now has the skill it actually trains."""
+    from .models import AttemptAnswer, Question
+    from .packs import sync_pack
+    sync_pack("ort_monday_mix_2026")
+    # past answers keep their own copy of the skill (journal, results): move them to the new one too
+    for q in Question.query.filter_by(source="ort_monday_mix_2026").all():
+        AttemptAnswer.query.filter(AttemptAnswer.question_id == q.id).update({"skill_id": q.skill_id})
+
+
 def run_fixes():
     if not current_app.config.get("DATA_FIXES", True):
         return
@@ -155,3 +166,4 @@ def run_fixes():
     _once("ort-monday-mixed-variants", replace_ort_monday_variants)
     _once("ort-monday-easy-to-hard", order_ort_monday_variants)
     _once("csca-fitting-questions", csca_only_fitting_questions)
+    _once("ort-monday-word-mix-retagged-2", retag_ort_monday_word_mix)

@@ -3730,3 +3730,30 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
   .set-hero { flex-wrap: wrap; padding: 20px; gap: 16px; }
   .set-row { padding: 18px; }
 }
+
+/* session results: facts as chips, a fixed column for tags so the chevrons line up, a «½» mark for hinted answers */
+.sd-facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.sd-facts > span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 14px; font-weight: 600;
+  background: color-mix(in srgb, var(--surface) 80%, transparent); border: 1px solid var(--line); }
+.sd-levels { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.sd-row > summary { grid-template-columns: 28px minmax(0, 1fr) auto 24px; padding: 14px 4px; }
+.sd-row__tag:empty { display: block; width: 0; }
+.sd-mark { width: 28px; height: 28px; display: grid; place-items: center; align-self: center; }
+.sd-mark svg { width: 20px; height: 20px; }
+.sd-mark.is-ok { color: var(--ok); }
+.sd-mark.is-bad { color: var(--bad); }
+.sd-mark.is-half { border-radius: 50%; background: var(--warn-soft, #FFF3D6); color: #9A6A00; font-weight: 800; font-size: 15px; }
+.tag--warn { background: var(--warn-soft, #FFF3D6); color: #9A6A00; }
+[data-theme="dark"] .sd-mark.is-half, [data-theme="dark"] .tag--warn { background: #33290F; color: #F2CC5C; }
+
+/* comparison questions: text, then the two columns, then the four answers two by two */
+.q-layout--cmp .q-main { display: flex; flex-direction: column; gap: 20px; }
+.q-layout--cmp .q-material { margin: 0; }
+.q-layout--cmp .options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .q-layout--cmp .options { grid-template-columns: minmax(0, 1fr); } }
+/* the columns read as one table: titles centred over their values, values in one size and weight */
+.q-columns__title { text-align: center; }
+.q-columns__body { font-weight: 500; font-size: 20px; line-height: 1.4; }
+.q-columns__body .katex { font-size: 1.1em; }
+/* keyboard focus on an answer: one Pulse border with a soft halo, not a second ring around the grey border */
+.option input:focus-visible + .option__box { outline: none; border-color: var(--pulse); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pulse) 22%, transparent); }

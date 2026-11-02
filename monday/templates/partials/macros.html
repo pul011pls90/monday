@@ -160,7 +160,10 @@
    Without: one centred column — question on top, answers underneath. #}
 {% macro question_body(item, name, selected=None, reveal=False, disabled=False, number=None, letters=None, photo=None, weight_tag=True, sat=False) -%}
 {% set has_material = item.image_path or item.material %}
-<div class="q-layout {{ 'q-layout--split' if has_material else 'q-layout--single' }}">
+{# A/B comparison columns are short: they go under the question text instead of filling a half-empty left column #}
+{% set cmp_only = item.material and not item.image_path and (item.material|selectattr('type', 'equalto', 'columns')|list|length) == (item.material|length) %}
+{% if cmp_only %}{% set has_material = false %}{% endif %}
+<div class="q-layout {{ 'q-layout--split' if has_material else 'q-layout--single' }}{{ ' q-layout--cmp' if cmp_only }}">
   {% if has_material %}
   <div class="q-material">
     {{ figure(item) }}
@@ -178,6 +181,7 @@
     <a class="q-lang" href="{{ url_for('content_i18n.toggle_original', next=request.full_path) }}">{{ icon('globe', 14) }}{{ _("Показать перевод") if item._original_shown else _("Показать оригинал") }}</a>
     {% endif %}
     {% if item.text %}<div class="q-text math">{{ item.text }}</div>{% endif %}
+    {% if cmp_only %}<div class="q-material">{{ material(item) }}</div>{% endif %}
     {{ option_inputs(item, name, selected=selected, reveal=reveal, disabled=disabled, letters=letters, photo=photo, sat=sat) }}
   </div>
 </div>

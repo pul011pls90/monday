@@ -469,7 +469,7 @@ def session_done(attempt_id):
         d = (a.question.difficulty if a.question else 2) or 2
         lv = levels.setdefault(d, {"ok": 0, "n": 0})
         lv["n"] += 1
-        lv["ok"] += bool(a.is_correct)
+        lv["ok"] += (0.5 if a.hint_used else 1) if a.is_correct else 0  # same scoring as the total: a hint costs half
     hinted = sum(1 for a in answers if a.hint_used and a.is_correct)
     score = sum(1 for a in answers if a.is_correct) - hinted * 0.5
     wrong = [a for a in answers if not a.is_correct]
