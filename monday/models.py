@@ -344,6 +344,15 @@ class WorkVersion(db.Model):
     def question_count(self):
         return len(self.items or [])
 
+    @property
+    def level(self):
+        """Overall difficulty of the test from its questions' average: 1 easy, 2 medium, 3 hard (None if empty)."""
+        ds = [i.get("difficulty") or 2 for i in (self.items or [])]
+        if not ds:
+            return None
+        avg = sum(ds) / len(ds)
+        return 1 if avg < 1.67 else 2 if avg < 2.34 else 3
+
 
 # --------------------------------------------------------------------------- teacher ↔ student
 
