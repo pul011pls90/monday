@@ -37,33 +37,36 @@
 </section>
 {% endif %}
 
-{% if next_skill %}
-<section class="card card--tight sd-next">
-  <div><span class="eyebrow">{{ _("Что подтянуть дальше") }}</span><b>{{ next_skill.name }}</b><span class="small muted">{{ _("больше всего ошибок в этой сессии") }}</span></div>
-  <form method="post" action="{{ url_for('student.start_session', mode='franklin') }}">{{ ui.csrf() }}<input type="hidden" name="skill_id" value="{{ next_skill.id }}">
-    <button class="btn btn--secondary" type="submit">{{ ui.icon('play', 16) }}{{ _("Тренировать · 5 мин") }}</button></form>
+{# what to do next: one row of action tiles — the most useful one filled #}
+<section class="sd-next-actions" aria-labelledby="sd-next-h">
+  <div class="sd-next-actions__head"><h2 id="sd-next-h" class="eyebrow">{{ _("Что дальше") }}</h2>
+    <a href="{{ url_for('student.journal') }}">{{ ui.icon('journal', 16) }}{{ _("Журнал ошибок") }}</a></div>
+  <div class="sd-actions">
+    {% if wrong %}
+    <form method="post" action="{{ url_for('student.session_retry', attempt_id=att.id) }}">{{ ui.csrf() }}
+      <button class="sd-act is-main" type="submit">{{ ui.icon('retry', 22) }}<b>{{ _("Повторить ошибки") }} <span class="num">· {{ wrong|length }}</span></b><span>{{ _("Те же вопросы ещё раз, пока свежо") }}</span></button></form>
+    {% endif %}
+    {% if next_skill %}
+    <form method="post" action="{{ url_for('student.start_session', mode='franklin') }}">{{ ui.csrf() }}<input type="hidden" name="skill_id" value="{{ next_skill.id }}">
+      <button class="sd-act" type="submit">{{ ui.icon('skills', 22) }}<b>{{ next_skill.name }}</b><span>{{ _("Больше всего ошибок здесь · 5 мин") }}</span></button></form>
+    {% endif %}
+    <form method="post" action="{{ url_for('student.session_again', attempt_id=att.id) }}">{{ ui.csrf() }}
+      <button class="sd-act{{ ' is-main' if not wrong }}" type="submit">{{ ui.icon('play', 22) }}<b>{{ _("Ещё раз с теми же настройками") if mode_key == 'custom' else _("Ещё одна сессия") }}</b><span>{{ _("Новые вопросы") }}</span></button></form>
+    <a class="sd-act" href="{{ url_for('student.sessions') }}#custom">{{ ui.icon('settings', 22) }}<b>{{ _("Своя сессия") }}</b><span>{{ _("Темы, время и сложность — на выбор") }}</span></a>
+  </div>
 </section>
-{% endif %}
-
-<div class="row" style="flex-wrap:wrap">
-  {% if wrong %}<form method="post" action="{{ url_for('student.session_retry', attempt_id=att.id) }}">{{ ui.csrf() }}<button class="btn btn--primary" type="submit">{{ ui.icon('retry', 16) }}{{ _("Повторить ошибки (%(n)s)", n=wrong|length) }}</button></form>{% endif %}
-  <form method="post" action="{{ url_for('student.session_again', attempt_id=att.id) }}">{{ ui.csrf() }}<button class="btn {{ 'btn--secondary' if wrong else 'btn--primary' }}" type="submit">{{ _("Ещё раз с теми же настройками") if mode_key == 'custom' else _("Ещё одна сессия") }}</button></form>
-  <a class="btn btn--ghost" href="{{ url_for('student.sessions') }}#custom">{{ _("Своя сессия") }}</a>
-  <a class="btn btn--ghost" href="{{ url_for('student.journal') }}">{{ _("Журнал ошибок") }}</a>
-</div>
 
 <div class="list sd-list">
   {% for a in answers %}
     {% set item = a.question.snapshot()|loc if a.question else None %}
-    <details class="sd-row"{% if cfg.explain == 'end' and not a.is_correct %} open{% endif %}>
+    <details class="sd-row {{ 'is-bad' if not a.is_correct else ('is-half' if a.is_correct and a.hint_used else 'is-ok') }}"{% if cfg.explain == 'end' and not a.is_correct %} open{% endif %}>
       <summary>
         {% set half = a.is_correct and a.hint_used %}
-        <span class="sd-mark {{ 'is-half' if half else ('is-ok' if a.is_correct else 'is-bad') }}" aria-label="{{ _('верно с подсказкой') if half else (_('верно') if a.is_correct else _('неверно')) }}">{% if half %}½{% else %}{% include 'icons/' ~ ('check' if a.is_correct else 'x') ~ '.svg' %}{% endif %}</span>
         <span class="stack-sm" style="gap:2px;min-width:0">
           <span class="math sd-row__text">{{ item.text if item and item.text else _("Задача с рисунком") }}</span>
           <span class="small muted">{{ a.skill.name if a.skill }} · {{ DIFFICULTIES[(a.question.difficulty if a.question else 2) or 2] }}</span>
         </span>
-        <span class="sd-row__tag">{% if not a.is_correct %}<span class="tag tag--bad">{{ MISTAKE_REASONS.get(a.mistake_reason, _("в журнале")) }}</span>{% elif half %}<span class="tag tag--warn">{{ _("подсказка · ½") }}</span>{% endif %}</span>
+        <span class="sd-row__tag">{% if not a.is_correct %}<span class="tag tag--bad">{{ MISTAKE_REASONS.get(a.mistake_reason, _("в журнале")) }}</span>{% elif half %}<span class="tag tag--warn">{{ _("подсказка · ½") }}</span>{% else %}<span class="tag tag--ok">{{ _("верно") }}</span>{% endif %}</span>
         <span class="bank-topic__chev">{{ ui.icon('chevron-down', 18) }}</span>
       </summary>
       {% if item %}
