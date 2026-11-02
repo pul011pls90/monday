@@ -63,13 +63,16 @@
   <section class="card hc" aria-labelledby="hc-count-h">
     <div class="hc__head"><span class="hc__ic">{{ ui.icon('calendar', 22) }}</span><h2 id="hc-count-h">{{ _("До экзамена") }}</h2></div>
     {% if p.exam_date %}
+      <div class="hc-exam">
+        <span class="hc-exam__name">{{ p.exam|exam_label if p.exam else _("Экзамен") }}</span>
+        <b class="hc-exam__date">{{ p.exam_date|d("d MMMM yyyy") }}</b>
+      </div>
       <div class="hc-count" data-countdown="{{ p.exam_date.isoformat() }}" role="timer" aria-live="off">
         <div><b class="num" data-cd="d">—</b><small>{{ _("дней") }}</small></div>
         <div><b class="num" data-cd="h">—</b><small>{{ _("часов") }}</small></div>
         <div><b class="num" data-cd="m">—</b><small>{{ _("минут") }}</small></div>
         <div><b class="num" data-cd="s">—</b><small>{{ _("секунд") }}</small></div>
       </div>
-      <p class="hc__line hc__line--center">{{ _("Экзамен") }} {{ p.exam_date|d("d MMMM yyyy") }}</p>
       <a class="hc__link" href="{{ url_for('student.profile') }}#exam">{{ _("Изменить дату") }}</a>
     {% else %}
       <p class="hc__line">{{ _("Укажи дату экзамена — и начнём отсчёт.") }}</p>
