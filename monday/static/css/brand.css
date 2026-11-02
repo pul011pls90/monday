@@ -3897,3 +3897,20 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .home-hello { font-size: clamp(24px, 2.2vw, 30px); }
 .hc__head { min-height: 0; gap: 10px; }
 .hc__ic, [data-theme="dark"] .hc__ic { width: auto; height: auto; background: none; color: var(--text-2); border-radius: 0; }
+
+/* home: the three lower cards — title, one line on what it is for, the fact, an action */
+.hc-row--tiles { margin-top: 0; }
+.hc-tile { color: inherit; text-decoration: none; gap: 14px; transition: border-color .15s ease, transform .15s ease; }
+.hc-tile:hover { border-color: var(--pulse); transform: translateY(-2px); text-decoration: none; }
+.hc-tile__fact { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: 14px; background: var(--hc-soft); }
+.hc-tile__fact b { font-size: 20px; font-weight: 700; }
+.hc-tile__fact span { font-size: 14px; color: var(--text-2); }
+.hc-tile__go { margin-top: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; color: var(--pulse); }
+.hc__pill--live { display: inline-flex; align-items: center; gap: 6px; background: color-mix(in srgb, var(--bad) 12%, var(--surface)); color: var(--bad); }
+.hc__pill--live i { width: 7px; height: 7px; border-radius: 50%; background: var(--bad); }
+
+/* page backgrounds (home sky, Monday scene) sit only in the content area: right of the side menu, under the top bar */
+.home-sky { inset: var(--topbar, 72px) 0 0 var(--rail); }
+@media (max-width: 760px) { .home-sky { inset: var(--topbar, 56px) 0 0 0; } }
+.hc__head { min-height: 32px; }
+.hc__pill { line-height: 18px; }

@@ -83,3 +83,10 @@
 /* the buttons a little larger */
 .mh__cta .btn--lg { min-height: 60px; padding: 0 30px; font-size: 18px; border-radius: 16px; }
 .mh__next { font-size: 14px; padding: 10px 16px; }
+.mh .mh__sky, .mh .mh__canvas { top: var(--topbar, 72px); left: var(--rail); width: calc(100vw - var(--rail)); height: calc(100vh - var(--topbar, 72px)); }
+@media (max-width: 760px) { .mh .mh__sky, .mh .mh__canvas { left: 0; width: 100vw; } }
+/* mountains: soft ice-violet tinted towards Pulse instead of grey */
+.mh.is-raw-scene .mh__canvas { filter: invert(1) hue-rotate(195deg) saturate(.75) contrast(.6) brightness(1.18); }
+[data-theme="dark"] .mh.is-raw-scene .mh__canvas { filter: saturate(.8) brightness(.9); }
+.mh.is-raw-scene .mh__title, .mh.is-raw-scene .mhb-facts dd { color: #0B0F2E; text-shadow: 0 0 28px #F3F4FF, 0 0 12px #F3F4FF, 0 0 4px #F3F4FF; }
+.mh.is-raw-scene .mhb-facts dt, .mh.is-raw-scene .mhb-cell span { color: #2C3164; text-shadow: 0 0 12px #F3F4FF, 0 0 5px #F3F4FF; }

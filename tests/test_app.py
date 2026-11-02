@@ -181,7 +181,7 @@ def test_register_teacher_needs_approval():
 
 def test_student_pages_render():
     c = login(client(), "student@monday.kg", "student123")
-    ok(c, "/home", contains=["Привет, Тима", "data-countdown", "Сегодня", "Целевой балл", "Ты в точках", "мин сегодня", "К сессиям"])
+    ok(c, "/home", contains=["Привет, Тима", "data-countdown", "Сегодня", "Целевой балл", "Ты в точках", "Журнал ошибок", "Разобрать ошибки"])
     ok(c, "/home?t=30")
     ok(c, "/skills?show=list", contains=["Карта навыков", "Свойства логарифмов"])
     body = ok(c, "/skills").data.decode()  # the list choice is remembered
@@ -1620,4 +1620,4 @@ def test_custom_session_builder_ladder_hint_retry():
     ok(s, "/sessions", contains=["Утро"])
     s.post("/sessions/presets", data={"action": "delete", "index": "0"})
     s.post("/goal", data={"minutes": "30", "next": "/home"})
-    ok(s, "/home", contains=["из 30 мин сегодня"])
+    assert 'name="daily_goal" value="30" checked' in s.get("/profile").data.decode()
