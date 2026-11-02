@@ -3890,3 +3890,10 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .hc.home-today .home-today__ic { background: var(--hc-soft); color: var(--pulse); }
 .hc.home-today .home-today__go { align-self: stretch; max-width: 100%; justify-content: center; min-width: 0; }
 .home-today__go-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* card titles: a plain semibold sans, icon without a black tile */
+.hc__head h2, .home-hello { font-family: "Helvetica Neue", Helvetica, Arial, var(--font); font-weight: 600; letter-spacing: -.01em; }
+.hc__head h2 { font-size: 20px; }
+.home-hello { font-size: clamp(24px, 2.2vw, 30px); }
+.hc__head { min-height: 0; gap: 10px; }
+.hc__ic, [data-theme="dark"] .hc__ic { width: auto; height: auto; background: none; color: var(--text-2); border-radius: 0; }

@@ -36,7 +36,7 @@
   const hash = (n) => { const s = Math.sin(n * 127.1) * 43758.5453; return s - Math.floor(s); };
 
   function resize() {
-    const r = stage.getBoundingClientRect();
+    const r = cv.getBoundingClientRect();   // the canvas itself: fixed behind the page, it spans the window
     dpr = Math.min(1.5, window.devicePixelRatio || 1);
     W = r.width; H = r.height;
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
@@ -429,8 +429,8 @@
     draw();
   }
   // the canvas sits under the text, so the hero tracks the cursor
-  stage.addEventListener("pointermove", (e) => { const r = cv.getBoundingClientRect(), sh = W > 900 && [1, 2, 4, 5].includes(cur) ? W * .2 : 0; ptr.x = e.clientX - r.left - sh; ptr.y = e.clientY - r.top; });
-  stage.addEventListener("pointerleave", () => { ptr.x = ptr.y = -1e4; });
+  window.addEventListener("pointermove", (e) => { const r = cv.getBoundingClientRect(), sh = W > 900 && [1, 2, 4, 5].includes(cur) ? W * .2 : 0; ptr.x = e.clientX - r.left - sh; ptr.y = e.clientY - r.top; });
+  document.documentElement.addEventListener("pointerleave", () => { ptr.x = ptr.y = -1e4; });
   cv.addEventListener("click", (e) => {
     if (cur === 3 || cur === 6) return;   // dead click: the spiral and the world map ignore clicks
     const r = cv.getBoundingClientRect(), sh = W > 900 && [1, 2, 4, 5].includes(cur) ? W * .2 : 0;
@@ -440,8 +440,8 @@
     if (cur === 5 && state.pts) state.pts.forEach((q) => { q.flip = t + (q.y + 1) * .35 + Math.random() * .1; });
     if (reduce) draw();
   });
-  new ResizeObserver(() => { resize(); if (reduce) draw(); }).observe(stage);
-  new IntersectionObserver((e) => { visible = e[0].isIntersecting; last = performance.now(); }).observe(stage);
+  new ResizeObserver(() => { resize(); if (reduce) draw(); }).observe(cv);
+  new IntersectionObserver((e) => { visible = e[0].isIntersecting; last = performance.now(); }).observe(cv);
   // demo: every scene plays for 20 s, then the hero fades to the next one
   const cycle = (cv.dataset.cycle || "").split(",").filter(Boolean).map(Number);
   const greetEl = document.querySelector("[data-scene-greet]");

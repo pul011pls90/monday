@@ -66,3 +66,20 @@
   .mhb-facts div { padding: 0; margin: 0; border: 0; }
   .mhb-facts div:first-child:nth-last-child(3) { grid-column: 1 / -1; }
 }
+
+/* ---------------------------------------------------------------- the scene is the page background now
+   the hero loses its card; both canvases are fixed to the window behind the whole page */
+.page:has(> .mh) { position: relative; z-index: 0; }
+.mh { isolation: auto; overflow: visible; background: transparent; border: 0; box-shadow: none; border-radius: 0; padding-inline: 0; }
+.mh .mh__sky, .mh .mh__canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; }
+.mh .mh__canvas { pointer-events: none; }
+/* mountains in white and greys instead of blues (light: inverted to a pale grey range; dark: deep greys) */
+.mh.is-raw-scene .mh__canvas { filter: invert(1) grayscale(1) contrast(.45) brightness(1.32); }
+[data-theme="dark"] .mh.is-raw-scene .mh__canvas { filter: grayscale(1) brightness(.85); }
+.mh.is-raw-scene .mh__title, .mh.is-raw-scene .mhb-facts dd { color: #111318; text-shadow: 0 0 28px #FFFFFF, 0 0 12px #FFFFFF, 0 0 4px #FFFFFF; }
+.mh.is-raw-scene .mhb-facts dt, .mh.is-raw-scene .mhb-cell span { color: #3A3F4B; text-shadow: 0 0 12px #FFFFFF, 0 0 5px #FFFFFF; }
+[data-theme="dark"] .mh.is-raw-scene .mh__title, [data-theme="dark"] .mh.is-raw-scene .mhb-facts dd,
+[data-theme="dark"] .mh.is-raw-scene .mhb-facts dt, [data-theme="dark"] .mh.is-raw-scene .mhb-cell span { color: #FFFFFF; text-shadow: 0 0 14px rgba(0, 0, 0, .8); }
+/* the buttons a little larger */
+.mh__cta .btn--lg { min-height: 60px; padding: 0 30px; font-size: 18px; border-radius: 16px; }
+.mh__next { font-size: 14px; padding: 10px 16px; }
