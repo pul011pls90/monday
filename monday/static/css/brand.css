@@ -3849,3 +3849,16 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .hc-goal__stats small { font-size: 12px; color: var(--muted); font-weight: 600; }
 .hc-goal { flex: 1; justify-content: center; }
 .home-portrait { padding: 24px; border-radius: 22px; }
+
+/* collection cards: no description; the test's overall difficulty as a pill next to the question count */
+.work-card__count { width: 100%; }
+.level-pill { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+.level-pill i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.level-pill--1 { background: #E3F6EC; color: #137A4B; }
+.level-pill--2 { background: #FFF1D6; color: #9A6A00; }
+.level-pill--3 { background: #FDE4E4; color: #B42323; }
+[data-theme="dark"] .level-pill--1 { background: #0F2D1F; color: #5BD69A; }
+[data-theme="dark"] .level-pill--2 { background: #33290F; color: #F2CC5C; }
+[data-theme="dark"] .level-pill--3 { background: #3A1515; color: #FF8E8E; }
+.work-card__count .nw { white-space: nowrap; }
+.level-pill { white-space: nowrap; flex: none; }
