@@ -878,6 +878,30 @@ def test_clear_recent_sessions_keeps_stats():
         assert Attempt.query.filter_by(user_id=uid).count() == n  # only the list is emptied
 
 
+def test_journal_with_more_days_than_shown():
+    """Mistakes on more days than the journal shows at once used to crash the page (unfinished day cards)."""
+    from datetime import timedelta
+    from monday.extensions import db
+    from monday.models import Attempt, AttemptAnswer, User, utcnow
+    with APP.app_context():
+        uid = User.query.filter_by(email="student@monday.kg").first().id
+        rows = (AttemptAnswer.query.join(Attempt).filter(Attempt.user_id == uid, Attempt.finished_at.isnot(None),
+                                                         AttemptAnswer.is_correct.is_(False)).limit(12).all())
+        saved = [(r.id, r.answered_at) for r in rows]
+        for k, r in enumerate(rows):
+            r.answered_at = utcnow() - timedelta(days=k)
+        db.session.commit()
+    try:
+        c = login(client(), "student@monday.kg", "student123")
+        assert len(saved) > 7
+        ok(c, "/journal?days=7")
+    finally:
+        with APP.app_context():
+            for rid, t in saved:
+                db.session.get(AttemptAnswer, rid).answered_at = t
+            db.session.commit()
+
+
 def test_journal_mistakes_session_has_one_question_per_open_record():
     from monday.models import Attempt
     c = login(client(), "student@monday.kg", "student123")
