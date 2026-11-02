@@ -422,7 +422,7 @@
     draw();
   }
   // the canvas sits under the text, so the hero tracks the cursor
-  window.addEventListener("pointermove", (e) => { const r = cv.getBoundingClientRect(), sh = W > 900 && [1, 2, 4, 5].includes(cur) ? W * .2 : 0; ptr.x = e.clientX - r.left - sh; ptr.y = e.clientY - r.top; });
+  if (false) window.addEventListener("pointermove", (e) => { const r = cv.getBoundingClientRect(), sh = W > 900 && [1, 2, 4, 5].includes(cur) ? W * .2 : 0; ptr.x = e.clientX - r.left - sh; ptr.y = e.clientY - r.top; });
   document.documentElement.addEventListener("pointerleave", () => { ptr.x = ptr.y = -1e4; });
   cv.addEventListener("click", (e) => {
     if (cur === 3 || cur === 6) return;   // dead click: the spiral and the world map ignore clicks
