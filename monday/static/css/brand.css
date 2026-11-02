@@ -3918,3 +3918,11 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .hc__line--center { text-align: center; }
 .hc-count { margin: auto 0 0; }
 .hc-count + .hc__line--center { margin-bottom: auto; }
+/* countdown card: the exam and its date up top, highlighted; the timer under it */
+.hc-exam { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: auto; padding: 16px; border-radius: 16px; text-align: center;
+  background: color-mix(in srgb, var(--pulse) 8%, var(--surface)); border: 1.5px solid color-mix(in srgb, var(--pulse) 30%, transparent); }
+.hc-exam__name { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--pulse); }
+.hc-exam__date { font: 600 26px/1.15 "Helvetica Neue", Helvetica, Arial, var(--font); color: var(--text); }
+[data-theme="dark"] .hc-exam { background: color-mix(in srgb, var(--pulse) 22%, #000); border-color: var(--pulse); }
+[data-theme="dark"] .hc-exam__name { color: #AEB4FF; }
+.hc-exam + .hc-count { margin: 0 0 auto; }
