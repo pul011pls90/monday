@@ -38,7 +38,7 @@
   }
 
   function resize() {
-    const r = stage.getBoundingClientRect();
+    const r = sky.getBoundingClientRect();   // the window, now that the sky is the page background
     W = r.width; H = r.height;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     sky.width = Math.round(W * dpr); sky.height = Math.round(H * dpr);
@@ -121,7 +121,7 @@
       if (na < 0.01) { tiles.delete(key); return; }
       tiles.set(key, na);
       const [i, j] = key.split(",").map(Number);
-      ctx.globalAlpha = na; ctx.fillStyle = PINK; ctx.fillRect(i * CELL, j * CELL, CELL, CELL);
+      ctx.globalAlpha = na; ctx.fillStyle = stage.classList.contains("is-raw-scene") ? "#C9CCD3" : PINK; ctx.fillRect(i * CELL, j * CELL, CELL, CELL);
     });
     ctx.globalAlpha = 1;
 
@@ -197,7 +197,7 @@
     ctx.fillStyle = `rgba(${ink}, 0.16)`; ctx.fill(cloud);
     // the drawing is the foreground: solid deep blue, while the clouds stay pale
     ctx.fillStyle = solid; ctx.fill(scenePx);
-    ctx.fillStyle = ORANGE; ctx.fill(warm);
+    ctx.fillStyle = stage.classList.contains("is-raw-scene") ? "#B9BDC6" : ORANGE; ctx.fill(warm);
 
     // the grid
     ctx.strokeStyle = `rgba(${ink}, 0.12)`; ctx.lineWidth = 1; ctx.beginPath();
@@ -223,17 +223,18 @@
     ptr.on += ((ptr.x > -1e3 ? 1 : 0) - ptr.on) * 0.25;
     draw(now);
   }
-  stage.addEventListener("pointermove", (e) => { const r = stage.getBoundingClientRect(); ptr.x = e.clientX - r.left; ptr.y = e.clientY - r.top; });
-  stage.addEventListener("pointerleave", () => { ptr.x = ptr.y = -1e4; });
+  window.addEventListener("pointermove", (e) => { const r = sky.getBoundingClientRect(); ptr.x = e.clientX - r.left; ptr.y = e.clientY - r.top; });
+  document.documentElement.addEventListener("pointerleave", () => { ptr.x = ptr.y = -1e4; });
   // every click on the sky (not on the button or links) sends a wave
   stage.addEventListener("click", (e) => {
     if (e.target.closest("a, button, input, select, label")) return;
-    const r = stage.getBoundingClientRect();
+    const r = sky.getBoundingClientRect();
     waves.push({ x: e.clientX - r.left, y: e.clientY - r.top, t0: performance.now() / 1000 });
     if (waves.length > 5) waves.shift();
   });
-  new ResizeObserver(() => { resize(); if (reduce) draw(performance.now()); }).observe(stage);
-  new IntersectionObserver((e) => { visible = e[0].isIntersecting; }).observe(stage);
+  new ResizeObserver(() => { resize(); if (reduce) draw(performance.now()); }).observe(sky);
+  new IntersectionObserver((e) => { visible = e[0].isIntersecting; }).observe(sky);
+  window.addEventListener("scroll", () => resize(), { passive: true });  // the quiet zones under the text move with the page
   resize();
   if (reduce) { [100, 600, 1500].forEach((ms) => setTimeout(() => draw(performance.now()), ms)); }
   else requestAnimationFrame(loop);
