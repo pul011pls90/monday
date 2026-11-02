@@ -13,60 +13,6 @@
 </div>
 {% endfor %}
 
-{# ------------------------------------------------------------ hero: countdown, goal ring, Monday strip #}
-<section class="hero hero--home" data-hero aria-label="{{ _('Обратный отсчёт') }}">
-  <canvas class="hero__canvas" data-hero-dots aria-hidden="true"></canvas>
-  <div class="home-hero">
-    <div class="home-hero__count">
-      <div class="home-hero__hello">{{ _("Привет, %(name)s", name=current_user.first_name) }}</div>
-      {% if mondays is not none %}
-        <div class="hero__count">
-          <span class="hero__number">{{ mondays }}</span>
-          <span class="hero__unit">{{ mondays|plural_ru(_("понедельник"), _("понедельника"), _("понедельников")) }}
-            <span class="home-hero__line">{{ _("до экзамена") }}</span></span>
-        </div>
-      {% else %}
-        <div class="hero__unit" style="margin:12px 0">{{ _("Укажи дату экзамена — и начнём отсчёт") }}</div>
-        <a class="hero-muted" href="{{ url_for('student.profile') }}">{{ _("Открыть профиль") }}</a>
-      {% endif %}
-
-      {# Mondays as a small calendar under the countdown: one row per month, its Mondays as squares #}
-      <div class="home-strip" aria-label="{{ _('Понедельники до экзамена') }}">
-        {% set months = [_("ЯНВ"), _("ФЕВ"), _("МАР"), _("АПР"), _("МАЙ"), _("ИЮН"), _("ИЮЛ"), _("АВГ"), _("СЕН"), _("ОКТ"), _("НОЯ"), _("ДЕК")] %}
-        {% set ns = namespace(key=None) %}
-        {% for d in strip %}
-          {% set key = d.date.year ~ '-' ~ d.date.month %}
-          {% if key != ns.key %}{% if ns.key %}</div>{% endif %}{% set ns.key = key %}
-          <div class="home-strip__month"><small>{{ months[d.date.month - 1] }}</small>{% endif %}
-            <span class="home-strip__dot is-{{ d.state }}"
-                  title="{{ d.date|d('d MMM') }}{% if d.score is not none %} · {{ _('тест') }} {{ d.score }}%{% elif d.state == 'now' %} · {{ _('эта неделя') }}{% endif %}">{{ d.date.day }}</span>
-          {% if loop.last %}</div>{% endif %}
-        {% endfor %}
-      </div>
-    </div>
-
-    {# the gap to the goal is the message: where you are, where you aim, how much per week that takes #}
-    {% set goal = p.goal_score or 0 %}{% set now_p = summary.predicted %}
-    <div class="home-goal">
-      <div class="home-goal__nums">
-        <span><b class="num">{{ now_p }}</b><small>{{ _("прогноз") }}</small></span>
-        <span class="home-goal__arrow" aria-hidden="true">→</span>
-        <span><b class="num">{{ goal or '—' }}</b><small>{{ _("цель") }}</small></span>
-      </div>
-      {% if goal %}
-        <div class="home-goal__bar" role="img" aria-label="{{ _('Прогноз %(p)s из цели %(g)s', p=now_p, g=goal) }}"><i style="width: {{ [100, (100 * now_p / goal)|round|int]|min }}%"></i></div>
-        {% if now_p >= goal %}
-          <p class="home-goal__line">{{ _("Цель достигнута — держи уровень") }}</p>
-        {% else %}
-          <p class="home-goal__line">{{ _("Нужно ещё") }} <b class="num">+{{ goal - now_p }}</b> {{ (goal - now_p)|plural_ru(_("балл"), _("балла"), _("баллов")) }} — {{ _("вперёд!") }}</p>
-        {% endif %}
-      {% else %}
-        <a class="home-goal__line" href="{{ url_for('student.profile') }}">{{ _("Поставь цель в профиле") }} →</a>
-      {% endif %}
-    </div>
-  </div>
-</section>
-
 {# ------------------------------------------------------------ «Сегодня»: the day's plan as one checklist, one button for the next step #}
 {% set plan = [] %}
 {% if daily['items'] %}{% set dn = daily['items']|length %}{% set dleft = dn - daily.done %}
@@ -87,12 +33,64 @@
 {% endif %}
 {% set nxt = plan|rejectattr('done')|first %}
 
-<div class="home-row">
-  <section class="card home-today" aria-labelledby="today-h">
-    <div class="home-today__head">
-      <h2 id="today-h">{{ _("Сегодня") }}</h2>
-      <span class="small muted num">{{ plan|selectattr('done')|list|length }} / {{ plan|length }}</span>
+{# the dotted sky from the old banner now moves behind the whole page #}
+<div class="home-sky" data-hero data-hero-bg aria-hidden="true"><canvas class="hero__canvas" data-hero-dots></canvas></div>
+
+{# ------------------------------------------------------------ three cards: countdown · target score · today's plan #}
+<h1 class="home-hello">{{ _("Привет, %(name)s", name=current_user.first_name) }}</h1>
+{% set goal = p.goal_score or 0 %}{% set now_p = summary.predicted %}
+<div class="hc-row">
+  <section class="card hc" aria-labelledby="hc-count-h">
+    <div class="hc__head"><span class="hc__ic">{{ ui.icon('calendar', 22) }}</span><h2 id="hc-count-h">{{ _("До экзамена") }}</h2></div>
+    {% if p.exam_date %}
+      <div class="hc-count" data-countdown="{{ p.exam_date.isoformat() }}" role="timer" aria-live="off">
+        <div><b class="num" data-cd="d">—</b><small>{{ _("дней") }}</small></div>
+        <div><b class="num" data-cd="h">—</b><small>{{ _("часов") }}</small></div>
+        <div><b class="num" data-cd="m">—</b><small>{{ _("минут") }}</small></div>
+        <div><b class="num" data-cd="s">—</b><small>{{ _("секунд") }}</small></div>
+      </div>
+      <p class="hc__line">{% if mondays is not none %}{{ _("Это") }} <b class="num">{{ mondays }}</b> {{ mondays|plural_ru(_("понедельник"), _("понедельника"), _("понедельников")) }} · {% endif %}{{ p.exam_date|d("d MMMM yyyy") }}</p>
+      {# the Mondays left, as a small calendar: one row per month #}
+      <div class="home-strip hc-strip" aria-label="{{ _('Понедельники до экзамена') }}">
+        {% set months = [_("ЯНВ"), _("ФЕВ"), _("МАР"), _("АПР"), _("МАЙ"), _("ИЮН"), _("ИЮЛ"), _("АВГ"), _("СЕН"), _("ОКТ"), _("НОЯ"), _("ДЕК")] %}
+        {% set ns = namespace(key=None) %}
+        {% for d in strip %}
+          {% set key = d.date.year ~ '-' ~ d.date.month %}
+          {% if key != ns.key %}{% if ns.key %}</div>{% endif %}{% set ns.key = key %}
+          <div class="home-strip__month"><small>{{ months[d.date.month - 1] }}</small>{% endif %}
+            <span class="home-strip__dot is-{{ d.state }}" title="{{ d.date|d('d MMM') }}{% if d.score is not none %} · {{ _('тест') }} {{ d.score }}%{% elif d.state == 'now' %} · {{ _('эта неделя') }}{% endif %}">{{ d.date.day }}</span>
+          {% if loop.last %}</div>{% endif %}
+        {% endfor %}
+      </div>
+      <a class="hc__link" href="{{ url_for('student.profile') }}#exam">{{ _("Изменить дату") }}</a>
+    {% else %}
+      <p class="hc__line">{{ _("Укажи дату экзамена — и начнём отсчёт.") }}</p>
+      <a class="btn btn--primary hc__btn" href="{{ url_for('student.profile') }}#exam">{{ _("Указать дату") }}</a>
+    {% endif %}
+  </section>
+
+  <section class="card hc" aria-labelledby="hc-goal-h">
+    <div class="hc__head"><span class="hc__ic">{{ ui.icon('chart', 22) }}</span><h2 id="hc-goal-h">{{ _("Целевой балл") }}</h2></div>
+    <div class="hc-goal">
+      <small>{{ _("Текущая цель") }}</small>
+      <b class="num">{{ goal or '—' }}</b>
+      {% if goal %}
+        <div class="hc-goal__bar" role="img" aria-label="{{ _('Прогноз %(p)s из цели %(g)s', p=now_p, g=goal) }}"><i style="width: {{ [100, (100 * now_p / goal)|round|int]|min }}%"></i></div>
+        <div class="hc-goal__stats">
+          <span><b class="num">{{ now_p }}</b><small>{{ _("прогноз") }}</small></span>
+          <span><b class="num">{{ ('+' ~ (goal - now_p)) if now_p < goal else '✓' }}</b><small>{{ _("осталось") if now_p < goal else _("цель достигнута") }}</small></span>
+          {% if now_p < goal and mondays %}<span><b class="num">+{{ ((goal - now_p) / mondays)|round(0, 'ceil')|int }}</b><small>{{ _("в неделю") }}</small></span>{% endif %}
+        </div>
+      {% else %}
+        <p class="hc__line">{{ _("Поставь цель — будем считать, сколько осталось.") }}</p>
+      {% endif %}
     </div>
+    <a class="btn btn--primary hc__btn" href="{{ url_for('student.profile') }}#exam">{{ _("Изменить") if goal else _("Поставить цель") }}</a>
+  </section>
+
+  <section class="card hc home-today" aria-labelledby="today-h">
+    <div class="hc__head"><span class="hc__ic">{{ ui.icon('list', 22) }}</span><h2 id="today-h">{{ _("План на сегодня") }}</h2>
+      <span class="small muted num hc__count">{{ plan|selectattr('done')|list|length }} / {{ plan|length }}</span></div>
     {% if task %}<form id="today-task" method="post" action="{{ url_for('student.start_session', mode='franklin') }}" hidden>{{ ui.csrf() }}<input type="hidden" name="skill_id" value="{{ task.skill.id }}"></form>{% endif %}
     <ol class="home-today__list">
       {% for it in plan %}
@@ -118,9 +116,11 @@
       <a class="btn btn--primary btn--lg home-today__go" href="{{ url_for('student.collections') }}">{{ _("К сборникам") }}</a>
     {% endif %}
   </section>
+</div>
 
+<div class="home-row home-row--one">
   <a class="card home-portrait" href="{{ url_for('student.skills') }}" aria-labelledby="portrait-h">
-    <div class="card__head"><h2 id="portrait-h" style="font-size:18px">{{ _("Ты в точках") }}</h2><span class="small muted">{{ summary.mastered }} / {{ summary.total }}</span></div>
+    <div class="hc__head"><span class="hc__ic">{{ ui.icon('skills', 22) }}</span><h2 id="portrait-h">{{ _("Ты в точках") }}</h2><span class="small muted num hc__count">{{ _("освоено") }} {{ summary.mastered }} / {{ summary.total }}</span></div>
     <div class="portrait">
       {% for t in portrait %}
         {% set inroute = t["items"]|rejectattr('state', 'equalto', 'outside')|list %}
