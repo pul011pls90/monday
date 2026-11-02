@@ -18,7 +18,7 @@
 {% if daily['items'] %}{% set dn = daily['items']|length %}{% set dleft = dn - daily.done %}
   {% set _x = plan.append({'kind': 'daily', 'done': not dleft, 'title': _("Вопрос дня") if dn == 1 else _("Вопросы дня"),
       'meta': (_("готово · верно %(ok)s из %(n)s", ok=daily['items']|selectattr('answer')|map(attribute='answer')|selectattr('is_correct')|list|length, n=dn) if not dleft
-               else ((_("Monday подобрал вопрос на сегодня") if daily.auto else _("%(t)s выбрал %(n)s %(w)s", t=daily.authors|join(', '), n=dn, w=dn|plural_ru(_("вопрос"), _("вопроса"), _("вопросов"))) ~ ' · ')
+               else (((_("Monday подобрал вопрос на сегодня") if daily.auto else _("%(t)s выбрал %(n)s %(w)s", t=daily.authors|join(', '), n=dn, w=dn|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")))) ~ ' · ')
                      ~ _("~%(m)s мин · серия %(s)s", m=2 * dleft, s=daily.streak))),
       'href': url_for('daily.play'), 'icon': 'bulb'}) %}
 {% endif %}
@@ -89,8 +89,8 @@
   </section>
 
   <section class="card hc home-today" aria-labelledby="today-h">
-    <div class="hc__head"><span class="hc__ic">{{ ui.icon('list', 22) }}</span><h2 id="today-h">{{ _("План на сегодня") }}</h2>
-      <span class="small muted num hc__count">{{ plan|selectattr('done')|list|length }} / {{ plan|length }}</span></div>
+    <div class="hc__head"><span class="hc__ic">{{ ui.icon('list', 22) }}</span><h2 id="today-h">{{ _("Сегодня") }}</h2>
+      <span class="hc__pill num">{{ plan|selectattr('done')|list|length }} {{ _("из") }} {{ plan|length }}</span></div>
     {% if task %}<form id="today-task" method="post" action="{{ url_for('student.start_session', mode='franklin') }}" hidden>{{ ui.csrf() }}<input type="hidden" name="skill_id" value="{{ task.skill.id }}"></form>{% endif %}
     <ol class="home-today__list">
       {% for it in plan %}
@@ -107,7 +107,7 @@
     {% if nxt %}
       {% if nxt.kind == 'task' %}<button class="btn btn--primary btn--lg home-today__go" type="submit" form="today-task">
       {% else %}<a class="btn btn--primary btn--lg home-today__go" href="{{ nxt.href }}">{% endif %}
-        {{ _("Начать") }}: {{ nxt.title }} {{ ui.icon('arrow-right', 18) }}
+        <span class="home-today__go-text">{{ _("Начать") }}: {{ nxt.title }}</span>{{ ui.icon('arrow-right', 18) }}
       {% if nxt.kind == 'task' %}</button>{% else %}</a>{% endif %}
     {% elif plan %}
       <p class="home-today__done">{{ _("План на сегодня выполнен. Можно взять свободную сессию ниже.") }}</p>
@@ -120,7 +120,7 @@
 
 <div class="home-row home-row--one">
   <a class="card home-portrait" href="{{ url_for('student.skills') }}" aria-labelledby="portrait-h">
-    <div class="hc__head"><span class="hc__ic">{{ ui.icon('skills', 22) }}</span><h2 id="portrait-h">{{ _("Ты в точках") }}</h2><span class="small muted num hc__count">{{ _("освоено") }} {{ summary.mastered }} / {{ summary.total }}</span></div>
+    <div class="hc__head"><span class="hc__ic">{{ ui.icon('skills', 22) }}</span><h2 id="portrait-h">{{ _("Ты в точках") }}</h2><span class="hc__pill num">{{ _("освоено") }} {{ summary.mastered }} {{ _("из") }} {{ summary.total }}</span></div>
     <div class="portrait">
       {% for t in portrait %}
         {% set inroute = t["items"]|rejectattr('state', 'equalto', 'outside')|list %}

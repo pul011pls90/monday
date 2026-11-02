@@ -3862,3 +3862,31 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 [data-theme="dark"] .level-pill--3 { background: #3A1515; color: #FF8E8E; }
 .work-card__count .nw { white-space: nowrap; }
 .level-pill { white-space: nowrap; flex: none; }
+
+/* home cards, second pass: one-line headers, boxes that fit, one cool palette (Pulse + neutral greys) */
+.hc { --hc-soft: #F2F4FA; --hc-soft-line: #E3E7F2; }
+[data-theme="dark"] .hc { --hc-soft: #0E1120; --hc-soft-line: rgba(255, 255, 255, .16); }
+.hc__head { min-height: 48px; }
+.hc__head h2 { font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.hc__pill { margin-left: auto; flex: none; padding: 5px 12px; border-radius: 999px; background: var(--hc-soft); color: var(--text-2); font-size: 13px; font-weight: 700; white-space: nowrap; }
+/* countdown: boxes share the card width exactly; digits sized to the box */
+.hc-count { grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 8px; }
+.hc-count b { padding: 14px 0; font-size: clamp(20px, 1.9vw, 30px); background: var(--hc-soft); border: 0; box-shadow: none; border-radius: 14px; }
+.hc-count small { font-size: 10.5px; letter-spacing: .08em; }
+/* Monday calendar in Pulse: past = soft Pulse, this week = Pulse, ahead = neutral */
+.hc-strip .home-strip__month small { width: 36px; color: var(--muted); opacity: 1; }
+.hc-strip .home-strip__dot { background: var(--hc-soft); border: 0; color: var(--text-2); }
+.hc-strip .home-strip__dot.is-past { background: color-mix(in srgb, var(--pulse) 14%, var(--surface)); color: var(--pulse); }
+.hc-strip .home-strip__dot.is-now { background: var(--pulse); color: #FFFFFF; box-shadow: 0 0 0 3px color-mix(in srgb, var(--pulse) 25%, transparent); }
+[data-theme="dark"] .hc-strip .home-strip__dot.is-past { background: color-mix(in srgb, var(--pulse) 35%, #000); color: #FFFFFF; }
+/* target: stats on the same cool grey */
+.hc-goal__stats > span { background: var(--hc-soft); }
+.hc-goal__bar { background: var(--hc-soft); }
+/* today: done = Pulse check, items in neutral boxes, the button stays inside the card */
+.hc.home-today .home-today__item.is-done .home-today__check { background: var(--pulse); border-color: var(--pulse); }
+.hc.home-today .home-today__check { border-color: var(--hc-soft-line); }
+.hc.home-today .home-today__link { border-color: var(--hc-soft-line); }
+.hc.home-today .home-today__item.is-next .home-today__link { border-color: var(--pulse); background: color-mix(in srgb, var(--pulse) 6%, var(--surface)); }
+.hc.home-today .home-today__ic { background: var(--hc-soft); color: var(--pulse); }
+.hc.home-today .home-today__go { align-self: stretch; max-width: 100%; justify-content: center; min-width: 0; }
+.home-today__go-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
