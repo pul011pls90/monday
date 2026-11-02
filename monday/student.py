@@ -1015,12 +1015,13 @@ def journal():
 def journal_days(entries, limit_days):
     """Mistakes grouped like a diary: day → practice/test → entries, with the day's topics on top."""
     from .models import local_date as to_local
-    days, order = {}, []
+    days, order, more = {}, [], False
     for e in entries:
         d = to_local(e.answered_at)
         if d not in days:
             if len(order) == limit_days:
-                return [days[k] for k in order], True
+                more = True  # older days are behind «Показать ещё»; the shown ones still get finished below
+                break
             days[d] = {"date": d, "groups": {}, "group_order": [], "topics": defaultdict(int), "total": 0}
             order.append(d)
         day = days[d]
@@ -1059,7 +1060,7 @@ def journal_days(entries, limit_days):
             g["topics"] = sorted(g["topics"].items(), key=lambda t: -t[1])
             g["rows"].sort(key=lambda r: r["answer"].index)   # in question order
         out.append(day)
-    return out, False
+    return out, more
 
 
 def _journal_mistakes(att):
