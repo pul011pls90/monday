@@ -90,3 +90,6 @@
 [data-theme="dark"] .mh.is-raw-scene .mh__canvas { filter: saturate(.8) brightness(.9); }
 .mh.is-raw-scene .mh__title, .mh.is-raw-scene .mhb-facts dd { color: #0B0F2E; text-shadow: 0 0 28px #F3F4FF, 0 0 12px #F3F4FF, 0 0 4px #F3F4FF; }
 .mh.is-raw-scene .mhb-facts dt, .mh.is-raw-scene .mhb-cell span { color: #2C3164; text-shadow: 0 0 12px #F3F4FF, 0 0 5px #F3F4FF; }
+/* mountains are drawn directly as Pulse dots: no recolouring filter */
+.mh.is-raw-scene .mh__canvas, [data-theme="dark"] .mh.is-raw-scene .mh__canvas { filter: none; mix-blend-mode: normal; }
+[data-theme="dark"] .mh, .mh { border: 0 !important; }
