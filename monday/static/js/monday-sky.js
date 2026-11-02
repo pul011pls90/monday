@@ -121,7 +121,7 @@
       if (na < 0.01) { tiles.delete(key); return; }
       tiles.set(key, na);
       const [i, j] = key.split(",").map(Number);
-      ctx.globalAlpha = na; ctx.fillStyle = stage.classList.contains("is-raw-scene") ? "#C9CCD3" : PINK; ctx.fillRect(i * CELL, j * CELL, CELL, CELL);
+      ctx.globalAlpha = na; ctx.fillStyle = stage.classList.contains("is-raw-scene") ? "#C7CBF5" : PINK; ctx.fillRect(i * CELL, j * CELL, CELL, CELL);
     });
     ctx.globalAlpha = 1;
 
@@ -197,7 +197,7 @@
     ctx.fillStyle = `rgba(${ink}, 0.16)`; ctx.fill(cloud);
     // the drawing is the foreground: solid deep blue, while the clouds stay pale
     ctx.fillStyle = solid; ctx.fill(scenePx);
-    ctx.fillStyle = stage.classList.contains("is-raw-scene") ? "#B9BDC6" : ORANGE; ctx.fill(warm);
+    ctx.fillStyle = stage.classList.contains("is-raw-scene") ? "#B5BAF2" : ORANGE; ctx.fill(warm);
 
     // the grid
     ctx.strokeStyle = `rgba(${ink}, 0.12)`; ctx.lineWidth = 1; ctx.beginPath();

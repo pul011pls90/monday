@@ -145,33 +145,37 @@
   </a>
 </div>
 
-{# ------------------------------------------------------------ homework · Monday test · journal: three equal tiles #}
-<div class="home-tiles">
-  <a class="card home-tile" href="{{ url_for('student.homework') }}">
-    <span class="home-tile__ic">{{ ui.icon('homework', 20) }}</span>
-    <span class="home-tile__label">{{ _("Домашние задания") }}</span>
-    <b class="home-tile__big num">{{ hw_n }}</b>
-    <span class="home-tile__sub">{% if assignments and assignments[0].due_at %}{{ _("ближайший срок") }} {{ assignments[0].due_at|d("d MMMM") }}{% elif hw_n %}{{ _("к сдаче") }}{% else %}{{ _("новых нет") }}{% endif %}</span>
+{# ------------------------------------------------------------ homework · Monday test · journal: same card style, each says what it is for #}
+<div class="hc-row hc-row--tiles">
+  <a class="card hc hc-tile" href="{{ url_for('student.homework') }}">
+    <div class="hc__head"><span class="hc__ic">{{ ui.icon('homework', 20) }}</span><h2>{{ _("Домашние задания") }}</h2>{% if hw_n %}<span class="hc__pill num">{{ hw_n }}</span>{% endif %}</div>
+    <p class="hc__line">{{ _("Задания от учителя, которые нужно сдать.") }}</p>
+    <div class="hc-tile__fact">
+      {% if hw_n %}<b>{{ hw_n }} {{ hw_n|plural_ru(_("задание"), _("задания"), _("заданий")) }}</b>
+        <span>{% if assignments and assignments[0].due_at %}{{ _("ближайший срок") }} — {{ assignments[0].due_at|d("d MMMM") }}{% else %}{{ _("ждут сдачи") }}{% endif %}</span>
+      {% else %}<b>{{ _("Всё сдано") }}</b><span>{{ _("новых заданий нет") }}</span>{% endif %}
+    </div>
+    <span class="hc-tile__go">{{ _("Открыть домашку") }} {{ ui.icon('arrow-right', 16) }}</span>
   </a>
-  <a class="card home-tile" href="{{ url_for('student.monday') }}">
-    <span class="home-tile__ic">{{ ui.icon('timer', 20) }}</span>
-    <span class="home-tile__label">{{ _("Тест понедельника") }}</span>
-    <b class="home-tile__big num">{% if monday_countdown %}{{ _("%(d)s д %(h)s ч", d=monday_countdown[0], h=monday_countdown[1]) }}{% else %}{{ _("Идёт сейчас") }}{% endif %}</b>
-    <span class="home-tile__sub">{{ _("до старта") if monday_countdown else _("можно начать") }}{% if my_place and config.MONDAY_RANKINGS %} · {{ _("в прошлый раз #%(n)s", n=my_place) }}{% endif %}</span>
+  <a class="card hc hc-tile{{ ' is-live' if not monday_countdown }}" href="{{ url_for('student.monday') }}">
+    <div class="hc__head"><span class="hc__ic">{{ ui.icon('timer', 20) }}</span><h2>{{ _("Тест понедельника") }}</h2>{% if not monday_countdown %}<span class="hc__pill hc__pill--live"><i></i>{{ _("идёт") }}</span>{% endif %}</div>
+    <p class="hc__line">{{ _("Короткий тест каждую неделю, чтобы видеть свой рост.") }}</p>
+    <div class="hc-tile__fact">
+      {% if monday_countdown %}<b class="num">{{ _("%(d)s д %(h)s ч", d=monday_countdown[0], h=monday_countdown[1]) }}</b><span>{{ _("до старта") }}</span>
+      {% else %}<b>{{ _("Открыт сейчас") }}</b><span>{{ _("можно пройти до конца дня") }}</span>{% endif %}
+    </div>
+    <span class="hc-tile__go">{{ _("Начать тест") if not monday_countdown else _("Подробнее") }} {{ ui.icon('arrow-right', 16) }}</span>
   </a>
-  <a class="card home-tile" href="{{ url_for('student.journal') }}">
-    <span class="home-tile__ic">{{ ui.icon('journal', 20) }}</span>
-    <span class="home-tile__label">{{ _("Журнал ошибок") }}</span>
-    <b class="home-tile__big num">{{ week_mistakes }}</b>
-    <span class="home-tile__sub">{% if week_mistakes %}{{ _("за неделю · %(c)s по невнимательности", c=breakdown.get('careless', 0)) }}{% else %}{{ _("ошибок на этой неделе нет") }}{% endif %}</span>
+  <a class="card hc hc-tile" href="{{ url_for('student.journal') }}">
+    <div class="hc__head"><span class="hc__ic">{{ ui.icon('journal', 20) }}</span><h2>{{ _("Журнал ошибок") }}</h2></div>
+    <p class="hc__line">{{ _("Все ошибки в одном месте — разбери их, чтобы не повторять.") }}</p>
+    <div class="hc-tile__fact">
+      {% if week_mistakes %}<b class="num">{{ week_mistakes }} {{ week_mistakes|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }}</b><span>{{ _("за эту неделю") }}{% if breakdown.get('careless') %} · {{ breakdown.get('careless') }} {{ _("по невнимательности") }}{% endif %}</span>
+      {% else %}<b>{{ _("Ошибок нет") }}</b><span>{{ _("на этой неделе") }}</span>{% endif %}
+    </div>
+    <span class="hc-tile__go">{{ _("Разобрать ошибки") }} {{ ui.icon('arrow-right', 16) }}</span>
   </a>
 </div>
-
-{# ------------------------------------------------------------ practice today: one simple row at the end (the modes live on Сессии) #}
-<section class="card home-goal-row" aria-label="{{ _('Практика сегодня') }}">
-  {{ ui.goal_chip(practice) }}
-  <a class="btn btn--secondary" href="{{ url_for('student.sessions') }}">{{ _("К сессиям") }}{{ ui.icon('arrow-right', 16) }}</a>
-</section>
 {% endblock %}
 
 {% block scripts %}<script defer src="{{ url_for('static', filename='js/hero.js') }}"></script>{% endblock %}
