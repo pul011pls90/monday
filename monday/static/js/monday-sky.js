@@ -121,7 +121,7 @@
       if (na < 0.01) { tiles.delete(key); return; }
       tiles.set(key, na);
       const [i, j] = key.split(",").map(Number);
-      ctx.globalAlpha = na; ctx.fillStyle = stage.classList.contains("is-raw-scene") ? "#C7CBF5" : PINK; ctx.fillRect(i * CELL, j * CELL, CELL, CELL);
+      if (stage.classList.contains("is-raw-scene")) return; ctx.globalAlpha = na; ctx.fillStyle = PINK; ctx.fillRect(i * CELL, j * CELL, CELL, CELL);
     });
     ctx.globalAlpha = 1;
 

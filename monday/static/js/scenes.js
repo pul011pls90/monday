@@ -49,44 +49,37 @@
 
   /* -------------------------------------------------------------- 1. mountains (pixel background) */
   function mountains() {
-    const px = Math.max(5, Math.round(Math.min(W, H) / 70 / density));
-    const cols = Math.ceil(W / px) + 1, rows = Math.ceil(H / px);
-    // sky: vertical pixel gradient
-    for (let r = 0; r < rows; r++) {
-      const k = r / rows;
-      ctx.fillStyle = `rgb(${Math.round(12 + 30 * k)},${Math.round(24 + 50 * k)},${Math.round(114 + 70 * k)})`;
-      ctx.fillRect(0, r * px, W, px + 1);
-    }
+    // five ridges of round Pulse dots on the page background: far ridges faint, near ones solid
+    const px = Math.max(7, Math.round(Math.min(W, H) / 60 / density));
+    const cols = Math.ceil(W / px) + 1, rows = Math.ceil(H / px), rad = px * 0.36;
     const layers = [
-      { base: .44, amp: .16, f: 1.1, sp: 1.2, col: [150, 170, 240] },
-      { base: .55, amp: .14, f: 1.6, sp: 2.2, col: [96, 120, 222] },
-      { base: .65, amp: .12, f: 2.2, sp: 3.6, col: [54, 76, 190] },
-      { base: .75, amp: .09, f: 3.0, sp: 5.4, col: [26, 42, 140] },
-      { base: .86, amp: .06, f: 4.2, sp: 8.0, col: [8, 14, 70] },
+      { base: .44, amp: .16, f: 1.1, sp: 1.2, a: .16 },
+      { base: .55, amp: .14, f: 1.6, sp: 2.2, a: .28 },
+      { base: .65, amp: .12, f: 2.2, sp: 3.6, a: .45 },
+      { base: .75, amp: .09, f: 3.0, sp: 5.4, a: .65 },
+      { base: .86, amp: .06, f: 4.2, sp: 8.0, a: .9 },
     ];
-    layers.forEach((L, li) => {
-      const off = t * L.sp;
+    const filled = new Uint8Array(cols * rows);   // nearer ridges cover farther ones
+    for (let li = layers.length - 1; li >= 0; li--) {
+      const L = layers[li], off = t * L.sp, body = new Path2D(), edge = new Path2D();
       for (let c = 0; c < cols; c++) {
         const x = (c * px + off * px) / W;
         const n = Math.sin(x * L.f * 3.1 + li * 7) * .55 + Math.sin(x * L.f * 7.3 + li) * .28 + Math.sin(x * L.f * 17.9 + li * 3) * .12 + Math.sin(x * L.f * 41.0) * .05;
         let top = Math.round((L.base - L.amp * n) * rows);
         const lx = c * px + px / 2;
-        const l = lens(lx, top * px, 90);
-        top -= Math.round(l * 3);
-        // misty top edge: the first rows of each ridge are lighter
+        top -= Math.round(lens(lx, top * px, 90) * 3);
         for (let r = Math.max(0, top); r < rows; r++) {
-          const fade = clamp((r - top) / 5, 0, 1);
-          const [a, b, d] = L.col;
-          const m = (1 - fade) * 28 + pulseAt(lx, r * px) * 60;
-          ctx.fillStyle = `rgb(${Math.round(a + m)},${Math.round(b + m)},${Math.round(d + m)})`;
-          ctx.fillRect(c * px, r * px, px - 1, px - 1);
+          if (filled[r * cols + c]) continue;
+          filled[r * cols + c] = 1;
+          const cy = r * px + px / 2, grow = 1 + pulseAt(lx, cy) * .8;
+          const path = r - top < 2 ? edge : body;   // the ridge line itself is a little lighter
+          path.moveTo(lx + rad * grow, cy); path.arc(lx, cy, rad * grow, 0, TAU);
         }
       }
-    });
-    // as a background the scene sits under the hero text: a translucent navy veil
-    ctx.fillStyle = "rgba(12,24,114,0.3)";
-    ctx.fillRect(0, 0, W, H);
-    return "пиксель " + px + "px · 5 слоёв";
+      ctx.fillStyle = `rgba(15, 29, 243, ${L.a})`; ctx.fill(body);
+      ctx.fillStyle = `rgba(15, 29, 243, ${L.a * .55})`; ctx.fill(edge);
+    }
+    return "точки " + px + "px · 5 слоёв";
   }
 
   /* -------------------------------------------------------------- 2. dipole field */
