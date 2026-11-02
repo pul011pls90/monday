@@ -121,7 +121,7 @@
       if (na < 0.01) { tiles.delete(key); return; }
       tiles.set(key, na);
       const [i, j] = key.split(",").map(Number);
-      if (stage.classList.contains("is-raw-scene")) return; ctx.globalAlpha = na; ctx.fillStyle = PINK; ctx.fillRect(i * CELL, j * CELL, CELL, CELL);
+      return; ctx.globalAlpha = na;  // tiles are off ctx.fillStyle = PINK; ctx.fillRect(i * CELL, j * CELL, CELL, CELL);
     });
     ctx.globalAlpha = 1;
 
@@ -223,7 +223,7 @@
     ptr.on += ((ptr.x > -1e3 ? 1 : 0) - ptr.on) * 0.25;
     draw(now);
   }
-  window.addEventListener("pointermove", (e) => { const r = sky.getBoundingClientRect(); ptr.x = e.clientX - r.left; ptr.y = e.clientY - r.top; });
+  if (false) window.addEventListener("pointermove", (e) => { const r = sky.getBoundingClientRect(); ptr.x = e.clientX - r.left; ptr.y = e.clientY - r.top; });
   document.documentElement.addEventListener("pointerleave", () => { ptr.x = ptr.y = -1e4; });
   // every click on the sky (not on the button or links) sends a wave
   stage.addEventListener("click", (e) => {

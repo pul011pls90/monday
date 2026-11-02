@@ -75,7 +75,7 @@
 
   // tiles change by themselves now and then, so the sky never stands still
   function shuffleTiles() {
-    if (bg) return;  // no pink tiles behind the page: they would show through text that has no card under it
+    return;  // no pink tiles  // no pink tiles behind the page: they would show through text that has no card under it
     tiles.forEach((t) => { if (!t.painted) t.to = 0; });
     const free = [];
     for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) if (tileFree(i, j)) free.push(`${i},${j}`);
@@ -147,7 +147,7 @@
     if (!reduce) requestAnimationFrame(frame);
   }
 
-  (bg ? window : hero).addEventListener("pointermove", (e) => {
+  if (false) (bg ? window : hero).addEventListener("pointermove", (e) => {
     const r = hero.getBoundingClientRect();
     pointer.x = e.clientX - r.left; pointer.y = e.clientY - r.top;
     if (!pointer.inside) { pointer.cx = pointer.x; pointer.cy = pointer.y; }
@@ -155,7 +155,7 @@
   });
   (bg ? document.documentElement : hero).addEventListener("pointerleave", () => { pointer.inside = false; });
   // a click on the sky (not on a link or button) paints that tile, a second click clears it
-  if (!bg) hero.addEventListener("click", (e) => {
+  if (false) hero.addEventListener("click", (e) => {
     if (e.target.closest("a, button, input, select, label")) return;
     const r = hero.getBoundingClientRect();
     const ci = Math.floor((e.clientX - r.left) / CELL), cj = Math.floor((e.clientY - r.top) / CELL);
