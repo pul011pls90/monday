@@ -3757,3 +3757,20 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .q-columns__body .katex { font-size: 1.1em; }
 /* keyboard focus on an answer: one Pulse border with a soft halo, not a second ring around the grey border */
 .option input:focus-visible + .option__box { outline: none; border-color: var(--pulse); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pulse) 22%, transparent); }
+
+/* results hero: the mode as the title, the time highlighted under it */
+.sd-title { font: 700 26px/1.2 var(--font-display); letter-spacing: -.02em; margin: 0; color: var(--text); }
+.sd-time { display: inline-flex; align-items: center; gap: 10px; align-self: flex-start; margin-top: 8px; padding: 10px 16px; border-radius: 14px;
+  background: color-mix(in srgb, var(--pulse) 10%, var(--surface)); border: 1.5px solid color-mix(in srgb, var(--pulse) 35%, transparent); color: var(--pulse); font-size: 17px; font-weight: 600; }
+.sd-time b { font-weight: 800; }
+.sd-hint { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; font-size: 14px; font-weight: 600; color: var(--muted); }
+.result-hero > .stack-sm { display: flex; flex-direction: column; gap: 8px; }
+[data-theme="dark"] .sd-time { background: color-mix(in srgb, var(--pulse) 25%, #000); color: #FFFFFF; border-color: var(--pulse); }
+@media (max-width: 760px) { .sd-title { font-size: 21px; } }
+/* answer rows: mark, tag and chevron all sit on the row's middle line */
+.sd-row > summary { align-items: center; }
+.sd-row > summary > .bank-topic__chev { width: 24px; height: 24px; display: grid; place-items: center; align-self: center; }
+.sd-row > summary > .bank-topic__chev .ic { display: block; line-height: 0; }
+.sd-row__tag { display: flex; align-items: center; align-self: center; }
+.sd-row__tag .tag { line-height: 1.2; }
+.sd-mark svg { display: block; }

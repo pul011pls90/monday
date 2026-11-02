@@ -10,13 +10,9 @@
   <div class="result-hero">
     {{ ui.dot_ring(shown ~ '/' ~ n, (score / n) if n else 0, _("верно")) }}
     <div class="stack-sm">
-      <div class="eyebrow">{{ mode.name if mode else '' }} · {{ _("сессия завершена") }}</div>
-      <div class="hero__unit">{% if n and score == n %}{{ _("Чисто. Ни одной ошибки.") }}{% elif n and score * 2 >= n %}{{ _("Неплохо. Ошибки уже в журнале.") }}{% else %}{{ _("Это и есть тренировка — ошибки ждут в журнале.") }}{% endif %}</div>
-      <div class="sd-facts">
-        {% if att.time_used %}<span>{{ ui.icon('clock', 15) }}{{ att.time_used|duration }}</span>{% endif %}
-        {% if cfg.minutes %}<span>{{ ui.icon('timer', 15) }}{{ _("лимит %(m)s мин", m=cfg.minutes) }}</span>{% endif %}
-        {% if hinted %}<span>{{ ui.icon('bulb', 15) }}{{ _("с подсказкой: %(n)s · по ½ балла", n=hinted) }}</span>{% endif %}
-      </div>
+      <h1 class="sd-title">{{ mode.name if mode else _("Сессия") }} · {{ _("сессия завершена") }}</h1>
+      {% if att.time_used %}<div class="sd-time">{{ ui.icon('clock', 18) }}<span>{{ _("Время:") }} <b>{{ att.time_used|duration }}</b>{% if cfg.minutes %} {{ _("из") }} {{ cfg.minutes }} {{ _("мин") }}{% endif %}</span></div>{% endif %}
+      {% if hinted %}<div class="sd-hint">{{ ui.icon('bulb', 15) }}{{ _("с подсказкой: %(n)s · по ½ балла", n=hinted) }}</div>{% endif %}
     </div>
   </div>
 </section>
