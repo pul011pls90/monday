@@ -10,6 +10,9 @@ Each question carries its master skill code, text with $…$ LaTeX, optional rea
 (several accepted values are separated by "|"), an explanation and an optional figure.
 Each collection lists question ids in order plus its test format (SAT: two 22-question modules, 32 min each).
 
+A pack with "bank": false (olympiads) keeps its questions as drafts: its tests are published, but the questions never
+reach practice, the daily question or the teachers' bank.
+
 A pack is imported once (AppMeta remembers it). Figures are copied into the uploads folder, so they come back
 whenever the database is rebuilt (e.g. on a fresh Render instance).
 """
@@ -20,6 +23,7 @@ import shutil
 from flask import current_app
 
 from .extensions import db
+from .constants import WORK_CATEGORIES
 from .models import AppMeta, ContentNode, Question, User, Work
 
 PACK_DIR = os.path.join(os.path.dirname(__file__), "data", "packs")
@@ -86,6 +90,7 @@ def import_pack(pack_id, publish=True, author=None):
     nodes = {n.code: n for n in ContentNode.query.filter(ContentNode.code.isnot(None)).all()}
     exam = pack.get("exam", "SAT")
     status = "published" if publish else "draft"
+    question_status = status if pack.get("bank", True) else "draft"
     by_key = {}
     for item in pack["questions"]:
         node = nodes.get(item["skill"])
@@ -95,7 +100,7 @@ def import_pack(pack_id, publish=True, author=None):
                      weight=int(item.get("weight") or 1), rubric=item.get("rubric") or None,
                      answer_type=item["answer_type"], options=item.get("options") or [],
                      correct=item["correct"], explanation=item.get("explanation", ""),
-                     tags=item.get("tags") or [], status=status, source=pack_id)
+                     tags=item.get("tags") or [], status=question_status, source=pack_id)
         db.session.add(q)
         by_key[item["id"]] = q
     db.session.flush()
@@ -106,7 +111,7 @@ def import_pack(pack_id, publish=True, author=None):
         if missing:
             by_key.update(_foreign_questions(missing, pack_id, publish, author))
         minutes = c.get("minutes_per_module", 32) * (2 if c.get("module_split") else 1)
-        category = c.get("category") if c.get("category") in ("full", "thematic") else "full"
+        category = c.get("category") if c.get("category") in WORK_CATEGORIES else "full"
         w = Work(author=author, kind="collection", category=category, exam=exam, title=c["title"][:160],
                  description=c.get("description", ""), time_limit_min=minutes, status="draft",
                  draft_question_ids=[by_key[k].id for k in c["questions"]], format=c.get("format", "sat"),
@@ -138,7 +143,7 @@ def sync_pack(pack_id, publish=True):
     for item in pack["questions"]:
         q = have.pop((item.get("explanation", ""), item["correct"]), None)
         if q is None:
-            q = Question(author=author, source=pack_id, status="published" if publish else "draft", exams=item.get("exams") or [pack.get("exam", "SAT")],
+            q = Question(author=author, source=pack_id, status="published" if publish and pack.get("bank", True) else "draft", exams=item.get("exams") or [pack.get("exam", "SAT")],
                          language=item.get("language") or pack.get("language", "en"), answer_type=item["answer_type"],
                          correct=item["correct"], explanation=item.get("explanation", ""), tags=item.get("tags") or [])
             db.session.add(q)

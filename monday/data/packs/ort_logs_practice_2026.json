@@ -1,0 +1,891 @@
+{
+ "id": "ort_logs_practice_2026",
+ "title": "ОРТ · Логарифмы: вычисления",
+ "exam": "ORT",
+ "language": "ru",
+ "questions": [
+  {
+   "id": "ortlog26_n01",
+   "text": "Вычислите: $\\log_3(\\log_2 512)$.",
+   "answer_type": "choice",
+   "options": [
+    "$2$",
+    "$1$",
+    "$\\frac12$",
+    "$9$",
+    "$3$"
+   ],
+   "correct": "0",
+   "explanation": "Считаем изнутри: $\\log_2 512 = 9$, так как $2^9 = 512$. Затем $\\log_3 9 = 2$.",
+   "skill": "log_def",
+   "difficulty": 1,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: вложенные логарифмы"
+   }
+  },
+  {
+   "id": "ortlog26_n02",
+   "text": "Вычислите: $\\log_{\\frac12}(\\log_3(\\log_2 8))$.",
+   "answer_type": "choice",
+   "options": [
+    "$-1$",
+    "$1$",
+    "$\\frac12$",
+    "$0$",
+    "$3$"
+   ],
+   "correct": "3",
+   "explanation": "$\\log_2 8 = 3$, затем $\\log_3 3 = 1$. Логарифм единицы при любом основании равен нулю: $\\log_{\\frac12} 1 = 0$.",
+   "skill": "log_def",
+   "difficulty": 1,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: вложенные логарифмы"
+   }
+  },
+  {
+   "id": "ortlog26_n03",
+   "text": "Вычислите значение вложенного логарифма: $\\log_4(\\log_2(\\log_3 81))$.",
+   "answer_type": "choice",
+   "options": [
+    "$\\frac14$",
+    "$1$",
+    "$2$",
+    "$4$",
+    "$\\frac12$"
+   ],
+   "correct": "4",
+   "explanation": "$\\log_3 81 = 4$, затем $\\log_2 4 = 2$. Остаётся $\\log_4 2 = \\frac12$, так как $4^{\\frac12} = 2$.",
+   "skill": "log_def",
+   "difficulty": 2,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: вложенные логарифмы"
+   }
+  },
+  {
+   "id": "ortlog26_n04",
+   "text": "Вычислите: $\\log_{27}(\\log_2(\\log_4 4^8))$.",
+   "answer_type": "choice",
+   "options": [
+    "$3$",
+    "$9$",
+    "$1$",
+    "$\\frac19$",
+    "$\\frac13$"
+   ],
+   "correct": "4",
+   "explanation": "$\\log_4 4^8 = 8$, затем $\\log_2 8 = 3$. Остаётся $\\log_{27} 3 = \\frac13$, так как $27^{\\frac13} = 3$.",
+   "skill": "log_def",
+   "difficulty": 2,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: вложенные логарифмы"
+   }
+  },
+  {
+   "id": "ortlog26_n05",
+   "text": "Вычислите: $\\log_{\\sqrt2}\\left(\\log_{\\frac13}\\frac1{81}\\right)$.",
+   "answer_type": "choice",
+   "options": [
+    "$2$",
+    "$4$",
+    "$8$",
+    "$\\frac12$",
+    "$16$"
+   ],
+   "correct": "1",
+   "explanation": "$\\log_{\\frac13}\\frac1{81} = 4$, так как $\\left(\\frac13\\right)^4 = \\frac1{81}$. Затем $\\log_{\\sqrt2} 4 = 4$, так как $(\\sqrt2)^4 = 4$.",
+   "skill": "log_def",
+   "difficulty": 2,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: вложенные логарифмы"
+   }
+  },
+  {
+   "id": "ortlog26_n06",
+   "text": "Вычислите: $\\log_8(\\log_{\\sqrt2}(\\log_{\\sqrt5} 25))$.",
+   "answer_type": "choice",
+   "options": [
+    "$\\frac43$",
+    "$\\frac32$",
+    "$2$",
+    "$\\frac12$",
+    "$\\frac23$"
+   ],
+   "correct": "4",
+   "explanation": "$\\log_{\\sqrt5} 25 = 4$, так как $(\\sqrt5)^4 = 25$. Затем $\\log_{\\sqrt2} 4 = 4$. Остаётся $\\log_8 4 = \\frac23$, так как $8^{\\frac23} = 4$.",
+   "skill": "log_def",
+   "difficulty": 3,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: вложенные логарифмы"
+   }
+  },
+  {
+   "id": "ortlog26_c01",
+   "text": "Найдите значение выражения: $\\log_2 3 \\cdot \\log_3 4$.",
+   "answer_type": "choice",
+   "options": [
+    "$4$",
+    "$6$",
+    "$3$",
+    "$2$",
+    "$1$"
+   ],
+   "correct": "3",
+   "explanation": "По формуле перехода $\\log_a b \\cdot \\log_b c = \\log_a c$, поэтому произведение равно $\\log_2 4 = 2$.",
+   "skill": "log_props",
+   "difficulty": 1,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: цепочки произведений"
+   }
+  },
+  {
+   "id": "ortlog26_c02",
+   "text": "Найдите значение выражения: $\\log_2 5 \\cdot \\log_5 7 \\cdot \\log_7 8$.",
+   "answer_type": "choice",
+   "options": [
+    "$3$",
+    "$8$",
+    "$2$",
+    "$4$",
+    "$\\frac13$"
+   ],
+   "correct": "0",
+   "explanation": "Промежуточные основания сокращаются: $\\log_2 5 \\cdot \\log_5 7 \\cdot \\log_7 8 = \\log_2 8 = 3$.",
+   "skill": "log_props",
+   "difficulty": 1,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: цепочки произведений"
+   }
+  },
+  {
+   "id": "ortlog26_c03",
+   "text": "Найдите значение выражения: $\\log_3 2 \\cdot \\log_4 3 \\cdot \\log_5 4 \\cdot \\log_6 5 \\cdot \\log_7 6 \\cdot \\log_8 7$.",
+   "answer_type": "choice",
+   "options": [
+    "$\\frac12$",
+    "$\\frac13$",
+    "$3$",
+    "$1$",
+    "$\\frac18$"
+   ],
+   "correct": "1",
+   "explanation": "Запишем каждый множитель как $\\log_{n+1} n = \\frac{\\ln n}{\\ln(n+1)}$. Всё сокращается, кроме $\\frac{\\ln 2}{\\ln 8} = \\log_8 2 = \\frac13$.",
+   "skill": "log_props",
+   "difficulty": 2,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: цепочки произведений"
+   }
+  },
+  {
+   "id": "ortlog26_c04",
+   "text": "Найдите значение выражения: $\\log_3 4 \\cdot \\log_4 5 \\cdot \\log_5 6 \\cdot \\log_6 7 \\cdot \\log_7 8 \\cdot \\log_8 9$.",
+   "answer_type": "choice",
+   "options": [
+    "$6$",
+    "$9$",
+    "$2$",
+    "$3$",
+    "$\\frac12$"
+   ],
+   "correct": "2",
+   "explanation": "Цепочка сворачивается в один логарифм: первое основание и последний аргумент дают $\\log_3 9 = 2$.",
+   "skill": "log_props",
+   "difficulty": 2,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: цепочки произведений"
+   }
+  },
+  {
+   "id": "ortlog26_c05",
+   "text": "Найдите значение выражения: $\\log_2 3 \\cdot \\log_3 4 \\cdot \\log_4 5 \\cdot \\ldots \\cdot \\log_{15} 16$.",
+   "answer_type": "choice",
+   "options": [
+    "$15$",
+    "$16$",
+    "$2$",
+    "$8$",
+    "$4$"
+   ],
+   "correct": "4",
+   "explanation": "Все промежуточные основания сокращаются, остаётся $\\log_2 16 = 4$.",
+   "skill": "log_props",
+   "difficulty": 2,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: цепочки произведений"
+   }
+  },
+  {
+   "id": "ortlog26_c06",
+   "text": "Найдите значение выражения: $\\log_4 9 \\cdot \\log_3 5 \\cdot \\log_{25} 8$.",
+   "answer_type": "choice",
+   "options": [
+    "$6$",
+    "$3$",
+    "$\\frac23$",
+    "$\\frac32$",
+    "$\\frac12$"
+   ],
+   "correct": "3",
+   "explanation": "Приведём к простым основаниям: $\\log_4 9 = \\log_2 3$ и $\\log_{25} 8 = \\frac32\\log_5 2$. Тогда произведение равно $\\frac32 \\cdot \\log_2 3 \\cdot \\log_3 5 \\cdot \\log_5 2 = \\frac32 \\cdot \\log_2 2 = \\frac32$.",
+   "skill": "log_props",
+   "difficulty": 3,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: цепочки произведений"
+   }
+  },
+  {
+   "id": "ortlog26_p01",
+   "text": "Вычислите: $\\log_6 4 + 2\\log_6 3$.",
+   "answer_type": "choice",
+   "options": [
+    "$3$",
+    "$2$",
+    "$1$",
+    "$12$",
+    "$6$"
+   ],
+   "correct": "1",
+   "explanation": "$2\\log_6 3 = \\log_6 9$, поэтому сумма равна $\\log_6(4 \\cdot 9) = \\log_6 36 = 2$.",
+   "skill": "log_props",
+   "difficulty": 1,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: свойства логарифмов"
+   }
+  },
+  {
+   "id": "ortlog26_p02",
+   "text": "Вычислите: $\\log_3 18 - \\log_3 2 \\cdot \\log_2 6$.",
+   "answer_type": "choice",
+   "options": [
+    "$3$",
+    "$-1$",
+    "$0$",
+    "$1$",
+    "$2$"
+   ],
+   "correct": "3",
+   "explanation": "По формуле перехода $\\log_3 2 \\cdot \\log_2 6 = \\log_3 6$. Тогда $\\log_3 18 - \\log_3 6 = \\log_3 3 = 1$.",
+   "skill": "log_props",
+   "difficulty": 2,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: свойства логарифмов"
+   }
+  },
+  {
+   "id": "ortlog26_p03",
+   "text": "Вычислите: $\\log_2 40 - \\log_2 5 \\cdot \\log_5 10$.",
+   "answer_type": "choice",
+   "options": [
+    "$2$",
+    "$4$",
+    "$3$",
+    "$1$",
+    "$0$"
+   ],
+   "correct": "0",
+   "explanation": "По формуле перехода $\\log_2 5 \\cdot \\log_5 10 = \\log_2 10$. Тогда $\\log_2 40 - \\log_2 10 = \\log_2 4 = 2$.",
+   "skill": "log_props",
+   "difficulty": 2,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: свойства логарифмов"
+   }
+  },
+  {
+   "id": "ortlog26_p04",
+   "text": "Вычислите: $\\dfrac{1}{\\log_2 6} + \\dfrac{1}{\\log_3 6}$.",
+   "answer_type": "choice",
+   "options": [
+    "$6$",
+    "$5$",
+    "$\\frac15$",
+    "$1$",
+    "$\\frac16$"
+   ],
+   "correct": "3",
+   "explanation": "Так как $\\frac{1}{\\log_a b} = \\log_b a$, сумма равна $\\log_6 2 + \\log_6 3 = \\log_6 6 = 1$.",
+   "skill": "log_props",
+   "difficulty": 2,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: свойства логарифмов"
+   }
+  },
+  {
+   "id": "ortlog26_p05",
+   "text": "Вычислите: $(\\log_2 9 + \\log_4 9) \\cdot \\log_3 2$.",
+   "answer_type": "choice",
+   "options": [
+    "$2$",
+    "$\\frac92$",
+    "$3$",
+    "$1$",
+    "$4$"
+   ],
+   "correct": "2",
+   "explanation": "$\\log_2 9 = 2\\log_2 3$ и $\\log_4 9 = \\log_2 3$, значит в скобках $3\\log_2 3$. Так как $\\log_2 3 \\cdot \\log_3 2 = 1$, ответ равен $3$.",
+   "skill": "log_props",
+   "difficulty": 2,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: свойства логарифмов"
+   }
+  },
+  {
+   "id": "ortlog26_p06",
+   "text": "Вычислите: $\\lg^2 5 + \\lg 2 \\cdot \\lg 50$.",
+   "answer_type": "choice",
+   "options": [
+    "$2$",
+    "$\\frac12$",
+    "$1$",
+    "$\\lg 5$",
+    "$0$"
+   ],
+   "correct": "2",
+   "explanation": "Пусть $x = \\lg 5$, $y = \\lg 2$, тогда $x + y = \\lg 10 = 1$ и $\\lg 50 = 1 + x$. Получаем $x^2 + y(1 + x) = x(x + y) + y = x + y = 1$.",
+   "skill": "log_props",
+   "difficulty": 3,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: свойства логарифмов"
+   }
+  },
+  {
+   "id": "ortlog26_e01",
+   "text": "Найдите $\\log_3 20$, если известно, что $\\log_3 2 = a$ и $\\log_3 5 = b$.",
+   "answer_type": "choice",
+   "options": [
+    "$2(a + b)$",
+    "$2ab$",
+    "$a + 2b$",
+    "$a^2 + b$",
+    "$2a + b$"
+   ],
+   "correct": "4",
+   "explanation": "$20 = 2^2 \\cdot 5$, поэтому $\\log_3 20 = 2\\log_3 2 + \\log_3 5 = 2a + b$.",
+   "skill": "log_props",
+   "difficulty": 1,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: выражение через a и b"
+   }
+  },
+  {
+   "id": "ortlog26_e02",
+   "text": "Найдите $\\log_5 72$, если известно, что $\\log_5 2 = a$ и $\\log_5 3 = b$.",
+   "answer_type": "choice",
+   "options": [
+    "$5(a + b)$",
+    "$6ab$",
+    "$3a + 2b$",
+    "$a^3 + b^2$",
+    "$2a + 3b$"
+   ],
+   "correct": "2",
+   "explanation": "$72 = 2^3 \\cdot 3^2$, поэтому $\\log_5 72 = 3\\log_5 2 + 2\\log_5 3 = 3a + 2b$.",
+   "skill": "log_props",
+   "difficulty": 1,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: выражение через a и b"
+   }
+  },
+  {
+   "id": "ortlog26_e03",
+   "text": "Найдите $\\log_2 1{,}8$, если известно, что $\\log_2 3 = a$ и $\\log_2 5 = b$.",
+   "answer_type": "choice",
+   "options": [
+    "$2a + b$",
+    "$a^2 - b$",
+    "$\\frac{2a}{b}$",
+    "$b - 2a$",
+    "$2a - b$"
+   ],
+   "correct": "4",
+   "explanation": "$1{,}8 = \\frac95 = \\frac{3^2}{5}$, поэтому $\\log_2 1{,}8 = 2\\log_2 3 - \\log_2 5 = 2a - b$.",
+   "skill": "log_props",
+   "difficulty": 2,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: выражение через a и b"
+   }
+  },
+  {
+   "id": "ortlog26_e04",
+   "text": "Найдите $\\lg 15$, если известно, что $\\lg 2 = a$ и $\\lg 3 = b$.",
+   "answer_type": "choice",
+   "options": [
+    "$1 + a + b$",
+    "$5ab$",
+    "$1 + a - b$",
+    "$1 - a + b$",
+    "$a + b$"
+   ],
+   "correct": "3",
+   "explanation": "$15 = 3 \\cdot 5$ и $5 = \\frac{10}{2}$, поэтому $\\lg 15 = \\lg 3 + \\lg 10 - \\lg 2 = 1 - a + b$.",
+   "skill": "log_props",
+   "difficulty": 2,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: выражение через a и b"
+   }
+  },
+  {
+   "id": "ortlog26_e05",
+   "text": "Найдите $\\log_6 2$, если известно, что $\\log_2 3 = a$.",
+   "answer_type": "choice",
+   "options": [
+    "$\\frac{a}{1 + a}$",
+    "$1 + a$",
+    "$\\frac{1}{1 + a}$",
+    "$\\frac{1 + a}{a}$",
+    "$\\frac{1}{1 - a}$"
+   ],
+   "correct": "2",
+   "explanation": "$\\log_6 2 = \\frac{1}{\\log_2 6} = \\frac{1}{\\log_2 2 + \\log_2 3} = \\frac{1}{1 + a}$.",
+   "skill": "log_props",
+   "difficulty": 2,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: выражение через a и b"
+   }
+  },
+  {
+   "id": "ortlog26_e06",
+   "text": "Найдите $\\log_{12} 18$, если известно, что $\\log_2 3 = a$.",
+   "answer_type": "choice",
+   "options": [
+    "$\\frac{2 + a}{1 + 2a}$",
+    "$\\frac{1 + 2a}{2 - a}$",
+    "$\\frac{1 + a}{2 + a}$",
+    "$\\frac{1 + 2a}{1 + a}$",
+    "$\\frac{1 + 2a}{2 + a}$"
+   ],
+   "correct": "4",
+   "explanation": "Перейдём к основанию $2$: $\\log_{12} 18 = \\frac{\\log_2 18}{\\log_2 12} = \\frac{\\log_2(2 \\cdot 3^2)}{\\log_2(2^2 \\cdot 3)} = \\frac{1 + 2a}{2 + a}$.",
+   "skill": "log_props",
+   "difficulty": 3,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: выражение через a и b"
+   }
+  },
+  {
+   "id": "ortlog26_x01",
+   "text": "Вычислите: $3^{\\log_3 7 + 1}$.",
+   "answer_type": "choice",
+   "options": [
+    "$8$",
+    "$21$",
+    "$7$",
+    "$10$",
+    "$24$"
+   ],
+   "correct": "1",
+   "explanation": "$3^{\\log_3 7 + 1} = 3^{\\log_3 7} \\cdot 3 = 7 \\cdot 3 = 21$.",
+   "skill": "log_def",
+   "difficulty": 1,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: логарифм в показателе"
+   }
+  },
+  {
+   "id": "ortlog26_x02",
+   "text": "Вычислите: $4^{\\log_2 5}$.",
+   "answer_type": "choice",
+   "options": [
+    "$25$",
+    "$20$",
+    "$625$",
+    "$5$",
+    "$10$"
+   ],
+   "correct": "0",
+   "explanation": "$4^{\\log_2 5} = (2^2)^{\\log_2 5} = (2^{\\log_2 5})^2 = 5^2 = 25$.",
+   "skill": "log_def",
+   "difficulty": 1,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: логарифм в показателе"
+   }
+  },
+  {
+   "id": "ortlog26_x03",
+   "text": "Вычислите: $25^{\\log_5 3} + 8^{\\log_2 3}$.",
+   "answer_type": "choice",
+   "options": [
+    "$15$",
+    "$12$",
+    "$18$",
+    "$36$",
+    "$6$"
+   ],
+   "correct": "3",
+   "explanation": "$25^{\\log_5 3} = (5^{\\log_5 3})^2 = 3^2 = 9$ и $8^{\\log_2 3} = (2^{\\log_2 3})^3 = 3^3 = 27$. Сумма равна $36$.",
+   "skill": "log_def",
+   "difficulty": 2,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: логарифм в показателе"
+   }
+  },
+  {
+   "id": "ortlog26_x04",
+   "text": "Вычислите: $\\left(\\frac13\\right)^{\\log_3 5 - 1}$.",
+   "answer_type": "choice",
+   "options": [
+    "$15$",
+    "$4$",
+    "$\\frac15$",
+    "$\\frac35$",
+    "$\\frac53$"
+   ],
+   "correct": "3",
+   "explanation": "$\\left(\\frac13\\right)^{\\log_3 5 - 1} = 3^{1 - \\log_3 5} = \\frac{3}{3^{\\log_3 5}} = \\frac35$.",
+   "skill": "log_def",
+   "difficulty": 2,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: логарифм в показателе"
+   }
+  },
+  {
+   "id": "ortlog26_x05",
+   "text": "Вычислите точное значение: $49^{1 - \\log_7 2} + 5^{-\\log_5 4}$.",
+   "answer_type": "choice",
+   "options": [
+    "$12{,}25$",
+    "$12$",
+    "$24{,}75$",
+    "$16{,}25$",
+    "$12{,}5$"
+   ],
+   "correct": "4",
+   "explanation": "$49^{1 - \\log_7 2} = \\frac{49}{49^{\\log_7 2}} = \\frac{49}{2^2} = \\frac{49}{4}$ и $5^{-\\log_5 4} = \\frac14$. Сумма равна $\\frac{50}{4} = 12{,}5$.",
+   "skill": "log_def",
+   "difficulty": 3,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: логарифм в показателе"
+   }
+  },
+  {
+   "id": "ortlog26_x06",
+   "text": "Вычислите: $16^{\\log_4 3} + 10^{2 - \\lg 5} - 5^{\\log_{25} 49}$.",
+   "answer_type": "choice",
+   "options": [
+    "$22$",
+    "$16$",
+    "$12$",
+    "$36$",
+    "$-20$"
+   ],
+   "correct": "0",
+   "explanation": "$16^{\\log_4 3} = 3^2 = 9$. Затем $10^{2 - \\lg 5} = \\frac{100}{5} = 20$. Наконец $5^{\\log_{25} 49} = 5^{\\log_5 7} = 7$. Итого $9 + 20 - 7 = 22$.",
+   "skill": "log_def",
+   "difficulty": 3,
+   "exams": [
+    "ORT"
+   ],
+   "language": "ru",
+   "tags": [
+    "ort",
+    "logs"
+   ],
+   "source": {
+    "book": "Monday",
+    "where": "логарифмы: логарифм в показателе"
+   }
+  }
+ ],
+ "collections": [
+  {
+   "id": "ortlog26_set",
+   "title": "ОРТ Математика · Логарифмы (Monday)",
+   "description": "30 заданий на вычисление логарифмов: вложенные логарифмы, цепочки произведений, свойства, выражение через a и b, логарифм в показателе.",
+   "format": "ort",
+   "category": "thematic",
+   "calculator": false,
+   "minutes_per_module": 45,
+   "questions": [
+    "ortlog26_n01",
+    "ortlog26_n02",
+    "ortlog26_c01",
+    "ortlog26_c02",
+    "ortlog26_p01",
+    "ortlog26_e01",
+    "ortlog26_e02",
+    "ortlog26_x01",
+    "ortlog26_x02",
+    "ortlog26_n03",
+    "ortlog26_n04",
+    "ortlog26_n05",
+    "ortlog26_c03",
+    "ortlog26_c04",
+    "ortlog26_c05",
+    "ortlog26_p02",
+    "ortlog26_p03",
+    "ortlog26_p04",
+    "ortlog26_p05",
+    "ortlog26_e03",
+    "ortlog26_e04",
+    "ortlog26_e05",
+    "ortlog26_x03",
+    "ortlog26_x04",
+    "ortlog26_n06",
+    "ortlog26_c06",
+    "ortlog26_p06",
+    "ortlog26_e06",
+    "ortlog26_x05",
+    "ortlog26_x06"
+   ]
+  }
+ ]
+}

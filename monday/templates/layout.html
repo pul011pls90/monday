@@ -3,6 +3,12 @@
 {% set ep = request.endpoint or '' %}
 
 {% block body %}
+{# the dotted sky: one fixed background behind every student page. Pages with a backdrop of their own empty this block;
+   tests and question screens extend base.html, so they never get it. #}
+{% block sky %}{% if current_user.role == 'student' %}
+<div class="page-sky" data-hero data-hero-bg aria-hidden="true"><canvas class="hero__canvas" data-hero-dots></canvas></div>
+<script defer src="{{ url_for('static', filename='js/hero.js') }}"></script>
+{% endif %}{% endblock %}
 <div class="app">
   <nav class="rail" aria-label="{{ _('Основное меню') }}">
     {% if current_user.is_teacher %}

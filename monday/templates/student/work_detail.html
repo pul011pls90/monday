@@ -6,7 +6,7 @@
 {% set v = work.current_version %}
 <a href="{{ url_for('student.collections') }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Все сборники") }}</a>
 <section class="card" style="gap:20px">
-  <div class="row">{{ ui.exam_tag(work.exam) }}<span class="tag tag--line">{{ WORK_CATEGORIES[work.category] }}</span>{% if v.number > 1 %}<span class="tag tag--soft">{{ _("версия %(n)s", n=v.number) }}</span>{% endif %}</div>
+  <div class="row">{{ ui.exam_tag(work.exam) }}{% if work.category != 'olympiad' %}<span class="tag tag--line">{{ WORK_CATEGORIES[work.category] }}</span>{% endif %}{% if v.number > 1 %}<span class="tag tag--soft">{{ _("версия %(n)s", n=v.number) }}</span>{% endif %}</div>
   <h1>{{ work.title }}</h1>
   <div class="author">{{ ui.avatar(work.author, 'avatar--sm') }}{{ work.author.public_name }}</div>
   {% if work.description %}<p class="text-2" style="font-size:16px">{{ work.description }}</p>{% endif %}

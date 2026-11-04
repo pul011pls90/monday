@@ -23,17 +23,25 @@
       </select>
     </label>
   </div>
-  <input type="hidden" name="exam" value="{{ exam_filter }}"><input type="hidden" name="cat" value="{{ cat }}">
+  <input type="hidden" name="exam" value="{{ exam_filter }}"><input type="hidden" name="cat" value="{{ cat }}"><input type="hidden" name="grade" value="{{ grade }}">
   <div class="chips" role="group" aria-label="{{ _('Фильтры') }}">
-    <a class="chip{{ ' is-active' if not exam_filter }}" href="{{ url_for('student.collections', q=q, cat=cat, sort=sort) }}">{{ _("Все") }}</a>
+    <a class="chip{{ ' is-active' if not exam_filter and cat != 'olympiad' }}" href="{{ url_for('student.collections', q=q, cat=('' if cat == 'olympiad' else cat), sort=sort) }}">{{ _("Все") }}</a>
     {% for code, e in EXAMS.items() %}
-      <a class="chip{{ ' is-active' if exam_filter == code }}" href="{{ url_for('student.collections', exam=code, q=q, cat=cat, sort=sort) }}">{{ e.label }}</a>
+      <a class="chip{{ ' is-active' if exam_filter == code }}" href="{{ url_for('student.collections', exam=code, q=q, cat=('' if cat == 'olympiad' else cat), sort=sort) }}">{{ e.label }}</a>
     {% endfor %}
     <span class="chips__sep"></span>
     {% for key, label in WORK_CATEGORIES.items() %}
-      <a class="chip{{ ' is-active' if cat == key }}" href="{{ url_for('student.collections', exam=exam_filter, q=q, cat=('' if cat == key else key), sort=sort) }}">{{ label }}</a>
+      <a class="chip{{ ' is-active' if cat == key }}" href="{{ url_for('student.collections', exam=('' if key == 'olympiad' else exam_filter), q=q, cat=('' if cat == key else key), sort=sort) }}">{{ label }}</a>
     {% endfor %}
   </div>
+  {% if cat == 'olympiad' and grades %}
+  <div class="chips" role="group" aria-label="{{ _('Класс') }}">
+    <a class="chip{{ ' is-active' if not grade }}" href="{{ url_for('student.collections', cat='olympiad', q=q, sort=sort) }}">{{ _("Все классы") }}</a>
+    {% for g in grades %}
+      <a class="chip{{ ' is-active' if grade == g }}" href="{{ url_for('student.collections', cat='olympiad', grade=g, q=q, sort=sort) }}">{{ _("%(n)s класс", n=g) }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
 </form>
 
 {% if recommended %}
@@ -48,9 +56,21 @@
 </section>
 {% endif %}
 
+{% if olympiads %}
+<section class="section" aria-labelledby="oly-h">
+  <div class="section__head">
+    <h2 id="oly-h">{{ _("Олимпиада") }}</h2>
+    {% if olympiad_total > olympiads|length %}<a class="small" href="{{ url_for('student.collections', cat='olympiad') }}">{{ _("Все олимпиады") }} ({{ olympiad_total }})</a>{% endif %}
+  </div>
+  <div class="grid grid-5 work-grid--compact">
+    {% for w in olympiads %}{{ ui.work_card(w, url_for('student.work_detail', work_id=w.id), _("Начать тест")) }}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
 <section class="section" aria-labelledby="all-h">
   <div class="section__head">
-    <h2 id="all-h">{{ _("Все сборники") if not (q or exam_filter or cat) else _("Результаты") }}</h2>
+    <h2 id="all-h">{% if cat == 'olympiad' and not q %}{{ _("Олимпиада") }}{% elif not (q or exam_filter or cat) %}{{ _("Все сборники") }}{% else %}{{ _("Результаты") }}{% endif %}</h2>
     <span class="small muted">{{ works|length }} {{ works|length|plural_ru(_("сборник"), _("сборника"), _("сборников")) }}</span>
   </div>
   {% if works %}

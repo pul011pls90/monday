@@ -59,7 +59,7 @@
   <div class="row row--between">
     {{ exam_tag(w.exam) }}
     {% if badge %}<span class="small" style="font-weight:700;color:var(--accent)">{{ badge }}</span>
-    {% else %}<span class="small muted" style="font-weight:600">{{ WORK_CATEGORIES.get(w.category, '') }}</span>{% endif %}
+    {% elif w.category != 'olympiad' %}<span class="small muted" style="font-weight:600">{{ WORK_CATEGORIES.get(w.category, '') }}</span>{% endif %}
   </div>
   <h3 class="work-card__title">{{ w.title }}</h3>
   <div class="author">{{ avatar(w.author, 'avatar--sm') }}{{ w.author.public_name }}</div>

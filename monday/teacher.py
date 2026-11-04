@@ -13,7 +13,7 @@ from werkzeug.utils import secure_filename
 
 from .models import local_date, local_midnight_utc, local_now, today as local_today  # noqa: F401
 from .access import staff_required, teacher_required
-from .constants import EXAMS, MISTAKE_REASONS, WORK_KINDS
+from .constants import EXAMS, MISTAKE_REASONS, WORK_CATEGORIES, WORK_KINDS
 from .extensions import db
 from .models import utcnow
 from .models import (INPUT_FORMATS, MATERIAL_TYPES, QUESTION_WORD_LIMIT, Assignment, Attempt, AttemptAnswer,
@@ -542,7 +542,7 @@ def _save_work(work, is_new):
     work.title = f.get("title", "").strip()
     work.description = f.get("description", "").strip()
     work.exam = f.get("exam") if f.get("exam") in EXAMS else work.exam
-    work.category = f.get("category") if f.get("category") in ("full", "thematic") else work.category
+    work.category = f.get("category") if f.get("category") in WORK_CATEGORIES else work.category
     node = db.session.get(ContentNode, f.get("node_id", type=int) or 0)
     work.node = node if _can_see_node(node) and node.level in ("topic", "subtopic") else None
     from .constants import TEST_FORMATS

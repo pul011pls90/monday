@@ -388,6 +388,9 @@ def test_profile_settings_export_and_delete():
         db.session.commit()
     r = c.get("/profile/export.csv")
     assert r.status_code == 200 and "text/csv" in r.headers["Content-Type"] and "Баллы" in r.data.decode("utf-8-sig")
+    r = c.get("/profile/export.pdf")
+    assert r.status_code == 200 and r.headers["Content-Type"] == "application/pdf" and r.data.startswith(b"%PDF")
+    assert b"Onest" in r.data and "monday-results.pdf" in r.headers["Content-Disposition"]
     # deleting an account wipes who the student was and blocks sign-in
     with APP.app_context():
         v = User(email="leaving@monday.kg", name="Уходящий Ученик", role="student")
@@ -397,6 +400,7 @@ def test_profile_settings_export_and_delete():
         db.session.commit()
         vid = v.id
     d = login(client(), "leaving@monday.kg", "leaving123")
+    assert d.get("/profile/export.pdf").data.startswith(b"%PDF")  # nothing finished yet: still a PDF
     r = d.post("/profile", data={"action": "delete", "password": "wrong"}, follow_redirects=True)
     assert "аккаунт не удалён" in r.data.decode()
     d.post("/profile", data={"action": "delete", "password": "leaving123"})
@@ -405,6 +409,31 @@ def test_profile_settings_export_and_delete():
         assert v.is_blocked and "leaving" not in v.email and v.name != "Уходящий Ученик" and v.profile.school is None
     r = client().post("/login", data={"email": "leaving@monday.kg", "password": "leaving123"})
     assert r.status_code != 302
+
+
+def test_results_grouped_by_sector():
+    from datetime import date
+    from monday.results_pdf import group_by_sector, mean_percent
+
+    def row(mode, exam, score, total, seconds=60):
+        return {"date": date(2026, 11, 4), "mode": mode, "exam": exam, "kind": mode, "title": mode, "score": score, "total": total,
+                "seconds": seconds, "minutes": seconds // 60}
+
+    rows = [row("franklin", None, 5, 5), row("collection", "SAT", 30, 60), row("darwin", None, 0, 5), row("collection", "SAT", 10, 10),
+            row("custom", None, 0, 0), row("collection", "ORT", 1, 4), row("monday", "ORT", 7, 10)]
+    assert mean_percent([]) is None and mean_percent([row("custom", None, 0, 0)]) is None
+    assert mean_percent(rows[1:4:2]) == 75  # 50% and 100%: a short test counts as much as a long one
+    with APP.test_request_context():
+        sectors = group_by_sector(rows)
+    assert [len(s["rows"]) for s in sectors] == [1, 2, 1, 3]  # ORT, SAT, Monday, sessions
+    assert [s["mean"] for s in sectors] == [25, 75, 70, 50]  # the unscored session is left out of the mean
+    assert sectors[1]["best"] == 100 and sectors[3]["seconds"] == 180
+    # 0 points in under a minute is listed but not counted; a real 0, or one with no recorded time, still is
+    rows = [row("collection", "SAT", 0, 44, 20), row("collection", "SAT", 0, 44, 600), row("collection", "SAT", 0, 44, 0), row("collection", "SAT", 30, 60)]
+    assert mean_percent(rows) == round(50 / 3) and mean_percent(rows[:1]) is None
+    with APP.test_request_context():
+        sector = group_by_sector(rows)[0]
+    assert len(sector["rows"]) == 4 and sector["empty"] == 1
 
 
 def test_info_pages_for_everyone():

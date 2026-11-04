@@ -185,8 +185,9 @@
       </form>
     </details>
   {% endcall %}
-  {% call row('arrow-down', _('Мои результаты'), _('Все пройденные тесты и сессии одной таблицей — открывается в Excel.')) %}
+  {% call row('arrow-down', _('Мои результаты'), _('Все пройденные тесты и сессии одной таблицей: CSV для Excel или оформленный PDF.')) %}
     <div class="set-line"><span class="set-edit__value">CSV</span><a class="btn btn--secondary btn--sm" href="{{ url_for('student.profile_export') }}">{{ _("Скачать") }}</a></div>
+    <div class="set-line"><span class="set-edit__value">PDF</span><a class="btn btn--secondary btn--sm" href="{{ url_for('student.profile_export_pdf') }}">{{ _("Скачать") }}</a></div>
   {% endcall %}
   {% call row('logout', _('Выйти'), _('Выйти из аккаунта на этом устройстве.')) %}
     <div class="set-line"><span class="set-edit__value">{{ current_user.email }}</span>

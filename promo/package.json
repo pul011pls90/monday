@@ -1,0 +1,25 @@
+{
+  "name": "monday-promo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monday — 60s vertical (9:16, 1080x1920 @ 60fps, 3600 frames) promo video, built with Remotion",
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render MondayPromo out/monday-promo-9x16.mp4",
+    "still": "remotion still MondayPromo out/still.png --frame=600",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.538",
+    "@remotion/transitions": "4.0.538",
+    "katex": "^0.16.11",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "4.0.538"
+  },
+  "devDependencies": {
+    "@types/katex": "^0.16.7",
+    "@types/react": "^18.3.3",
+    "typescript": "^5.5.4"
+  }
+}

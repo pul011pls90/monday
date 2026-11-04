@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% block scripts %}<script defer src="{{ url_for('static', filename='js/scenes.js') }}"></script><script defer src="{{ url_for('static', filename='js/monday-sky.js') }}"></script><script defer src="{{ url_for('static', filename='js/ranking.js') }}"></script>{% endblock %}
 {% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/monday-hero.css') }}">{% endblock %}
+{% block sky %}{% endblock %}{# the Monday scene is this page's background #}
 {% block title %}{{ _("Тест понедельника") }}{% endblock %}
 {% block content %}
 {% set p = current_user.profile %}

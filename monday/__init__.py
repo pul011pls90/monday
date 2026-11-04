@@ -172,7 +172,7 @@ def _register_template_helpers(app):
     from .constants import BIG_TEST_QUESTIONS, TEST_FORMATS
     from .taxonomy import TAGS as QUESTION_TAGS
     from .constants import (DIFFICULTIES, EXAMS, HOMEWORK_STATES, MISTAKE_REASONS, MODES, QUESTION_STATUSES,
-                            REPORT_KINDS, WEEKDAYS, WORK_CATEGORIES, WORK_KINDS, WORK_STATUSES, CONTACTS)
+                            OLYMPIAD_EXAM, REPORT_KINDS, WEEKDAYS, WORK_CATEGORIES, WORK_KINDS, WORK_STATUSES, CONTACTS)
 
     from .models import utcnow
 
@@ -223,6 +223,8 @@ def _register_template_helpers(app):
 
     @app.template_filter("exam_label")
     def exam_label(code):
+        if code == OLYMPIAD_EXAM:
+            return _("Олимпиада")
         return EXAMS.get(code, {}).get("label", code or "")
 
     @app.template_filter("d")

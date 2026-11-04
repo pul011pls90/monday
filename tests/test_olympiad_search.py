@@ -1,0 +1,140 @@
+"""Olympiad section of the collections and the forgiving search."""
+import json
+import os
+
+import pytest
+
+from test_app import APP, client, login, ok
+from monday.models import Question, Work
+from monday.packs import PACK_DIR
+from monday.search import search
+from monday.services import parse_number, pool_index
+from monday.taxonomy import MASTER
+
+TITLES = ["AMO 2025 · 10 класс", "AMO 2024 · 11 класс", "ОРТ Математика · Вариант 1 (Monday)", "ЕГЭ профиль · Вариант 3",
+          "Digital SAT Practice Test 2", "CSCA Mathematics Sample", "Логарифмы: тематический тест", "ОГЭ по математике"]
+OTHER = {"AMO 2025 · 10 класс": "OLYMP Олимпиада Американская математическая олимпиада 2025",
+         "AMO 2024 · 11 класс": "OLYMP Олимпиада Американская математическая олимпиада 2024",
+         "ОРТ Математика · Вариант 1 (Monday)": "ORT ОРТ Полный вариант Monday Academy",
+         "ЕГЭ профиль · Вариант 3": "EGE ЕГЭ Полный вариант", "Digital SAT Practice Test 2": "SAT Полный вариант",
+         "CSCA Mathematics Sample": "CSCA Полный вариант", "Логарифмы: тематический тест": "ORT ОРТ Тематический",
+         "ОГЭ по математике": "OGE ОГЭ Тематический"}
+DOCS = [(t, t, OTHER[t]) for t in TITLES]
+
+
+@pytest.mark.parametrize("query,expected", [
+    ("олимпиада", "AMO 2025 · 10 класс"),
+    ("ОЛИМПИАДА", "AMO 2025 · 10 класс"),
+    ("olimpiada", "AMO 2025 · 10 класс"),  # transliteration
+    ("olympiad", "AMO 2025 · 10 класс"),
+    ("jkbvgbflf", "AMO 2025 · 10 класс"),  # wrong keyboard layout
+    ("олимпада", "AMO 2025 · 10 класс"),  # typos
+    ("алимпиада", "AMO 2025 · 10 класс"),
+    ("олимпиадаа", "AMO 2025 · 10 класс"),
+    ("олимпиады", "AMO 2025 · 10 класс"),
+    ("олимп", "AMO 2025 · 10 класс"),  # beginning of a word
+    ("лимпиа", "AMO 2025 · 10 класс"),  # middle of a word
+    ("млмпд", "AMO 2025 · 10 класс"),  # no vowels
+    ("амо", "AMO 2025 · 10 класс"),  # Cyrillic for Latin
+    ("фьщ", "AMO 2025 · 10 класс"),
+    ("10 класс амо", "AMO 2025 · 10 класс"),  # word order
+    ("класс 11 amo", "AMO 2024 · 11 класс"),
+    ("11кл", "AMO 2024 · 11 класс"),  # glued, short
+    ("амо 25", "AMO 2025 · 10 класс"),
+    ("одиннадцатый класс олимпиада", "AMO 2024 · 11 класс"),
+    ("ort", "ОРТ Математика · Вариант 1 (Monday)"),
+    ("орт", "ОРТ Математика · Вариант 1 (Monday)"),
+    ("щке", "ОРТ Математика · Вариант 1 (Monday)"),
+    ("отр", "ОРТ Математика · Вариант 1 (Monday)"),
+    ("ege", "ЕГЭ профиль · Вариант 3"),
+    ("егэ вариант 3", "ЕГЭ профиль · Вариант 3"),
+    ("егэвариант", "ЕГЭ профиль · Вариант 3"),  # no space
+    ("ТЫЕ", None),
+    ("сат", "Digital SAT Practice Test 2"),
+    ("ыфе", "Digital SAT Practice Test 2"),
+    ("цска", "CSCA Mathematics Sample"),
+    ("логорифмы", "Логарифмы: тематический тест"),
+    ("logarifmy", "Логарифмы: тематический тест"),
+    ("kjufhbavs", "Логарифмы: тематический тест"),
+    ("матем орт", "ОРТ Математика · Вариант 1 (Monday)"),
+    ("орт мatematika", "ОРТ Математика · Вариант 1 (Monday)"),  # Cyrillic and Latin in one word
+    ("тест по ogе", "ОГЭ по математике"),
+])
+def test_strange_queries_find_the_title(query, expected):
+    found = search(query, DOCS)
+    if expected is None:
+        assert "ЕГЭ профиль · Вариант 3" not in found[:1]
+    else:
+        assert expected in found[:2], found
+
+
+@pytest.mark.parametrize("query", ["zzzzqq", "холодильник", "12345"])
+def test_nonsense_finds_nothing(query):
+    assert search(query, DOCS) == []
+
+
+def test_empty_query_keeps_everything():
+    assert search("   ", DOCS) == TITLES
+
+
+def test_numbers_are_exact():
+    assert "AMO 2024 · 11 класс" not in search("amo 10", DOCS)
+
+
+def test_a_grade_is_not_another_grade():
+    assert search("олимпиада 11", DOCS) == ["AMO 2024 · 11 класс"]
+    assert search("амо 25", DOCS) == ["AMO 2025 · 10 класс"]
+
+
+def test_amo_pack_is_valid():
+    with open(os.path.join(PACK_DIR, "amo_olympiad_10_11.json"), encoding="utf-8") as f:
+        pack = json.load(f)
+    codes = {c for _b, _n, subs in MASTER for _s, _m, skills in subs for c, *_r in skills}
+    assert pack["bank"] is False and len(pack["collections"]) == 6
+    ids = {q["id"] for q in pack["questions"]}
+    assert len(ids) == len(pack["questions"]) == 140
+    for q in pack["questions"]:
+        assert q["skill"] in codes
+        if q["answer_type"] == "choice":
+            assert 0 <= int(q["correct"]) < len(q["options"]) and len(set(q["options"])) == len(q["options"])
+        else:
+            assert parse_number(q["correct"]) is not None
+        if q.get("image"):
+            assert os.path.exists(os.path.join(PACK_DIR, pack["id"], "figures", q["image"]))
+    assert all(set(c["questions"]) <= ids and c["category"] == "olympiad" for c in pack["collections"])
+
+
+def test_olympiads_stay_out_of_practice():
+    with APP.app_context():
+        qs = Question.query.filter_by(source="amo_olympiad_10_11").all()
+        assert len(qs) == 140 and {q.status for q in qs} == {"draft"}
+        amo = {q.id for q in qs}
+        for exam in ("ORT", "EGE", "ENT", "OGE"):
+            assert not amo & {i for i, _s, _d in pool_index(exam)}
+        works = Work.query.filter_by(category="olympiad", status="published").all()
+        assert len(works) == 6 and {w.exam for w in works} == {"OLYMP"}
+
+
+def test_collections_page_has_the_olympiad_section():
+    c = login(client(), "student@monday.kg", "student123")
+
+    def page(url):
+        return ok(c, url).get_data(as_text=True)
+
+    home = page("/collections")
+    assert "Олимпиада" in home and "AMO 2025 · 10 класс" in home and "Все олимпиады" in home
+    only = page("/collections?cat=olympiad&grade=11")
+    assert "AMO 2023 · 11 класс" in only and "AMO 2023 · 10 класс" not in only
+    assert "AMO 2025" not in page("/collections?exam=ORT")
+    assert "AMO 2024 · 11 класс" in page("/collections?q=jkbvgbflf+11")
+    assert "Ничего не нашлось" in page("/collections?q=zzzzqq")
+
+
+def test_an_olympiad_can_be_taken():
+    c = login(client(), "student@monday.kg", "student123")
+    with APP.app_context():
+        work = Work.query.filter_by(title="AMO 2025 · 11 класс").first()
+        wid, n = work.id, work.current_version.question_count
+    assert n == 22
+    ok(c, f"/works/{wid}")
+    assert c.post(f"/works/{wid}/start", follow_redirects=True).status_code == 200

@@ -7,14 +7,16 @@ from flask import Blueprint, abort, current_app, flash, jsonify, make_response, 
 from flask_babel import gettext as _
 from flask_login import current_user, login_required
 from sqlalchemy import or_
+from sqlalchemy.orm import joinedload
 
 from .models import local_date, local_midnight_utc, local_now, today as local_today  # noqa: F401
 from .access import student_required
 from .auth import link_invite_code
-from .constants import EXAMS, MISTAKE_REASONS, MODES, PACE, SESSION_LEVELS, SESSION_MINUTES
+from .constants import EXAMS, MISTAKE_REASONS, MODES, PACE, SESSION_LEVELS, SESSION_MINUTES, WORK_CATEGORIES
 from .extensions import db
 from .models import utcnow
-from .models import Assignment, Attempt, AttemptAnswer, ContentNode, Question, Skill, StudentProfile, StudentRecord, Work
+from .models import Assignment, Attempt, AttemptAnswer, ContentNode, Question, Skill, StudentProfile, StudentRecord, Work, WorkVersion
+from .search import search
 from .services import (answer_item, build_custom_plan, ladder_next, countdown_label, current_module, current_monday_work, grade_version_attempt,
                        homework_state, is_correct, seconds_left, version_layout, latest_attempt, mistake_breakdown, monday_ranking, mondays_left,
                        next_monday_test_start, open_mistakes, pick_practice_questions, progress_summary,
@@ -590,6 +592,30 @@ def _published(w):
     return (w.current_version.published_at if w.current_version and w.current_version.published_at else w.created_at)
 
 
+def _olympiad_grade(work):
+    """'AMO 2025 · 10 класс' → '10'."""
+    found = re.search(r"(\d{1,2})\s*класс", work.title)
+    return found.group(1) if found else ""
+
+
+def _olympiad_order(work):
+    """Newest year first, then by grade."""
+    year = re.search(r"\b(20\d\d)\b", work.title)
+    return (-int(year.group(1)) if year else 0, int(_olympiad_grade(work) or 0), work.title)
+
+
+def _search_works(q, works):
+    """Forgiving search: the title counts most, then exam, type, author, description and the topics inside."""
+    names = {n.id: n.name for n in ContentNode.query.filter(ContentNode.level == "node").all()}
+    documents = []
+    for w in works:
+        topics = {names.get(i.get("skill_id"), "") for i in (w.current_version.items if w.current_version else [])}
+        other = [w.exam or "", EXAMS.get(w.exam, {}).get("label", ""), str(WORK_CATEGORIES.get(w.category, "")), w.author.public_name,
+                 w.description or "", w.node.name if w.node else "", " ".join(topics)]
+        documents.append((w, w.title, " ".join(other)))
+    return search(q, documents)
+
+
 @bp.route("/collections")
 @student_required
 def collections():
@@ -597,17 +623,28 @@ def collections():
     cat = request.args.get("cat", "")
     q = request.args.get("q", "").strip()
     sort = request.args.get("sort", "exam")
+    grade = request.args.get("grade", "")
     query = _visible_collections()
     if exam_filter in EXAMS:
         query = query.filter(Work.exam == exam_filter)
-    if cat in ("full", "thematic"):
+    if cat in WORK_CATEGORIES:
         query = query.filter(Work.category == cat)
     works = query.all()
+    olympiads, grades = [], []
+    if cat == "olympiad":
+        grades = sorted({g for g in map(_olympiad_grade, works) if g}, key=int)
+        if grade:
+            works = [w for w in works if _olympiad_grade(w) == grade]
+    elif not q:  # olympiads have their own section; a search looks through everything
+        olympiads = sorted((w for w in works if w.category == "olympiad"), key=_olympiad_order)
+        works = [w for w in works if w.category != "olympiad"]
     if q:
-        ql = q.lower()
-        works = [w for w in works if ql in w.title.lower() or ql in (w.description or "").lower()
-                 or ql in w.author.name.lower() or ql in EXAMS.get(w.exam, {}).get("label", "").lower()]
-    if sort == "short":
+        works = _search_works(q, works)
+    if q and sort == "exam":
+        pass  # the search already put the best matches first
+    elif cat == "olympiad" and sort == "exam":
+        works.sort(key=_olympiad_order)
+    elif sort == "short":
         works.sort(key=lambda w: w.time_limit_min or 0)
     elif sort == "popular":
         counts = defaultdict(int)
@@ -636,7 +673,7 @@ def collections():
         for w in recommended:
             w.weak_match = w.category == "thematic" and covers_weak(w) > 0
     return render_template("student/collections.html", works=works, recommended=recommended, exam_filter=exam_filter,
-                           cat=cat, q=q, sort=sort)
+                           cat=cat, q=q, sort=sort, olympiads=olympiads[:5], olympiad_total=len(olympiads), grades=grades, grade=grade)
 
 
 @bp.route("/works/<int:work_id>")
@@ -1417,6 +1454,22 @@ def _delete_account(user):
     db.session.commit()
 
 
+def _results_rows():
+    """All finished work of the student, newest first: what the CSV and the PDF both show."""
+    from .constants import WORK_KINDS
+    kinds = {**{k: str(v) for k, v in WORK_KINDS.items()}, **{k: str(m["name"]) for k, m in MODES.items()}, "daily": _("Вопрос дня")}
+    rows = []
+    for a in (Attempt.query.options(joinedload(Attempt.work_version).joinedload(WorkVersion.work))
+              .filter(Attempt.user_id == current_user.id, Attempt.finished_at.isnot(None))
+              .order_by(Attempt.finished_at.desc()).all()):
+        kind = kinds.get(a.mode, a.mode)
+        seconds = a.time_used or 0
+        rows.append({"date": local_date(a.finished_at), "mode": a.mode, "exam": a.work_version.work.exam if a.work_version else None,
+                     "kind": kind, "title": a.work_version.title if a.work_version else kind,
+                     "score": a.score, "total": a.total or 0, "seconds": seconds, "minutes": round(seconds / 60)})
+    return rows
+
+
 @bp.route("/profile/export.csv")
 @student_required
 def profile_export():
@@ -1427,16 +1480,23 @@ def profile_export():
     out.write("\ufeff")  # Excel opens UTF-8 with Cyrillic correctly
     w = csv.writer(out, delimiter=";")
     w.writerow([_("Дата"), _("Тип"), _("Название"), _("Баллы"), _("Из"), _("Минут")])
-    from .constants import WORK_KINDS
-    kinds = {**{k: str(v) for k, v in WORK_KINDS.items()}, **{k: str(m["name"]) for k, m in MODES.items()}}
-    for a in (Attempt.query.filter(Attempt.user_id == current_user.id, Attempt.finished_at.isnot(None))
-              .order_by(Attempt.finished_at.desc()).all()):
-        title = a.work_version.title if a.work_version else kinds.get(a.mode, a.mode)
-        w.writerow([local_date(a.finished_at).isoformat(), kinds.get(a.mode, a.mode), title,
-                    a.score if a.score is not None else "", a.total or "", round((a.time_used or 0) / 60)])
+    for r in _results_rows():
+        w.writerow([r["date"].isoformat(), r["kind"], r["title"], r["score"] if r["score"] is not None else "", r["total"] or "", r["minutes"]])
     resp = make_response(out.getvalue())
     resp.headers["Content-Type"] = "text/csv; charset=utf-8"
     resp.headers["Content-Disposition"] = "attachment; filename=monday-results.csv"
+    return resp
+
+
+@bp.route("/profile/export.pdf")
+@student_required
+def profile_export_pdf():
+    """The same results as a designed PDF, grouped by sector, to print or to show a parent or a teacher."""
+    from .results_pdf import build_results_pdf
+    exam = EXAMS.get(_exam())
+    resp = make_response(build_results_pdf(_results_rows(), current_user.name or current_user.email, exam["label"] if exam else "", local_today()))
+    resp.headers["Content-Type"] = "application/pdf"
+    resp.headers["Content-Disposition"] = "attachment; filename=monday-results.pdf"
     return resp
 
 

@@ -33,9 +33,6 @@
 {% endif %}
 {% set nxt = plan|rejectattr('done')|first %}
 
-{# the dotted sky from the old banner now moves behind the whole page #}
-<div class="home-sky" data-hero data-hero-bg aria-hidden="true"><canvas class="hero__canvas" data-hero-dots></canvas></div>
-
 {# ------------------------------------------------------------ three cards: countdown · target score · today's plan #}
 <h1 class="home-hello">{{ _("Привет, %(name)s", name=current_user.first_name) }}</h1>
 {% set goal = p.goal_score or 0 %}{% set now_p = summary.predicted %}
@@ -65,7 +62,7 @@
     {% if p.exam_date %}
       <div class="hc-exam">
         <span class="hc-exam__name">{{ p.exam|exam_label if p.exam else _("Экзамен") }}</span>
-        <b class="hc-exam__date">{{ p.exam_date|d("d MMMM yyyy") }}</b>
+        <b class="hc-exam__date" data-date-dots>{{ p.exam_date|d("d MMMM yyyy") }}</b>
       </div>
       <div class="hc-count" data-countdown="{{ p.exam_date.isoformat() }}" role="timer" aria-live="off">
         <div><b class="num" data-cd="d">—</b><small>{{ _("дней") }}</small></div>
@@ -170,4 +167,3 @@
 </div>
 {% endblock %}
 
-{% block scripts %}<script defer src="{{ url_for('static', filename='js/hero.js') }}"></script>{% endblock %}

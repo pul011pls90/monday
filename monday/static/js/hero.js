@@ -2,15 +2,14 @@
  * a few grid tiles glow pink/orange and change on their own. The cursor blows the clouds apart,
  * lights the tile under it, and a click paints that tile. Quiet under the text so it stays readable.
  */
-(function () {
+// a page can have two skies: the background behind the page and a result banner
+document.querySelectorAll("[data-hero]").forEach(function (hero) {
   "use strict";
-  const hero = document.querySelector("[data-hero]");
-  if (!hero) return;
   const canvas = hero.querySelector("[data-hero-dots]");
   // background mode (home page): the sky fills the whole window behind the cards, quieter, and follows the cursor
   const bg = hero.hasAttribute("data-hero-bg");
   const ctx = canvas.getContext("2d");
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.dataset.motion === "reduce";
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 
@@ -117,8 +116,7 @@
         }
         const q = quietAt(x, y);
         const th = BAYER[(jy & 3) * 4 + (ix & 3)];
-        const key = `${Math.floor(x / CELL)},${Math.floor(y / CELL)}`;
-        const tile = tiles.get(key), inTile = tile && tile.a > 0.15;
+        const tile = tiles.size ? tiles.get(`${Math.floor(x / CELL)},${Math.floor(y / CELL)}`) : null, inTile = tile && tile.a > 0.15;
         if (d * q > th) (inTile ? warm : white).rect(x, y, PX - 1, PX - 1);
         else if (!inTile && (ix % 3 === 0) && (jy % 3 === 0) && q > 0.6) sky.rect(x + 1, y + 1, 2, 2); // sparse sky grain
       }
@@ -136,14 +134,103 @@
     ctx.stroke();
   }
 
-  let last = 0;
+  // the exam date on the countdown card: the sky's dither field gathers into the date and stays as dots. The real text stays
+  // underneath (transparent) for screen readers; without JS it is simply shown. Reduced motion gets the finished dots at once.
+  const date = (function () {
+    const el = document.querySelector("[data-date-dots]");
+    if (!el) return null;
+    const c = document.createElement("canvas"), g = c.getContext("2d");
+    if (!g) return null;
+    // fine dots, so small dates stay readable: 1px with a gap that lands on whole device pixels
+    const STEP = (window.devicePixelRatio || 1) >= 2 ? 1.5 : 2, SIZE = 1, PAD = 14, BUILD = 1500;  // PAD: see .hc-exam__dots; ms
+    let cells = [], w = 0, h = 0, born = null, finished = false;
+    c.className = "hc-exam__dots";
+    c.setAttribute("aria-hidden", "true");
+    el.append(c);
+    el.classList.add("is-dots");
+
+    // lay each word out where the browser put it, then keep the grid cells the glyphs cover
+    function sample() {
+      const r = el.getBoundingClientRect(), cs = getComputedStyle(el), k = 4;
+      w = r.width + PAD * 2; h = r.height + PAD * 2;
+      const scale = Math.min(window.devicePixelRatio || 1, 2);
+      c.width = Math.round(w * scale); c.height = Math.round(h * scale);
+      g.setTransform(scale, 0, 0, scale, 0, 0);
+      const m = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+      m.canvas.width = Math.ceil(w * k); m.canvas.height = Math.ceil(h * k);
+      m.scale(k, k);
+      m.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      m.letterSpacing = cs.letterSpacing;
+      const node = el.firstChild, range = document.createRange(), ascent = m.measureText("Н").fontBoundingBoxAscent;
+      for (const word of node.textContent.matchAll(/\S+/g)) {
+        range.setStart(node, word.index); range.setEnd(node, word.index + word[0].length);
+        const q = range.getBoundingClientRect();
+        m.fillText(word[0], q.left - r.left + PAD, q.top - r.top + PAD + ascent);
+      }
+      const px = m.getImageData(0, 0, m.canvas.width, m.canvas.height).data, stride = m.canvas.width;
+      cells = [];
+      for (let y = 0, jy = 0; y < h; y += STEP, jy++) {
+        for (let x = 0, ix = 0; x < w; x += STEP, ix++) {
+          if (px[(Math.round((y + SIZE / 2) * k) * stride + Math.round((x + SIZE / 2) * k)) * 4 + 3] < 128) continue;
+          // the order dots arrive in: cloud first, the Bayer matrix breaks it into the sky's grain
+          const at = clamp(smooth(0.25, 0.75, fbm(x * 0.03, y * 0.06)) * 0.7 + BAYER[(jy & 3) * 4 + (ix & 3)] * 0.3, 0, 1);
+          cells.push([x, y, at, (hash(ix, jy) - 0.5) * 2]);
+        }
+      }
+    }
+
+    function paint(p) {
+      const dots = new Path2D();
+      for (const [x, y, at, drift] of cells) {
+        const a = clamp((p * 1.35 - at) / 0.35, 0, 1);
+        if (a <= 0) continue;
+        const off = (1 - a) * (1 - a) * PAD;  // each dot drifts in from the side and settles on its place
+        dots.rect(x + off * drift, y - off * 0.5, SIZE, SIZE);
+      }
+      g.clearRect(0, 0, w, h);
+      g.fillStyle = getComputedStyle(document.body).color;
+      g.fill(dots);
+    }
+
+    const finish = () => { if (!finished) { finished = true; paint(1); } };
+    let ready = false;
+    const start = () => {
+      if (ready) return;
+      ready = true;
+      sample();
+      if (reduce) finish();
+      else setTimeout(finish, BUILD + 1500);  // if animation frames stall, the date still shows
+    };
+    const redraw = () => { if (ready) { sample(); if (finished) paint(1); } };
+    // wait for the display font so the dots match it, but never leave the date empty on a slow connection
+    if (document.fonts && document.fonts.load) {
+      document.fonts.load(`${getComputedStyle(el).fontWeight} 20px ${getComputedStyle(el).fontFamily}`, el.textContent).then(start, start);
+      setTimeout(start, 1200);
+      document.fonts.ready.then(redraw);
+    } else start();
+    window.addEventListener("resize", redraw);
+    new MutationObserver(() => { if (finished) paint(1); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return {
+      tick(ms) {
+        if (!ready || finished) return;
+        if (born === null) born = ms;
+        const p = clamp((ms - born) / BUILD, 0, 1);
+        paint(p);
+        finished = p >= 1;
+      },
+    };
+  })();
+
+  let last = 0, drawn = -1e9;
   function frame(ms) {
     const t = ms / 1000;
     pointer.cx += (pointer.x - pointer.cx) * 0.18;
     pointer.cy += (pointer.y - pointer.cy) * 0.18;
     pointer.presence += ((pointer.inside ? 1 : 0) - pointer.presence) * 0.08;
     if (t - last > 3.5) { shuffleTiles(); last = t; }
-    draw(t);
+    // the background clouds drift slowly, so 15 redraws a second look the same as 60 and cost a quarter
+    if (!bg || ms - drawn >= 66) { draw(t); drawn = ms; }
+    if (date) date.tick(ms);
     if (!reduce) requestAnimationFrame(frame);
   }
 
@@ -167,11 +254,13 @@
     if (reduce) draw(performance.now() / 1000);
   });
   window.addEventListener("resize", () => { resize(); if (reduce) draw(0); });
+  // the sky's ink depends on the theme, which can change without a reload
+  new MutationObserver(() => { resize(); draw(performance.now() / 1000); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   resize();
   shuffleTiles();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(resize);
   requestAnimationFrame(frame);
-})();
+});
 
 /* Home: live countdown to the exam date (the day starts at local midnight) */
 (function () {

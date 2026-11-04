@@ -42,7 +42,10 @@ WORK_KINDS = {
     "homework": _l("Домашнее задание"),
     "monday": _l("Тест понедельника"),
 }
-WORK_CATEGORIES = {"full": _l("Полный вариант"), "thematic": _l("Тематический")}
+WORK_CATEGORIES = {"full": _l("Полный вариант"), "thematic": _l("Тематический"), "olympiad": _l("Олимпиада")}
+# Olympiads are for everyone, whatever exam a student prepares for: not one of EXAMS, so it never reaches
+# the exam pickers, and pack questions stay out of practice (see "bank" in packs.py).
+OLYMPIAD_EXAM = "OLYMP"
 WORK_STATUSES = {"draft": _l("Черновик"), "pending": _l("На проверке"), "published": _l("Опубликовано"), "archived": _l("В архиве")}
 
 # A collection (seen by every student of the exam) this big goes to the admin before students see it.
