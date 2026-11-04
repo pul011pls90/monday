@@ -9,7 +9,7 @@
       <a class="rail__logo" href="{{ url_for('teacher.dashboard') }}" aria-label="Monday">M</a>
       {% set items = [
         ('teacher.dashboard', 'home', _('Сегодня'), ['teacher.dashboard']),
-        ('teacher.students', 'users', _('Ученики'), ['teacher.students', 'teacher.student_detail']),
+        ('teacher.students', 'users', _('Ученики'), ['teacher.students', 'teacher.student_detail', 'teacher.class_map']),
         ('teacher.works', 'works', _('Работы'), ['teacher.works', 'teacher.work_edit', 'teacher.work_new', 'teacher.assign']),
         ('teacher.tree', 'skills', _('Карта'), ['teacher.tree']),
         ('teacher.review', 'inbox', _('Проверка'), ['teacher.review', 'teacher.review_detail', 'teacher.written_review']),

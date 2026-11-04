@@ -9,6 +9,8 @@
   <a class="btn btn--primary" href="#add">{{ ui.icon('plus', 18) }}{{ _("Добавить ученика") }}</a>
 </div>
 
+{% include "teacher/_students_tabs.html" %}
+
 <form method="get" class="row" role="search">
   <label class="search search--sm" style="flex:1 1 280px;max-width:420px">{{ ui.icon('search', 18) }}<span class="sr-only">{{ _("Поиск") }}</span>
     <input type="search" name="q" value="{{ q }}" placeholder="{{ _('Имя или класс') }}"></label>

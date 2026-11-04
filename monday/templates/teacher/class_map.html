@@ -1,0 +1,98 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Карта класса") }}{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/class-map.css') }}">{% endblock %}
+{% block scripts %}{% if data.students %}<script defer src="{{ url_for('static', filename='js/class-map.js') }}"></script>{% endif %}{% endblock %}
+{% macro rows(items, kind) -%}
+{% set SHOW = 5 %}
+{% macro one(it) -%}
+<li><button type="button" class="cm-row" data-cm-focus="{{ kind }}{{ it.subtopic.id if kind == 's' else it.record.id }}">
+  <b>{{ it.subtopic.name if kind == 's' else it.record.name }}</b>
+  {% set names = it.students if kind == 's' else it.subtopics %}<span class="cm-count cm-count--bad num">{{ names|length }}</span>
+  <span class="small muted">{{ names|join(', ') }}</span></button></li>
+{%- endmacro %}
+<ul class="cm-list">{% for it in items[:SHOW] %}{{ one(it) }}{% endfor %}</ul>
+{% if items|length > SHOW %}
+<details class="cm-more"><summary>{{ _("Показать все (%(n)s)", n=items|length) }}</summary>
+  <ul class="cm-list">{% for it in items[SHOW:] %}{{ one(it) }}{% endfor %}</ul></details>
+{% endif %}
+{%- endmacro %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Ученики") }}</h1>
+    <p>{{ _("Ученики связаны с подтемами, где у них меньше %(p)s%% верных (от %(n)s ответов). Чем больше учеников у одной подтемы, тем важнее разобрать её со всей группой.", p=weak_pct, n=weak_min) }}</p>
+  </div>
+</div>
+
+{% include "teacher/_students_tabs.html" %}
+
+<div class="cm-tools">
+  <div class="chips" role="group" aria-label="{{ _('Экзамен') }}">
+    <a class="chip{{ ' is-active' if not exam }}" href="{{ url_for('teacher.class_map', period=period) }}">{{ _("Все") }}</a>
+    {% for code, e in EXAMS.items() %}<a class="chip{{ ' is-active' if exam == code }}" href="{{ url_for('teacher.class_map', exam=code, period=period) }}">{{ e.label }}</a>{% endfor %}
+  </div>
+  {% set plabels = {'7': _('7 дней'), '30': _('30 дней'), '90': _('90 дней'), 'all': _('Всё время')} %}
+  <div class="chips" role="group" aria-label="{{ _('Период') }}">
+    {% for p in periods %}<a class="chip{{ ' is-active' if period == p }}" href="{{ url_for('teacher.class_map', exam=exam, period=p) }}">{{ plabels[p] }}</a>{% endfor %}
+  </div>
+</div>
+
+{% if not data.students %}
+<div class="empty">
+  <h3>{{ _("Пока некого показать") }}</h3>
+  <p>{{ _("На карте появляются ученики, которые подключили аккаунт по коду приглашения.") }}{% if data.unlinked %} {{ _("Не подключено: %(n)s.", n=data.unlinked) }}{% endif %}</p>
+  <a class="btn btn--secondary" href="{{ url_for('teacher.students') }}">{{ _("К таблице учеников") }}</a>
+</div>
+{% else %}
+<div class="cm-layout">
+  <section class="cm-stage-wrap" aria-label="{{ _('Карта класса') }}">
+    <canvas class="cm-stage" data-cm-stage role="img" aria-label="{{ _('Сеть: ученики, подтемы и темы. Списки справа повторяют главное в виде текста.') }}"></canvas>
+    <div class="cm-tip" data-cm-tip hidden></div>
+    <div class="cm-hud">
+      <button class="icon-btn icon-btn--sm" type="button" data-cm-spin aria-pressed="true" title="{{ _('Вращение') }}" aria-label="{{ _('Вращение') }}">{{ ui.icon('rotate', 16) }}</button>
+      <button class="icon-btn icon-btn--sm" type="button" data-cm-reset title="{{ _('Сбросить вид') }}" aria-label="{{ _('Сбросить вид') }}">{{ ui.icon('reset', 16) }}</button>
+    </div>
+    <div class="cm-legend" aria-hidden="true">
+      <span><i class="cm-k cm-k--topic"></i>{{ _("Тема") }}</span>
+      <span><i class="cm-k cm-k--sub"></i>{{ _("Подтема · цвет — точность класса") }}</span>
+      <span><i class="cm-k cm-k--student"></i>{{ _("Ученик") }}</span>
+      <span><i class="cm-k cm-k--weak"></i>{{ _("Слабое место") }}</span>
+    </div>
+    <p class="cm-hint small muted">{{ _("Тяните, чтобы вращать, колесо — приблизить. Нажмите на точку, чтобы увидеть связи.") }}</p>
+  </section>
+
+  <aside class="cm-side stack">
+    <div class="card card--tight cm-panel" data-cm-panel aria-live="polite">
+      <span class="eyebrow">{{ _("Выбрано") }}</span>
+      <p class="muted small">{{ _("Нажмите на ученика или подтему на карте.") }}</p>
+    </div>
+
+    <div class="card card--tight">
+      <div class="row row--between"><h2 class="cm-h">{{ _("Разобрать с группой") }}</h2><span class="num muted">{{ data.groups|length }}</span></div>
+      {% if data.groups %}
+      {{ rows(data.groups, 's') }}
+      {% else %}<p class="small muted">{{ _("Нет подтем, где слабы сразу несколько учеников.") }}</p>{% endif %}
+    </div>
+
+    <div class="card card--tight">
+      <div class="row row--between"><h2 class="cm-h">{{ _("Проверить ученика") }}</h2><span class="num muted">{{ data.check|length }}</span></div>
+      {% if data.check %}
+      {{ rows(data.check, 'r') }}
+      {% else %}<p class="small muted">{{ _("Ни у кого нет трёх и больше слабых подтем.") }}</p>{% endif %}
+    </div>
+
+    <p class="small muted">{{ _("На карте: %(n)s учеников.", n=data.students) }}{% if data.unlinked %} {{ _("Не подключено: %(n)s.", n=data.unlinked) }}{% endif %}</p>
+  </aside>
+</div>
+
+<script type="application/json" id="cm-data">{{ {"nodes": data.nodes, "links": data.links}|tojson }}</script>
+<script type="application/json" id="cm-i18n">{{ {
+  "topic": _("Тема"), "subtopic": _("Подтема"), "student": _("Ученик"),
+  "acc": _("точность"), "answers": _("ответов"), "noanswers": _("нет ответов за период"),
+  "weakStudents": _("Слабые ученики"), "weakSubs": _("Слабые подтемы"), "none": _("нет"),
+  "openStudent": _("Открыть ученика"), "openTree": _("Открыть на карте способностей"),
+  "studentUrl": url_for('teacher.student_detail', record_id=0), "treeUrl": url_for('teacher.tree', exam=exam, open=0)
+}|tojson }}</script>
+{% endif %}
+{% endblock %}

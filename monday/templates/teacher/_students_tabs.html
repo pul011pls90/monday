@@ -1,0 +1,4 @@
+<nav class="tabs cm-tabs" aria-label="{{ _('Вид') }}">
+  <a href="{{ url_for('teacher.students') }}" class="{{ 'is-active' if request.endpoint == 'teacher.students' }}"{{ ' aria-current=page' if request.endpoint == 'teacher.students' }}>{{ _("Таблица") }}</a>
+  <a href="{{ url_for('teacher.class_map') }}" class="{{ 'is-active' if request.endpoint == 'teacher.class_map' }}"{{ ' aria-current=page' if request.endpoint == 'teacher.class_map' }}>{{ _("Карта класса") }}</a>
+</nav>

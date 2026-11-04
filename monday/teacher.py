@@ -257,6 +257,19 @@ def students():
     return render_template("teacher/students.html", rows=rows, sort=sort, q=q, editing=None)
 
 
+@bp.route("/students/map")
+@teacher_required
+def class_map():
+    """Students and topics as one network: who is weak where, which topics to reteach to a group."""
+    from . import classmap
+    exam = request.args.get("exam") if request.args.get("exam") in EXAMS else None
+    period = request.args.get("period") if request.args.get("period") in classmap.PERIODS else "30"
+    data = classmap.build(current_user, _my_records().all(), exam=exam, period=period)
+    return render_template("teacher/class_map.html", data=data, exam=exam, period=period,
+                           periods=list(classmap.PERIODS), weak_pct=int(classmap.WEAK_ACCURACY * 100),
+                           weak_min=classmap.WEAK_MIN_ANSWERS)
+
+
 def _fill_record(r, form):
     errors = []
     name = form.get("name", "").strip()

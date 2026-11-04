@@ -1621,3 +1621,47 @@ def test_custom_session_builder_ladder_hint_retry():
     s.post("/sessions/presets", data={"action": "delete", "index": "0"})
     s.post("/goal", data={"minutes": "30", "next": "/home"})
     assert 'name="daily_goal" value="30" checked' in s.get("/profile").data.decode()
+
+
+def test_class_map_links_students_to_weak_subtopics():
+    import json
+    from monday import classmap
+    from monday.extensions import db
+    from monday.models import Attempt, AttemptAnswer, StudentRecord, User
+    from monday.services import leaf_nodes
+    with APP.app_context():
+        teacher = User.query.filter_by(email="aibek@monday.kg").first()
+        rec = StudentRecord.query.filter(StudentRecord.teacher_id == teacher.id,
+                                         StudentRecord.student_user_id.isnot(None)).first()
+        leaf = leaf_nodes(teacher, "ORT")[0]
+        att = Attempt(user_id=rec.student_user_id, mode="franklin", finished_at=None)
+        db.session.add(att)
+        db.session.flush()
+        for i in range(5):  # 1 of 5 right: weak
+            db.session.add(AttemptAnswer(attempt_id=att.id, index=i, skill_id=leaf.id, is_correct=(i == 0)))
+        db.session.commit()
+        data = classmap.build(teacher, StudentRecord.query.filter_by(teacher_id=teacher.id).all())
+        sub_id = f"s{leaf.parent_id}"
+        assert {"source": f"r{rec.id}", "target": sub_id} in [
+            {"source": l["source"], "target": l["target"]} for l in data["links"] if l["kind"] == "weak"]
+        kinds = {n["kind"] for n in data["nodes"]}
+        assert kinds == {"topic", "subtopic", "student"}
+        assert data["unlinked"] >= 1  # seed has records without accounts
+        # every link points at real nodes
+        ids = {n["id"] for n in data["nodes"]}
+        assert all(l["source"] in ids and l["target"] in ids for l in data["links"])
+        # an exam with none of these students shows nobody
+        assert classmap.build(teacher, [rec], exam="CSCA")["students"] == 0
+        att_id = att.id
+    t = login(client(), "aibek@monday.kg", "teacher123")
+    r = ok(t, "/teacher/students/map?exam=ORT&period=all", contains=["Карта класса", "Разобрать с группой", 'id="cm-data"'])
+    body = r.data.decode()
+    payload = json.loads(re.search(r'id="cm-data">(.*?)</script>', body, re.S).group(1))
+    assert any(n["kind"] == "student" for n in payload["nodes"])
+    ok(t, "/teacher/students/map?period=bogus&exam=nope")  # bad filters fall back to defaults
+    ok(t, "/teacher/students", contains="Карта класса")
+    s = login(client(), "student11@monday.kg", "student123")
+    assert s.get("/teacher/students/map").status_code == 403
+    with APP.app_context():
+        db.session.delete(db.session.get(Attempt, att_id))
+        db.session.commit()
