@@ -84,6 +84,12 @@
     <input type="hidden" name="exam" value="{{ exam or '' }}">
     {% for k, vals in f.items() %}{% for v in vals %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}{% endfor %}
 
+    {% if featured and total[featured.key] %}
+      <div class="bk-featured">
+        <span class="bk-featured__text"><b>{{ featured.name }}</b><small>{{ featured.section }} · <span class="num">{{ count[featured.key] }}</span> {{ count[featured.key]|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}</small></span>
+        <button class="btn btn--primary btn--sm" type="submit" name="only" value="{{ featured.key }}" {{ 'disabled' if not count[featured.key] }}>{{ _("Начать") }}{{ ui.icon('arrow-right', 16) }}</button>
+      </div>
+    {% endif %}
     {% for sec in topics %}
       {% set n = count[sec.key] %}{% set dn = done[sec.key] or 0 %}{% set dd = diff[sec.key] or [0, 0, 0] %}
       {% set pct = ((100 * dn / n) if n else 0)|round|int %}
@@ -102,7 +108,7 @@
             {% for g in sec.groups %}
               <div class="bank-sub">
                 {% if g.key and total[g.key] %}
-                <div class="bank-row bank-row--sub">
+                <div class="bank-row bank-row--sub{{ ' is-featured' if featured and g.key == featured.key }}">
                   <label class="bank-check"><input type="checkbox" data-sub-check {{ 'disabled' if not count[g.key] }}><span></span></label>
                   <span class="bank-row__name">{{ g.name }}</span>
                   <span class="bank-row__count num">{{ count[g.key] }}</span>

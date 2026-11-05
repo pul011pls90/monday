@@ -3961,3 +3961,11 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 /* the sheet can be dragged narrow: the check button's label and tick stay on one line inside it */
 .bb-sheet .bb-check { font-size: 14px; gap: 6px; padding-inline: 10px; white-space: nowrap; min-height: 44px; }
 .bb-sheet .bb-check svg { width: 15px; height: 15px; flex: none; }
+
+/* bank: a highlighted shortcut to one group of topics (logarithms), and the same group marked inside its tile */
+.bk-featured { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; border-radius: 16px; background: var(--accent-soft); border: var(--bw, 1px) solid var(--accent); }
+.bk-featured__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.bk-featured__text b { font-size: 16px; color: var(--accent-ink); }
+.bk-featured__text small { font-size: 13px; color: var(--muted); }
+.bk-featured .btn { flex: none; }
+.bank-row--sub.is-featured { background: var(--accent-soft); }

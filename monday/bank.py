@@ -16,7 +16,7 @@ from flask_login import current_user
 from .access import student_required
 from .constants import EXAMS, FORMAT_FOR_EXAM, OLYMPIAD_EXAM, TEST_FORMATS
 from .extensions import db
-from .models import Attempt, AttemptAnswer, BankState, Question, ReferenceSheet, Work
+from .models import Attempt, AttemptAnswer, BankState, ContentNode, Question, ReferenceSheet, Work
 from .services import content_tree, display_answer, is_correct, student_pool
 from .content_i18n import localize
 from .taxonomy import exam_view, keyset
@@ -92,6 +92,16 @@ def _view(user, exam, pool):
         if groups:
             view.append({**sec, "groups": groups})
     return view
+
+
+def _featured(topics):
+    """The group shown as a shortcut above the tiles: logarithms sit three levels deep in «Функции»."""
+    node = ContentNode.query.filter_by(code="log_def").first()
+    for sec in topics:
+        for g in sec["groups"]:
+            if node and g["key"] and any(node.id in s["nodes"] for s in g["skills"]):
+                return {"key": g["key"], "name": g["name"], "section": sec["name"]}
+    return None
 
 
 def _pool(user, exam):
@@ -195,7 +205,7 @@ def index():
     }
     active = any(f.values())
     return render_template("student/bank.html", exam=exam, f=f, active=active, topics=topics, stats=stats, matching=len(rows),
-                           pool_size=len(pool), count=count, total=total, diff=diff, done=done)
+                           pool_size=len(pool), count=count, total=total, diff=diff, done=done, featured=_featured(topics))
 
 
 @bp.route("/start", methods=["POST"])

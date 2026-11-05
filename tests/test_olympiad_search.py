@@ -173,3 +173,17 @@ def test_the_exam_bank_has_no_olympiad_questions():
         plan = db.session.get(Attempt, att_id).plan
         sources = {q.source for q in Question.query.filter(Question.id.in_(plan)).all()}
     assert not any((s or "").startswith("amo_olympiad") for s in sources)
+
+
+def test_logarithms_have_a_shortcut_in_the_bank():
+    c = login(client(), "student@monday.kg", "student123")
+    page = ok(c, "/bank/?exam=ORT").get_data(as_text=True)
+    assert 'class="bk-featured"' in page and "Логарифмы, показательные уравнения" in page
+    key = page.split('class="bk-featured"')[1].split('name="only" value="')[1].split('"')[0]
+    r = c.post("/bank/start", data={"exam": "ORT", "only": key})
+    att_id = int(r.location.split("/bank/s/")[1].split("/")[0])
+    with APP.app_context():
+        plan = db.session.get(Attempt, att_id).plan
+        codes = {q.skill.code for q in Question.query.filter(Question.id.in_(plan)).all()}
+    assert "log_def" in codes and codes <= {"log_def", "log_props", "log_eq", "exp_eq", "log_ineq"}
+    assert 'class="bk-featured"' not in ok(c, "/bank/?exam=OGE").get_data(as_text=True)
