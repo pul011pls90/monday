@@ -828,7 +828,7 @@ def test_bank_booklet_pages_and_check():
     r = c.post("/bank/start", data={"exam": "ORT"})
     assert "/sheet" in r.headers["Location"]
     body = ok(c, r.headers["Location"]).data.decode()
-    assert 'class="ort-sheet bb-sheet"' in body and "Проверить страницу" in body
+    assert 'class="ort-sheet bb-sheet"' in body and "data-check-page" in body
     att_id = int(r.headers["Location"].split("/s/")[1].split("/")[0])
     with APP.app_context():
         from monday.models import Attempt
