@@ -7,7 +7,7 @@
 {% block title %}{{ _("Банк вопросов") }} · {{ _("страница") }} {{ p + 1 }}{% endblock %}
 {% block body_class %}test-body bank-body{% endblock %}
 {% block body %}
-{% with close_url=url_for('bank.index', exam=exam), label=_('Банк вопросов') ~ ((' · ' ~ exam) if exam else ''),
+{% with close_url=url_for('bank.index', exam=exam), label=_('Банк вопросов') ~ ((' · ' ~ (exam|exam_label)) if exam else ''),
         dot_color=None, steps=None, counter=None, timer_seconds=None %}
   {% include "partials/session_bar.html" %}
 {% endwith %}
@@ -25,7 +25,7 @@
 
 <main class="page test-page bank-page calc-shift">
   {{ ui.flashes() }}
-  <form id="bank-sheet" class="ort-layout bb" data-bank-sheet onsubmit="return false"
+  <form id="bank-sheet" class="ort-layout bb" data-bank-sheet data-split="bank" data-split-label="{{ _('Потяни, чтобы изменить ширину') }}" onsubmit="return false"
         data-check="{{ url_for('bank.check', attempt_id=att.id) }}" data-reveal="{{ url_for('bank.reveal', attempt_id=att.id) }}"
         data-ok-label="{{ _('Верно') }}" data-bad-label="{{ _('Неверно') }}" data-answer-label="{{ _('Верный ответ:') }}"
         data-total="{{ n }}" data-none-label="{{ _('Отметь ответы в бланке, затем проверь страницу.') }}">
@@ -113,4 +113,4 @@
 
 {% with sat_ref=exam == 'SAT', entry_rules='sat' if exam == 'SAT' else None %}{% include "partials/tool_panes.html" %}{% endwith %}
 {% endblock %}
-{% block scripts %}<script defer src="{{ url_for('static', filename='js/test.js') }}"></script><script defer src="{{ url_for('static', filename='js/bank_sheet.js') }}"></script>{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/test.js') }}"></script><script defer src="{{ url_for('static', filename='js/bank_sheet.js') }}"></script><script defer src="{{ url_for('static', filename='js/split.js') }}"></script>{% endblock %}

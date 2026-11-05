@@ -160,7 +160,8 @@ def test_olympiad_questions_are_in_the_bank():
         first = db.session.get(Question, att.plan[0])
         assert att.total > 0 and first.source.startswith("amo_olympiad") and first.answer_type == "number" and first.difficulty == 3
         given = first.correct.split("|")[0]
-    ok(c, f"/bank/s/{att_id}/sheet")
+    sheet = ok(c, f"/bank/s/{att_id}/sheet").get_data(as_text=True)
+    assert "· Олимпиада" in sheet and "· OLYMP" not in sheet and 'data-split="bank"' in sheet
     assert c.post(f"/bank/s/{att_id}/check", data={"i": "0", "given": given}).get_json()["ok"] is True
 
 

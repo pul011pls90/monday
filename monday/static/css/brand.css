@@ -3938,3 +3938,26 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .hc__head h2, .home-hello { letter-spacing: -.025em; word-spacing: -.06em; }
 .hc-tile__fact b { letter-spacing: -.02em; word-spacing: -.06em; }
 .hc-goal__stats b { letter-spacing: -.04em; }
+
+/* divider between questions and answer sheet (split.js): a thin grip in the gap, drag it to widen either side */
+.split-handle { display: none; }
+@media (min-width: 1240px) {
+  .ort-layout[data-split] { position: relative; }
+  .split-handle { display: flex; align-items: center; justify-content: center; position: absolute; top: 0; height: var(--split-height, 100%); right: var(--split-side, 360px); width: 24px; cursor: col-resize; touch-action: none; z-index: 2; border-radius: 12px; }
+  /* the grip stays in view on a tall page and in the middle of a short one; a small arrow on each side of it */
+  .split-handle span { position: sticky; top: 160px; bottom: 40px; display: block; width: 4px; height: 56px; border-radius: 4px; background: var(--line-strong); transition: background .15s; }
+  .split-handle span::before, .split-handle span::after { content: ""; position: absolute; top: 50%; margin-top: -5px; border-block: 5px solid transparent; transition: border-color .15s; }
+  .split-handle span::before { right: 7px; border-right: 6px solid var(--muted); }
+  .split-handle span::after { left: 7px; border-left: 6px solid var(--muted); }
+  .split-handle:hover span, .split-handle:focus-visible span, .is-splitting .split-handle span { background: var(--accent); }
+  .split-handle:hover span::before, .split-handle:focus-visible span::before, .is-splitting .split-handle span::before { border-right-color: var(--accent); }
+  .split-handle:hover span::after, .split-handle:focus-visible span::after, .is-splitting .split-handle span::after { border-left-color: var(--accent); }
+  .split-handle:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .is-splitting, .is-splitting * { cursor: col-resize !important; user-select: none; }
+}
+/* the booklet uses more of a wide screen; the number takes only the room it needs, so the text sits next to it */
+.page:has(.ort-layout.bb) { max-width: clamp(1180px, 92vw, 1800px); }
+.bb-grid .ort-q, .bb-grid.ort-grid--cmp .ort-q { grid-template-columns: max-content minmax(0, 1fr); gap: 12px; }
+/* the sheet can be dragged narrow: the check button's label and tick stay on one line inside it */
+.bb-sheet .bb-check { font-size: 14px; gap: 6px; padding-inline: 10px; white-space: nowrap; min-height: 44px; }
+.bb-sheet .bb-check svg { width: 15px; height: 15px; flex: none; }

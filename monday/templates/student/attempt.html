@@ -69,7 +69,7 @@
     {% endfor %}
     {% set parts = [(mod.start, ns.split), (ns.split, mod.end)] if mod.start < ns.split < mod.end else [(mod.start, mod.end)] %}
     {% set per_cmp = ((per * 2 + 2) // 3) * 3 %}{# three compact cards per row, twice as many per page #}
-    <div class="ort-layout{{ ' ort-layout--parts' if parts|length > 1 }}"><div class="ort-main">
+    <div class="ort-layout{{ ' ort-layout--parts' if parts|length > 1 }}" data-split="test" data-split-label="{{ _('Потяни, чтобы изменить ширину') }}"><div class="ort-main">
     {% if parts|length > 1 %}
       <div class="ort-parts" role="tablist" aria-label="{{ _('Части теста') }}">
         {% for a, b in parts %}
@@ -323,4 +323,4 @@
 
 {% with calculator=layout.calculator, entry_rules=entry_rules, sat_ref=layout.format == 'sat' %}{% include "partials/tool_panes.html" %}{% endwith %}
 {% endblock %}
-{% block scripts %}<script defer src="{{ url_for('static', filename='js/test.js') }}"></script>{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/test.js') }}"></script><script defer src="{{ url_for('static', filename='js/split.js') }}"></script>{% endblock %}
