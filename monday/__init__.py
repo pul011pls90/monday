@@ -221,6 +221,10 @@ def _register_template_helpers(app):
             "now": utcnow(),
         }
 
+    @app.template_filter("has_cyrillic")
+    def has_cyrillic(text):
+        return any("Ѐ" <= ch <= "ӿ" for ch in str(text or ""))
+
     @app.template_filter("exam_label")
     def exam_label(code):
         if code == OLYMPIAD_EXAM:

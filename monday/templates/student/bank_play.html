@@ -58,7 +58,7 @@
       {% if (question.weight or 1) > 1 %}<span class="tag tag--line tag--xs" style="margin-left:auto;margin-right:10px">{{ question.weight }} {{ question.weight|plural_ru(_("балл"), _("балла"), _("баллов")) }}</span>{% endif %}
     </div>
     <div class="q-card q-card--test q-card--flat">
-      {{ ui.question_body(item, 'given', selected=state.last_given if state and state.attempts and state.last_correct else None, letters=letters, weight_tag=False, sat=exam == 'SAT') }}
+      {{ ui.question_body(item, 'given', selected=state.last_given if state and state.attempts and state.last_correct else None, letters=letters, weight_tag=False, rounding_only=True) }}
     </div>
     <div class="feedback" data-feedback hidden aria-live="polite"></div>
     <section class="explain" data-explain hidden aria-labelledby="expl-h">

@@ -863,7 +863,9 @@ def test_sat_bank_shows_entry_rules_for_typed_answers():
     r = c.post("/bank/start", data={"exam": "SAT", "t": "number", "view": "one"})
     loc = r.headers["Location"]
     body = ok(c, loc).data.decode()
-    assert "Без запятых, % и $" in body and 'data-drawer-open="entry"' in body and "Правильная запись ответа" in body
+    assert 'class="field__hint"' not in body  # no hint under the box; the rules stay one click away
+    assert "Your answer" in body  # SAT questions are in English, so their label is too
+    assert 'data-drawer-open="entry"' in body and "Правильная запись ответа" in body
     sheet = ok(c, loc + "/sheet").data.decode()
     assert "Без запятых, % и $" in sheet
 
