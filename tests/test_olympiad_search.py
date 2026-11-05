@@ -86,33 +86,39 @@ def test_a_grade_is_not_another_grade():
     assert search("амо 25", DOCS) == ["AMO 2025 · 10 класс"]
 
 
-def test_amo_pack_is_valid():
-    with open(os.path.join(PACK_DIR, "amo_olympiad_10_11.json"), encoding="utf-8") as f:
+PACKS = {"amo_olympiad_10_11": 149, "amo_olympiad_7_9": 125}
+
+
+@pytest.mark.parametrize("pack_id,total", PACKS.items())
+def test_amo_pack_is_valid(pack_id, total):
+    with open(os.path.join(PACK_DIR, pack_id + ".json"), encoding="utf-8") as f:
         pack = json.load(f)
     codes = {c for _b, _n, subs in MASTER for _s, _m, skills in subs for c, *_r in skills}
-    assert pack["bank"] is False and len(pack["collections"]) == 6
+    assert pack["bank"] is False
     ids = {q["id"] for q in pack["questions"]}
-    assert len(ids) == len(pack["questions"]) == 140
+    assert len(ids) == len(pack["questions"]) == total
     for q in pack["questions"]:
         assert q["skill"] in codes
         if q["answer_type"] == "choice":
             assert 0 <= int(q["correct"]) < len(q["options"]) and len(set(q["options"])) == len(q["options"])
         else:
-            assert parse_number(q["correct"]) is not None
+            assert parse_number(q["correct"].split("|")[0]) is not None
         if q.get("image"):
             assert os.path.exists(os.path.join(PACK_DIR, pack["id"], "figures", q["image"]))
     assert all(set(c["questions"]) <= ids and c["category"] == "olympiad" for c in pack["collections"])
+    # a paper keeps all 25 questions; 2024 grade 10 №14 is left out: its formula is lost in the source
+    assert all(len(c["questions"]) == (24 if c["id"] == "amo24_g10" else 25) for c in pack["collections"])
 
 
 def test_olympiads_stay_out_of_practice():
     with APP.app_context():
-        qs = Question.query.filter_by(source="amo_olympiad_10_11").all()
-        assert len(qs) == 140 and {q.status for q in qs} == {"draft"}
+        qs = Question.query.filter(Question.source.in_(PACKS)).all()
+        assert len(qs) == sum(PACKS.values()) and {q.status for q in qs} == {"draft"}
         amo = {q.id for q in qs}
         for exam in ("ORT", "EGE", "ENT", "OGE"):
             assert not amo & {i for i, _s, _d in pool_index(exam)}
         works = Work.query.filter_by(category="olympiad", status="published").all()
-        assert len(works) == 6 and {w.exam for w in works} == {"OLYMP"}
+        assert len(works) == 11 and {w.exam for w in works} == {"OLYMP"}
 
 
 def test_collections_page_has_the_olympiad_section():
@@ -135,6 +141,6 @@ def test_an_olympiad_can_be_taken():
     with APP.app_context():
         work = Work.query.filter_by(title="AMO 2025 · 11 класс").first()
         wid, n = work.id, work.current_version.question_count
-    assert n == 22
+    assert n == 25
     ok(c, f"/works/{wid}")
     assert c.post(f"/works/{wid}/start", follow_redirects=True).status_code == 200
