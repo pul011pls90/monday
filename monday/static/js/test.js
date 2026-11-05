@@ -20,12 +20,6 @@
     const key = `monday-elim-${scope.dataset.elimKey}`;
     const crossed = read(key, {});
     const apply = () => $$(".option-row", scope).forEach((row) => row.classList.toggle("is-crossed", !!crossed[row.dataset.optionRowKey]));
-    $$("[data-elim-toggle]", scope).forEach((b) => b.addEventListener("click", () => {
-      const host = b.closest("[data-elim-host]") || scope;
-      const on = !host.classList.contains("is-eliminating");
-      host.classList.toggle("is-eliminating", on);
-      b.setAttribute("aria-pressed", String(on));
-    }));
     scope.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-strike]");
       if (!btn) return;
@@ -51,15 +45,26 @@
   });
 
   /* ------------------------------------------------------------ formulas drawer (right) */
+  // the page makes room for the formulas, so the question stays in view beside them
+  const refDrawer = $('.drawer[data-drawer="ref"]');
+  const syncRef = () => {
+    if (!refDrawer) return;
+    const on = !refDrawer.hidden;
+    if (on === document.body.classList.contains("has-ref")) return;
+    document.body.classList.toggle("has-ref", on);
+    if (on) document.body.style.setProperty("--ref-w", `${refDrawer.offsetWidth}px`);
+    window.dispatchEvent(new Event("resize"));   // the divider re-fits the narrower page
+  };
   $$("[data-drawer-open]").forEach((b) => b.addEventListener("click", () => {
     const d = $(`[data-drawer="${b.dataset.drawerOpen}"]`);
     if (!d) return;
     $$(".drawer").forEach((o) => { if (o !== d) o.hidden = true; });   // one drawer at a time
     d.hidden = !d.hidden;
     if (!d.hidden && window.MondayRenderMath) window.MondayRenderMath(d);
+    syncRef();
   }));
-  $$("[data-drawer-close]").forEach((b) => b.addEventListener("click", () => (b.closest(".drawer").hidden = true)));
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") $$(".drawer").forEach((d) => (d.hidden = true)); });
+  $$("[data-drawer-close]").forEach((b) => b.addEventListener("click", () => { b.closest(".drawer").hidden = true; syncRef(); }));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { $$(".drawer").forEach((d) => (d.hidden = true)); syncRef(); } });
 
   /* ------------------------------------------------------------ SAT answer entry: allowed characters, length, preview */
   const satForm = $("form[data-sat-entry]");

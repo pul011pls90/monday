@@ -496,7 +496,9 @@ legend { padding: 0 8px; font-size: 13px; font-weight: 700; letter-spacing: .08e
 }
 .option__box:hover { border-color: var(--text); }
 .option__letter { flex: none; width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--text); display: grid; place-items: center; font-size: 14px; font-weight: 800; color: var(--text); }
-.option__text { min-width: 0; overflow-x: auto; }
+/* long formulas can be swiped sideways, but a tall fraction must not grow a scrollbar beside it */
+.option__text { min-width: 0; overflow-x: auto; overflow-y: hidden; padding-block: .3em; scrollbar-width: none; }
+.option__text::-webkit-scrollbar { display: none; }
 .option__note { margin-left: auto; font-size: 13px; font-weight: 700; }
 .option input:checked + .option__box { border: 2.5px solid var(--accent); background: var(--accent-soft); color: var(--text); }
 .option input:checked + .option__box .option__letter { background: var(--accent); border-color: var(--accent); color: #FFFFFF; }
@@ -508,10 +510,10 @@ legend { padding: 0 8px; font-size: 13px; font-weight: 700; letter-spacing: .08e
 .option__box.is-wrong .option__letter, .option input:checked + .option__box.is-wrong .option__letter { background: var(--bad); border-color: var(--bad); color: #FFFFFF; }
 .option__box.is-correct .option__note { color: var(--ok); }
 .option__box.is-wrong .option__note { color: var(--bad); }
-/* eliminate: strike buttons appear only in eliminate mode */
+/* eliminate: each option has a strike button beside it where the page asks for it (.has-strike) */
 .option__strike { display: none; flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--text); background: var(--surface); color: var(--text); font: 800 13px var(--font); cursor: pointer; place-items: center; position: relative; padding: 0; }
 .option__strike::after { content: ""; position: absolute; left: 3px; right: 3px; top: 50%; height: 2px; background: currentColor; transform: rotate(-35deg); }
-.is-eliminating .option__strike { display: grid; }
+.has-strike .option__strike { display: grid; }
 .option-row.is-crossed .option__strike { background: var(--text); color: var(--surface); }
 .option-row.is-crossed .option__strike::after { display: none; }
 .option-row.is-crossed .option__box { opacity: .5; }

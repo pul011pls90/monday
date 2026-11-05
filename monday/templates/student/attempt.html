@@ -194,7 +194,7 @@
       <!-- Right Column: Question Display & 2x2 Options Grid -->
       <div class="csca-main">
         {% for idx in range(mod.start, mod.end) %}{% set item = version.items[idx]|loc %}
-          <section class="q-screen" data-q="{{ idx }}" id="question-{{ idx + 1 }}" data-elim-scope data-elim-host data-elim-key="att{{ att.id }}-{{ idx }}">
+          <section class="q-screen" data-q="{{ idx }}" id="question-{{ idx + 1 }}" data-elim-scope data-elim-key="att{{ att.id }}-{{ idx }}">
             <!-- Header: Question X, Report Error, Submit -->
             <div class="csca-topbar">
               <h2 class="csca-q-title">Question {{ idx - mod.start + 1 }}</h2>
@@ -272,11 +272,10 @@
   {% else %}
     {# ============================================================ grid navigation: SAT, ЕНТ, ЕГЭ, ОГЭ #}
     {% for idx in range(mod.start, mod.end) %}{% set item = version.items[idx]|loc %}
-      <section class="q-screen" data-q="{{ idx }}" id="question-{{ idx + 1 }}" data-elim-scope data-elim-host data-elim-key="att{{ att.id }}-{{ idx }}">
+      <section class="q-screen has-strike" data-q="{{ idx }}" id="question-{{ idx + 1 }}" data-elim-scope data-elim-key="att{{ att.id }}-{{ idx }}">
         <div class="q-head">
           <span class="q-head__num">{{ idx - mod.start + 1 }}</span>
           <button type="button" class="q-head__btn" data-mark="{{ idx }}" aria-pressed="{{ 'true' if draft.get('r' ~ idx) else 'false' }}">{{ ui.icon('bookmark', 16) }}<span>{{ _("Отметить для проверки") }}</span></button>
-          {% if item.answer_type == 'choice' %}<button type="button" class="q-head__btn" data-elim-toggle aria-pressed="false">{{ ui.icon('ban', 16) }}<span>{{ _("Исключить") }}</span></button>{% endif %}
           {% if (item.weight or 1) > 1 %}<span class="tag tag--line tag--xs" style="margin-left:auto">{{ item.weight }} {{ item.weight|plural_ru(_("балл"), _("балла"), _("баллов")) }}</span>{% endif %}
         </div>
         <div class="q-card q-card--test q-card--flat">

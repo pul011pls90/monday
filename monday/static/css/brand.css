@@ -478,7 +478,6 @@ details[open] > summary .bank-topic__chev { transform: rotate(180deg); }
 .lg.is-bad { background: var(--bad-soft); border: 1.5px solid var(--bad); }
 .q-head__btn[data-bank-mark][aria-pressed="true"], .q-head__btn[data-mark][aria-pressed="true"] { color: #C98A00; }
 .q-head__btn[data-bank-mark][aria-pressed="true"] svg, .q-head__btn[data-mark][aria-pressed="true"] svg { fill: #E8A400; stroke: #C98A00; }
-.q-head__btn[data-elim-toggle][aria-pressed="true"] { background: var(--accent-soft); color: var(--accent-ink); }
 @media (max-width: 1000px) {
   .bank-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -1603,7 +1602,7 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 .qr__opts { display: grid; gap: 6px; }
 .qr__opt { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
 .qr__opt input { accent-color: var(--accent); }
-.qr__msg { min-height: 64px; resize: vertical; font-size: 14px; }
+.qr__msg { min-height: 72px; padding: 10px 14px; resize: vertical; font-size: 14px; line-height: 1.45; }
 .qr__ok { color: var(--ok); font-weight: 600; }
 .qr__err { color: var(--bad); font-weight: 600; }
 .rv-explain .qr, .mr-screen .qr { margin-top: 4px; }
@@ -3991,4 +3990,64 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
   .ort-layout[data-split="test"] .ort-submit { padding: clamp(12px, 3cqi, 24px) clamp(14px, 3.5cqi, 28px); }
   .ort-layout[data-split="test"] .ort-submit .btn--lg { min-height: max(44px, calc(var(--k) * 1.4)); font-size: calc(var(--t) * 1.2); }
   .ort-layout[data-split="test"] .ort-submit .text-2 { font-size: calc(var(--t) * .92); }
+}
+
+/* question player: a slim bottom bar, the session count beside the question counter instead of above it */
+@media (min-width: 761px) {
+  .bank-foot { padding-top: 8px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+  .bank-foot .btn { min-height: 38px; padding-inline: 16px; font-size: 14px; border-radius: 10px; }
+  .bank-foot__mid { flex-direction: row; gap: 10px; }
+  .bank-foot .q-grid-pop { bottom: calc(100% + 18px); }
+  .bank-foot__progress { min-height: 38px; padding-inline: 14px; }
+}
+
+/* a checked row's colour reaches past the number and the bubbles, so nothing touches its edge; unchecked rows stay in line with the heading */
+.bb-sheet .ort-sheet__row { padding: 4px 8px; margin-inline: -8px; }
+@media (min-width: 1240px) {
+  .ort-layout[data-split] .bb-sheet .ort-sheet__row { padding: calc(var(--k) * .12) calc(var(--k) * .26); margin-inline: calc(var(--k) * -.26); border-radius: calc(var(--k) * .34); }
+  .ort-layout[data-split="bank"] { --row-gap: calc(var(--k) * .04); }
+}
+
+/* a small dark window that says what a button does, on hover; only where a mouse exists */
+.tip-host { display: inline-flex; }
+@media (hover: hover) {
+  [data-tip] { position: relative; }
+  [data-tip]::after { content: attr(data-tip); position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); z-index: 40; width: max-content; max-width: 240px; padding: 7px 10px; border-radius: 8px; background: var(--text); color: var(--surface); font: 500 12.5px/1.35 var(--font); letter-spacing: 0; text-align: left; white-space: normal; box-shadow: 0 8px 22px rgba(2, 11, 41, .22); pointer-events: none; opacity: 0; visibility: hidden; transition: opacity .12s; }
+  [data-tip]:hover::after { opacity: 1; visibility: visible; transition-delay: .15s; }
+  .test-tools > .row:first-child [data-tip]::after { left: 0; transform: none; }   /* the bar's ends: stay on the page */
+  .test-tools > .row:last-child [data-tip]::after { left: auto; right: 0; transform: none; }
+  [data-tip][aria-expanded="true"]::after, .qr[open] > [data-tip]::after { display: none; }   /* its own panel is open */
+}
+
+/* booklet: the «Решение» button lights up around its edge on hover */
+[data-reveal-btn] { transition: box-shadow .18s ease, border-color .18s ease, background-color .18s ease; }
+[data-reveal-btn]:hover, [data-reveal-btn]:focus-visible { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); box-shadow: 0 0 0 1px var(--accent), 0 0 14px 2px color-mix(in srgb, var(--accent) 55%, transparent); filter: none; outline: none; }
+
+/* light theme: filter chips and the sort box sit on the dotted background, so they get a solid fill and a dark outline */
+:root:not([data-theme="dark"]) .chip:not(.is-active), :root:not([data-theme="dark"]) form[role="search"] .select { border-color: var(--text); background-color: var(--surface); }
+:root:not([data-theme="dark"]) .chip:not(.is-active):hover { background-color: var(--surface-2); }
+
+/* question player: a reading width for the question; the bars above and below stay full width */
+.bank-page .q-screen { width: 100%; max-width: 840px; margin-inline: auto; }
+
+/* formulas open beside the page, not over it: the question moves left and stays readable; small screens keep the overlay */
+@media (min-width: 1000px) {
+  .has-ref .calc-shift { margin-left: 28px !important; margin-right: calc(var(--ref-w, 420px) + 28px) !important; width: auto !important; max-width: none !important; }
+  .has-calc.has-ref .calc-shift { margin-left: calc(var(--calc-w) + 28px) !important; }
+  .has-ref .session-bar, .has-ref .test-tools { margin-right: var(--ref-w, 420px); }
+  .has-ref .test-foot { right: var(--ref-w, 420px); flex-wrap: nowrap; }
+  .has-ref .test-tools, .has-ref .test-foot { padding-inline: 24px; }
+  .has-ref .drawer[data-drawer="ref"] { box-shadow: none; }
+}
+
+/* night theme: the question block stays frameless like in the day theme; the rule that outlines every card must not reach it */
+[data-theme="dark"] .q-card--flat { border: 0; }
+
+/* question player: the open explanation sits on the left and the question moves right, so both stay in view;
+   the rule keys on the section being shown, so the existing open and close code drives it */
+@media (min-width: 1100px) {
+  .bank-page .q-screen:has(> .explain:not([hidden])) { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 28px; row-gap: 22px; align-items: start; align-content: start; max-width: none; }
+  .bank-page .q-screen:has(> .explain:not([hidden])) > * { grid-column: 2; min-width: 0; }
+  .bank-page .q-screen:has(> .explain:not([hidden])) .q-layout--cmp .options { grid-template-columns: minmax(0, 1fr); }   /* half a page is too narrow for two columns of answers */
+  .bank-page .q-screen > .explain:not([hidden]) { grid-column: 1; grid-row: 1 / span 5; position: sticky; top: 148px; max-height: calc(100vh - 148px - 72px); overflow-y: auto; overscroll-behavior: contain; }
 }
