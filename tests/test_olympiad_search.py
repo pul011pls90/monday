@@ -86,7 +86,7 @@ def test_a_grade_is_not_another_grade():
     assert search("амо 25", DOCS) == ["AMO 2025 · 10 класс"]
 
 
-PACKS = {"amo_olympiad_10_11": 149, "amo_olympiad_7_9": 125}
+PACKS = {"amo_olympiad_10_11": 149, "amo_olympiad_7_9": 125, "amo_olympiad_6_8": 125}
 
 
 @pytest.mark.parametrize("pack_id,total", PACKS.items())
@@ -118,7 +118,7 @@ def test_olympiads_stay_out_of_practice():
         for exam in ("ORT", "EGE", "ENT", "OGE"):
             assert not amo & {i for i, _s, _d in pool_index(exam)}
         works = Work.query.filter_by(category="olympiad", status="published").all()
-        assert len(works) == 11 and {w.exam for w in works} == {"OLYMP"}
+        assert len(works) == 16 and {w.exam for w in works} == {"OLYMP"}
 
 
 def test_collections_page_has_the_olympiad_section():
