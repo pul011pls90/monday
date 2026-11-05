@@ -5,7 +5,8 @@ import os
 import pytest
 
 from test_app import APP, client, login, ok
-from monday.models import Question, Work
+from monday.extensions import db
+from monday.models import Attempt, Question, Work
 from monday.packs import PACK_DIR
 from monday.search import search
 from monday.services import parse_number, pool_index
@@ -144,3 +145,30 @@ def test_an_olympiad_can_be_taken():
     assert n == 25
     ok(c, f"/works/{wid}")
     assert c.post(f"/works/{wid}/start", follow_redirects=True).status_code == 200
+
+
+def test_olympiad_questions_are_in_the_bank():
+    c = login(client(), "student@monday.kg", "student123")
+    assert "Олимпиада" in ok(c, "/bank/").get_data(as_text=True)
+    page = ok(c, "/bank/?exam=OLYMP&t=number&d=3").get_data(as_text=True)
+    assert 'value="OLYMP" checked' in page
+    r = c.post("/bank/start", data={"exam": "OLYMP", "t": "number", "d": "3"})
+    assert r.status_code == 302 and "/bank/s/" in r.location
+    att_id = int(r.location.split("/bank/s/")[1].split("/")[0])
+    with APP.app_context():
+        att = db.session.get(Attempt, att_id)
+        first = db.session.get(Question, att.plan[0])
+        assert att.total > 0 and first.source.startswith("amo_olympiad") and first.answer_type == "number" and first.difficulty == 3
+        given = first.correct.split("|")[0]
+    ok(c, f"/bank/s/{att_id}/sheet")
+    assert c.post(f"/bank/s/{att_id}/check", data={"i": "0", "given": given}).get_json()["ok"] is True
+
+
+def test_the_exam_bank_has_no_olympiad_questions():
+    c = login(client(), "student@monday.kg", "student123")
+    r = c.post("/bank/start", data={"exam": "ORT"})
+    att_id = int(r.location.split("/bank/s/")[1].split("/")[0])
+    with APP.app_context():
+        plan = db.session.get(Attempt, att_id).plan
+        sources = {q.source for q in Question.query.filter(Question.id.in_(plan)).all()}
+    assert not any((s or "").startswith("amo_olympiad") for s in sources)

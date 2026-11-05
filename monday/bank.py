@@ -14,9 +14,9 @@ from flask_babel import gettext as _
 from flask_login import current_user
 
 from .access import student_required
-from .constants import EXAMS, FORMAT_FOR_EXAM, TEST_FORMATS
+from .constants import EXAMS, FORMAT_FOR_EXAM, OLYMPIAD_EXAM, TEST_FORMATS
 from .extensions import db
-from .models import Attempt, AttemptAnswer, BankState, Question, ReferenceSheet
+from .models import Attempt, AttemptAnswer, BankState, Question, ReferenceSheet, Work
 from .services import content_tree, display_answer, is_correct, student_pool
 from .content_i18n import localize
 from .taxonomy import exam_view, keyset
@@ -38,7 +38,7 @@ LATIN = "ABCDEFGH"
 
 def _exam_arg():
     exam = request.values.get("exam")
-    if exam in EXAMS:
+    if exam in EXAMS or exam == OLYMPIAD_EXAM:
         return exam
     return current_user.profile.exam if current_user.profile else None
 
@@ -72,10 +72,32 @@ def _status(q, states, last):
     return "none"
 
 
+def _olympiad_pool():
+    """Questions of the published olympiad collections. They are not in any exam's practice pool (see "bank" in
+    packs.py), so this view of the bank is the only way to them apart from the tests themselves."""
+    ids = {item["question_id"] for w in Work.query.filter_by(kind="collection", category="olympiad", status="published").all()
+           if w.current_version for item in w.current_version.items}
+    return [q for q in Question.query.filter(Question.id.in_(ids)).all() if q.answer_type != "written"]
+
+
+def _view(user, exam, pool):
+    """The topics shown for an exam. Olympiads have no route of their own: the master map, cut to what they cover."""
+    if exam != OLYMPIAD_EXAM:
+        return exam_view(user, exam)
+    have = {q.skill_id for q in pool}
+    view = []
+    for sec in exam_view(user, None):
+        groups = [{**g, "skills": [s for s in g["skills"] if s["nodes"] & have]} for g in sec["groups"]]
+        groups = [g for g in groups if g["skills"]]
+        if groups:
+            view.append({**sec, "groups": groups})
+    return view
+
+
 def _pool(user, exam):
     """Published questions of the exam, in tree order. The tree is the exam's route plus any other node
     that has questions for this exam, so the bank holds the same questions as «Сессии» and the skill map."""
-    pool = student_pool(exam)
+    pool = _olympiad_pool() if exam == OLYMPIAD_EXAM else student_pool(exam)
     have = {q.skill_id for q in pool}
     tree = []
     for t in content_tree(user):
@@ -141,7 +163,7 @@ def index():
     tree, pool, rows, states, every = _matching(current_user, exam, f)
 
     # the exam's own view of the map (SAT: official domains; others: the master map)
-    view = exam_view(current_user, exam)
+    view = _view(current_user, exam, pool)
     ks = keyset(view)
     per_node, total_node = Counter(q.skill_id for q, _st in rows), Counter(q.skill_id for q in pool)
     count = {k: sum(per_node[n] for n in ids) for k, ids in ks.items()}
@@ -181,10 +203,10 @@ def index():
 def start():
     exam = _exam_arg()
     f = _filters(request.form)
-    tree, _pool_all, rows, _states_, _every = _matching(current_user, exam, f)
+    tree, pool_all, rows, _states_, _every = _matching(current_user, exam, f)
 
     # the chosen entries (any level of the exam view) → master skills
-    ks = keyset(exam_view(current_user, exam))
+    ks = keyset(_view(current_user, exam, pool_all))
     chosen = [k for k in request.form.getlist("k") if k in ks]
     only = request.form.get("only")
     if only in ks:

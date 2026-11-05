@@ -57,6 +57,7 @@
           {% for code, e in EXAMS.items() %}
             <label class="cb-chip"><input type="radio" name="exam" value="{{ code }}" {{ 'checked' if code == exam }}><span>{{ e.label }}</span></label>
           {% endfor %}
+          <label class="cb-chip"><input type="radio" name="exam" value="OLYMP" {{ 'checked' if exam == 'OLYMP' }}><span>{{ _("Олимпиада") }}</span></label>
         </div>
       </fieldset>
       {% for key, ic, title in groups %}

@@ -11,7 +11,7 @@ Each question carries its master skill code, text with $…$ LaTeX, optional rea
 Each collection lists question ids in order plus its test format (SAT: two 22-question modules, 32 min each).
 
 A pack with "bank": false (olympiads) keeps its questions as drafts: its tests are published, but the questions never
-reach practice, the daily question or the teachers' bank.
+reach exam practice, the daily question or the teachers' bank. Students find them in the bank under «Олимпиада».
 
 A pack is imported once (AppMeta remembers it). Figures are copied into the uploads folder, so they come back
 whenever the database is rebuilt (e.g. on a fresh Render instance).
