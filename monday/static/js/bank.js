@@ -4,7 +4,6 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
   const ss = (() => { try { return window.sessionStorage; } catch (_) { return null; } })();
-  const ls = (() => { try { return window.localStorage; } catch (_) { return null; } })();
 
   /* ------------------------------------------------------------ bank page */
   const filters = $("[data-bank-filters]");
@@ -28,22 +27,19 @@
 
   const tree = $("[data-bank-tree]");
   if (tree) {
-    // remember which topics are open
-    let open = [];
-    try { open = JSON.parse((ls && ls.getItem("monday-bank-open")) || "[]"); } catch (_) {}
-    $$("details[data-topic]", tree).forEach((d) => {
-      if (open.includes(d.dataset.topic)) d.open = true;
-      d.addEventListener("toggle", () => {
-        open = $$("details[data-topic]", tree).filter((x) => x.open).map((x) => x.dataset.topic);
-        try { ls && ls.setItem("monday-bank-open", JSON.stringify(open)); } catch (_) {}
-      });
-    });
+    // a topic's subtopics open in a side panel, so the tiles never move; the dialog stays inside the form
+    $$("[data-topic-open]", tree).forEach((b) => b.addEventListener("click", () => b.nextElementSibling.showModal()));
+    $$("[data-topic-drawer]", tree).forEach((d) => d.addEventListener("click", (e) => {
+      if (e.target === d || e.target.closest("[data-drawer-close]")) d.close();   // the dialog itself is only hit on its backdrop
+    }));
 
-    const text = $("[data-sel-text]", tree);
     const update = () => {
       const picked = $$("input[name=k]:checked", tree);
       const q = picked.reduce((a, c) => a + (parseInt(c.dataset.count, 10) || 0), 0);
-      text.textContent = picked.length ? text.dataset.some.replace("{k}", picked.length).replace("{q}", q) : text.dataset.none;
+      $$("[data-sel-text]", tree).forEach((text) => {
+        text.textContent = picked.length ? text.dataset.some.replace("{k}", picked.length).replace("{q}", q) : text.dataset.none || "";
+      });
+      $$("[data-drawer-foot]", tree).forEach((foot) => { foot.hidden = !picked.length; });
       // sub-topic box: checked when all its skills are, half when some are
       $$(".bank-sub", tree).forEach((sub) => {
         const boxes = $$("input[name=k]:not(:disabled)", sub);

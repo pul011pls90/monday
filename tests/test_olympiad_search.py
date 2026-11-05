@@ -175,15 +175,19 @@ def test_the_exam_bank_has_no_olympiad_questions():
     assert not any((s or "").startswith("amo_olympiad") for s in sources)
 
 
-def test_logarithms_have_a_shortcut_in_the_bank():
+def test_logarithms_are_a_main_topic_in_the_bank():
     c = login(client(), "student@monday.kg", "student123")
     page = ok(c, "/bank/?exam=ORT").get_data(as_text=True)
-    assert 'class="bk-featured"' in page and "Логарифмы, показательные уравнения" in page
-    key = page.split('class="bk-featured"')[1].split('name="only" value="')[1].split('"')[0]
+    tiles = page.split('class="bank-topic bk-tile')[1:]
+    names = [t.split('class="bk-tile__name">')[1].split("<")[0] for t in tiles]
+    assert "Логарифмы, показательные уравнения" in names
+    assert names.index("Логарифмы, показательные уравнения") == names.index("Функции") + 1
+    assert "Логарифмы, показательные уравнения" not in tiles[names.index("Функции")]
+    tile = tiles[names.index("Логарифмы, показательные уравнения")]
+    key = tile.split('bank-play--topic" type="submit" name="only" value="')[1].split('"')[0]
     r = c.post("/bank/start", data={"exam": "ORT", "only": key})
     att_id = int(r.location.split("/bank/s/")[1].split("/")[0])
     with APP.app_context():
         plan = db.session.get(Attempt, att_id).plan
         codes = {q.skill.code for q in Question.query.filter(Question.id.in_(plan)).all()}
     assert "log_def" in codes and codes <= {"log_def", "log_props", "log_eq", "exp_eq", "log_ineq"}
-    assert 'class="bk-featured"' not in ok(c, "/bank/?exam=OGE").get_data(as_text=True)

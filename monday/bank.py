@@ -83,7 +83,7 @@ def _olympiad_pool():
 def _view(user, exam, pool):
     """The topics shown for an exam. Olympiads have no route of their own: the master map, cut to what they cover."""
     if exam != OLYMPIAD_EXAM:
-        return exam_view(user, exam)
+        return _logarithms_apart(exam_view(user, exam))
     have = {q.skill_id for q in pool}
     view = []
     for sec in exam_view(user, None):
@@ -91,17 +91,21 @@ def _view(user, exam, pool):
         groups = [g for g in groups if g["skills"]]
         if groups:
             view.append({**sec, "groups": groups})
-    return view
+    return _logarithms_apart(view)
 
 
-def _featured(topics):
-    """The group shown as a shortcut above the tiles: logarithms sit three levels deep in «Функции»."""
+def _logarithms_apart(view):
+    """Logarithms get a tile of their own beside the main topics, right after «Функции» where the map keeps them.
+    The tile keeps the subtopic's key, so its rows and counts work like any other topic's."""
     node = ContentNode.query.filter_by(code="log_def").first()
-    for sec in topics:
-        for g in sec["groups"]:
-            if node and g["key"] and any(node.id in s["nodes"] for s in g["skills"]):
-                return {"key": g["key"], "name": g["name"], "section": sec["name"]}
-    return None
+    out = []
+    for sec in view:
+        logs = [g for g in sec["groups"] if node and g["key"] and any(node.id in s["nodes"] for s in g["skills"])]
+        rest = [g for g in sec["groups"] if g not in logs]
+        if rest:
+            out.append({**sec, "groups": rest})
+        out += [{"key": g["key"], "name": g["name"], "en": "", "groups": [{**g, "key": None, "name": ""}]} for g in logs]
+    return out
 
 
 def _pool(user, exam):
@@ -205,7 +209,7 @@ def index():
     }
     active = any(f.values())
     return render_template("student/bank.html", exam=exam, f=f, active=active, topics=topics, stats=stats, matching=len(rows),
-                           pool_size=len(pool), count=count, total=total, diff=diff, done=done, featured=_featured(topics))
+                           pool_size=len(pool), count=count, total=total, diff=diff, done=done)
 
 
 @bp.route("/start", methods=["POST"])

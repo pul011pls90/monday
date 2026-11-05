@@ -3962,10 +3962,33 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .bb-sheet .bb-check { font-size: 14px; gap: 6px; padding-inline: 10px; white-space: nowrap; min-height: 44px; }
 .bb-sheet .bb-check svg { width: 15px; height: 15px; flex: none; }
 
-/* bank: a highlighted shortcut to one group of topics (logarithms), and the same group marked inside its tile */
-.bk-featured { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; border-radius: 16px; background: var(--accent-soft); border: var(--bw, 1px) solid var(--accent); }
-.bk-featured__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.bk-featured__text b { font-size: 16px; color: var(--accent-ink); }
-.bk-featured__text small { font-size: 13px; color: var(--muted); }
-.bk-featured .btn { flex: none; }
-.bank-row--sub.is-featured { background: var(--accent-soft); }
+
+/* the answer sheet grows with its panel: everything is sized from two values tied to the panel's width,
+   --k (bubble) and --t (text), so dragging the divider scales the whole sheet together */
+@media (min-width: 1240px) {
+  .ort-layout[data-split] .bb-sheet, .ort-layout[data-split] .ort-side { container-type: inline-size; }
+  .ort-layout[data-split="bank"] { --k: clamp(22px, 12cqi, 76px); --t: clamp(14px, 4.4cqi, 26px); --row-gap: calc(var(--k) * .24); --bubble-gap: calc(var(--k) * .2); }
+  .ort-layout[data-split="test"] { --k: clamp(24px, 6cqi, 46px); --t: clamp(13px, 3.25cqi, 20px); --row-gap: calc(var(--k) * .1); --bubble-gap: calc(var(--k) * .12); }
+  .ort-layout[data-split="test"] .ort-sheet__row:has(.bubble:nth-of-type(5)) { --k: clamp(22px, 5.5cqi, 46px); }
+
+  .ort-layout[data-split] .ort-sheet__row:has(.bubble) .bubble span { width: var(--k); height: var(--k); font-size: calc(var(--k) * .45); }
+  .ort-layout[data-split] .ort-sheet__row { gap: var(--bubble-gap); }
+  .ort-layout[data-split] .ort-sheet__num { width: calc(var(--k) * 1.1); min-width: 22px; margin-right: calc(var(--k) * .1); flex: none; font-size: calc(var(--t) * 1.2); text-align: left; white-space: nowrap; }
+  .ort-layout[data-split] .ort-sheet h2 { font-size: calc(var(--t) * 1.35); }
+  .ort-layout[data-split] .ort-sheet__sub, .ort-layout[data-split] .bb-hint, .ort-layout[data-split] .bb-note { font-size: var(--t); }
+  .ort-layout[data-split] .ort-sheet__input { flex: 1; min-width: 0; max-width: none; min-height: max(34px, calc(var(--k) * 1.05)); font-size: var(--t); }
+
+  .ort-layout[data-split="bank"] .bb-sheet { padding: clamp(20px, calc(var(--split-side, 400px) * .06), 36px); }
+  .ort-layout[data-split="bank"] .bb-sheet__rows { gap: var(--row-gap); }
+  .ort-layout[data-split] .bb-progress p { font-size: var(--t); }
+  .ort-layout[data-split] .bb-progress .bar { height: calc(var(--t) * .55); }
+  .ort-layout[data-split] .bb-sheet .bb-check { min-height: max(44px, calc(var(--k) * 1.2)); font-size: var(--t); }
+  .ort-layout[data-split] .bb-sheet .bb-check .ic { --ic: 1.1em; }
+  .ort-layout[data-split] .bb-sheet .bb-check svg { width: 1.1em; height: 1.1em; }
+
+  .ort-layout[data-split="test"] .ort-sheet { padding: clamp(14px, 3.5cqi, 28px); }
+  .ort-layout[data-split="test"] .ort-sheet__grid { gap: var(--row-gap) clamp(10px, 2.6cqi, 28px); }
+  .ort-layout[data-split="test"] .ort-submit { padding: clamp(12px, 3cqi, 24px) clamp(14px, 3.5cqi, 28px); }
+  .ort-layout[data-split="test"] .ort-submit .btn--lg { min-height: max(44px, calc(var(--k) * 1.4)); font-size: calc(var(--t) * 1.2); }
+  .ort-layout[data-split="test"] .ort-submit .text-2 { font-size: calc(var(--t) * .92); }
+}

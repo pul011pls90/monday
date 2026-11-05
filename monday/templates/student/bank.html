@@ -84,18 +84,11 @@
     <input type="hidden" name="exam" value="{{ exam or '' }}">
     {% for k, vals in f.items() %}{% for v in vals %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}{% endfor %}
 
-    {% if featured and total[featured.key] %}
-      <div class="bk-featured">
-        <span class="bk-featured__text"><b>{{ featured.name }}</b><small>{{ featured.section }} · <span class="num">{{ count[featured.key] }}</span> {{ count[featured.key]|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}</small></span>
-        <button class="btn btn--primary btn--sm" type="submit" name="only" value="{{ featured.key }}" {{ 'disabled' if not count[featured.key] }}>{{ _("Начать") }}{{ ui.icon('arrow-right', 16) }}</button>
-      </div>
-    {% endif %}
     {% for sec in topics %}
       {% set n = count[sec.key] %}{% set dn = done[sec.key] or 0 %}{% set dd = diff[sec.key] or [0, 0, 0] %}
       {% set pct = ((100 * dn / n) if n else 0)|round|int %}
       <div class="bank-topic bk-tile{{ ' is-empty' if not n }}">
-        <details data-topic="{{ sec.key }}">
-          <summary class="bk-tile__face">
+        <button class="bk-tile__face" type="button" data-topic-open aria-haspopup="dialog">
             <span class="bk-ring" style="--p: {{ pct }}" aria-label="{{ _('Решено %(a)s из %(n)s', a=dn, n=n) }}"><span class="num">{{ pct }}%</span></span>
             <span class="bk-tile__name">{{ sec.name }}</span>
             <span class="bk-tile__count"><b class="num">{{ n }}</b> {{ n|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}{% if sec.en %} · {{ sec.en }}{% endif %}</span>
@@ -103,12 +96,19 @@
               {% for k in range(3) %}{% if dd[k] %}<i class="bk-diff__{{ k + 1 }}" style="flex: {{ dd[k] }}"></i>{% endif %}{% endfor %}
             </span>
             <span class="bk-diff__legend small"><span><i class="bk-diff__1"></i>{{ dd[0] }}</span><span><i class="bk-diff__2"></i>{{ dd[1] }}</span><span><i class="bk-diff__3"></i>{{ dd[2] }}</span><span class="bk-tile__open">{{ _("Подтемы") }}{{ ui.icon('chevron-down', 16) }}</span></span>
-          </summary>
-          <div class="bank-topic__body">
+        </button>
+        <dialog class="bk-drawer" data-topic-drawer aria-labelledby="bk-drawer-{{ loop.index }}">
+          <header class="bk-drawer__head">
+            <span class="bk-ring" style="--p: {{ pct }}"><span class="num">{{ pct }}%</span></span>
+            <span class="bk-drawer__title"><b id="bk-drawer-{{ loop.index }}">{{ sec.name }}</b><small><span class="num">{{ n }}</span> {{ n|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}</small></span>
+            <button class="bank-play" type="submit" name="only" value="{{ sec.key }}" {{ 'disabled' if not n }} aria-label="{{ _('Начать: %(n)s', n=sec.name) }}">{{ ui.icon('play', 16) }}</button>
+            <button class="icon-btn" type="button" data-drawer-close autofocus aria-label="{{ _('Закрыть') }}">{{ ui.icon('x') }}</button>
+          </header>
+          <div class="bank-topic__body bk-drawer__body">
             {% for g in sec.groups %}
               <div class="bank-sub">
                 {% if g.key and total[g.key] %}
-                <div class="bank-row bank-row--sub{{ ' is-featured' if featured and g.key == featured.key }}">
+                <div class="bank-row bank-row--sub">
                   <label class="bank-check"><input type="checkbox" data-sub-check {{ 'disabled' if not count[g.key] }}><span></span></label>
                   <span class="bank-row__name">{{ g.name }}</span>
                   <span class="bank-row__count num">{{ count[g.key] }}</span>
@@ -126,7 +126,11 @@
               </div>
             {% endfor %}
           </div>
-        </details>
+          <footer class="bk-drawer__foot" data-drawer-foot hidden>
+            <span class="bank-start__text" data-sel-text data-some="{{ _('Выбрано навыков: {k} · вопросов: {q}') }}"></span>
+            <button class="btn btn--primary btn--sm" type="submit">{{ _("Начать сессию") }}{{ ui.icon('arrow-right', 16) }}</button>
+          </footer>
+        </dialog>
         <button class="bank-play bank-play--topic" type="submit" name="only" value="{{ sec.key }}" {{ 'disabled' if not count[sec.key] }} aria-label="{{ _('Начать: %(n)s', n=sec.name) }}">{{ ui.icon('play', 18) }}</button>
       </div>
     {% else %}
