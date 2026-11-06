@@ -18,3 +18,14 @@
 @media (max-width: 1050px) { .grid-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 820px)  { .grid-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px)  { .grid-5 { grid-template-columns: minmax(0, 1fr); } }
+
+/* the catalogue: roomy cards with room for the topic list */
+.work-grid--roomy { grid-template-columns: repeat(auto-fill, minmax(min(270px, 100%), 1fr)); gap: 16px; }
+.work-grid--roomy .work-card { gap: 12px; padding: 20px; }
+.work-grid--roomy .work-card__title { font-size: 17px; line-height: 1.28; letter-spacing: -0.01em; }
+.work-grid--roomy .work-card .author { font-size: 13px; }
+.work-grid--roomy .work-card__meta { gap: 2px; font-size: 13px; }
+.work-grid--roomy .work-card .btn { min-height: 44px; font-size: 15px; }
+.work-card__topics { margin: 0; padding-left: 18px; display: grid; gap: 3px; font-size: 13.5px; line-height: 1.35; color: var(--text-2); }
+.work-card__time { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 2px 10px; width: 100%; }
+.work-card__time .level-pill { padding-block: 2px; }

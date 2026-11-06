@@ -63,10 +63,13 @@
   </div>
   <h3 class="work-card__title">{{ w.title }}</h3>
   <div class="author">{{ avatar(w.author, 'avatar--sm') }}{{ w.author.public_name }}</div>
+  {% set topics = w|work_bullets %}
+  {% if topics %}<ul class="work-card__topics" aria-label="{{ _('Темы') }}">{% for t in topics %}<li>{{ t }}</li>{% endfor %}</ul>{% endif %}
   <div class="work-card__meta">
-    <span class="meta-item">{{ icon('clock', 16) }}{{ (v.time_limit_min if v else w.time_limit_min)|minutes }}</span>
     {% set n = v.question_count if v else 0 %}{% set lv = v.level if v else None %}
-    <span class="meta-item work-card__count">{{ icon('list', 16) }}<span class="nw">{{ n }} {{ n|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}</span>
+    <span class="meta-item work-card__count">{{ icon('list', 16) }}<span class="nw">{{ n }} {{ n|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}</span></span>
+    <span class="work-card__time">
+      <span class="meta-item">{{ icon('clock', 16) }}{{ (v.time_limit_min if v else w.time_limit_min)|minutes }}</span>
       {% if lv %}<span class="level-pill level-pill--{{ lv }}" title="{{ _('Общая сложность по вопросам теста') }}"><i aria-hidden="true"></i>{{ DIFFICULTIES[lv] }}</span>{% endif %}</span>
   </div>
   <a class="btn btn--primary btn--block" href="{{ action_url }}">{{ action_label }}</a>

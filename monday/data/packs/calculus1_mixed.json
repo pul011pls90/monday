@@ -1,0 +1,628 @@
+{
+ "id": "calculus1_mixed",
+ "title": "Calculus I, weeks 2–6: mixed problems",
+ "exam": "CALC1",
+ "language": "en",
+ "bank": false,
+ "questions": [
+  {
+   "id": "m_lim1",
+   "skill": "c1_limits",
+   "difficulty": 2,
+   "text": "Constants $a,b$ satisfy $\\displaystyle\\lim_{x\\to 0}\\frac{\\sqrt{ax+b}-2}{x}=1$. Find $a+b$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "8",
+   "explanation": "The numerator must vanish at $0$, so $\\sqrt{b}=2$ and $b=4$. With the conjugate, the limit is $\\frac{a}{\\sqrt{b}+2}=\\frac{a}{4}=1$, so $a=4$."
+  },
+  {
+   "id": "m_lim2",
+   "skill": "c1_limits",
+   "difficulty": 3,
+   "text": "Find $\\displaystyle\\lim_{x\\to 0}\\frac{\\tan 3x-\\sin 3x}{x^3}$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "27/2|13.5",
+   "explanation": "$\\tan u-\\sin u=\\tan u\\,(1-\\cos u)$. With $u=3x$: $\\frac{\\tan 3x}{x}\\cdot\\frac{1-\\cos 3x}{x^2}\\to 3\\cdot\\frac{9}{2}$."
+  },
+  {
+   "id": "m_lim3",
+   "skill": "c1_limits",
+   "difficulty": 2,
+   "text": "Find $\\displaystyle\\lim_{x\\to 1}\\frac{\\sqrt[3]{x}-1}{\\sqrt{x}-1}$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "2/3|0.667|0.67",
+   "explanation": "Put $x=t^6$. Then $\\frac{t^2-1}{t^3-1}=\\frac{t+1}{t^2+t+1}\\to\\frac23$."
+  },
+  {
+   "id": "m_lim4",
+   "skill": "c1_limits",
+   "difficulty": 2,
+   "text": "Find $\\displaystyle\\lim_{x\\to 0}\\frac{\\ln(1+3x)}{\\sin 2x}$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "3/2|1.5",
+   "explanation": "$\\frac{\\ln(1+3x)}{3x}\\cdot\\frac{2x}{\\sin 2x}\\cdot\\frac32\\to\\frac32$."
+  },
+  {
+   "id": "m_lim5",
+   "skill": "c1_limits",
+   "difficulty": 3,
+   "text": "In the unit circle, $P=(\\cos\\theta,\\sin\\theta)$, $Q=(1,0)$ and $R=(\\cos\\theta,0)$. Let $T(\\theta)$ be the area of triangle $PQR$ (blue) and $S(\\theta)$ the area between the chord $PQ$ and the arc $PQ$ (red). Find $\\displaystyle\\lim_{\\theta\\to 0^+}\\frac{T(\\theta)}{S(\\theta)}$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "3",
+   "explanation": "$T=\\frac12\\sin\\theta(1-\\cos\\theta)\\approx\\frac{\\theta^3}{4}$. $S$ is the sector minus triangle $OPQ$: $S=\\frac12(\\theta-\\sin\\theta)\\approx\\frac{\\theta^3}{12}$. The ratio tends to $3$.",
+   "image": "circle.png"
+  },
+  {
+   "id": "m_sq1",
+   "skill": "c1_squeeze",
+   "difficulty": 2,
+   "text": "Find $\\displaystyle\\lim_{x\\to\\infty}\\frac{\\lfloor 3x\\rfloor}{x}$, where $\\lfloor\\cdot\\rfloor$ is the greatest integer function.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "3",
+   "explanation": "$3x-1<\\lfloor 3x\\rfloor\\le 3x$. Divide by $x>0$ and squeeze: both bounds tend to $3$."
+  },
+  {
+   "id": "m_sq2",
+   "skill": "c1_squeeze",
+   "difficulty": 3,
+   "text": "Find $\\displaystyle\\lim_{x\\to 0^+}x\\left\\lfloor\\frac1x\\right\\rfloor$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "1",
+   "explanation": "$\\frac1x-1<\\lfloor\\frac1x\\rfloor\\le\\frac1x$. Multiply by $x>0$: $1-x<x\\lfloor\\frac1x\\rfloor\\le 1$, so the limit is $1$."
+  },
+  {
+   "id": "m_sq3",
+   "skill": "c1_squeeze",
+   "difficulty": 3,
+   "text": "The graph of $f$ stays between the two parabolas: $|f(x)-3|\\le(x-1)^2$ for all $x$. Let $h(x)=x^2f(x)$. Find $h'(1)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "6",
+   "explanation": "The bound gives $f(1)=3$, and $\\left|\\frac{f(1+t)-3}{t}\\right|\\le|t|\\to 0$, so $f'(1)=0$. Then $h'(1)=2\\cdot 1\\cdot f(1)+1\\cdot f'(1)=6$.",
+   "image": "squeeze.png"
+  },
+  {
+   "id": "m_os1",
+   "skill": "c1_onesided",
+   "difficulty": 2,
+   "text": "For the function $f$ in the graph, find $\\displaystyle\\lim_{x\\to -1^-}f(x)+\\lim_{x\\to -1^+}f(x)+\\lim_{x\\to 1}f(x)+f(1)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "5",
+   "explanation": "Reading the graph: $2+(-1)+1+3=5$. Note that $\\lim_{x\\to 1}f(x)=1$ even though $f(1)=3$.",
+   "image": "piecewise.png"
+  },
+  {
+   "id": "m_os2",
+   "skill": "c1_onesided",
+   "difficulty": 3,
+   "text": "For the function $f$ in the graph, find $\\displaystyle\\lim_{t\\to 0}f(-1-t^2)+\\lim_{t\\to 0}f(-1+t^2)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "1",
+   "explanation": "$-1-t^2$ approaches $-1$ from the left, which gives $2$. $-1+t^2$ approaches from the right, which gives $-1$. The sum is $1$.",
+   "image": "piecewise.png"
+  },
+  {
+   "id": "m_os3",
+   "skill": "c1_onesided",
+   "difficulty": 3,
+   "text": "Let $g(x)=\\dfrac{3+e^{1/x}}{1+e^{1/x}}$. Find $\\displaystyle\\lim_{x\\to 0^+}g(x)-\\lim_{x\\to 0^-}g(x)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "-2",
+   "explanation": "As $x\\to 0^+$, $e^{1/x}\\to\\infty$ and $g\\to 1$. As $x\\to 0^-$, $e^{1/x}\\to 0$ and $g\\to 3$. The difference is $-2$."
+  },
+  {
+   "id": "m_inf1",
+   "skill": "c1_infinity",
+   "difficulty": 2,
+   "text": "As $x\\to\\infty$, the graph of $y=\\sqrt{4x^2+8x+1}$ has an oblique asymptote $y=mx+c$. Find $m+c$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "4",
+   "explanation": "$m=\\lim\\frac{y}{x}=2$. Then $c=\\lim(y-2x)=\\lim\\frac{8x+1}{y+2x}=\\frac{8}{4}=2$."
+  },
+  {
+   "id": "m_inf2",
+   "skill": "c1_infinity",
+   "difficulty": 2,
+   "text": "The graph of $y=\\dfrac{ax^2+bx+1}{x-1}$ has the oblique asymptote $y=2x+5$. Find $a+b$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "5",
+   "explanation": "Long division gives $ax+(a+b)+\\frac{a+b+1}{x-1}$. So $a=2$ and $a+b=5$."
+  },
+  {
+   "id": "m_inf3",
+   "skill": "c1_infinity",
+   "difficulty": 3,
+   "text": "Find $\\displaystyle\\lim_{x\\to\\infty}x\\left(\\sqrt{x^2+1}-x\\right)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "1/2|0.5",
+   "explanation": "With the conjugate: $\\frac{x}{\\sqrt{x^2+1}+x}=\\frac{1}{\\sqrt{1+1/x^2}+1}\\to\\frac12$."
+  },
+  {
+   "id": "m_ct1",
+   "skill": "c1_continuity",
+   "difficulty": 3,
+   "text": "Let $f(x)=\\dfrac{ax^2+bx-6}{x-2}$ for $x\\ne 2$ and $f(2)=7$. Find $a^2+b^2$ if $f$ is continuous at $2$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "5",
+   "explanation": "The numerator must vanish: $4a+2b=6$. The limit is then the numerator's derivative at $2$: $4a+b=7$. So $a=2$, $b=-1$."
+  },
+  {
+   "id": "m_ct2",
+   "skill": "c1_continuity",
+   "difficulty": 3,
+   "text": "Let $f(x)=\\dfrac{e^{ax}-1}{x}$ for $x<0$, $\\;f(x)=x^2+b$ for $0\\le x\\le 2$, and $f(x)=\\dfrac{x^3-8}{x-2}$ for $x>2$. Find $a+b$ so that $f$ is continuous on $\\mathbb{R}$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "16",
+   "explanation": "At $2$: $4+b=\\lim_{x\\to 2}(x^2+2x+4)=12$, so $b=8$. At $0$: $\\lim_{x\\to 0}\\frac{e^{ax}-1}{x}=a=b=8$."
+  },
+  {
+   "id": "m_ct3",
+   "skill": "c1_continuity",
+   "difficulty": 2,
+   "text": "Let $f(x)=ax+b$ for $x<1$ and $f(x)=x^2$ for $x\\ge 1$. Find $a-b$ if $f$ is differentiable at $x=1$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "3",
+   "explanation": "Continuity: $a+b=1$. Equal slopes: $a=2$. So $b=-1$ and $a-b=3$."
+  },
+  {
+   "id": "m_dc1",
+   "skill": "c1_discont",
+   "difficulty": 3,
+   "text": "For the function $f$ in the graph, let $h(x)=(x+1)f(x)$. At how many points of $(-3,5)$ is $h$ discontinuous?",
+   "answer_type": "number",
+   "options": [],
+   "correct": "2",
+   "explanation": "$f$ breaks at $x=-1,1,4$. At $-1$ the factor $x+1$ sends both sides to $0=h(-1)$, so $h$ is continuous there. At $1$, the limit is $2$ but $h(1)=6$. At $4$, $h$ is unbounded. That leaves $2$ points.",
+   "image": "piecewise.png"
+  },
+  {
+   "id": "m_dc2",
+   "skill": "c1_discont",
+   "difficulty": 2,
+   "text": "Let $g(x)=\\dfrac{|x-2|\\,(x+3)}{(x-2)(x^2-9)}$. What value at $x=-3$ makes $g$ continuous there?",
+   "answer_type": "number",
+   "options": [],
+   "correct": "1/6|0.167|0.1667",
+   "explanation": "For $x<2$, $\\frac{|x-2|}{x-2}=-1$, so $g(x)=\\frac{-1}{x-3}$ near $-3$. This tends to $\\frac16$."
+  },
+  {
+   "id": "m_dc3",
+   "skill": "c1_discont",
+   "difficulty": 2,
+   "text": "Let $g(x)=\\dfrac{|x-2|\\,(x+3)}{(x-2)(x^2-9)}$. Find $\\displaystyle\\lim_{x\\to 2^+}g(x)-\\lim_{x\\to 2^-}g(x)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "-2",
+   "explanation": "After cancelling, $g=\\frac{\\pm 1}{x-3}$. On the right the sign is $+$, giving $-1$. On the left it is $-$, giving $1$. The jump is $-2$."
+  },
+  {
+   "id": "m_dc4",
+   "skill": "c1_discont",
+   "difficulty": 3,
+   "text": "How many discontinuities does $g(x)=\\lfloor x\\rfloor\\sin(\\pi x)$ have on $(0,4)$?",
+   "answer_type": "number",
+   "options": [],
+   "correct": "0",
+   "explanation": "$\\lfloor x\\rfloor$ jumps at integers, but $\\sin(\\pi x)=0$ there, so both one-sided limits equal $g(n)=0$. $g$ is continuous everywhere."
+  },
+  {
+   "id": "m_iv1",
+   "skill": "c1_ivt",
+   "difficulty": 2,
+   "text": "How many real solutions does $e^x=3x$ have?",
+   "answer_type": "number",
+   "options": [],
+   "correct": "2",
+   "explanation": "Let $h(x)=e^x-3x$. Then $h(0)=1>0$, $h(1)=e-3<0$, $h(2)=e^2-6>0$, so there is a root in $(0,1)$ and one in $(1,2)$. $h''>0$, so $h$ is convex and has no more than two."
+  },
+  {
+   "id": "m_iv2",
+   "skill": "c1_ivt",
+   "difficulty": 3,
+   "text": "$f$ is continuous on $[0,1]$ with $f(0)=f(1)$. To prove that $f(c)=f\\!\\left(c+\\frac12\\right)$ for some $c$ in $\\left[0,\\frac12\\right]$, the Intermediate Value Theorem should be applied to which function on $\\left[0,\\frac12\\right]$?",
+   "answer_type": "choice",
+   "options": [
+    "$g(x)=f\\!\\left(x+\\frac12\\right)-f(x)$",
+    "$g(x)=f(x)-x$",
+    "$g(x)=f(x)-f(0)$",
+    "$g(x)=f'(x)$"
+   ],
+   "correct": "0",
+   "explanation": "$g(0)+g\\left(\\frac12\\right)=f(1)-f(0)=0$, so the two values have opposite signs or are both zero. A zero of $g$ is the required $c$."
+  },
+  {
+   "id": "m_iv3",
+   "skill": "c1_ivt",
+   "difficulty": 3,
+   "text": "$f:[0,2]\\to[0,2]$ is continuous. Which statement must be true?",
+   "answer_type": "choice",
+   "options": [
+    "$f(c)=c$ for some $c$ in $[0,2]$",
+    "$f(1)=1$",
+    "$f$ takes the value $1$",
+    "$f$ is increasing"
+   ],
+   "correct": "0",
+   "explanation": "Let $g(x)=f(x)-x$. Then $g(0)\\ge 0$ and $g(2)\\le 0$, so $g$ has a zero. The constant $f\\equiv 2$ rules out the other three."
+  },
+  {
+   "id": "m_df1",
+   "skill": "c1_definition",
+   "difficulty": 3,
+   "text": "Let $f(x)=x^2|x-3|$. Find the right-hand derivative of $f$ at $3$ minus the left-hand derivative at $3$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "18",
+   "explanation": "$\\frac{f(3+t)-0}{t}=(3+t)^2\\frac{|t|}{t}$. This tends to $9$ from the right and $-9$ from the left, so the difference is $18$ and $f'(3)$ doesn't exist."
+  },
+  {
+   "id": "m_df2",
+   "skill": "c1_definition",
+   "difficulty": 2,
+   "text": "$f$ is differentiable with $f'(2)=5$. Find $\\displaystyle\\lim_{h\\to 0}\\frac{f(2+3h)-f(2-h)}{h}$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "20",
+   "explanation": "Split at $f(2)$: $3\\cdot\\frac{f(2+3h)-f(2)}{3h}+\\frac{f(2-h)-f(2)}{-h}\\to 3\\cdot 5+5=20$."
+  },
+  {
+   "id": "m_df3",
+   "skill": "c1_definition",
+   "difficulty": 3,
+   "text": "Let $f(x)=x^2\\sin\\frac1x$ for $x\\ne 0$ and $f(0)=0$. Which statement is true?",
+   "answer_type": "choice",
+   "options": [
+    "$f'(0)=0$, but $f'$ is not continuous at $0$",
+    "$f'(0)$ does not exist",
+    "$f'(0)=0$ and $f'$ is continuous at $0$",
+    "$f$ is not continuous at $0$"
+   ],
+   "correct": "0",
+   "explanation": "From the definition, $\\left|\\frac{f(h)}{h}\\right|\\le|h|\\to 0$, so $f'(0)=0$. For $x\\ne 0$, $f'(x)=2x\\sin\\frac1x-\\cos\\frac1x$, which has no limit at $0$."
+  },
+  {
+   "id": "m_df4",
+   "skill": "c1_definition",
+   "difficulty": 3,
+   "text": "$f$ satisfies $f(x+y)=f(x)+f(y)+2xy$ for all $x,y$, and $f'(0)=3$. Find $f'(2)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "7",
+   "explanation": "Putting $x=y=0$ gives $f(0)=0$. Then $\\frac{f(x+h)-f(x)}{h}=\\frac{f(h)}{h}+2x\\to f'(0)+2x$. So $f'(x)=3+2x$."
+  },
+  {
+   "id": "m_tg1",
+   "skill": "c1_tangent",
+   "difficulty": 2,
+   "text": "Two tangent lines to $y=x^2$ pass through the point $(1,-3)$. Find the sum of their slopes.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "4",
+   "explanation": "The tangent at $(t,t^2)$ is $y=2tx-t^2$. Through $(1,-3)$: $t^2-2t-3=0$, so $t=3$ or $t=-1$, with slopes $6$ and $-2$."
+  },
+  {
+   "id": "m_tg2",
+   "skill": "c1_tangent",
+   "difficulty": 3,
+   "text": "The tangent to $y=x^3-3x$ at $x=2$ meets the curve again at $x=a$. Find $a$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "-4",
+   "explanation": "The tangent gives a double root at $2$. The cubic $x^3-3x-(9x-16)$ has no $x^2$ term, so its roots add to $0$: $2+2+a=0$."
+  },
+  {
+   "id": "m_tg3",
+   "skill": "c1_tangent",
+   "difficulty": 3,
+   "text": "The curves $y=x^2+ax+b$ and $y=cx-x^2$ share a tangent line at $(1,0)$. Find $abc$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "-6",
+   "explanation": "From the point: $1+a+b=0$ and $c-1=0$. Equal slopes: $2+a=c-2=-1$. So $a=-3$, $b=2$, $c=1$."
+  },
+  {
+   "id": "m_tg4",
+   "skill": "c1_tangent",
+   "difficulty": 2,
+   "text": "The dashed line is tangent to $y=f(x)$ at $x=2$. Let $h(x)=x^2f(x)$. Find $h'(2)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "16",
+   "explanation": "From the graph, $f(2)=3$, and the tangent through $(0,1)$ and $(2,3)$ gives $f'(2)=1$. Then $h'(2)=2\\cdot 2\\cdot 3+4\\cdot 1=16$.",
+   "image": "tangent.png"
+  },
+  {
+   "id": "m_rl1",
+   "skill": "c1_rules",
+   "difficulty": 2,
+   "text": "Let $p(x)=f(x)g(x)$ for the functions in the graph. Find $p'(1)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "4",
+   "explanation": "At $x=1$: $f=2$, $f'=2$, $g=3$, $g'=-1$. So $p'(1)=2\\cdot 3+2\\cdot(-1)=4$.",
+   "image": "two_lines.png"
+  },
+  {
+   "id": "m_rl2",
+   "skill": "c1_rules",
+   "difficulty": 2,
+   "text": "Let $q(x)=\\dfrac{f(x)}{g(x)}$ for the functions in the graph. Find $q'(5)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "-3",
+   "explanation": "At $x=5$: $f=\\frac52$, $f'=-\\frac12$, $g=1$, $g'=1$. So $q'(5)=\\frac{-\\frac12\\cdot 1-\\frac52\\cdot 1}{1}=-3$.",
+   "image": "two_lines.png"
+  },
+  {
+   "id": "m_rl3",
+   "skill": "c1_rules",
+   "difficulty": 2,
+   "text": "Let $y=xe^{2x}$. Find $y''(0)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "4",
+   "explanation": "$y'=(1+2x)e^{2x}$ and $y''=(4+4x)e^{2x}$, so $y''(0)=4$."
+  },
+  {
+   "id": "m_rl4",
+   "skill": "c1_rules",
+   "difficulty": 2,
+   "text": "Let $f(x)=(x-1)(x-2)(x-3)(x-4)(x-5)$. Find $f'(1)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "24",
+   "explanation": "$f(x)=(x-1)\\,g(x)$, so $f'(1)=g(1)=(-1)(-2)(-3)(-4)=24$. There's no need to expand."
+  },
+  {
+   "id": "m_ch1",
+   "skill": "c1_chain",
+   "difficulty": 2,
+   "text": "For the functions in the graph, let $C(x)=f(g(x))$. Find $C'(5)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "2",
+   "explanation": "$g(5)=1$, $f'(1)=2$ and $g'(5)=1$, so $C'(5)=2\\cdot 1=2$.",
+   "image": "two_lines.png"
+  },
+  {
+   "id": "m_ch2",
+   "skill": "c1_chain",
+   "difficulty": 2,
+   "text": "For the functions in the graph, let $D(x)=g(f(x))$. Find $D'(1)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "-2",
+   "explanation": "$f(1)=2$, $g'(2)=-1$ and $f'(1)=2$, so $D'(1)=-1\\cdot 2=-2$.",
+   "image": "two_lines.png"
+  },
+  {
+   "id": "m_ch3",
+   "skill": "c1_chain",
+   "difficulty": 3,
+   "text": "For the functions in the graph, which derivative does not exist?",
+   "answer_type": "choice",
+   "options": [
+    "$(f\\circ g)'(2)$",
+    "$(g\\circ f)'(1)$",
+    "$(fg)'(3)$",
+    "$(f/g)'(5)$"
+   ],
+   "correct": "0",
+   "explanation": "$g(2)=2$, which is exactly where $f$ has a corner, and $g'(2)\\ne 0$. The composite $f(g(x))$ has a corner at $x=2$.",
+   "image": "two_lines.png"
+  },
+  {
+   "id": "m_ch4",
+   "skill": "c1_chain",
+   "difficulty": 2,
+   "text": "Let $y=\\ln(\\sec x+\\tan x)$. Find $y'\\!\\left(\\dfrac{\\pi}{3}\\right)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "2",
+   "explanation": "$y'=\\frac{\\sec x\\tan x+\\sec^2 x}{\\sec x+\\tan x}=\\sec x$, and $\\sec\\frac{\\pi}{3}=2$."
+  },
+  {
+   "id": "m_ch5",
+   "skill": "c1_chain",
+   "difficulty": 3,
+   "text": "Let $h(x)=f(x^2+1)$, where $f'(2)=3$ and $f''(2)=5$. Find $h''(1)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "26",
+   "explanation": "$h'=2x\\,f'(x^2+1)$ and $h''=2f'(x^2+1)+4x^2f''(x^2+1)$. At $x=1$: $6+20=26$."
+  },
+  {
+   "id": "m_ch6",
+   "skill": "c1_chain",
+   "difficulty": 2,
+   "text": "The dashed line is tangent to $y=f(x)$ at $x=2$. Let $u(x)=f(x^2-2)$. Find $u'(2)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "4",
+   "explanation": "$u'(x)=2x\\,f'(x^2-2)$, and $2^2-2=2$, so $u'(2)=4f'(2)=4\\cdot 1$.",
+   "image": "tangent.png"
+  },
+  {
+   "id": "m_im1",
+   "skill": "c1_implicit",
+   "difficulty": 3,
+   "text": "On the curve $x^2+xy+y^2=3$, find the largest $y$-value at a point with a horizontal tangent.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "2",
+   "explanation": "$2x+y+(x+2y)y'=0$, so $y'=0$ means $y=-2x$. Then $x^2-2x^2+4x^2=3$, so $x=\\pm 1$ and $y=\\mp 2$."
+  },
+  {
+   "id": "m_im2",
+   "skill": "c1_implicit",
+   "difficulty": 2,
+   "text": "Let $y=x^{\\sin x}$ for $x>0$. Find $y'\\!\\left(\\dfrac{\\pi}{2}\\right)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "1",
+   "explanation": "$\\ln y=\\sin x\\ln x$, so $\\frac{y'}{y}=\\cos x\\ln x+\\frac{\\sin x}{x}$. At $\\frac{\\pi}{2}$: $y=\\frac{\\pi}{2}$ and $\\frac{y'}{y}=\\frac{2}{\\pi}$."
+  },
+  {
+   "id": "m_im3",
+   "skill": "c1_implicit",
+   "difficulty": 3,
+   "text": "Let $f(x)=x+e^x$ and let $g$ be its inverse. Find $g''(1)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "-1/8|-0.125",
+   "explanation": "$f(0)=1$, $f'(0)=2$, $f''(0)=1$. Differentiating $g'=\\frac{1}{f'(g)}$ gives $g''=-\\frac{f''(g)}{f'(g)^3}=-\\frac18$."
+  },
+  {
+   "id": "m_im4",
+   "skill": "c1_implicit",
+   "difficulty": 3,
+   "text": "On the curve $x^2+xy+y^2=7$, find $\\dfrac{d^2y}{dx^2}$ at the point $(1,2)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "-42/125|-0.336",
+   "explanation": "$y'=-\\frac{2x+y}{x+2y}=-\\frac45$. Differentiating $2x+y+(x+2y)y'=0$ again gives $2+2y'+2y'^2+(x+2y)y''=0$, so $5y''=-2+\\frac85-\\frac{32}{25}=-\\frac{42}{25}$ and $y''=-\\frac{42}{125}$."
+  }
+ ],
+ "collections": [
+  {
+   "format": "uni",
+   "category": "thematic",
+   "calculator": false,
+   "id": "c1_limits_set",
+   "title": "Calculus I · Limits (weeks 2–3)",
+   "description": "Topics: factoring and conjugates; sin x / x and 1 − cos x limits; sandwich theorem with floor functions; one-sided limits from graphs; oblique asymptotes by long division. 14 questions, 50 minutes.",
+   "minutes_per_module": 50,
+   "questions": [
+    "m_lim1",
+    "m_lim3",
+    "m_lim4",
+    "m_sq1",
+    "m_os1",
+    "m_inf1",
+    "m_inf2",
+    "m_lim2",
+    "m_lim5",
+    "m_sq2",
+    "m_sq3",
+    "m_os2",
+    "m_os3",
+    "m_inf3"
+   ]
+  },
+  {
+   "format": "uni",
+   "category": "thematic",
+   "calculator": false,
+   "id": "c1_cont_set",
+   "title": "Calculus I · Continuity (week 4)",
+   "description": "Topics: finding parameters at the joins; removable, jump and infinite breaks; sign changes and root counting; fixed points by the IVT. 10 questions, 40 minutes.",
+   "minutes_per_module": 40,
+   "questions": [
+    "m_ct3",
+    "m_dc2",
+    "m_dc3",
+    "m_iv1",
+    "m_ct1",
+    "m_ct2",
+    "m_dc1",
+    "m_dc4",
+    "m_iv2",
+    "m_iv3"
+   ]
+  },
+  {
+   "format": "uni",
+   "category": "thematic",
+   "calculator": false,
+   "id": "c1_deriv_set",
+   "title": "Calculus I · Derivatives (weeks 5–6)",
+   "description": "Topics: derivative from the limit definition; tangents from an outside point; product and quotient rules from graphs; chain rule with second derivatives; implicit and logarithmic differentiation. 22 questions, 70 minutes.",
+   "minutes_per_module": 70,
+   "questions": [
+    "m_df2",
+    "m_tg1",
+    "m_tg4",
+    "m_rl1",
+    "m_rl2",
+    "m_rl3",
+    "m_rl4",
+    "m_ch1",
+    "m_ch2",
+    "m_ch4",
+    "m_ch6",
+    "m_im2",
+    "m_df1",
+    "m_df3",
+    "m_df4",
+    "m_tg2",
+    "m_tg3",
+    "m_ch3",
+    "m_ch5",
+    "m_im1",
+    "m_im3",
+    "m_im4"
+   ]
+  },
+  {
+   "format": "uni",
+   "category": "university",
+   "calculator": false,
+   "id": "c1_quiz1",
+   "title": "Calculus I · Practice Quiz 1",
+   "description": "Topics: limits with tan x − sin x; bounds that give a derivative; continuity with e^(ax) pieces; counting roots of e^x = 3x; chain rule with h''; logarithmic differentiation of x^(sin x). 12 questions, 50 minutes.",
+   "minutes_per_module": 50,
+   "questions": [
+    "m_os1",
+    "m_inf1",
+    "m_dc2",
+    "m_iv1",
+    "m_df2",
+    "m_rl1",
+    "m_im2",
+    "m_lim2",
+    "m_sq3",
+    "m_ct2",
+    "m_tg2",
+    "m_ch5"
+   ]
+  },
+  {
+   "format": "uni",
+   "category": "university",
+   "calculator": false,
+   "id": "c1_quiz2",
+   "title": "Calculus I · Practice Quiz 2",
+   "description": "Topics: limits from a unit circle picture; floor functions and asymptotes; classifying breaks of (x + 1)f(x); functional equations; corners in composite functions; derivatives of inverses. 12 questions, 50 minutes.",
+   "minutes_per_module": 50,
+   "questions": [
+    "m_sq1",
+    "m_tg4",
+    "m_rl4",
+    "m_lim5",
+    "m_os3",
+    "m_inf3",
+    "m_ct1",
+    "m_dc1",
+    "m_iv3",
+    "m_df4",
+    "m_ch3",
+    "m_im3"
+   ]
+  }
+ ]
+}

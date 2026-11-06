@@ -1,7 +1,7 @@
 {# Step-by-step review of a finished collection test (like Bluebook): explanation on the left,
    the question with the answers on the right, a question picker at the bottom.
    Expects: att, rows, layout. Without JavaScript every question is shown one under another. #}
-{% set abc = 'ABCDEFGH' if layout.format in ('sat', 'csca') else None %}
+{% set abc = 'ABCDEFGH' if layout.format in LATIN_FORMATS else None %}
 {% set mods = layout.modules %}
 <section class="section rv" data-rv>
   <h2>{{ _("Разбор") }}</h2>

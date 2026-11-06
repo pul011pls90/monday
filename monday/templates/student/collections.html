@@ -32,14 +32,15 @@
     </label>
   </div>
   <input type="hidden" name="exam" value="{{ exam_filter }}"><input type="hidden" name="cat" value="{{ cat }}">
+  {% set own_cats = ('olympiad', 'university') %}{# not tied to a school exam: these chips and the exam chips exclude each other #}
   <div class="chips" role="group" aria-label="{{ _('Фильтры') }}">
-    <a class="chip{{ ' is-active' if not exam_filter and cat != 'olympiad' }}" href="{{ url_for('student.collections', q=q, cat=('' if cat == 'olympiad' else cat), sort=sort) }}">{{ _("Все") }}</a>
+    <a class="chip{{ ' is-active' if not exam_filter and cat not in own_cats }}" href="{{ url_for('student.collections', q=q, cat=('' if cat in own_cats else cat), sort=sort) }}">{{ _("Все") }}</a>
     {% for code, e in EXAMS.items() %}
-      <a class="chip{{ ' is-active' if exam_filter == code }}" href="{{ url_for('student.collections', exam=code, q=q, cat=('' if cat == 'olympiad' else cat), sort=sort) }}">{{ e.label }}</a>
+      <a class="chip{{ ' is-active' if exam_filter == code }}" href="{{ url_for('student.collections', exam=code, q=q, cat=('' if cat in own_cats else cat), sort=sort) }}">{{ e.label }}</a>
     {% endfor %}
     <span class="chips__sep"></span>
     {% for key, label in WORK_CATEGORIES.items() %}
-      <a class="chip{{ ' is-active' if cat == key }}" href="{{ url_for('student.collections', exam=('' if key == 'olympiad' else exam_filter), q=q, cat=('' if cat == key else key), sort=sort) }}">{{ label }}</a>
+      <a class="chip{{ ' is-active' if cat == key }}" href="{{ url_for('student.collections', exam=('' if key in own_cats else exam_filter), q=q, cat=('' if cat == key else key), sort=sort) }}">{{ label }}</a>
     {% endfor %}
   </div>
 </form>
@@ -50,7 +51,7 @@
     <h2 id="rec-h">{{ _("Рекомендуем тебе") }}</h2>
     <span class="small muted">{{ _("По твоему экзамену и слабым темам") }}</span>
   </div>
-  <div class="grid grid-5 work-grid--compact">
+  <div class="grid work-grid--roomy">
     {% for w in recommended %}{{ ui.work_card(w, url_for('student.work_detail', work_id=w.id), _("Начать тест"), badge=(_("Твоя слабая тема") if w.weak_match else None)) }}{% endfor %}
   </div>
 </section>
@@ -62,7 +63,7 @@
     <h2 id="oly-h">{{ _("Олимпиада") }}</h2>
     {% if olympiad_total > olympiads|length %}<a class="small" href="{{ url_for('student.collections', cat='olympiad') }}">{{ _("Все олимпиады") }} ({{ olympiad_total }})</a>{% endif %}
   </div>
-  <div class="grid grid-5 work-grid--compact">
+  <div class="grid work-grid--roomy">
     {% for w in olympiads %}{{ ui.work_card(w, url_for('student.work_detail', work_id=w.id), _("Начать тест")) }}{% endfor %}
   </div>
 </section>
@@ -74,7 +75,7 @@
     <span class="small muted">{{ works|length }} {{ works|length|plural_ru(_("сборник"), _("сборника"), _("сборников")) }}</span>
   </div>
   {% if works %}
-  <div class="grid grid-5 work-grid--compact">
+  <div class="grid work-grid--roomy">
     {% for w in works %}{{ ui.work_card(w, url_for('student.work_detail', work_id=w.id), _("Начать тест")) }}{% endfor %}
   </div>
   {% else %}

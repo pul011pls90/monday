@@ -839,6 +839,30 @@ def build_layout(work, n):
             "calculator": bool(work.calculator), "per_page": max(1, min(10, work.per_page or 4)), "modules": modules}
 
 
+def work_topics(version, limit=8):
+    """What a test covers, read from its questions: skills, or the levels above them when there are too many to list.
+    The map is read once per request, since a page of cards asks for it many times."""
+    from flask import g
+    if not version:
+        return []
+    if "topic_nodes" not in g:
+        g.topic_nodes = {i: (name, parent) for i, name, parent in db.session.query(ContentNode.id, ContentNode.name, ContentNode.parent_id).all()}
+    ids = list(dict.fromkeys(i["skill_id"] for i in version.items or [] if i.get("skill_id") in g.topic_nodes))
+    for _level in range(2):
+        if len(ids) <= limit:
+            break
+        ids = list(dict.fromkeys(g.topic_nodes[i][1] or i for i in ids))
+    return [g.topic_nodes[i][0] for i in ids[:limit]]
+
+
+def work_bullets(work):
+    """The short list on a test's card: what its description names after "Topics:", or else what its questions cover."""
+    text = work.description or ""
+    if text.startswith("Topics: "):
+        return [t.strip() for t in text[len("Topics: "):].split(". ")[0].rstrip(".").split(";")]
+    return work_topics(work.current_version, 6)
+
+
 def version_layout(version):
     """Layout of a published version (older versions without one behave as a plain test)."""
     if version.layout:

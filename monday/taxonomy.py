@@ -12,6 +12,7 @@ ALL = ["ORT", "ENT", "EGE", "OGE", "SAT", "CSCA"]
 NO_SAT = ["ORT", "ENT", "EGE", "OGE", "CSCA"]
 SCHOOL = ["ORT", "ENT", "EGE", "OGE"]
 UPPER = ["ENT", "EGE", "CSCA"]  # senior school: logs, trig equations, calculus
+UNI = ["CALC1"]  # university Calculus I: never part of a school exam's map
 TAXONOMY_VERSION = "3"
 
 # branch code, branch name, [(subtopic code, subtopic name, [(skill code, skill name, exams, weight)])]
@@ -172,6 +173,26 @@ MASTER = [
             ("patterns", "Числовые и логические закономерности", ["ORT", "OGE"], 1),
         ]),
     ]),
+    ("b-calc1", "Calculus I", [
+        ("s-c1-limits", "Пределы", [
+            ("c1_limits", "Вычисление пределов", UNI, 1),
+            ("c1_squeeze", "Теорема о двух милиционерах", UNI, 1),
+            ("c1_onesided", "Односторонние пределы", UNI, 1),
+            ("c1_infinity", "Пределы на бесконечности и асимптоты", UNI, 1),
+        ]),
+        ("s-c1-cont", "Непрерывность", [
+            ("c1_continuity", "Непрерывность и параметры", UNI, 1),
+            ("c1_discont", "Типы разрывов", UNI, 1),
+            ("c1_ivt", "Теорема о промежуточном значении", UNI, 1),
+        ]),
+        ("s-c1-deriv", "Производная", [
+            ("c1_definition", "Производная по определению", UNI, 1),
+            ("c1_tangent", "Касательная и нормаль", UNI, 1),
+            ("c1_rules", "Правила дифференцирования", UNI, 1),
+            ("c1_chain", "Цепное правило", UNI, 1),
+            ("c1_implicit", "Неявная и логарифмическая производная", UNI, 1),
+        ]),
+    ]),
 ]
 
 # CSCA is a senior-school exam (functions, trig, sequences, analytic geometry, vectors, complex numbers, probability).
@@ -261,11 +282,15 @@ def ensure_taxonomy(force=False):
     """
     from .models import AppMeta, ContentNode, Question, Work
     meta = db.session.get(AppMeta, "taxonomy")
-    if meta and meta.value == TAXONOMY_VERSION and not force:
-        return
     by_code = {n.code: n for n in ContentNode.query.filter(ContentNode.code.isnot(None)).all()}
+    # same version: only branches added to MASTER since, so an admin's renames in the others stay as they are
+    only_new = bool(meta and meta.value == TAXONOMY_VERSION and not force)
+    if only_new and all(b in by_code for b, _n, _s in MASTER):
+        return
     old_parents = {}  # old shared subtopic/topic id → new node, to carry teacher branches and works along
     for tpos, (bcode, bname, subs) in enumerate(MASTER):
+        if only_new and bcode in by_code:
+            continue
         branch = by_code.get(bcode)
         if branch is None:
             branch = ContentNode(level="topic", code=bcode, name=bname, position=tpos)
@@ -300,6 +325,9 @@ def ensure_taxonomy(force=False):
             b_exams |= s_exams
         branch.exams = sorted(b_exams)
     db.session.flush()
+    if only_new:
+        db.session.commit()
+        return
     keep = {c for c in by_code}
     master_codes = {b for b, _n, _s in MASTER} | {s for _b, _n, subs in MASTER for s, _sn, _k in subs} | \
         {k for _b, _n, subs in MASTER for _s, _sn, skills in subs for k, *_ in skills}

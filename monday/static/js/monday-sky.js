@@ -25,7 +25,6 @@
   let prev = null, heat = null;
   const tiles = new Map();                     // "i,j" -> alpha
   const ptr = { x: -1e4, y: -1e4, on: 0 };
-  const waves = [];                            // click waves: { x, y, t0 }
   const small = document.createElement("canvas");
   const sctx = small.getContext("2d", { willReadFrequently: true });
 
@@ -145,7 +144,7 @@
     // scene's ridge line per column, lower it into the bottom ~45% of the card, print the ridge solid and the body
     // as a pale dither that fades downward, starting after the text column
     // Mountains are already a pixel scene of their own: show the original (recoloured for white by CSS, see
-    // .mh.is-raw-scene) and print nothing of it here — the sky only adds its clouds, grid, tiles and waves
+    // .mh.is-raw-scene) and print nothing of it here — the sky only adds its clouds, grid and tiles
     const mountains = scene.dataset.cur === "0";
     stage.classList.toggle("is-raw-scene", mountains);
     // the scene on the fine 2px grid, solid; dithered only at soft edges so digits keep their shape.
@@ -178,22 +177,6 @@
       ctx.fillStyle = `rgba(${ink}, 0.35)`; ctx.fill(grat);
     }
 
-    // click waves: a dithered ring of fine pixels that spreads out and thins away
-    for (let w = waves.length - 1; w >= 0; w--) {
-      const age = t - waves[w].t0;
-      if (age > 1.4) { waves.splice(w, 1); continue; }
-      const rad = 12 + age * 340, band = 10 + age * 6, life = 1 - age / 1.4;
-      const { x: wx, y: wy } = waves[w];
-      const x0 = Math.max(0, Math.floor((wx - rad - band) / SP)), x1 = Math.min(scols - 1, Math.ceil((wx + rad + band) / SP));
-      const y0 = Math.max(0, Math.floor((wy - rad - band) / SP)), y1 = Math.min(srows - 1, Math.ceil((wy + rad + band) / SP));
-      for (let j = y0; j <= y1; j++) {
-        for (let i = x0; i <= x1; i++) {
-          const d = Math.abs(Math.hypot(i * SP - wx, j * SP - wy) - rad);
-          if (d > band) continue;
-          if ((1 - d / band) * life > BAYER[(j & 3) * 4 + (i & 3)]) scenePx.rect(i * SP, j * SP, SP - 0.4, SP - 0.4);
-        }
-      }
-    }
     ctx.fillStyle = `rgba(${ink}, 0.16)`; ctx.fill(cloud);
     // the drawing is the foreground: solid deep blue, while the clouds stay pale
     ctx.fillStyle = solid; ctx.fill(scenePx);
@@ -225,13 +208,6 @@
   }
   if (false) window.addEventListener("pointermove", (e) => { const r = sky.getBoundingClientRect(); ptr.x = e.clientX - r.left; ptr.y = e.clientY - r.top; });
   document.documentElement.addEventListener("pointerleave", () => { ptr.x = ptr.y = -1e4; });
-  // every click on the sky (not on the button or links) sends a wave
-  stage.addEventListener("click", (e) => {
-    if (e.target.closest("a, button, input, select, label")) return;
-    const r = sky.getBoundingClientRect();
-    waves.push({ x: e.clientX - r.left, y: e.clientY - r.top, t0: performance.now() / 1000 });
-    if (waves.length > 5) waves.shift();
-  });
   new ResizeObserver(() => { resize(); if (reduce) draw(performance.now()); }).observe(sky);
   new IntersectionObserver((e) => { visible = e[0].isIntersecting; }).observe(sky);
   window.addEventListener("scroll", () => resize(), { passive: true });  // the quiet zones under the text move with the page

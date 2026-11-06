@@ -58,6 +58,7 @@
             <label class="cb-chip"><input type="radio" name="exam" value="{{ code }}" {{ 'checked' if code == exam }}><span>{{ e.label }}</span></label>
           {% endfor %}
           <label class="cb-chip"><input type="radio" name="exam" value="OLYMP" {{ 'checked' if exam == 'OLYMP' }}><span>{{ _("Олимпиада") }}</span></label>
+          <label class="cb-chip"><input type="radio" name="exam" value="{{ UNIVERSITY_EXAM }}" {{ 'checked' if exam == UNIVERSITY_EXAM }}><span>{{ UNIVERSITY_EXAM|exam_label }}</span></label>
         </div>
       </fieldset>
       {% for key, ic, title in groups %}

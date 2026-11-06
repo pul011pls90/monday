@@ -1,0 +1,372 @@
+{
+ "id": "calculus1_topics",
+ "title": "Calculus I: topic tests",
+ "exam": "CALC1",
+ "language": "en",
+ "bank": false,
+ "questions": [
+  {
+   "id": "t_lim1",
+   "skill": "c1_limits",
+   "difficulty": 3,
+   "text": "Find $\\displaystyle\\lim_{x\\to 0}\\frac{e^{2x}-1-2x}{x^2}$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "2",
+   "explanation": "Near $0$, $e^{u}=1+u+\\frac{u^2}{2}+\\dots$. With $u=2x$, the numerator is about $2x^2$. L'Hôpital twice gives the same value."
+  },
+  {
+   "id": "t_lim2",
+   "skill": "c1_limits",
+   "difficulty": 3,
+   "text": "Find $\\displaystyle\\lim_{x\\to \\pi/2}\\frac{1-\\sin x}{\\left(\\frac{\\pi}{2}-x\\right)^2}$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "1/2|0.5",
+   "explanation": "Put $t=\\frac{\\pi}{2}-x$. Then $\\sin x=\\cos t$, and $\\frac{1-\\cos t}{t^2}\\to\\frac12$."
+  },
+  {
+   "id": "t_os1",
+   "skill": "c1_onesided",
+   "difficulty": 2,
+   "text": "Let $g(x)=\\dfrac{x^2-4}{|x-2|}$. Find $\\displaystyle\\lim_{x\\to 2^+}g(x)-\\lim_{x\\to 2^-}g(x)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "8",
+   "explanation": "$g=(x+2)\\cdot\\frac{x-2}{|x-2|}$. The right limit is $4$ and the left limit is $-4$."
+  },
+  {
+   "id": "t_os2",
+   "skill": "c1_onesided",
+   "difficulty": 2,
+   "text": "What is $\\displaystyle\\lim_{x\\to 0^-}\\left(\\frac1x-\\frac{1}{|x|}\\right)$?",
+   "answer_type": "choice",
+   "options": [
+    "$-\\infty$",
+    "$0$",
+    "$+\\infty$",
+    "$2$"
+   ],
+   "correct": "0",
+   "explanation": "For $x<0$, $|x|=-x$, so the expression is $\\frac2x$, which falls without bound. From the right it would be $0$."
+  },
+  {
+   "id": "t_inf1",
+   "skill": "c1_infinity",
+   "difficulty": 3,
+   "text": "The graph shows $y=\\dfrac{ax+b}{x-c}$ with asymptotes $x=2$ and $y=3$, passing through $(3,5)$. Find $a+b+c$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "1",
+   "explanation": "The vertical asymptote gives $c=2$, the horizontal one gives $a=3$. Through $(3,5)$: $\\frac{9+b}{1}=5$, so $b=-4$.",
+   "image": "hyperbola.png"
+  },
+  {
+   "id": "t_inf2",
+   "skill": "c1_infinity",
+   "difficulty": 2,
+   "text": "The graph of $y=\\dfrac{3x}{\\sqrt{x^2+4}}$ has two horizontal asymptotes. Find the distance between them.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "6",
+   "explanation": "As $x\\to\\infty$, $y\\to 3$. As $x\\to-\\infty$, $\\sqrt{x^2}=-x$, so $y\\to-3$. The distance is $6$."
+  },
+  {
+   "id": "t_ct1",
+   "skill": "c1_continuity",
+   "difficulty": 3,
+   "text": "Let $f(x)=\\dfrac{\\sqrt{x+a}-3}{x-5}$ for $x\\ne 5$ and $f(5)=k$. If $f$ is continuous at $5$, find $a+k$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "25/6|4.167|4.17",
+   "explanation": "The numerator must vanish at $5$: $a=4$. With the conjugate, the limit is $\\frac{1}{\\sqrt{9}+3}=\\frac16$, so $k=\\frac16$."
+  },
+  {
+   "id": "t_ct2",
+   "skill": "c1_continuity",
+   "difficulty": 2,
+   "text": "Let $f(x)=x^2$ for $x\\le c$ and $f(x)=2x+3$ for $x>c$. Find the sum of all values of $c$ that make $f$ continuous.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "2",
+   "explanation": "We need $c^2=2c+3$, so $c=3$ or $c=-1$."
+  },
+  {
+   "id": "t_ct3",
+   "skill": "c1_discont",
+   "difficulty": 3,
+   "text": "Let $g(x)=\\lfloor x\\rfloor+\\lfloor -x\\rfloor$. Find $g(2)-\\displaystyle\\lim_{x\\to 2}g(x)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "1",
+   "explanation": "If $x$ is not an integer, $g(x)=-1$, so the limit is $-1$. At an integer, $g=0$. This is a removable discontinuity."
+  },
+  {
+   "id": "t_iv1",
+   "skill": "c1_ivt",
+   "difficulty": 2,
+   "text": "The equation $x^3-2x-5=0$ has a root between the consecutive integers $n$ and $n+1$. Find $n$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "2",
+   "explanation": "$f(2)=-1<0$ and $f(3)=16>0$."
+  },
+  {
+   "id": "t_iv2",
+   "skill": "c1_ivt",
+   "difficulty": 3,
+   "text": "How many real solutions does $\\sin x=\\dfrac{x}{3}$ have?",
+   "answer_type": "number",
+   "options": [],
+   "correct": "3",
+   "explanation": "$x=0$ is one. For $x>0$: at $\\frac{\\pi}{2}$, $\\sin x>\\frac{x}{3}$, and at $\\pi$ it's less, so there's one more. Beyond $x=3$ no solution is possible. By symmetry there is one for $x<0$."
+  },
+  {
+   "id": "t_iv3",
+   "skill": "c1_ivt",
+   "difficulty": 2,
+   "text": "Apply the bisection method to $x^2-2=0$ on $[1,2]$. After three halvings, the root lies in an interval $[p,q]$. Find $p$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "11/8|1.375",
+   "explanation": "Midpoints: $1.5$ (too big), $1.25$ (too small), $1.375$ (too small). The interval becomes $[1.375,\\,1.5]$."
+  },
+  {
+   "id": "t_iv4",
+   "skill": "c1_ivt",
+   "difficulty": 2,
+   "text": "How many real roots does $x^5+x-1=0$ have?",
+   "answer_type": "number",
+   "options": [],
+   "correct": "1",
+   "explanation": "$f(0)=-1$ and $f(1)=1$ give one root. $f'(x)=5x^4+1>0$, so $f$ is increasing and can't cross zero twice."
+  },
+  {
+   "id": "t_iv5",
+   "skill": "c1_ivt",
+   "difficulty": 3,
+   "text": "For how many integers $c$ does $x^3-3x+c=0$ have a root in the open interval $(0,1)$?",
+   "answer_type": "number",
+   "options": [],
+   "correct": "1",
+   "explanation": "$f'=3x^2-3<0$ on $(0,1)$, so $f$ decreases from $c$ to $c-2$. A root needs $c-2<0<c$, so only $c=1$ works."
+  },
+  {
+   "id": "t_df1",
+   "skill": "c1_definition",
+   "difficulty": 2,
+   "text": "$f$ is differentiable with $f(1)=2$ and $f'(1)=3$. Find $\\displaystyle\\lim_{x\\to 1}\\frac{f(x)^2-4}{x-1}$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "12",
+   "explanation": "This is the derivative of $f^2$ at $1$: $2f(1)f'(1)=12$."
+  },
+  {
+   "id": "t_tg1",
+   "skill": "c1_tangent",
+   "difficulty": 3,
+   "text": "The line $y=3x+k$ is tangent to $y=x^3$. Find the product of all possible values of $k$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "-4",
+   "explanation": "$3x^2=3$ gives $x=\\pm 1$. At $(1,1)$, $k=-2$. At $(-1,-1)$, $k=2$."
+  },
+  {
+   "id": "t_rl1",
+   "skill": "c1_rules",
+   "difficulty": 3,
+   "text": "The graph shows the derivative $f'$. Let $g(x)=x\\,f'(x)$. Find $g'(1)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "5",
+   "explanation": "$g'(x)=f'(x)+xf''(x)$. From the graph, $f'(1)=3$, and the slope of the line there gives $f''(1)=2$. So $g'(1)=3+2=5$.",
+   "image": "derivative.png"
+  },
+  {
+   "id": "t_im1",
+   "skill": "c1_implicit",
+   "difficulty": 3,
+   "text": "Let $y=\\dfrac{(x+1)^3\\sqrt{x+4}}{(x+2)^2}$. Use logarithmic differentiation to find $y'(0)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "17/16|1.0625",
+   "explanation": "$\\frac{y'}{y}=\\frac{3}{x+1}+\\frac{1}{2(x+4)}-\\frac{2}{x+2}$. At $0$: $y=\\frac12$ and $\\frac{y'}{y}=3+\\frac18-1=\\frac{17}{8}$."
+  },
+  {
+   "id": "t_im2",
+   "skill": "c1_implicit",
+   "difficulty": 2,
+   "text": "On the curve $x^2y+y^3=2$, find $\\dfrac{dy}{dx}$ at the point $(1,1)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "-1/2|-0.5",
+   "explanation": "$2xy+x^2y'+3y^2y'=0$, so $y'=-\\frac{2xy}{x^2+3y^2}=-\\frac24$."
+  },
+  {
+   "id": "t_im3",
+   "skill": "c1_implicit",
+   "difficulty": 2,
+   "text": "Let $y=\\arctan(x^2)$. Find $y'(1)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "1",
+   "explanation": "$y'=\\frac{2x}{1+x^4}$, so $y'(1)=\\frac{2}{2}=1$."
+  },
+  {
+   "id": "t_im4",
+   "skill": "c1_implicit",
+   "difficulty": 2,
+   "text": "Let $f(x)=x^5+x+1$ and let $g$ be its inverse. Find $g'(3)$.",
+   "answer_type": "number",
+   "options": [],
+   "correct": "1/6|0.167|0.1667",
+   "explanation": "$f(1)=3$ and $f'(1)=6$, so $g'(3)=\\frac16$."
+  }
+ ],
+ "collections": [
+  {
+   "format": "uni",
+   "category": "thematic",
+   "calculator": false,
+   "id": "c1t_limits",
+   "title": "Calculus I · Limit Techniques",
+   "description": "Topics: factoring and conjugates; sin x / x and 1 − cos x limits; logarithm and exponential limits; sandwich theorem with floor functions; limits from a unit circle picture. 10 questions, 50 minutes.",
+   "minutes_per_module": 50,
+   "questions": [
+    "m_lim1",
+    "m_lim3",
+    "m_lim4",
+    "m_sq1",
+    "m_lim2",
+    "m_lim5",
+    "m_sq2",
+    "m_sq3",
+    "t_lim1",
+    "t_lim2"
+   ]
+  },
+  {
+   "format": "uni",
+   "category": "thematic",
+   "calculator": false,
+   "id": "c1t_sides",
+   "title": "Calculus I · One-Sided Limits and Asymptotes",
+   "description": "Topics: limits read from a graph; one-sided limits with |x| and e^(1/x); composite limits such as f(−1 − t²); oblique asymptotes by long division; conjugates at infinity. 10 questions, 50 minutes.",
+   "minutes_per_module": 50,
+   "questions": [
+    "m_os1",
+    "m_inf1",
+    "m_inf2",
+    "t_os1",
+    "t_os2",
+    "t_inf2",
+    "m_os2",
+    "m_os3",
+    "m_inf3",
+    "t_inf1"
+   ]
+  },
+  {
+   "format": "uni",
+   "category": "thematic",
+   "calculator": false,
+   "id": "c1t_cont",
+   "title": "Calculus I · Continuity and Discontinuities",
+   "description": "Topics: finding parameters at the joins; removing a discontinuity; telling holes, jumps and infinite breaks apart; floor functions; differentiability at a join. 10 questions, 50 minutes.",
+   "minutes_per_module": 50,
+   "questions": [
+    "m_ct3",
+    "m_dc2",
+    "m_dc3",
+    "t_ct2",
+    "m_ct1",
+    "m_ct2",
+    "m_dc1",
+    "m_dc4",
+    "t_ct1",
+    "t_ct3"
+   ]
+  },
+  {
+   "format": "uni",
+   "category": "thematic",
+   "calculator": false,
+   "id": "c1t_ivt",
+   "title": "Calculus I · Intermediate Value Theorem",
+   "description": "Topics: locating roots by sign changes; counting real roots; bisection steps; fixed points and helper functions. 8 questions, 40 minutes.",
+   "minutes_per_module": 40,
+   "questions": [
+    "m_iv1",
+    "t_iv1",
+    "t_iv3",
+    "t_iv4",
+    "m_iv2",
+    "m_iv3",
+    "t_iv2",
+    "t_iv5"
+   ]
+  },
+  {
+   "format": "uni",
+   "category": "thematic",
+   "calculator": false,
+   "id": "c1t_def",
+   "title": "Calculus I · Derivative by Definition and Tangents",
+   "description": "Topics: derivative from the limit definition; one-sided derivatives with |x|; functional equations; tangents from an outside point; curves sharing a tangent. 10 questions, 50 minutes.",
+   "minutes_per_module": 50,
+   "questions": [
+    "m_df2",
+    "m_tg1",
+    "m_tg4",
+    "t_df1",
+    "m_df1",
+    "m_df3",
+    "m_df4",
+    "m_tg2",
+    "m_tg3",
+    "t_tg1"
+   ]
+  },
+  {
+   "format": "uni",
+   "category": "thematic",
+   "calculator": false,
+   "id": "c1t_rules",
+   "title": "Calculus I · Differentiation Rules and Chain Rule",
+   "description": "Topics: product and quotient rules from graphs; second derivatives; chain rule on composites; corners where a derivative fails. 11 questions, 55 minutes.",
+   "minutes_per_module": 55,
+   "questions": [
+    "m_rl1",
+    "m_rl2",
+    "m_rl3",
+    "m_rl4",
+    "m_ch1",
+    "m_ch2",
+    "m_ch4",
+    "m_ch6",
+    "m_ch3",
+    "m_ch5",
+    "t_rl1"
+   ]
+  },
+  {
+   "format": "uni",
+   "category": "thematic",
+   "calculator": false,
+   "id": "c1t_impl",
+   "title": "Calculus I · Implicit, Logarithmic and Inverse Derivatives",
+   "description": "Topics: implicit first and second derivatives; horizontal tangents on curves; logarithmic differentiation; derivatives of inverse functions. 8 questions, 40 minutes.",
+   "minutes_per_module": 40,
+   "questions": [
+    "m_im2",
+    "t_im2",
+    "t_im3",
+    "t_im4",
+    "m_im1",
+    "m_im3",
+    "m_im4",
+    "t_im1"
+   ]
+  }
+ ]
+}

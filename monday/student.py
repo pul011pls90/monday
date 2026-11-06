@@ -12,7 +12,7 @@ from sqlalchemy.orm import joinedload
 from .models import local_date, local_midnight_utc, local_now, today as local_today  # noqa: F401
 from .access import student_required
 from .auth import link_invite_code
-from .constants import EXAMS, MISTAKE_REASONS, MODES, PACE, SESSION_LEVELS, SESSION_MINUTES, WORK_CATEGORIES
+from .constants import EXAMS, LATIN_FORMATS, MISTAKE_REASONS, MODES, PACE, SESSION_LEVELS, SESSION_MINUTES, WORK_CATEGORIES
 from .extensions import db
 from .models import utcnow
 from .models import Assignment, Attempt, AttemptAnswer, ContentNode, Question, Skill, StudentProfile, StudentRecord, Work, WorkVersion
@@ -1076,7 +1076,7 @@ def journal_days(entries, limit_days):
             layout = version_layout(att.work_version) if att.work_version else None
             g = {"attempt": att, "title": title, "kind": kind, "rows": [], "topics": defaultdict(int),
                  "modules": (layout or {}).get("modules") or [],
-                 "letters": "ABCDEFGH" if (layout or {}).get("format") in ("sat", "csca") else None}
+                 "letters": "ABCDEFGH" if (layout or {}).get("format") in LATIN_FORMATS else None}
             day["groups"][e.attempt_id] = g
             day["group_order"].append(e.attempt_id)
         mods = g["modules"]
@@ -1146,7 +1146,7 @@ def journal_review(attempt_id):
         title, kind = (att.work_version.title if att.work_version else _("Работа")), WORK_KINDS.get(att.mode) or _("Сборник")
     return render_template("student/journal_review.html", att=att, rows=rows, every=every, i=i, tab=tab, topic=topic,
                            topics=topics, title=title, kind=kind,
-                           letters="ABCDEFGH" if layout.get("format") in ("sat", "csca") else None,
+                           letters="ABCDEFGH" if layout.get("format") in LATIN_FORMATS else None,
                            counts={"all": len(every), "wrong": sum(1 for r in every if not r["blank"]),
                                    "blank": sum(1 for r in every if r["blank"]),
                                    "done": sum(1 for r in every if r["answer"].resolved)})

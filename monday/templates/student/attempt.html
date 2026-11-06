@@ -6,7 +6,7 @@
 {% set back = url_for('student.homework_detail', assignment_id=att.assignment_id) if att.mode == 'homework'
               else (url_for('student.monday') if att.mode == 'monday' else url_for('student.work_detail', work_id=version.work_id)) %}
 {% set mods = layout.modules %}
-{% set abc = 'ABCDEFGH' if layout.format in ('sat', 'csca') else None %}
+{% set abc = 'ABCDEFGH' if layout.format in LATIN_FORMATS else None %}
 {% set last_module = module == mods|length %}
 {% set has_input = version.items[mod.start:mod.end]|selectattr('answer_type', 'equalto', 'number')|list %}
 {% set has_written = version.items|selectattr('answer_type', 'equalto', 'written')|list %}

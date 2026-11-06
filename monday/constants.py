@@ -42,10 +42,13 @@ WORK_KINDS = {
     "homework": _l("Домашнее задание"),
     "monday": _l("Тест понедельника"),
 }
-WORK_CATEGORIES = {"full": _l("Полный вариант"), "thematic": _l("Тематический"), "olympiad": _l("Олимпиада")}
+WORK_CATEGORIES = {"full": _l("Полный вариант"), "thematic": _l("Тематический"), "olympiad": _l("Олимпиада"), "university": _l("Университет")}
 # Olympiads are for everyone, whatever exam a student prepares for: not one of EXAMS, so it never reaches
 # the exam pickers, and pack questions stay out of exam practice (see "bank" in packs.py).
 OLYMPIAD_EXAM = "OLYMP"
+# University courses work the same way: not school exams, so they live in their own collections and bank option.
+UNIVERSITY_EXAM = "CALC1"
+COLLECTION_EXAMS = (OLYMPIAD_EXAM, UNIVERSITY_EXAM)   # bank options fed by their own tests, not by exam practice
 WORK_STATUSES = {"draft": _l("Черновик"), "pending": _l("На проверке"), "published": _l("Опубликовано"), "archived": _l("В архиве")}
 
 # A collection (seen by every student of the exam) this big goes to the admin before students see it.
@@ -84,8 +87,10 @@ TEST_FORMATS = {
     "ege": {"label": "ЕГЭ", "nav": "grid", "calculator": False, "modules": 1},
     "oge": {"label": "ОГЭ", "nav": "grid", "calculator": False, "modules": 1},
     "csca": {"label": "CSCA", "nav": "grid", "calculator": True, "modules": 1},
+    "uni": {"label": _l("Университет"), "nav": "grid", "calculator": False, "modules": 1},
 }
-FORMAT_FOR_EXAM = {"SAT": "sat", "ORT": "ort", "ENT": "ent", "EGE": "ege", "OGE": "oge", "CSCA": "csca"}
+FORMAT_FOR_EXAM = {"SAT": "sat", "ORT": "ort", "ENT": "ent", "EGE": "ege", "OGE": "oge", "CSCA": "csca", "CALC1": "uni"}
+LATIN_FORMATS = ("sat", "csca", "uni")   # English tests letter their options A, B, C
 
 REPORT_KINDS = {
     "answer": _l("Неверный ответ"),

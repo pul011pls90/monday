@@ -172,7 +172,7 @@ def _register_template_helpers(app):
     from .constants import BIG_TEST_QUESTIONS, TEST_FORMATS
     from .taxonomy import TAGS as QUESTION_TAGS
     from .constants import (DIFFICULTIES, EXAMS, HOMEWORK_STATES, MISTAKE_REASONS, MODES, QUESTION_STATUSES,
-                            OLYMPIAD_EXAM, REPORT_KINDS, WEEKDAYS, WORK_CATEGORIES, WORK_KINDS, WORK_STATUSES, CONTACTS)
+                            LATIN_FORMATS, OLYMPIAD_EXAM, REPORT_KINDS, UNIVERSITY_EXAM, WEEKDAYS, WORK_CATEGORIES, WORK_KINDS, WORK_STATUSES, CONTACTS)
 
     from .models import utcnow
 
@@ -204,6 +204,8 @@ def _register_template_helpers(app):
             "LANGUAGES": app.config["LANGUAGES"],
             "CURRENT_LANG": select_locale(),
             "EXAMS": EXAMS,
+            "UNIVERSITY_EXAM": UNIVERSITY_EXAM,
+            "LATIN_FORMATS": LATIN_FORMATS,
             "MODES": MODES,
             "monday_live": _monday_live,
             "TEST_FORMATS": TEST_FORMATS, "BIG_TEST_QUESTIONS": BIG_TEST_QUESTIONS, "QUESTION_TAGS": QUESTION_TAGS,
@@ -221,6 +223,10 @@ def _register_template_helpers(app):
             "now": utcnow(),
         }
 
+    from .services import work_bullets, work_topics
+    app.add_template_filter(work_topics, "work_topics")
+    app.add_template_filter(work_bullets, "work_bullets")
+
     @app.template_filter("has_cyrillic")
     def has_cyrillic(text):
         return any("Ѐ" <= ch <= "ӿ" for ch in str(text or ""))
@@ -229,6 +235,8 @@ def _register_template_helpers(app):
     def exam_label(code):
         if code == OLYMPIAD_EXAM:
             return _("Олимпиада")
+        if code == UNIVERSITY_EXAM:
+            return "Calculus I"
         return EXAMS.get(code, {}).get("label", code or "")
 
     @app.template_filter("d")

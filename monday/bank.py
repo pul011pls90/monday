@@ -14,7 +14,7 @@ from flask_babel import gettext as _
 from flask_login import current_user
 
 from .access import student_required
-from .constants import EXAMS, FORMAT_FOR_EXAM, OLYMPIAD_EXAM, TEST_FORMATS
+from .constants import COLLECTION_EXAMS, EXAMS, FORMAT_FOR_EXAM, TEST_FORMATS, UNIVERSITY_EXAM
 from .extensions import db
 from .models import Attempt, AttemptAnswer, BankState, ContentNode, Question, ReferenceSheet, Work
 from .services import content_tree, display_answer, is_correct, student_pool
@@ -38,7 +38,7 @@ LATIN = "ABCDEFGH"
 
 def _exam_arg():
     exam = request.values.get("exam")
-    if exam in EXAMS or exam == OLYMPIAD_EXAM:
+    if exam in EXAMS or exam in COLLECTION_EXAMS:
         return exam
     return current_user.profile.exam if current_user.profile else None
 
@@ -72,17 +72,17 @@ def _status(q, states, last):
     return "none"
 
 
-def _olympiad_pool():
-    """Questions of the published olympiad collections. They are not in any exam's practice pool (see "bank" in
-    packs.py), so this view of the bank is the only way to them apart from the tests themselves."""
-    ids = {item["question_id"] for w in Work.query.filter_by(kind="collection", category="olympiad", status="published").all()
+def _collection_pool(exam):
+    """Questions of the published collections of an olympiad or a university course. They are not in any exam's practice
+    pool (see "bank" in packs.py), so this view of the bank is the only way to them apart from the tests themselves."""
+    ids = {item["question_id"] for w in Work.query.filter_by(kind="collection", exam=exam, status="published").all()
            if w.current_version for item in w.current_version.items}
     return [q for q in Question.query.filter(Question.id.in_(ids)).all() if q.answer_type != "written"]
 
 
 def _view(user, exam, pool):
-    """The topics shown for an exam. Olympiads have no route of their own: the master map, cut to what they cover."""
-    if exam != OLYMPIAD_EXAM:
+    """The topics shown for an exam. Olympiads and courses have no route of their own: the master map, cut to what they cover."""
+    if exam not in COLLECTION_EXAMS:
         return _logarithms_apart(exam_view(user, exam))
     have = {q.skill_id for q in pool}
     view = []
@@ -111,7 +111,7 @@ def _logarithms_apart(view):
 def _pool(user, exam):
     """Published questions of the exam, in tree order. The tree is the exam's route plus any other node
     that has questions for this exam, so the bank holds the same questions as «Сессии» and the skill map."""
-    pool = _olympiad_pool() if exam == OLYMPIAD_EXAM else student_pool(exam)
+    pool = _collection_pool(exam) if exam in COLLECTION_EXAMS else student_pool(exam)
     have = {q.skill_id for q in pool}
     tree = []
     for t in content_tree(user):
@@ -250,7 +250,7 @@ def _own_bank_attempt(attempt_id):
 
 
 def _letters(exam):
-    return LATIN if exam in ("SAT", "CSCA") else None
+    return LATIN if exam in ("SAT", "CSCA", UNIVERSITY_EXAM) else None
 
 
 @bp.route("/s/<int:attempt_id>")

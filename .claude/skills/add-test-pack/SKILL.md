@@ -66,6 +66,9 @@ Render after deploy. Read `monday/packs.py` before starting; it is short and is 
 `format` decides how the test page looks (`TEST_FORMATS` in `monday/constants.py`,
 `build_layout` in `monday/services.py`, template `monday/templates/student/attempt.html`).
 `category`: `full` (whole variant) or `thematic`.
+**Every `description` starts with the topics and methods the test uses**, specific and separated by `;`, ending with a full stop:
+`Topics: factoring and conjugates; sandwich theorem with floor functions. 10 questions, 50 minutes.` The test card shows
+each one as a bullet (no `. ` inside a topic); the test page also adds a «Темы» line from the questions' skills.
 
 ## Per exam
 

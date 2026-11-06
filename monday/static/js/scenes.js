@@ -4,7 +4,8 @@
  * Сб sphere of numbers · Вс world map of lights. The canvas carries its settings:
  *   data-scene="0…6"  data-mode="before|live|after"  data-topics='["…"]' (the student's weak topics)
  * Before the start the scene is calm and dimmer, while the test is live it is faster and brighter.
- * The cursor works as a lens, a click sends a pulse (sphere: new digits, map: new lights).
+ * The cursor works as a lens. A click or tap sends a soft ripple through the scene, like a stone dropped in water
+ * (sphere: new digits as well).
  * Phones: fewer elements and 30 fps; off-screen or hidden tabs pause; "reduce motion" shows a still frame.
  */
 (function () {
@@ -25,7 +26,7 @@
   let W = 0, H = 0, dpr = 1;
   const speed = 1, density = small ? .7 : 1;
   let playing = !reduce, t = reduce ? 6 : 0, last = performance.now(), lastDraw = 0, visible = true;
-  const ptr = { x: -1e4, y: -1e4, on: 0, pulse: -1e4, px: 0, py: 0 };
+  const ptr = { x: -1e4, y: -1e4, on: 0 };
   let cur = Math.max(0, Math.min(6, parseInt(cv.dataset.scene, 10) || 0));
   let SHIFT = 0;
   let state = {};
@@ -45,7 +46,22 @@
   }
   // the cursor lens: kept small (40% of each scene's own radius) so it nudges the scene rather than covering it
   const lens = (x, y, rad) => ptr.on * Math.max(0, 1 - Math.hypot(x - ptr.x, y - ptr.y) / (rad * 0.4));
-  const pulseAt = (x, y) => { const d = Math.hypot(x - ptr.px, y - ptr.py), age = (t - ptr.pulse) * 520; return Math.max(0, 1 - Math.abs(d - age) / 60) * Math.max(0, 1 - age / 900); };
+  // ripples run on the real clock, so they feel the same whatever the scene's own speed is
+  const RIPPLE_LIFE = 1.6, RIPPLE_REACH = 540, RIPPLE_BAND = 72, RIPPLE_PUSH = 8;
+  const ripples = [], hit = { x: 0, y: 0, a: 0 };
+  let clock = 0;
+  function rippleAt(x, y) {
+    hit.x = hit.y = hit.a = 0;
+    for (const p of ripples) {
+      const u = (clock - p.t) / RIPPLE_LIFE, front = RIPPLE_REACH * (1 - (1 - u) ** 2);
+      const dx = x - p.x, dy = y - p.y, d = Math.hypot(dx, dy) || 1, off = (d - front) / RIPPLE_BAND;
+      if (off <= -1 || off >= 1) continue;
+      const a = (1 + Math.cos(Math.PI * off)) / 2 * (1 - u);
+      hit.a += a; hit.x += dx / d * a * RIPPLE_PUSH; hit.y += dy / d * a * RIPPLE_PUSH;
+    }
+    return hit;
+  }
+  const pulseAt = (x, y) => (ripples.length ? rippleAt(x, y).a : 0);
 
   /* -------------------------------------------------------------- 1. mountains (pixel background) */
   function mountains() {
@@ -71,9 +87,9 @@
         for (let r = Math.max(0, top); r < rows; r++) {
           if (filled[r * cols + c]) continue;
           filled[r * cols + c] = 1;
-          const cy = r * px + px / 2, grow = 1 + pulseAt(lx, cy) * .8;
+          const cy = r * px + px / 2, s = ripples.length ? rippleAt(lx, cy) : hit, grow = 1 + s.a * .7;
           const path = r - top < 2 ? edge : body;   // the ridge line itself is a little lighter
-          path.moveTo(lx + rad * grow, cy); path.arc(lx, cy, rad * grow, 0, TAU);
+          path.moveTo(lx + s.x + rad * grow, cy + s.y); path.arc(lx + s.x, cy + s.y, rad * grow, 0, TAU);
         }
       }
       ctx.fillStyle = `rgba(15, 29, 243, ${L.a})`; ctx.fill(body);
@@ -401,6 +417,9 @@
 
   const DRAW = [mountains, field, dragon, spiral, piScene, numSphere, worldMap];
   function draw() {
+    clock = performance.now() / 1000;
+    for (let i = ripples.length - 1; i >= 0; i--) if (clock - ripples[i].t >= RIPPLE_LIFE) ripples.splice(i, 1);
+    hit.x = hit.y = hit.a = 0;
     ctx.globalAlpha = 1; ctx.clearRect(0, 0, W, H);
     // the scene is the hero's background: centred objects move to the right half so the text stays readable
     const shift = SHIFT = W > 900 && [1, 2, 4, 5].includes(cur) ? W * .2 : 0;
@@ -424,10 +443,12 @@
   // the canvas sits under the text, so the hero tracks the cursor
   if (false) window.addEventListener("pointermove", (e) => { const r = cv.getBoundingClientRect(), sh = W > 900 && [1, 2, 4, 5].includes(cur) ? W * .2 : 0; ptr.x = e.clientX - r.left - sh; ptr.y = e.clientY - r.top; });
   document.documentElement.addEventListener("pointerleave", () => { ptr.x = ptr.y = -1e4; });
-  cv.addEventListener("click", (e) => {
-    if (cur === 3 || cur === 6) return;   // dead click: the spiral and the world map ignore clicks
+  // the canvas sits behind the page and takes no pointer events, so the hero listens for it
+  stage.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("a, button, input, select, label, summary")) return;
     const r = cv.getBoundingClientRect(), sh = W > 900 && [1, 2, 4, 5].includes(cur) ? W * .2 : 0;
-    ptr.px = e.clientX - r.left - sh; ptr.py = e.clientY - r.top; ptr.pulse = t;
+    ripples.push({ x: e.clientX - r.left - sh, y: e.clientY - r.top, t: performance.now() / 1000 });
+    if (ripples.length > 4) ripples.shift();
     if (cur === 2 && state.t0 !== undefined) state.t0 -= 2;
     if (cur === 4) t += 14 * .62 - (t % 14);
     if (cur === 5 && state.pts) state.pts.forEach((q) => { q.flip = t + (q.y + 1) * .35 + Math.random() * .1; });
