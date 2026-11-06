@@ -1175,8 +1175,8 @@ def test_question_bank_filters_and_play():
     r = c.get("/bank/?exam=SAT&mk=yes")
     body = r.data.decode()
     assert "сессия по всем фильтрам: 1<" in body  # the filter keeps the one marked question
-    assert re.search(r'bk-pchip--mark is-on.*?<b class="num">1</b>', body, re.S)  # the card counts the whole exam
-    assert re.search(r'<b class="num">\d+</b> из <span class="num">\d+</span> решено', body)
+    done = re.search(r'<span class="num">\d+</span> из <span class="num">(\d+)</span> решено', body)
+    assert done and int(done.group(1)) > 1  # the card counts the whole exam, not just the filtered question
 
 
 def test_teacher_today_bank_and_attendance():

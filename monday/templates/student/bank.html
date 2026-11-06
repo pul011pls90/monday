@@ -18,24 +18,17 @@
   </div>
 </div>
 
-{# ------------------------------------------------------------ progress: the main number of the page #}
-<section class="bk-progress" aria-label="{{ _('Прогресс') }}">
-  <div class="bk-progress__count">
-    <span class="bk-progress__eyebrow">{{ _("Прогресс") }}</span>
-    <span><b class="num">{{ stats.answered }}</b> {{ _("из") }} <span class="num">{{ stats.total }}</span> {{ _("решено") }}</span>
+{# ------------------------------------------------------------ progress and time: two plain cards for the whole exam #}
+<section class="bk-stats" aria-label="{{ _('Прогресс') }}">
+  <div class="bk-stat">
+    <span class="bk-stat__label">{{ _("Прогресс") }}</span>
+    <b class="bk-stat__value num">{{ stats.percent }}<small>%</small></b>
+    <span class="bk-stat__note"><span class="num">{{ stats.answered }}</span> {{ _("из") }} <span class="num">{{ stats.total }}</span> {{ _("решено") }}</span>
   </div>
-  <div class="bk-progress__pct num">{{ stats.percent }}<small>%</small></div>
-  <div class="bk-progress__bar" role="progressbar" aria-valuemin="0" aria-valuemax="{{ stats.total }}" aria-valuenow="{{ stats.answered }}">
-    <div class="bk-progress__fill">
-      <a class="is-ok" style="width: {{ stats.ok_w }}%" href="{{ url_for('bank.index', exam=exam, st='correct') }}" title="{{ _('Верно') }}: {{ stats.correct }}"></a><a class="is-bad" style="width: {{ stats.bad_w }}%" href="{{ url_for('bank.index', exam=exam, st='incorrect') }}" title="{{ _('Неверно') }}: {{ stats.wrong }}"></a>
-    </div>
-  </div>
-  <div class="bk-progress__chips">
-    <a class="bk-pchip bk-pchip--ok{{ ' is-on' if f.st == ['correct'] }}" href="{{ url_for('bank.index', exam=exam, st='correct') }}">{{ ui.icon('check', 16) }}<span>{{ _("Верно") }}</span><b class="num">{{ stats.correct }}</b></a>
-    <a class="bk-pchip bk-pchip--bad{{ ' is-on' if f.st == ['incorrect'] }}" href="{{ url_for('bank.index', exam=exam, st='incorrect') }}">{{ ui.icon('x', 16) }}<span>{{ _("Неверно") }}</span><b class="num">{{ stats.wrong }}</b></a>
-    <a class="bk-pchip bk-pchip--new{{ ' is-on' if f.st == ['none'] }}" href="{{ url_for('bank.index', exam=exam, st='none') }}">{{ ui.icon('questions', 16) }}<span>{{ _("Без ответа") }}</span><b class="num">{{ stats.total - stats.answered }}</b></a>
-    {% if stats.marked %}<a class="bk-pchip bk-pchip--mark{{ ' is-on' if f.mk == ['yes'] }}" href="{{ url_for('bank.index', exam=exam, mk='yes') }}">{{ ui.icon('bookmark', 16) }}<span>{{ _("на проверку") }}</span><b class="num">{{ stats.marked }}</b></a>{% endif %}
-    {% if stats.time != '—' %}<span class="bk-pchip bk-pchip--time">{{ ui.icon('clock', 16) }}<span>{{ _("Всего времени в банке") }}</span><b class="num">{{ stats.time }}</b></span>{% endif %}
+  <div class="bk-stat">
+    <span class="bk-stat__label">{{ _("Всего времени") }}</span>
+    <b class="bk-stat__value num">{{ stats.time if stats.time != '—' else '0:00' }}</b>
+    <span class="bk-stat__note">{{ _("На все вопросы этого экзамена") }}</span>
   </div>
 </section>
 
@@ -96,7 +89,8 @@
             <span class="bk-diff" aria-label="{{ _('Лёгких %(a)s, средних %(b)s, сложных %(c)s', a=dd[0], b=dd[1], c=dd[2]) }}">
               {% for k in range(3) %}{% if dd[k] %}<i class="bk-diff__{{ k + 1 }}" style="flex: {{ dd[k] }}"></i>{% endif %}{% endfor %}
             </span>
-            <span class="bk-diff__legend small"><span><i class="bk-diff__1"></i>{{ dd[0] }}</span><span><i class="bk-diff__2"></i>{{ dd[1] }}</span><span><i class="bk-diff__3"></i>{{ dd[2] }}</span><span class="bk-tile__open">{{ _("Подтемы") }}{{ ui.icon('chevron-down', 16) }}</span></span>
+            <span class="bk-diff__legend small"><span><i class="bk-diff__1"></i>{{ dd[0] }}</span><span><i class="bk-diff__2"></i>{{ dd[1] }}</span><span><i class="bk-diff__3"></i>{{ dd[2] }}</span></span>
+            <span class="bk-tile__open">{{ _("Подтемы") }}{{ ui.icon('chevron-down', 16) }}</span>
         </button>
         <dialog class="bk-drawer" data-topic-drawer aria-labelledby="bk-drawer-{{ loop.index }}">
           <header class="bk-drawer__head">
