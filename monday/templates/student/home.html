@@ -62,7 +62,7 @@
     {% if p.exam_date %}
       <div class="hc-exam">
         <span class="hc-exam__name">{{ p.exam|exam_label if p.exam else _("Экзамен") }}</span>
-        <b class="hc-exam__date" data-date-dots>{{ p.exam_date|d("d MMMM yyyy") }}</b>
+        <b class="hc-exam__date">{{ p.exam_date|d("d MMMM yyyy") }}</b>
       </div>
       <div class="hc-count" data-countdown="{{ p.exam_date.isoformat() }}" role="timer" aria-live="off">
         <div><b class="num" data-cd="d">—</b><small>{{ _("дней") }}</small></div>

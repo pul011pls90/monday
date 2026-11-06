@@ -3929,11 +3929,7 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
   background: color-mix(in srgb, var(--pulse) 8%, var(--surface)); border: 1.5px solid color-mix(in srgb, var(--pulse) 30%, transparent); }
 .hc-exam__name { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--pulse); }
 .hc-exam { container-type: inline-size; }
-.hc-exam__date { position: relative; font: 700 22px/1.2 var(--font-display); font-size: clamp(18px, 8.4cqi, 28px); letter-spacing: -.03em; color: var(--text); }
-/* hero.js draws the date in dots over the real text, which stays in the page for screen readers and copying */
-.hc-exam__date.is-dots { color: transparent; }
-.hc-exam__dots { position: absolute; inset: -14px; width: calc(100% + 28px); height: calc(100% + 28px); pointer-events: none; }
-@media (forced-colors: active) { .hc-exam__date.is-dots { color: CanvasText; } .hc-exam__dots { display: none; } }
+.hc-exam__date { font: 800 22px/1.2 var(--font-display); font-size: clamp(18px, 8.4cqi, 28px); letter-spacing: -.03em; color: var(--text); }   /* the countdown digits' font */
 [data-theme="dark"] .hc-exam { background: color-mix(in srgb, var(--pulse) 22%, #000); border-color: var(--pulse); }
 [data-theme="dark"] .hc-exam__name { color: #AEB4FF; }
 .hc-exam + .hc-count { margin: 0 0 auto; }
