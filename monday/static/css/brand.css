@@ -29,8 +29,6 @@
 html, body { overscroll-behavior-y: none; }
 html { background: #FFFFFF; }
 html[data-theme="dark"] { background: #000000; }
-html:has(.page--city) { background: #F3F6FC; }
-html[data-theme="dark"]:has(.page--city) { background: #040A1E; }
 
 /* the page background is painted on <body>; on short pages the body ended mid-screen and the white <html> showed
    below it, so the body always fills at least the window */
@@ -4063,13 +4061,13 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 /* liquid glass: blocks over the dotted background are see-through and blur what's behind them, so the dots turn into a soft
    glow and never fight the text. Blocks with dropdowns stay as they are: glass would trap a menu under the next block. */
 :root { --glass: color-mix(in srgb, var(--surface) 62%, transparent); --glass-soft: color-mix(in srgb, var(--surface) 38%, transparent); --glass-blur: blur(14px) saturate(1.5); }
-.page-sky ~ .app :is(.rv-screen, .work-card, .bank-topic, .bk-filter-box, .card:not(:has(details, select))) {
+.page-sky ~ .app :is(.rv-screen, .work-card, .bank-topic, .bk-filter-box, .mt-stage, .mt-next, .card:not(:has(details, select))) {
   background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
 }
 .page-sky ~ .app .rv-explain { background: color-mix(in srgb, var(--accent-soft) 55%, transparent); }
 .page-sky ~ .app .rv-answers > div { background: var(--glass-soft); }
 @media (max-width: 760px), (prefers-reduced-transparency: reduce) {
-  .page-sky ~ .app :is(.rv-screen, .work-card, .bank-topic, .bk-filter-box, .card:not(:has(details, select))) {
+  .page-sky ~ .app :is(.rv-screen, .work-card, .bank-topic, .bk-filter-box, .mt-stage, .mt-next, .card:not(:has(details, select))) {
     background: color-mix(in srgb, var(--surface) 92%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none;
   }
 }
