@@ -3578,11 +3578,16 @@ button.ts__row:focus-visible { outline: 2px solid var(--pulse); outline-offset: 
 .session-bar__left { flex-wrap: nowrap !important; }
 /* a single question inside a card starts at the card's padding, not centred in it */
 .q-card .q-layout--single { margin-inline: 0; }
-/* review: each question card is as tall as its content; very long ones scroll inside, capped at the old fixed height */
-@media (min-width: 761px) {
+/* review: every question gets the same block, so moving between them doesn't make the page jump; long ones scroll inside */
+@media (min-width: 901px) {
+  .rv.is-paged .rv-screen { height: min(var(--rv-h, 70vh), 540px); }
+}
+@media (min-width: 761px) and (max-width: 900px) {
   .rv.is-paged .rv-screen { height: auto; }
   .rv.is-paged .rv-explain, .rv.is-paged .rv-question { max-height: var(--rv-h, 70vh); }
 }
+/* the page already leaves room for the bottom bar; extra padding on the body would push the side menu up the screen */
+@media (min-width: 761px) { body.has-rv-foot { padding-bottom: 0 !important; } }
 /* review footer lines up with the review page's frame (right of the side menu) */
 @media (min-width: 761px) {
   .rv-foot { left: var(--rail); --rv-area: calc(100vw - var(--rail));
@@ -3805,7 +3810,7 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 
 /* ---------------------------------------------------------------- home: dotted sky behind the page, three cards on top */
 .page-sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; --sky-ink: 43, 96, 229; }
-.page-sky + .app { position: relative; z-index: 0; }
+.page-sky ~ .app { position: relative; z-index: 0; }   /* a script tag sits between them, so not "+": the dots must stay behind the page */
 .page-sky .hero__canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 [data-theme="dark"] .page-sky { --sky-ink: 127, 163, 243; }
 @media print { .page-sky { display: none; } }
@@ -4051,3 +4056,47 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
   .bank-page .q-screen:has(> .explain:not([hidden])) .q-layout--cmp .options { grid-template-columns: minmax(0, 1fr); }   /* half a page is too narrow for two columns of answers */
   .bank-page .q-screen > .explain:not([hidden]) { grid-column: 1; grid-row: 1 / span 5; position: sticky; top: 148px; max-height: calc(100vh - 148px - 72px); overflow-y: auto; overscroll-behavior: contain; }
 }
+
+/* liquid glass: blocks over the dotted background are see-through and blur what's behind them, so the dots turn into a soft
+   glow and never fight the text. Blocks with dropdowns stay as they are: glass would trap a menu under the next block. */
+:root { --glass: color-mix(in srgb, var(--surface) 62%, transparent); --glass-soft: color-mix(in srgb, var(--surface) 38%, transparent); --glass-blur: blur(14px) saturate(1.5); }
+.page-sky ~ .app :is(.rv-screen, .work-card, .bank-topic, .bk-filter-box, .card:not(:has(details, select))) {
+  background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+}
+.page-sky ~ .app .rv-explain { background: color-mix(in srgb, var(--accent-soft) 55%, transparent); }
+.page-sky ~ .app .rv-answers > div { background: var(--glass-soft); }
+@media (max-width: 760px), (prefers-reduced-transparency: reduce) {
+  .page-sky ~ .app :is(.rv-screen, .work-card, .bank-topic, .bk-filter-box, .card:not(:has(details, select))) {
+    background: color-mix(in srgb, var(--surface) 92%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+}
+
+/* side menu on wide screens: no box of its own, just the items on the page; phones keep their tab bar */
+@media (min-width: 761px) and (min-height: 521px) {
+  .rail, [data-theme="dark"] .rail { background: transparent; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+/* review: a question with its picture and answers fits the block without scrolling; the answer is already on the left */
+@media (min-width: 901px) {
+  .rv .q-figure img { max-height: 170px; }
+  .rv .q-figure__frame { padding: 6px; }
+  .rv-question { gap: 10px; padding: 16px 20px; }
+  .rv-question .q-text { font-size: 16px; line-height: 1.4; }
+  .rv-question .options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .rv-question .option__box { min-height: 42px; padding: 6px 10px; gap: 10px; font-size: 15px; }
+  .rv-question .option__letter { width: 26px; height: 26px; font-size: 12px; }
+  .rv-question .answer-input .input { min-height: 40px; }
+  .rv-question .answer-input + p { display: none; }
+}
+
+/* result ring: a soft track and a rounded arc that fills to the score when the page opens */
+.score-ring { position: relative; flex: none; width: 176px; height: 176px; }
+.score-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.score-ring circle { fill: none; stroke-width: 9; }
+.score-ring__track { stroke: color-mix(in srgb, var(--accent) 13%, transparent); }
+.score-ring__bar { stroke-linecap: round; stroke-dasharray: var(--p) 100; animation: score-ring-fill .9s cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes score-ring-fill { from { stroke-dasharray: 0 100; } }
+@media (prefers-reduced-motion: reduce) { .score-ring__bar { animation: none; } }
+.score-ring__center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; }
+.score-ring__value { font: 800 40px/1 var(--font-display); letter-spacing: -.03em; color: var(--text); }
+.score-ring__value small { margin-left: 2px; font-size: .5em; font-weight: 700; color: var(--accent); }
+.score-ring__label { font-size: 12.5px; font-weight: 600; color: var(--text-2); }

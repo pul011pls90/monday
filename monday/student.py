@@ -606,7 +606,7 @@ def _olympiad_order(work):
 
 def _search_works(q, works):
     """Forgiving search: the title counts most, then exam, type, author, description and the topics inside."""
-    names = {n.id: n.name for n in ContentNode.query.filter(ContentNode.level == "node").all()}
+    names = {n.id: f"{n.name} {n.parent.name if n.parent else ''}" for n in ContentNode.query.filter(ContentNode.level == "node").all()}
     documents = []
     for w in works:
         topics = {names.get(i.get("skill_id"), "") for i in (w.current_version.items if w.current_version else [])}

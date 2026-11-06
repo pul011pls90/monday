@@ -32,6 +32,7 @@
     </label>
   </div>
   <input type="hidden" name="exam" value="{{ exam_filter }}"><input type="hidden" name="cat" value="{{ cat }}">
+  <div class="live-part" data-live="filters">
   {% set own_cats = ('olympiad', 'university') %}{# not tied to a school exam: these chips and the exam chips exclude each other #}
   <div class="chips" role="group" aria-label="{{ _('Фильтры') }}">
     <a class="chip{{ ' is-active' if not exam_filter and cat not in own_cats }}" href="{{ url_for('student.collections', q=q, cat=('' if cat in own_cats else cat), sort=sort) }}">{{ _("Все") }}</a>
@@ -43,8 +44,10 @@
       <a class="chip{{ ' is-active' if cat == key }}" href="{{ url_for('student.collections', exam=('' if key in own_cats else exam_filter), q=q, cat=('' if cat == key else key), sort=sort) }}">{{ label }}</a>
     {% endfor %}
   </div>
+  </div>
 </form>
 
+<div class="live-part" data-live="results">
 {% if recommended %}
 <section class="section" aria-labelledby="rec-h">
   <div class="section__head">
@@ -72,7 +75,7 @@
 <section class="section" aria-labelledby="all-h">
   <div class="section__head">
     <h2 id="all-h">{% if cat == 'olympiad' and not q %}{{ _("Олимпиада") }}{% elif not (q or exam_filter or cat) %}{{ _("Все сборники") }}{% else %}{{ _("Результаты") }}{% endif %}</h2>
-    <span class="small muted">{{ works|length }} {{ works|length|plural_ru(_("сборник"), _("сборника"), _("сборников")) }}</span>
+    <span class="small muted" role="status">{{ works|length }} {{ works|length|plural_ru(_("сборник"), _("сборника"), _("сборников")) }}</span>
   </div>
   {% if works %}
   <div class="grid work-grid--roomy">
@@ -86,4 +89,6 @@
   </div>
   {% endif %}
 </section>
+</div>
 {% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/collections.js') }}"></script>{% endblock %}

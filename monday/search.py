@@ -82,8 +82,10 @@ def _allowed(length):
     return 0 if length < 4 else 1 if length < 6 else 2 if length < 10 else 3
 
 
+@lru_cache(maxsize=200000)
 def _word_score(q, d):
-    """How well a folded query word q fits a folded document word d, 0 to 1."""
+    """How well a folded query word q fits a folded document word d, 0 to 1. Remembered: the same words come up in every
+    test and on every keystroke of a live search."""
     if q == d:
         return 1.0
     if q.isdigit() or d.isdigit():
@@ -101,7 +103,7 @@ def _word_score(q, d):
         if gap <= limit:
             return 0.85 - 0.12 * gap
         # the query is the start of a longer word, with a typo: "олимпада" for "олимпиадный"
-        if len(d) > len(q) and _distance(q, d[:len(q)], limit) <= limit:
+        if len(d) > len(q) and _distance(q, d[:len(q)], 1) <= 1:   # one slip only, or "calculus" finds "калькулятор"
             return 0.55
     qb, db = _bones(q), _bones(d)
     if len(qb) >= 3 and (qb == db or (len(qb) >= 4 and db.startswith(qb))):
@@ -134,9 +136,14 @@ def _glued(token, words):
     if len(token) >= 6:
         for cut in range(2, len(token) - 1):
             left, right = _piece_score(token[:cut], words), _piece_score(token[cut:], words)
-            if left >= 0.7 and right >= 0.7:
+            if left >= 0.95 and right >= 0.95:   # both halves must be real words, not just the start of one
                 best = max(best, min(left, right) * 0.9)
     return best
+
+
+def _whole_or_glued(token, words):
+    score = _piece_score(token, words)
+    return score if score >= 0.5 else max(score, _glued(token, words))   # splitting is slow: only for words not found as they are
 
 
 def _spellings(raw):
@@ -154,7 +161,7 @@ def _spellings(raw):
 def _chunk_score(spellings, words):
     best = 0
     for i, parts in enumerate(spellings):
-        scores = [max(_piece_score(p, words), _glued(p, words)) for p in parts]
+        scores = [_whole_or_glued(p, words) for p in parts]
         useful = [s for p, s in zip(parts, scores) if p not in _STOP or s]
         if useful:
             value = sum(useful) / len(useful) if min(useful) >= 0.5 else 0

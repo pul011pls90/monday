@@ -82,3 +82,12 @@ def test_every_test_page_lists_its_topics():
     assert "<b>Темы:</b>" in ok(c, f"/works/{ort}").get_data(as_text=True)
     cards = ok(c, "/collections?cat=thematic").get_data(as_text=True)
     assert 'class="work-card__topics"' in cards and "bisection steps, fixed points and helper functions</p>" in cards
+
+
+def test_collections_page_is_ready_for_live_search():
+    c = login(client(), "student@monday.kg", "student123")
+    page = ok(c, "/collections").get_data(as_text=True)
+    assert 'data-live="filters"' in page and 'data-live="results"' in page and "js/collections.js" in page
+    found = ok(c, "/collections?q=производная").get_data(as_text=True)
+    assert "Calculus I · Derivatives" in found  # a subtopic's name finds the tests inside it
+    assert "AMO 2023" not in ok(c, "/collections?q=calculus").get_data(as_text=True)  # "без калькулятора" is not calculus

@@ -34,3 +34,5 @@
 @media (max-width: 560px)  { .work-grid--roomy { grid-template-columns: minmax(0, 1fr); } }
 .work-card__time { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 2px 10px; width: 100%; }
 .work-card__time .level-pill { padding-block: 2px; }
+
+.live-part { display: contents; }   /* marks what the search refreshes; the page's own spacing still applies */
