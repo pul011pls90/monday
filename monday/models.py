@@ -476,16 +476,28 @@ class AttemptAnswer(db.Model):
     skill = db.relationship("ContentNode")
 
 
+SHEET_PLACES = ("bank", "sessions", "tests")
+
+
 class ReferenceSheet(db.Model):
-    """A student's own formula sheet (e.g. "CSCA формулы"). Enabled sheets open inside tests."""
+    """A student's own formula sheet (e.g. "CSCA формулы"). It opens in the sections chosen in `places`."""
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
     title = db.Column(db.String(120), nullable=False)
     exam = db.Column(db.String(8))
-    enabled = db.Column(db.Boolean, nullable=False, default=True)
+    enabled = db.Column(db.Boolean, nullable=False, default=True)  # false: off everywhere, whatever `places` says
+    places = db.Column(db.String(40), default=",".join(SHEET_PLACES))
     position = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=utcnow)
+
+    def is_on(self, place):
+        return bool(self.enabled) and place in (self.places or "").split(",")
+
+    def set_place(self, place, on):
+        chosen = {p for p in SHEET_PLACES if self.is_on(p)} - {place} | ({place} if on else set())
+        self.places = ",".join(p for p in SHEET_PLACES if p in chosen)
+        self.enabled = bool(chosen)
 
     entries = db.relationship("SheetEntry", back_populates="sheet", cascade="all, delete-orphan",
                               order_by="SheetEntry.position")

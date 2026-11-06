@@ -344,11 +344,12 @@ body:not(.auth-body) {
 .desmos-box { flex: 1; min-height: 420px; height: 100%; }
 .sheet-view h3 { font-size: 16px; margin-bottom: 8px; }
 .sheet-view__branch { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 10px 0 6px; }
-.sheet-view__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.sheet-view__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 10px; }
 .sheet-entry { border: var(--bw, 1px) solid var(--line); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 6px; background: var(--surface-2); }
 .sheet-entry img { width: 100%; max-height: 110px; object-fit: contain; background: #FFFFFF; border-radius: 8px; cursor: zoom-in; }
 .sheet-entry__topic { font-size: 13px; font-weight: 700; }
-.sheet-entry__formula { font-size: 15px; overflow-x: auto; }
+.sheet-entry__formula { font-size: 14px; overflow-x: auto; padding-block: 2px; }
+.sheet-entry__formula .katex { white-space: nowrap; }   /* a long formula stays on one line */
 
 @media (max-width: 760px) {
   .ort-grid { grid-template-columns: minmax(0, 1fr); }
@@ -361,7 +362,7 @@ body:not(.auth-body) {
 
 /* formulas page */
 .sheet-card.is-off { opacity: .7; }
-.sheet-view__grid--page { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.sheet-view__grid--page { grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); }
 .sheet-entry { position: relative; }
 .sheet-entry__del { position: absolute; top: 6px; right: 6px; }
 .sheet-entry__del button { width: 22px; height: 22px; border-radius: 50%; border: var(--bw, 1px) solid var(--line); background: var(--surface); display: grid; place-items: center; cursor: pointer; color: var(--muted); opacity: 0; transition: opacity .15s; }
@@ -4028,13 +4029,13 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 /* liquid glass: blocks over the dotted background are see-through and blur what's behind them, so the dots turn into a soft
    glow and never fight the text. Blocks with dropdowns stay as they are: glass would trap a menu under the next block. */
 :root { --glass: color-mix(in srgb, var(--surface) 62%, transparent); --glass-soft: color-mix(in srgb, var(--surface) 38%, transparent); --glass-blur: blur(14px) saturate(1.5); }
-.page-sky ~ .app :is(.rv-screen, .work-card, .bank-topic, .bk-filter-box, .bk-stat, .mt-stage, .mt-next, .sp-index, .sp-head, .set-hero, .card:not(:has(details, select))) {
+.page-sky ~ .app :is(.rv-screen, .work-card, .bank-topic, .bk-filter-box, .bk-stat, .mt-stage, .mt-next, .sp-index, .sp-head, .set-hero, .fx-topics, .fx-card, .card:not(:has(details, select))) {
   background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
 }
 .page-sky ~ .app .rv-explain { background: color-mix(in srgb, var(--accent-soft) 55%, transparent); }
 .page-sky ~ .app .rv-answers > div { background: var(--glass-soft); }
 @media (max-width: 760px), (prefers-reduced-transparency: reduce) {
-  .page-sky ~ .app :is(.rv-screen, .work-card, .bank-topic, .bk-filter-box, .bk-stat, .mt-stage, .mt-next, .sp-index, .sp-head, .set-hero, .card:not(:has(details, select))) {
+  .page-sky ~ .app :is(.rv-screen, .work-card, .bank-topic, .bk-filter-box, .bk-stat, .mt-stage, .mt-next, .sp-index, .sp-head, .set-hero, .fx-topics, .fx-card, .card:not(:has(details, select))) {
     background: color-mix(in srgb, var(--surface) 92%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none;
   }
 }
@@ -4113,3 +4114,50 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .sd-level[class*="sd-level--"]:not(.sd-level--top) > .small { color: var(--lv-text); font-weight: 600; }
 .sd-level[class*="sd-level--"]:not(.sd-level--top) .sd-bar { background: color-mix(in srgb, var(--lv) 16%, transparent); }
 .sd-level[class*="sd-level--"]:not(.sd-level--top) .sd-bar i { background: var(--lv); }
+
+/* Monday formula templates: topics on the left, formulas with worked examples on the right */
+.fx-tabs { margin-bottom: 16px; }
+.fx { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 20px; align-items: start; }
+.fx-topics { position: sticky; top: 88px; display: grid; gap: 2px; padding: 8px; border: var(--bw, 1px) solid var(--line); border-radius: 16px; background: var(--surface); max-height: calc(100vh - 110px); overflow-y: auto; }
+.fx-topics a { display: flex; justify-content: space-between; gap: 8px; padding: 9px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--text-2); text-decoration: none; }
+.fx-topics a:hover { color: var(--text); background: var(--surface-2); }
+.fx-topics a.is-active { color: var(--accent); background: var(--accent-soft); }
+.fx-topics small { flex: none; font-weight: 600; color: var(--muted); }
+.fx-main { display: grid; gap: 14px; min-width: 0; }
+.fx-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.fx-head h2 { margin: 0; font-size: 22px; }
+.fx-head p { margin: 2px 0 0; color: var(--text-2); font-size: 14px; }
+.fx-head__tools { display: flex; gap: 8px; flex-wrap: wrap; }
+.fx-head__tools form { margin: 0; }
+.fx-card { display: grid; gap: 14px; padding: 18px 20px; border: var(--bw, 1px) solid var(--line); border-radius: 18px; background: var(--surface); scroll-margin-top: 90px; }
+.fx-card__top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.fx-card__top h3 { margin: 0; font-size: 17px; }
+.fx-card__top span.small { color: var(--text-2); }
+.fx-card__top form { margin: 0; flex: none; }
+.fx-card__formula { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 14px 16px; border-radius: 14px; background: var(--accent-soft); }
+.fx-card__tex { flex: 1 1 240px; min-width: 0; font-size: 20px; overflow-x: auto; }
+.fx-card__formula img { width: 128px; height: 80px; object-fit: contain; flex: none; padding: 4px; border-radius: 10px; background: #FFFFFF; }
+.fx-examples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.fx-example { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border: var(--bw, 1px) solid var(--line); border-radius: 14px; min-width: 0; }
+.fx-example__q { font-size: 15px; line-height: 1.45; font-weight: 600; }
+.fx-example__text { font-size: 14px; line-height: 1.5; color: var(--text-2); }
+.fx-example__steps { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; line-height: 1.5; }
+.fx-example__use { padding: 6px 10px; border-left: 3px solid var(--accent); border-radius: 4px; font-size: 15px; overflow-x: auto; background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.fx-example__answer { margin-top: auto; font-size: 14px; }
+@media (max-width: 900px) {
+  .fx { grid-template-columns: minmax(0, 1fr); }
+  .fx-topics { position: static; display: flex; overflow-x: auto; max-height: none; }
+  .fx-topics a { flex: none; }
+}
+@media (max-width: 1100px) { .fx-examples { grid-template-columns: minmax(0, 1fr); } }
+
+/* where a formula sheet shows */
+.sheet-places { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; margin-top: 12px; }
+.sheet-view__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.sheet-view__head h3 { margin: 0; }
+.sheet-view.is-off .sheet-view__body { display: none; }
+.sheet-view.is-off h3 { color: var(--muted); }
+.set-switch--sm > span { width: 36px; height: 22px; }
+.set-switch--sm > span::after { left: 3px; top: 3px; width: 16px; height: 16px; }
+.set-switch--sm input:checked + span::after { transform: translateX(14px); }
+

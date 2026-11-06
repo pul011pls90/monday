@@ -1025,13 +1025,13 @@ def test_formula_sheets():
     import io
     from monday.models import ReferenceSheet
     c = login(client(), "student@monday.kg", "student123")
-    ok(c, "/formulas", contains=["Формулы", "Новый лист"])
+    ok(c, "/formulas?tab=mine", contains=["Формулы", "Новый лист"])
     c.post("/formulas", data={"action": "create", "title": "SAT формулы", "exam": "SAT"})
     with APP.app_context():
         sid = ReferenceSheet.query.filter_by(title="SAT формулы").first().id
     c.post("/formulas", data={"action": "add_entry", "sheet_id": str(sid), "branch": "Геометрия",
                               "topic": "Площадь круга", "formula": "$S = \\pi r^2$"})
-    ok(c, "/formulas", contains=["Площадь круга", "Геометрия", "data-mathkb"])
+    ok(c, "/formulas?tab=mine", contains=["Площадь круга", "Геометрия", "data-mathkb"])
     # several formulas at once, the section typed in another case joins the same section, $…$ added
     c.post("/formulas", data={"action": "add_entry", "sheet_id": str(sid), "branch": " геометрия ",
                               "topic": ["Площадь квадрата", "Теорема Пифагора", ""], "formula": ["S = a^2", "$c^2 = a^2 + b^2$", ""]})
@@ -1047,8 +1047,8 @@ def test_formula_sheets():
         wid = Work.query.filter_by(title="SAT March 2025").first().id
     run = c.post(f"/works/{wid}/start").headers["Location"]
     ok(c, run, contains=["Мои формулы", "Площадь круга"])
-    c.post("/formulas", data={"action": "toggle", "sheet_id": str(sid)})
-    assert "Площадь круга" not in c.get(run).data.decode()
+    c.post(f"/formulas/sheet/{sid}/place", data={"place": "tests"})
+    assert 'class="sheet-view is-off"' in c.get(run).data.decode()
     other = login(client(), "student2@monday.kg", "student123")
     assert other.post("/formulas", data={"action": "delete_sheet", "sheet_id": str(sid)}).status_code == 404
 

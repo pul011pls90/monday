@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% block title %}{{ template.title }}{% endblock %}
+{% block content %}
+<a href="{{ url_for('student.formulas', tab='monday') }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Все шаблоны") }}</a>
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ template.title }}</h1>
+    <p>{{ template.en }}</p>
+  </div>
+</div>
+
+<div class="fx">
+  <nav class="fx-topics" aria-label="{{ _('Темы') }}">
+    {% for t in template.topics %}
+    <a href="{{ url_for('student.formula_template', template_id=template.id, topic=t.id) }}" class="{{ 'is-active' if t.id == topic.id }}"{% if t.id == topic.id %} aria-current="page"{% endif %}><span>{{ t.name }}</span><small class="num">{{ t.formulas|length }}</small></a>
+    {% endfor %}
+  </nav>
+
+  <div class="fx-main">
+    <header class="fx-head">
+      <div><h2>{{ topic.name }}</h2><p>{{ topic.en }}</p></div>
+      <div class="fx-head__tools">
+        <form method="post" action="{{ url_for('bank.start') }}">{{ ui.csrf() }}<input type="hidden" name="exam" value="{{ template.exam }}"><input type="hidden" name="only" value="{{ topic.bank }}">
+          <button class="btn btn--secondary btn--sm" type="submit">{{ ui.icon('play', 16) }}{{ _("Потренировать") }}</button></form>
+        <form method="post" action="{{ url_for('student.formula_add', template_id=template.id) }}">{{ ui.csrf() }}<input type="hidden" name="topic" value="{{ topic.id }}">
+          <button class="btn btn--primary btn--sm" type="submit">{{ ui.icon('plus', 16) }}{{ _("Добавить всю тему") }}</button></form>
+      </div>
+    </header>
+
+    {% for f in topic.formulas %}
+    <article class="fx-card" id="f-{{ f.id }}">
+      <div class="fx-card__top">
+        <div><h3>{{ f.name }}</h3><span class="small">{{ f.en }}</span></div>
+        {% if f.id in added %}<span class="tag tag--ok">{{ _("Добавлено") }}</span>
+        {% else %}<form method="post" action="{{ url_for('student.formula_add', template_id=template.id) }}">{{ ui.csrf() }}<input type="hidden" name="topic" value="{{ topic.id }}"><input type="hidden" name="formula" value="{{ f.id }}">
+          <button class="btn btn--secondary btn--sm" type="submit">{{ ui.icon('plus', 16) }}{{ _("В мои формулы") }}</button></form>{% endif %}
+      </div>
+      <div class="fx-card__formula">
+        <div class="fx-card__tex math">${{ f.tex }}$</div>
+        {% if f.image %}<img src="{{ url_for('static', filename='img/formulas/' ~ f.image ~ '.svg') }}" alt="" data-lightbox>{% endif %}
+      </div>
+      <div class="fx-examples">
+        {% for e in f.examples %}
+        <div class="fx-example">
+          <div class="fx-example__q math">{{ e.q }}</div>
+          <div class="fx-example__text math">{{ e.goal }} {{ e.plan }}</div>
+          <div class="fx-example__use math">{{ e.use }}</div>
+          <ol class="fx-example__steps math">{% for s in e.steps %}<li>{{ s }}</li>{% endfor %}</ol>
+          {% if e.check %}<div class="fx-example__text math"><b>{{ _("Проверка:") }}</b> {{ e.check }}</div>{% endif %}
+          <div class="fx-example__answer math"><b>{{ _("Ответ:") }}</b> {{ e.answer }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

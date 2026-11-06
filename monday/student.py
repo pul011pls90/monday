@@ -10,6 +10,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 
 from .models import local_date, local_midnight_utc, local_now, today as local_today  # noqa: F401
+from . import formulas as monday_formulas
 from .access import student_required
 from .auth import link_invite_code
 from .constants import EXAMS, FORMAT_FOR_EXAM, LATIN_FORMATS, UNIVERSITY_EXAM, MISTAKE_REASONS, MODES, PACE, SESSION_LEVELS, SESSION_MINUTES, WORK_CATEGORIES
@@ -451,13 +452,15 @@ def session_play(attempt_id):
             db.session.commit()
         return redirect(url_for("student.session_play", attempt_id=att.id))
 
+    exam = cfg.get("exam") or _exam()
     deadline = None
     if cfg.get("minutes"):
         deadline = int((att.started_at.replace(tzinfo=timezone.utc).timestamp() + cfg["minutes"] * 60) * 1000)
     return render_template("student/session.html", att=att, idx=idx, question=question, answer=answer,
                            mode=MODES[att.mode], mode_key=att.mode, cfg=cfg, deadline=deadline,
                            hint=_hint_text(question) if idx in hints else None,
-                           total=max(cfg.get("count") or 0, len(att.plan)))
+                           total=max(cfg.get("count") or 0, len(att.plan)), exam=exam,
+                           sheets=monday_formulas.sheets_for(current_user, exam), sheet_place="sessions")
 
 
 @bp.route("/sessions/<int:attempt_id>/done")
@@ -747,7 +750,8 @@ def attempt_run(attempt_id):
     earlier = sum(1 for key, v in (att.draft or {}).items()
                   if key.startswith("q") and str(v).strip() and int(key[1:]) < mod["start"])
     return render_template("student/attempt.html", att=att, version=version, layout=layout, module=k, mod=mod,
-                           seconds_left=left, draft=att.draft or {}, sheets=_enabled_sheets(), earlier_answered=earlier)
+                           seconds_left=left, draft=att.draft or {}, earlier_answered=earlier, sheet_place="tests", sheets_locked=att.mode == "monday",
+                           sheets=[] if att.mode == "monday" else monday_formulas.sheets_for(current_user, version.work.exam))  # the ranking stays fair
 
 
 def ort_once(layout, version, draft, idx, value):
@@ -915,12 +919,6 @@ def attempt_assess(attempt_id, idx):
             rescore(att)
             db.session.commit()
     return redirect(url_for("student.attempt_result", attempt_id=att.id) + f"#q{idx + 1}")
-
-
-def _enabled_sheets():
-    from .models import ReferenceSheet
-    return (ReferenceSheet.query.filter_by(user_id=current_user.id, enabled=True)
-            .order_by(ReferenceSheet.position, ReferenceSheet.id).all())
 
 
 @bp.route("/attempts/<int:attempt_id>/result")
@@ -1558,7 +1556,7 @@ def profile_export_pdf():
 def formulas():
     """The student's own reference sheets: branch → name → picture → formula.
 
-    Enabled sheets open from the «Формулы» button inside every test.
+    A sheet opens from the «Формулы» button in the sections chosen for it, for its own exam, and never in Monday tests.
     """
     import os
     import uuid
@@ -1586,10 +1584,6 @@ def formulas():
                 db.session.commit()
                 flash(_("Лист создан. Добавь первую формулу."), "success")
                 return redirect(url_for("student.formulas", _anchor=f"sheet-{sh.id}"))
-        elif action == "toggle":
-            sh = own_sheet(f.get("sheet_id", type=int))
-            sh.enabled = not sh.enabled
-            db.session.commit()
         elif action == "rename":
             sh = own_sheet(f.get("sheet_id", type=int))
             if len(f.get("title", "").strip()) >= 2:
@@ -1645,4 +1639,47 @@ def formulas():
         return redirect(url_for("student.formulas"))
     sheets = (ReferenceSheet.query.filter_by(user_id=current_user.id)
               .order_by(ReferenceSheet.position, ReferenceSheet.id).all())
-    return render_template("student/formulas.html", sheets=sheets)
+    tab = request.args.get("tab")
+    if tab not in ("monday", "mine"):
+        tab = "mine" if sheets else "monday"
+    templates = monday_formulas.templates_for(_exam())
+    added = {t["id"]: len(monday_formulas.added_ids(current_user, t)) for t in templates}
+    return render_template("student/formulas.html", sheets=sheets, tab=tab, templates=templates, added=added)
+
+
+@bp.route("/formulas/sheet/<int:sheet_id>/place", methods=["POST"])
+@student_required
+def formula_sheet_place(sheet_id):
+    """One switch: show this sheet in a section or not. Called from the sheet list and from inside a running test."""
+    from .models import SHEET_PLACES, ReferenceSheet
+    sheet = db.session.get(ReferenceSheet, sheet_id)
+    place = request.form.get("place")
+    if not sheet or sheet.user_id != current_user.id or place not in SHEET_PLACES:
+        abort(404)
+    sheet.set_place(place, bool(request.form.get("on")))
+    db.session.commit()
+    return "", 204
+
+
+@bp.route("/formulas/t/<template_id>")
+@student_required
+def formula_template(template_id):
+    """A Monday template: its topics on the left, the chosen topic's formulas with worked examples on the right."""
+    template = monday_formulas.find_template(template_id) or abort(404)
+    topics = template["topics"]
+    topic = next((t for t in topics if t["id"] == request.args.get("topic")), topics[0])
+    return render_template("student/formula_template.html", template=template, topic=topic,
+                           added=monday_formulas.added_ids(current_user, template))
+
+
+@bp.route("/formulas/t/<template_id>/add", methods=["POST"])
+@student_required
+def formula_add(template_id):
+    template = monday_formulas.find_template(template_id) or abort(404)
+    topic = next((t for t in template["topics"] if t["id"] == request.form.get("topic")), None) or abort(404)
+    formula_id = request.form.get("formula") or None
+    title = _("Мои формулы %(exam)s", exam=monday_formulas.exam_name(template["exam"]))
+    new = monday_formulas.add_formulas(current_user, template, topic, title, formula_id)
+    flash(_("Добавлено в «%(title)s»: %(n)s.", title=title, n=new) if new else _("Уже есть в твоих формулах."), "success" if new else "info")
+    anchor = f"f-{formula_id}" if formula_id else None
+    return redirect(url_for("student.formula_template", template_id=template_id, topic=topic["id"], _anchor=anchor))

@@ -84,6 +84,14 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     app.add_template_filter(branch_groups, "branch_groups")
     app.add_template_filter(math_wrap, "math_wrap")
 
+    def sheet_image(path):
+        """A sheet entry's picture: the student's upload, or a drawing that came with a Monday template."""
+        from .formulas import IMAGE_PREFIX
+        if path.startswith(IMAGE_PREFIX):
+            return url_for("static", filename="img/formulas/" + path[len(IMAGE_PREFIX):])
+        return url_for("uploaded_file", filename=path)
+    app.add_template_filter(sheet_image, "sheet_image")
+
     _register_template_helpers(app)
     _register_errors(app)
     _register_cli(app)

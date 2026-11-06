@@ -1,0 +1,2690 @@
+{
+ "exam": "SAT",
+ "templates": [
+  {
+   "id": "sat_algebra",
+   "title": "SAT · Алгебра",
+   "en": "Algebra",
+   "topics": [
+    {
+     "id": "lines",
+     "name": "Уравнение прямой",
+     "en": "Linear equations",
+     "bank": "x:alg:lin2",
+     "formulas": [
+      {
+       "id": "slope",
+       "name": "Угловой коэффициент",
+       "en": "Slope",
+       "tex": "m = \\frac{y_2 - y_1}{x_2 - x_1}",
+       "examples": [
+        {
+         "q": "A line passes through $(1, 3)$ and $(5, 11)$. What is its slope?",
+         "use": "$m = \\frac{11 - 3}{5 - 1} = \\frac{8}{4}$",
+         "answer": "$2$",
+         "goal": "The question asks for the slope of a line through two points.",
+         "plan": "Two points are given, so use the slope formula. Call $(1, 3)$ the first point and $(5, 11)$ the second.",
+         "steps": [
+          "Subtract in the same order on top and bottom: $11 - 3 = 8$ and $5 - 1 = 4$.",
+          "Divide: $\\frac{8}{4} = 2$."
+         ],
+         "check": "Moving 4 right from $(1, 3)$ at slope 2 rises 8, which lands on $(5, 11)$."
+        },
+        {
+         "q": "What is the slope of the line through $(-2, 7)$ and $(4, -5)$?",
+         "use": "$m = \\frac{-5 - 7}{4 - (-2)} = \\frac{-12}{6}$",
+         "answer": "$-2$",
+         "goal": "The question asks for the slope of a line through two points.",
+         "plan": "Use the slope formula. Be careful with the negative signs.",
+         "steps": [
+          "The top is $-5 - 7 = -12$.",
+          "The bottom is $4 - (-2) = 4 + 2 = 6$.",
+          "Divide: $\\frac{-12}{6} = -2$. The line falls from left to right."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "slope_intercept",
+       "name": "Прямая через наклон и пересечение",
+       "en": "Slope-intercept form",
+       "tex": "y = mx + b",
+       "examples": [
+        {
+         "q": "A line has slope $3$ and passes through $(2, 10)$. What is its equation?",
+         "use": "$10 = 3 \\cdot 2 + b \\Rightarrow b = 4$",
+         "answer": "$y = 3x + 4$",
+         "goal": "The question asks for the equation of a line.",
+         "plan": "The slope is known, so $m = 3$. Plug the given point into $y = mx + b$ to find $b$.",
+         "steps": [
+          "Multiply: $10 = 6 + b$.",
+          "Subtract 6 from both sides: $b = 4$.",
+          "Write the line with $m = 3$ and $b = 4$."
+         ],
+         "check": "At $x = 2$: $3 \\cdot 2 + 4 = 10$, which matches the point."
+        },
+        {
+         "q": "A taxi charges $\\$4$ plus $\\$2.50$ per mile. What does a 6-mile ride cost?",
+         "use": "$y = 2.5 \\cdot 6 + 4$",
+         "answer": "$\\$19$",
+         "goal": "The question asks for the total cost of a 6-mile ride.",
+         "plan": "The cost per mile is the slope, $m = 2.5$. The fixed $\\$4$ is the starting value, $b = 4$. The miles are $x$.",
+         "steps": [
+          "Multiply: $2.5 \\cdot 6 = 15$.",
+          "Add the fixed charge: $15 + 4 = 19$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "point_slope",
+       "name": "Прямая через точку и наклон",
+       "en": "Point-slope form",
+       "tex": "y - y_1 = m(x - x_1)",
+       "examples": [
+        {
+         "q": "Find the line with slope $4$ through $(1, -2)$.",
+         "use": "$y + 2 = 4(x - 1)$",
+         "answer": "$y = 4x - 6$",
+         "goal": "The question asks for the equation of a line.",
+         "plan": "A slope and a point are given, so use point-slope form with $m = 4$, $x_1 = 1$ and $y_1 = -2$.",
+         "steps": [
+          "Distribute the 4: $y + 2 = 4x - 4$.",
+          "Subtract 2 from both sides: $y = 4x - 6$."
+         ],
+         "check": "At $x = 1$: $4 - 6 = -2$, which matches the point."
+        },
+        {
+         "q": "Find the line with slope $-\\frac{1}{2}$ through $(6, 3)$.",
+         "use": "$y - 3 = -\\frac{1}{2}(x - 6)$",
+         "answer": "$y = -\\frac{1}{2}x + 6$",
+         "goal": "The question asks for the equation of a line.",
+         "plan": "Use point-slope form with $m = -\\frac{1}{2}$, $x_1 = 6$ and $y_1 = 3$.",
+         "steps": [
+          "Distribute: $y - 3 = -\\frac{1}{2}x + 3$.",
+          "Add 3 to both sides: $y = -\\frac{1}{2}x + 6$."
+         ],
+         "check": "At $x = 6$: $-3 + 6 = 3$, which matches the point."
+        }
+       ]
+      },
+      {
+       "id": "standard_form",
+       "name": "Стандартный вид прямой",
+       "en": "Standard form",
+       "tex": "Ax + By = C,\\quad m = -\\frac{A}{B}",
+       "examples": [
+        {
+         "q": "What is the slope of $3x + 4y = 12$?",
+         "use": "$m = -\\frac{3}{4}$",
+         "answer": "$-\\frac{3}{4}$",
+         "goal": "The question asks for the slope of a line in standard form.",
+         "plan": "The line has the form $Ax + By = C$ with $A = 3$ and $B = 4$, so use the shortcut for the slope.",
+         "steps": [
+          "Nothing needs simplifying, so the slope is $-\\frac{3}{4}$."
+         ],
+         "check": "Solving for $y$ gives $y = -\\frac{3}{4}x + 3$, with the same slope."
+        },
+        {
+         "q": "What is the slope of $2x - 5y = 20$?",
+         "use": "$m = -\\frac{2}{-5}$",
+         "answer": "$\\frac{2}{5}$",
+         "goal": "The question asks for the slope of a line in standard form.",
+         "plan": "Here $A = 2$ and $B = -5$. Keep the negative sign on $B$.",
+         "steps": [
+          "Two negatives cancel: $-\\frac{2}{-5} = \\frac{2}{5}$."
+         ],
+         "check": "Solving for $y$ gives $y = \\frac{2}{5}x - 4$, with the same slope."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "parallel",
+     "name": "Параллельные и перпендикулярные прямые",
+     "en": "Parallel and perpendicular lines",
+     "bank": "x:alg:lin2",
+     "formulas": [
+      {
+       "id": "parallel",
+       "name": "Параллельные прямые",
+       "en": "Parallel lines",
+       "tex": "m_1 = m_2",
+       "examples": [
+        {
+         "q": "A line is parallel to $y = 2x + 1$ and crosses the y-axis at $-3$. Find it.",
+         "use": "$m = 2,\\ b = -3$",
+         "answer": "$y = 2x - 3$",
+         "goal": "The question asks for the equation of a parallel line.",
+         "plan": "Parallel lines have equal slopes, so the new slope is 2. A y-intercept of $-3$ gives $b = -3$.",
+         "steps": [
+          "Put both values into $y = mx + b$: $y = 2x - 3$."
+         ]
+        },
+        {
+         "q": "The lines $y = (k - 1)x + 2$ and $y = 5x - 7$ are parallel. Find $k$.",
+         "use": "$k - 1 = 5$",
+         "answer": "$k = 6$",
+         "goal": "The question asks for the value of $k$.",
+         "plan": "The lines are parallel, so set their slopes equal. The slopes are the coefficients of $x$.",
+         "steps": [
+          "Add 1 to both sides: $k = 6$."
+         ],
+         "check": "With $k = 6$, the first line is $y = 5x + 2$, which has slope 5."
+        }
+       ]
+      },
+      {
+       "id": "perpendicular",
+       "name": "Перпендикулярные прямые",
+       "en": "Perpendicular lines",
+       "tex": "m_1 \\cdot m_2 = -1",
+       "examples": [
+        {
+         "q": "A line has slope $\\frac{2}{3}$. What is the slope of a perpendicular line?",
+         "use": "$\\frac{2}{3} \\cdot m = -1$",
+         "answer": "$-\\frac{3}{2}$",
+         "goal": "The question asks for the slope of a perpendicular line.",
+         "plan": "Perpendicular slopes multiply to $-1$, so take the negative reciprocal.",
+         "steps": [
+          "Multiply both sides by $\\frac{3}{2}$: $m = -\\frac{3}{2}$."
+         ],
+         "check": "$\\frac{2}{3} \\cdot \\left(-\\frac{3}{2}\\right) = -1$."
+        },
+        {
+         "q": "What is the slope of a line perpendicular to $y = -4x + 1$?",
+         "use": "$-4 \\cdot m = -1$",
+         "answer": "$\\frac{1}{4}$",
+         "goal": "The question asks for the slope of a perpendicular line.",
+         "plan": "The given line has slope $-4$. Perpendicular slopes multiply to $-1$.",
+         "steps": [
+          "Divide both sides by $-4$: $m = \\frac{1}{4}$."
+         ],
+         "check": "$-4 \\cdot \\frac{1}{4} = -1$."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "distance",
+     "name": "Расстояние и середина отрезка",
+     "en": "Distance and midpoint",
+     "bank": "x:alg:lin2",
+     "formulas": [
+      {
+       "id": "distance",
+       "name": "Расстояние между точками",
+       "en": "Distance",
+       "tex": "d = \\sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}",
+       "examples": [
+        {
+         "q": "Find the distance between $(1, 2)$ and $(4, 6)$.",
+         "use": "$d = \\sqrt{3^2 + 4^2} = \\sqrt{25}$",
+         "answer": "$5$",
+         "goal": "The question asks for the distance between two points.",
+         "plan": "Use the distance formula. The horizontal change is $4 - 1 = 3$ and the vertical change is $6 - 2 = 4$.",
+         "steps": [
+          "Square and add: $9 + 16 = 25$.",
+          "Take the square root: $\\sqrt{25} = 5$."
+         ]
+        },
+        {
+         "q": "Find the distance between $(-3, 1)$ and $(2, 13)$.",
+         "use": "$d = \\sqrt{5^2 + 12^2} = \\sqrt{169}$",
+         "answer": "$13$",
+         "goal": "The question asks for the distance between two points.",
+         "plan": "Use the distance formula. The horizontal change is $2 - (-3) = 5$ and the vertical change is $13 - 1 = 12$.",
+         "steps": [
+          "Square and add: $25 + 144 = 169$.",
+          "Take the square root: $\\sqrt{169} = 13$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "midpoint",
+       "name": "Середина отрезка",
+       "en": "Midpoint",
+       "tex": "M = \\left(\\frac{x_1 + x_2}{2},\\ \\frac{y_1 + y_2}{2}\\right)",
+       "examples": [
+        {
+         "q": "Find the midpoint of $(2, 5)$ and $(8, 1)$.",
+         "use": "$M = \\left(\\frac{2 + 8}{2},\\ \\frac{5 + 1}{2}\\right)$",
+         "answer": "$(5, 3)$",
+         "goal": "The question asks for the midpoint of a segment.",
+         "plan": "Use the midpoint formula: average the x-coordinates, then average the y-coordinates.",
+         "steps": [
+          "Average of the x-values: $\\frac{10}{2} = 5$.",
+          "Average of the y-values: $\\frac{6}{2} = 3$."
+         ]
+        },
+        {
+         "q": "Find the midpoint of $(-4, 7)$ and $(6, -1)$.",
+         "use": "$M = \\left(\\frac{-4 + 6}{2},\\ \\frac{7 - 1}{2}\\right)$",
+         "answer": "$(1, 3)$",
+         "goal": "The question asks for the midpoint of a segment.",
+         "plan": "Use the midpoint formula, keeping the negative signs.",
+         "steps": [
+          "Average of the x-values: $\\frac{2}{2} = 1$.",
+          "Average of the y-values: $\\frac{6}{2} = 3$."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "systems",
+     "name": "Системы уравнений",
+     "en": "Systems of equations",
+     "bank": "x:alg:sys",
+     "formulas": [
+      {
+       "id": "no_solution",
+       "name": "Нет решений",
+       "en": "No solution",
+       "tex": "\\frac{a_1}{a_2} = \\frac{b_1}{b_2} \\ne \\frac{c_1}{c_2}",
+       "examples": [
+        {
+         "q": "For what $k$ does the system $2x + 3y = 5$, $4x + ky = 7$ have no solution?",
+         "use": "$\\frac{2}{4} = \\frac{3}{k}$",
+         "answer": "$k = 6$",
+         "goal": "The question asks for the value of $k$ that gives no solution.",
+         "plan": "No solution means the lines are parallel, so the $x$ and $y$ coefficients must be in the same ratio.",
+         "steps": [
+          "Cross-multiply: $2k = 12$.",
+          "Divide by 2: $k = 6$."
+         ],
+         "check": "The constants give $\\frac{5}{7}$, which is not $\\frac{1}{2}$, so the lines are separate."
+        },
+        {
+         "q": "For what $k$ does the system $3x - y = 4$, $6x + ky = 1$ have no solution?",
+         "use": "$\\frac{3}{6} = \\frac{-1}{k}$",
+         "answer": "$k = -2$",
+         "goal": "The question asks for the value of $k$ that gives no solution.",
+         "plan": "No solution means parallel lines, so set the ratios of the $x$ and $y$ coefficients equal.",
+         "steps": [
+          "Cross-multiply: $3k = -6$.",
+          "Divide by 3: $k = -2$."
+         ],
+         "check": "The constants give $\\frac{4}{1}$, which is not $\\frac{1}{2}$, so the lines are separate."
+        }
+       ]
+      },
+      {
+       "id": "infinite",
+       "name": "Бесконечно много решений",
+       "en": "Infinitely many solutions",
+       "tex": "\\frac{a_1}{a_2} = \\frac{b_1}{b_2} = \\frac{c_1}{c_2}",
+       "examples": [
+        {
+         "q": "For what $c$ do $2x + y = 3$ and $6x + 3y = c$ have infinitely many solutions?",
+         "use": "$\\frac{2}{6} = \\frac{1}{3} = \\frac{3}{c}$",
+         "answer": "$c = 9$",
+         "goal": "The question asks for the value of $c$ that gives infinitely many solutions.",
+         "plan": "Infinitely many solutions means the equations are the same line, so all three ratios must match.",
+         "steps": [
+          "Both coefficient ratios equal $\\frac{1}{3}$, so $\\frac{3}{c} = \\frac{1}{3}$.",
+          "Cross-multiply: $c = 9$."
+         ],
+         "check": "Multiplying $2x + y = 3$ by 3 gives $6x + 3y = 9$."
+        },
+        {
+         "q": "For what $a$ do $ax + 4y = 10$ and $3x + 2y = 5$ have infinitely many solutions?",
+         "use": "$\\frac{a}{3} = \\frac{4}{2} = \\frac{10}{5}$",
+         "answer": "$a = 6$",
+         "goal": "The question asks for the value of $a$ that gives infinitely many solutions.",
+         "plan": "The equations must be the same line, so all three ratios must match.",
+         "steps": [
+          "The known ratios both equal 2, so $\\frac{a}{3} = 2$.",
+          "Multiply by 3: $a = 6$."
+         ],
+         "check": "Multiplying $3x + 2y = 5$ by 2 gives $6x + 4y = 10$."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "absolute",
+     "name": "Модуль",
+     "en": "Absolute value",
+     "bank": "x:adv:nleq",
+     "formulas": [
+      {
+       "id": "abs_eq",
+       "name": "Уравнение с модулем",
+       "en": "Absolute value equation",
+       "tex": "|x - a| = b \\Rightarrow x = a \\pm b",
+       "examples": [
+        {
+         "q": "What is the sum of the solutions of $|x - 3| = 5$?",
+         "use": "$x = 3 + 5$ or $x = 3 - 5$",
+         "answer": "$8 + (-2) = 6$",
+         "goal": "The question asks for the sum of the solutions.",
+         "plan": "An absolute value equation splits into two cases: the inside equals $5$ or $-5$.",
+         "steps": [
+          "The solutions are $x = 8$ and $x = -2$.",
+          "Add them, because the question asks for the sum: $8 + (-2) = 6$."
+         ]
+        },
+        {
+         "q": "Solve $|2x + 1| = 7$.",
+         "use": "$2x + 1 = 7$ or $2x + 1 = -7$",
+         "answer": "$x = 3$ or $x = -4$",
+         "goal": "The question asks for the solutions of the equation.",
+         "plan": "Split into two cases, since the inside can equal $7$ or $-7$.",
+         "steps": [
+          "First case: $2x = 6$, so $x = 3$.",
+          "Second case: $2x = -8$, so $x = -4$."
+         ],
+         "check": "$|2 \\cdot 3 + 1| = 7$ and $|2(-4) + 1| = |-7| = 7$."
+        }
+       ]
+      },
+      {
+       "id": "abs_ineq",
+       "name": "Неравенство с модулем",
+       "en": "Absolute value inequality",
+       "tex": "|x - a| < b \\Rightarrow a - b < x < a + b",
+       "examples": [
+        {
+         "q": "How many integers satisfy $|x - 4| < 3$?",
+         "use": "$4 - 3 < x < 4 + 3$",
+         "answer": "$5$ (from $2$ to $6$)",
+         "goal": "The question asks for the number of integers that fit.",
+         "plan": "Less than 3 away from 4 means $x$ lies between $4 - 3$ and $4 + 3$.",
+         "steps": [
+          "Simplify: $1 < x < 7$.",
+          "The ends are not included, so the integers are 2, 3, 4, 5 and 6.",
+          "Count them: 5 integers."
+         ]
+        },
+        {
+         "q": "Solve $|x + 2| \\le 5$.",
+         "use": "$-2 - 5 \\le x \\le -2 + 5$",
+         "answer": "$-7 \\le x \\le 3$",
+         "goal": "The question asks for the solution of the inequality.",
+         "plan": "Rewrite $|x + 2|$ as $|x - (-2)|$, so $a = -2$ and $b = 5$. The sign $\\le$ keeps the end points.",
+         "steps": [
+          "Simplify both sides: $-7 \\le x \\le 3$."
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sat_advanced",
+   "title": "SAT · Продвинутая математика",
+   "en": "Advanced Math",
+   "topics": [
+    {
+     "id": "quadratics",
+     "name": "Квадратные уравнения",
+     "en": "Quadratic equations",
+     "bank": "x:adv:nleq",
+     "formulas": [
+      {
+       "id": "quadratic_formula",
+       "name": "Формула корней",
+       "en": "Quadratic formula",
+       "tex": "x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}",
+       "examples": [
+        {
+         "q": "Solve $2x^2 + 3x - 2 = 0$.",
+         "use": "$x = \\frac{-3 \\pm \\sqrt{9 + 16}}{4} = \\frac{-3 \\pm 5}{4}$",
+         "answer": "$x = \\frac{1}{2}$ or $x = -2$",
+         "goal": "The question asks for the solutions of a quadratic.",
+         "plan": "It doesn't factor at a glance, so use the quadratic formula with $a = 2$, $b = 3$ and $c = -2$.",
+         "steps": [
+          "With the plus sign: $x = \\frac{2}{4} = \\frac{1}{2}$.",
+          "With the minus sign: $x = \\frac{-8}{4} = -2$."
+         ]
+        },
+        {
+         "q": "Solve $x^2 - 6x + 7 = 0$.",
+         "use": "$x = \\frac{6 \\pm \\sqrt{36 - 28}}{2} = \\frac{6 \\pm 2\\sqrt{2}}{2}$",
+         "answer": "$x = 3 \\pm \\sqrt{2}$",
+         "goal": "The question asks for the solutions of a quadratic.",
+         "plan": "Use the quadratic formula with $a = 1$, $b = -6$ and $c = 7$.",
+         "steps": [
+          "Simplify the root: $\\sqrt{8} = 2\\sqrt{2}$.",
+          "Divide each term by 2: $x = 3 \\pm \\sqrt{2}$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "discriminant",
+       "name": "Дискриминант",
+       "en": "Discriminant",
+       "tex": "D = b^2 - 4ac",
+       "examples": [
+        {
+         "q": "For what $k$ does $x^2 + 4x + k = 0$ have exactly one solution?",
+         "use": "$D = 16 - 4k = 0$",
+         "answer": "$k = 4$",
+         "goal": "The question asks for the value of $k$ that gives one solution.",
+         "plan": "A quadratic has exactly one solution when its discriminant is 0. Here $a = 1$, $b = 4$ and $c = k$.",
+         "steps": [
+          "Add $4k$ to both sides: $16 = 4k$.",
+          "Divide by 4: $k = 4$."
+         ],
+         "check": "$x^2 + 4x + 4 = (x + 2)^2$, which has the single solution $x = -2$."
+        },
+        {
+         "q": "How many real solutions does $3x^2 - 2x + 5 = 0$ have?",
+         "use": "$D = 4 - 60 = -56 < 0$",
+         "answer": "None",
+         "goal": "The question asks for the number of real solutions.",
+         "plan": "The discriminant tells how many solutions there are, with no need to solve. Here $a = 3$, $b = -2$ and $c = 5$.",
+         "steps": [
+          "The discriminant is negative.",
+          "A negative discriminant means no real solutions."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "vieta",
+       "name": "Сумма и произведение корней",
+       "en": "Sum and product of roots",
+       "tex": "x_1 + x_2 = -\\frac{b}{a},\\quad x_1 x_2 = \\frac{c}{a}",
+       "examples": [
+        {
+         "q": "What is the sum of the roots of $2x^2 - 8x + 3 = 0$?",
+         "use": "$x_1 + x_2 = -\\frac{-8}{2}$",
+         "answer": "$4$",
+         "goal": "The question asks for the sum of the roots.",
+         "plan": "There's no need to find the roots. Use the sum shortcut with $a = 2$ and $b = -8$.",
+         "steps": [
+          "Simplify: $\\frac{8}{2} = 4$."
+         ]
+        },
+        {
+         "q": "What is the product of the roots of $3x^2 + 6x - 24 = 0$?",
+         "use": "$x_1 x_2 = \\frac{-24}{3}$",
+         "answer": "$-8$",
+         "goal": "The question asks for the product of the roots.",
+         "plan": "Use the product shortcut with $a = 3$ and $c = -24$.",
+         "steps": [
+          "Divide: $\\frac{-24}{3} = -8$."
+         ],
+         "check": "The equation factors as $3(x + 4)(x - 2) = 0$, and $-4 \\cdot 2 = -8$."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "parabolas",
+     "name": "Парабола",
+     "en": "Parabolas",
+     "bank": "x:adv:nlfn",
+     "formulas": [
+      {
+       "id": "vertex_x",
+       "name": "Вершина параболы",
+       "en": "Vertex",
+       "tex": "x_v = -\\frac{b}{2a}",
+       "examples": [
+        {
+         "q": "What is the minimum value of $y = x^2 - 6x + 11$?",
+         "use": "$x_v = \\frac{6}{2} = 3,\\ y = 9 - 18 + 11$",
+         "answer": "$2$",
+         "goal": "The question asks for the minimum value of the function.",
+         "plan": "The parabola opens up, so its minimum is at the vertex. Find $x_v$ with $a = 1$ and $b = -6$, then plug it in.",
+         "steps": [
+          "The vertex is at $x = 3$.",
+          "Add up: $9 - 18 + 11 = 2$."
+         ]
+        },
+        {
+         "q": "What is the maximum value of $y = -2x^2 + 8x + 1$?",
+         "use": "$x_v = \\frac{-8}{-4} = 2,\\ y = -8 + 16 + 1$",
+         "answer": "$9$",
+         "goal": "The question asks for the maximum value of the function.",
+         "plan": "Since $a = -2$ is negative, the parabola opens down and its maximum is at the vertex.",
+         "steps": [
+          "The vertex is at $x = 2$.",
+          "Add up: $-8 + 16 + 1 = 9$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "vertex_form",
+       "name": "Вид через вершину",
+       "en": "Vertex form",
+       "tex": "y = a(x - h)^2 + k",
+       "examples": [
+        {
+         "q": "What is the vertex of $y = 2(x - 3)^2 + 5$?",
+         "use": "$h = 3,\\ k = 5$",
+         "answer": "$(3, 5)$",
+         "goal": "The question asks for the vertex of the parabola.",
+         "plan": "The equation is already in vertex form, so read $h$ and $k$ straight from it. Note the minus sign in $x - h$.",
+         "steps": [
+          "The vertex is $(h, k) = (3, 5)$."
+         ]
+        },
+        {
+         "q": "What is the maximum value of $y = -(x + 1)^2 + 4$?",
+         "use": "$a < 0,\\ k = 4$",
+         "answer": "$4$, at $x = -1$",
+         "goal": "The question asks for the maximum value of the function.",
+         "plan": "Rewrite $x + 1$ as $x - (-1)$, so $h = -1$ and $k = 4$. Here $a = -1$, so the parabola opens down.",
+         "steps": [
+          "The highest point is the vertex, so the maximum is $k = 4$.",
+          "It occurs at $x = h = -1$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "factored_form",
+       "name": "Вид через корни",
+       "en": "Factored form",
+       "tex": "y = a(x - r)(x - s),\\quad x_v = \\frac{r + s}{2}",
+       "examples": [
+        {
+         "q": "Find the axis of symmetry of $y = (x - 2)(x - 8)$.",
+         "use": "$x = \\frac{2 + 8}{2}$",
+         "answer": "$x = 5$",
+         "goal": "The question asks for the axis of symmetry.",
+         "plan": "In factored form the zeros can be read directly: $r = 2$ and $s = 8$. The axis is halfway between them.",
+         "steps": [
+          "Average them: $\\frac{10}{2} = 5$."
+         ]
+        },
+        {
+         "q": "Find the axis of symmetry of $y = 3(x + 1)(x - 5)$.",
+         "use": "$x = \\frac{-1 + 5}{2}$",
+         "answer": "$x = 2$",
+         "goal": "The question asks for the axis of symmetry.",
+         "plan": "The zeros are $r = -1$ and $s = 5$. The leading 3 doesn't move the axis.",
+         "steps": [
+          "Average them: $\\frac{4}{2} = 2$."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "factoring",
+     "name": "Разложение на множители",
+     "en": "Factoring",
+     "bank": "x:adv:equiv",
+     "formulas": [
+      {
+       "id": "diff_squares",
+       "name": "Разность квадратов",
+       "en": "Difference of squares",
+       "tex": "a^2 - b^2 = (a - b)(a + b)",
+       "examples": [
+        {
+         "q": "Factor $x^2 - 49$.",
+         "use": "$x^2 - 7^2$",
+         "answer": "$(x - 7)(x + 7)$",
+         "goal": "The question asks for the factored form.",
+         "plan": "Both terms are perfect squares with a minus sign between them, so use difference of squares with $a = x$ and $b = 7$.",
+         "steps": [
+          "Write the two factors: $(x - 7)(x + 7)$."
+         ],
+         "check": "Expanding gives $x^2 + 7x - 7x - 49 = x^2 - 49$."
+        },
+        {
+         "q": "Calculate $101^2 - 99^2$.",
+         "use": "$(101 - 99)(101 + 99) = 2 \\cdot 200$",
+         "answer": "$400$",
+         "goal": "The question asks for the value of the expression.",
+         "plan": "Squaring large numbers is slow. Use difference of squares with $a = 101$ and $b = 99$ instead.",
+         "steps": [
+          "Multiply: $2 \\cdot 200 = 400$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "square_sum",
+       "name": "Квадрат суммы и разности",
+       "en": "Perfect squares",
+       "tex": "(a \\pm b)^2 = a^2 \\pm 2ab + b^2",
+       "examples": [
+        {
+         "q": "Expand $(x + 5)^2$.",
+         "use": "$x^2 + 2 \\cdot 5x + 5^2$",
+         "answer": "$x^2 + 10x + 25$",
+         "goal": "The question asks for the expanded form.",
+         "plan": "Use the square of a sum with $a = x$ and $b = 5$.",
+         "steps": [
+          "Simplify: $x^2 + 10x + 25$. Don't forget the middle term."
+         ]
+        },
+        {
+         "q": "If $x + y = 7$ and $xy = 10$, what is $x^2 + y^2$?",
+         "use": "$7^2 = x^2 + y^2 + 2 \\cdot 10$",
+         "answer": "$29$",
+         "goal": "The question asks for the value of $x^2 + y^2$.",
+         "plan": "Finding $x$ and $y$ isn't needed. Square the sum, since $(x + y)^2$ contains $x^2 + y^2$.",
+         "steps": [
+          "So $49 = x^2 + y^2 + 20$.",
+          "Subtract 20 from both sides: $x^2 + y^2 = 29$."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "exponents",
+     "name": "Степени и корни",
+     "en": "Exponents and radicals",
+     "bank": "x:adv:equiv",
+     "formulas": [
+      {
+       "id": "exp_product",
+       "name": "Умножение и деление степеней",
+       "en": "Product and quotient rules",
+       "tex": "a^m a^n = a^{m+n},\\quad \\frac{a^m}{a^n} = a^{m-n}",
+       "examples": [
+        {
+         "q": "Calculate $2^3 \\cdot 2^4$.",
+         "use": "$2^{3+4} = 2^7$",
+         "answer": "$128$",
+         "goal": "The question asks for the value of the product.",
+         "plan": "The bases are the same, so add the exponents.",
+         "steps": [
+          "Calculate: $2^7 = 128$."
+         ]
+        },
+        {
+         "q": "Simplify $\\frac{x^9}{x^4}$.",
+         "use": "$x^{9-4}$",
+         "answer": "$x^5$",
+         "goal": "The question asks for the simplified form.",
+         "plan": "The bases are the same and this is a quotient, so subtract the exponents.",
+         "steps": [
+          "Simplify: $x^5$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "exp_power",
+       "name": "Степень степени",
+       "en": "Power rule",
+       "tex": "(a^m)^n = a^{mn}",
+       "examples": [
+        {
+         "q": "Simplify $(x^3)^4$.",
+         "use": "$x^{3 \\cdot 4}$",
+         "answer": "$x^{12}$",
+         "goal": "The question asks for the simplified form.",
+         "plan": "A power raised to a power means multiplying the exponents.",
+         "steps": [
+          "Multiply: $3 \\cdot 4 = 12$, so the result is $x^{12}$."
+         ]
+        },
+        {
+         "q": "If $8^x = 2^{12}$, what is $x$?",
+         "use": "$(2^3)^x = 2^{3x},\\ 3x = 12$",
+         "answer": "$x = 4$",
+         "goal": "The question asks for the value of $x$.",
+         "plan": "The bases differ, so first write 8 as $2^3$. Then the exponents can be compared.",
+         "steps": [
+          "The bases now match, so the exponents are equal: $3x = 12$.",
+          "Divide by 3: $x = 4$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "exp_negative",
+       "name": "Нулевая и отрицательная степень",
+       "en": "Zero and negative exponents",
+       "tex": "a^0 = 1,\\quad a^{-n} = \\frac{1}{a^n}",
+       "examples": [
+        {
+         "q": "Calculate $2^{-3}$.",
+         "use": "$\\frac{1}{2^3}$",
+         "answer": "$\\frac{1}{8}$",
+         "goal": "The question asks for the value of the power.",
+         "plan": "A negative exponent means the reciprocal, not a negative number.",
+         "steps": [
+          "Calculate $2^3 = 8$, so the value is $\\frac{1}{8}$."
+         ]
+        },
+        {
+         "q": "Calculate $5^0 + 4^{-1}$.",
+         "use": "$1 + \\frac{1}{4}$",
+         "answer": "$\\frac{5}{4}$",
+         "goal": "The question asks for the value of the sum.",
+         "plan": "Handle each term separately: any nonzero number to the power 0 is 1, and $4^{-1} = \\frac{1}{4}$.",
+         "steps": [
+          "Add: $1 + \\frac{1}{4} = \\frac{5}{4}$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "exp_fraction",
+       "name": "Дробная степень",
+       "en": "Fractional exponents",
+       "tex": "a^{\\frac{m}{n}} = \\sqrt[n]{a^m}",
+       "examples": [
+        {
+         "q": "Calculate $8^{\\frac{2}{3}}$.",
+         "use": "$(\\sqrt[3]{8})^2 = 2^2$",
+         "answer": "$4$",
+         "goal": "The question asks for the value of the power.",
+         "plan": "The bottom of the fraction is the root and the top is the power. Take the root first, since it keeps the numbers small.",
+         "steps": [
+          "The cube root of 8 is 2.",
+          "Square it: $2^2 = 4$."
+         ]
+        },
+        {
+         "q": "Calculate $16^{\\frac{3}{4}}$.",
+         "use": "$(\\sqrt[4]{16})^3 = 2^3$",
+         "answer": "$8$",
+         "goal": "The question asks for the value of the power.",
+         "plan": "Take the fourth root first, then cube the result.",
+         "steps": [
+          "The fourth root of 16 is 2, because $2^4 = 16$.",
+          "Cube it: $2^3 = 8$."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "exponential",
+     "name": "Рост и убывание",
+     "en": "Exponential growth and decay",
+     "bank": "x:adv:nlfn",
+     "formulas": [
+      {
+       "id": "growth",
+       "name": "Рост",
+       "en": "Exponential growth",
+       "tex": "y = a(1 + r)^t",
+       "examples": [
+        {
+         "q": "$\\$500$ earns 4% per year. How much is there after 2 years?",
+         "use": "$y = 500 \\cdot 1.04^2$",
+         "answer": "$\\$540.80$",
+         "goal": "The question asks for the amount after 2 years.",
+         "plan": "The amount grows by a percent each year, so use the growth formula with $a = 500$, $r = 0.04$ and $t = 2$.",
+         "steps": [
+          "Square: $1.04^2 = 1.0816$.",
+          "Multiply: $500 \\cdot 1.0816 = 540.80$."
+         ]
+        },
+        {
+         "q": "A town of 2,000 people grows 10% per year. What is its size after 3 years?",
+         "use": "$y = 2000 \\cdot 1.1^3$",
+         "answer": "$2662$",
+         "goal": "The question asks for the population after 3 years.",
+         "plan": "Use the growth formula with $a = 2000$, $r = 0.1$ and $t = 3$.",
+         "steps": [
+          "Cube: $1.1^3 = 1.331$.",
+          "Multiply: $2000 \\cdot 1.331 = 2662$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "decay",
+       "name": "Убывание",
+       "en": "Exponential decay",
+       "tex": "y = a(1 - r)^t",
+       "examples": [
+        {
+         "q": "A value of 1,000 falls 20% per year. What is it after 2 years?",
+         "use": "$y = 1000 \\cdot 0.8^2$",
+         "answer": "$640$",
+         "goal": "The question asks for the value after 2 years.",
+         "plan": "A fall of 20% leaves 80% each year, so use the decay formula with $r = 0.2$.",
+         "steps": [
+          "Square: $0.8^2 = 0.64$.",
+          "Multiply: $1000 \\cdot 0.64 = 640$."
+         ]
+        },
+        {
+         "q": "A $\\$20{,}000$ car loses 15% per year. What is it worth after 2 years?",
+         "use": "$y = 20000 \\cdot 0.85^2$",
+         "answer": "$\\$14{,}450$",
+         "goal": "The question asks for the value of the car after 2 years.",
+         "plan": "A loss of 15% leaves 85% each year, so use the decay formula with $r = 0.15$ and $t = 2$.",
+         "steps": [
+          "Square: $0.85^2 = 0.7225$.",
+          "Multiply: $20000 \\cdot 0.7225 = 14450$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "compound",
+       "name": "Сложный процент",
+       "en": "Compound interest",
+       "tex": "A = P\\left(1 + \\frac{r}{n}\\right)^{nt}",
+       "examples": [
+        {
+         "q": "$\\$2{,}000$ earns 6% per year, compounded twice a year. How much is there after 1 year?",
+         "use": "$A = 2000\\left(1 + \\frac{0.06}{2}\\right)^2 = 2000 \\cdot 1.03^2$",
+         "answer": "$\\$2{,}121.80$",
+         "goal": "The question asks for the amount after 1 year.",
+         "plan": "Interest is added twice a year, so use the compound formula with $n = 2$, $r = 0.06$ and $t = 1$.",
+         "steps": [
+          "Square: $1.03^2 = 1.0609$.",
+          "Multiply: $2000 \\cdot 1.0609 = 2121.80$."
+         ]
+        },
+        {
+         "q": "$\\$1{,}000$ earns 8% per year, compounded quarterly. How much is there after 1 year?",
+         "use": "$A = 1000\\left(1 + \\frac{0.08}{4}\\right)^4 = 1000 \\cdot 1.02^4$",
+         "answer": "$\\$1{,}082.43$",
+         "goal": "The question asks for the amount after 1 year.",
+         "plan": "Quarterly means 4 times a year, so use $n = 4$, $r = 0.08$ and $t = 1$.",
+         "steps": [
+          "Raise to the fourth power: $1.02^4 \\approx 1.08243$.",
+          "Multiply and round to cents: $1082.43$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "doubling",
+       "name": "Удвоение и период полураспада",
+       "en": "Doubling and half-life",
+       "tex": "y = a \\cdot 2^{\\frac{t}{d}},\\quad y = a\\left(\\frac{1}{2}\\right)^{\\frac{t}{h}}",
+       "examples": [
+        {
+         "q": "300 bacteria double every 4 hours. How many are there after 12 hours?",
+         "use": "$y = 300 \\cdot 2^{\\frac{12}{4}} = 300 \\cdot 2^3$",
+         "answer": "$2400$",
+         "goal": "The question asks for the number of bacteria after 12 hours.",
+         "plan": "The number doubles every 4 hours, so $d = 4$ and the doubling count is $\\frac{12}{4} = 3$.",
+         "steps": [
+          "Calculate: $2^3 = 8$.",
+          "Multiply: $300 \\cdot 8 = 2400$."
+         ]
+        },
+        {
+         "q": "80 g of a substance has a half-life of 5 days. How much is left after 15 days?",
+         "use": "$y = 80\\left(\\frac{1}{2}\\right)^{\\frac{15}{5}} = \\frac{80}{8}$",
+         "answer": "$10$ g",
+         "goal": "The question asks for the amount left after 15 days.",
+         "plan": "The half-life is $h = 5$, so 15 days is 3 half-lives.",
+         "steps": [
+          "Each half-life halves the amount, so divide by $2^3 = 8$.",
+          "Divide: $\\frac{80}{8} = 10$."
+         ],
+         "check": "Step by step: 80, then 40, then 20, then 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "polynomials",
+     "name": "Многочлены и дроби",
+     "en": "Polynomials and rational expressions",
+     "bank": "x:adv:equiv",
+     "formulas": [
+      {
+       "id": "remainder",
+       "name": "Остаток от деления",
+       "en": "Remainder theorem",
+       "tex": "P(x) \\div (x - a) \\Rightarrow \\text{remainder} = P(a)",
+       "examples": [
+        {
+         "q": "What is the remainder when $x^3 - 2x + 5$ is divided by $x - 2$?",
+         "use": "$P(2) = 8 - 4 + 5$",
+         "answer": "$9$",
+         "goal": "The question asks for the remainder of a division.",
+         "plan": "Long division isn't needed. Dividing by $x - 2$ means $a = 2$, so the remainder is $P(2)$.",
+         "steps": [
+          "Add up: $8 - 4 + 5 = 9$."
+         ]
+        },
+        {
+         "q": "The remainder of $x^2 + kx - 6$ divided by $x - 3$ is $0$. Find $k$.",
+         "use": "$P(3) = 9 + 3k - 6 = 0$",
+         "answer": "$k = -1$",
+         "goal": "The question asks for the value of $k$.",
+         "plan": "A remainder of 0 means $P(3) = 0$, so plug in $x = 3$.",
+         "steps": [
+          "Combine: $3k + 3 = 0$.",
+          "Solve: $k = -1$."
+         ],
+         "check": "$x^2 - x - 6 = (x - 3)(x + 2)$."
+        }
+       ]
+      },
+      {
+       "id": "zeros",
+       "name": "Корни и множители",
+       "en": "Zeros and factors",
+       "tex": "P(r) = 0 \\iff (x - r) \\text{ is a factor}",
+       "examples": [
+        {
+         "q": "A quadratic with leading coefficient $1$ has zeros $2$ and $-3$. Write it out.",
+         "use": "$(x - 2)(x + 3)$",
+         "answer": "$x^2 + x - 6$",
+         "goal": "The question asks for the quadratic with the given zeros.",
+         "plan": "Each zero $r$ gives a factor $(x - r)$, so the factors are $(x - 2)$ and $(x + 3)$.",
+         "steps": [
+          "Expand: $x^2 + 3x - 2x - 6$.",
+          "Combine like terms: $x^2 + x - 6$."
+         ]
+        },
+        {
+         "q": "$x = 4$ is a zero of $x^2 - 7x + c$. Find $c$.",
+         "use": "$16 - 28 + c = 0$",
+         "answer": "$c = 12$",
+         "goal": "The question asks for the value of $c$.",
+         "plan": "A zero makes the expression equal 0, so plug in $x = 4$.",
+         "steps": [
+          "Combine: $-12 + c = 0$.",
+          "Add 12 to both sides: $c = 12$."
+         ],
+         "check": "$x^2 - 7x + 12 = (x - 3)(x - 4)$, so 4 is a zero."
+        }
+       ]
+      },
+      {
+       "id": "fractions",
+       "name": "Сложение дробей",
+       "en": "Adding fractions",
+       "tex": "\\frac{a}{b} + \\frac{c}{d} = \\frac{ad + bc}{bd}",
+       "examples": [
+        {
+         "q": "Write $\\frac{1}{x} + \\frac{1}{3}$ as one fraction.",
+         "use": "$\\frac{1 \\cdot 3 + 1 \\cdot x}{3x}$",
+         "answer": "$\\frac{x + 3}{3x}$",
+         "goal": "The question asks for a single fraction.",
+         "plan": "Use the fraction rule with $a = 1$, $b = x$, $c = 1$ and $d = 3$.",
+         "steps": [
+          "Simplify the top: $\\frac{x + 3}{3x}$."
+         ]
+        },
+        {
+         "q": "Write $\\frac{1}{x} + \\frac{1}{x + 1}$ as one fraction.",
+         "use": "$\\frac{(x + 1) + x}{x(x + 1)}$",
+         "answer": "$\\frac{2x + 1}{x(x + 1)}$",
+         "goal": "The question asks for a single fraction.",
+         "plan": "Use the fraction rule. The common denominator is $x(x + 1)$.",
+         "steps": [
+          "Combine the top: $x + 1 + x = 2x + 1$."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "transforms",
+     "name": "Преобразования графиков",
+     "en": "Function transformations",
+     "bank": "x:adv:nlfn",
+     "formulas": [
+      {
+       "id": "shift",
+       "name": "Сдвиг",
+       "en": "Shifts",
+       "tex": "y = f(x - h) + k",
+       "examples": [
+        {
+         "q": "Shift $y = x^2$ right 3 and up 2.",
+         "use": "$h = 3,\\ k = 2$",
+         "answer": "$y = (x - 3)^2 + 2$",
+         "goal": "The question asks for the equation after a shift.",
+         "plan": "A shift right 3 means $h = 3$, which appears as $x - 3$ inside. A shift up 2 means $k = 2$, added outside.",
+         "steps": [
+          "Replace $x$ with $x - 3$ and add 2: $y = (x - 3)^2 + 2$."
+         ]
+        },
+        {
+         "q": "$(2, 5)$ is on $y = f(x)$. What point is on $y = f(x + 1) - 4$?",
+         "use": "$(2 - 1,\\ 5 - 4)$",
+         "answer": "$(1, 1)$",
+         "goal": "The question asks for the new position of a point.",
+         "plan": "In $f(x + 1) - 4$, the $+1$ inside moves the graph left 1 and the $-4$ outside moves it down 4.",
+         "steps": [
+          "Simplify: $(1, 1)$."
+         ],
+         "check": "$f(1 + 1) - 4 = f(2) - 4 = 5 - 4 = 1$."
+        }
+       ]
+      },
+      {
+       "id": "reflect",
+       "name": "Отражение",
+       "en": "Reflections",
+       "tex": "y = -f(x),\\quad y = f(-x)",
+       "examples": [
+        {
+         "q": "$(3, 4)$ is on $y = f(x)$. What point is on $y = -f(x)$?",
+         "use": "$(3,\\ -4)$",
+         "answer": "$(3, -4)$",
+         "goal": "The question asks for the point after a reflection.",
+         "plan": "A minus outside the function flips the graph over the x-axis, so the y-coordinate changes sign.",
+         "steps": [
+          "The x-coordinate stays the same."
+         ]
+        },
+        {
+         "q": "$(3, 4)$ is on $y = f(x)$. What point is on $y = f(-x)$?",
+         "use": "$(-3,\\ 4)$",
+         "answer": "$(-3, 4)$",
+         "goal": "The question asks for the point after a reflection.",
+         "plan": "A minus inside the function flips the graph over the y-axis, so the x-coordinate changes sign.",
+         "steps": [
+          "The y-coordinate stays the same."
+         ],
+         "check": "At $x = -3$: $f(-(-3)) = f(3) = 4$."
+        }
+       ]
+      },
+      {
+       "id": "stretch",
+       "name": "Растяжение",
+       "en": "Vertical stretch",
+       "tex": "y = a \\cdot f(x)",
+       "examples": [
+        {
+         "q": "$(2, 3)$ is on $y = f(x)$. What point is on $y = 2f(x)$?",
+         "use": "$(2,\\ 2 \\cdot 3)$",
+         "answer": "$(2, 6)$",
+         "goal": "The question asks for the point after a stretch.",
+         "plan": "A number outside the function multiplies every y-value. Here $a = 2$.",
+         "steps": [
+          "The x-coordinate stays the same, and the y-coordinate becomes 6."
+         ]
+        },
+        {
+         "q": "$(6, 9)$ is on $y = f(x)$. What point is on $y = \\frac{1}{3}f(x)$?",
+         "use": "$(6,\\ \\frac{9}{3})$",
+         "answer": "$(6, 3)$",
+         "goal": "The question asks for the point after a shrink.",
+         "plan": "Here $a = \\frac{1}{3}$, so every y-value is divided by 3.",
+         "steps": [
+          "The x-coordinate stays the same, and the y-coordinate becomes 3."
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sat_data",
+   "title": "SAT · Задачи и анализ данных",
+   "en": "Problem-Solving and Data Analysis",
+   "topics": [
+    {
+     "id": "ratios",
+     "name": "Отношения и скорости",
+     "en": "Ratios, rates and units",
+     "bank": "x:psda:ratio",
+     "formulas": [
+      {
+       "id": "proportion",
+       "name": "Пропорция",
+       "en": "Proportion",
+       "tex": "\\frac{a}{b} = \\frac{c}{d} \\Rightarrow ad = bc",
+       "examples": [
+        {
+         "q": "3 pens cost $\\$4.50$. What do 8 pens cost?",
+         "use": "$\\frac{3}{4.5} = \\frac{8}{x} \\Rightarrow 3x = 36$",
+         "answer": "$\\$12$",
+         "goal": "The question asks for the cost of 8 pens.",
+         "plan": "The price per pen stays the same, so set up a proportion with pens on top and cost on the bottom.",
+         "steps": [
+          "Divide both sides by 3: $x = 12$."
+         ],
+         "check": "Each pen costs $\\$1.50$, and $8 \\cdot 1.5 = 12$."
+        },
+        {
+         "q": "On a map, 5 cm is 12 km. How far is 20 cm?",
+         "use": "$\\frac{5}{12} = \\frac{20}{x} \\Rightarrow 5x = 240$",
+         "answer": "$48$ km",
+         "goal": "The question asks for the real distance for 20 cm.",
+         "plan": "A map scale is a constant ratio, so set up a proportion with centimeters on top and kilometers on the bottom.",
+         "steps": [
+          "Divide both sides by 5: $x = 48$."
+         ],
+         "check": "20 cm is 4 times 5 cm, and $4 \\cdot 12 = 48$."
+        }
+       ]
+      },
+      {
+       "id": "rate",
+       "name": "Скорость, время, расстояние",
+       "en": "Distance, rate and time",
+       "tex": "d = rt",
+       "examples": [
+        {
+         "q": "A car goes 150 miles in 2.5 hours. What is its speed?",
+         "use": "$150 = r \\cdot 2.5$",
+         "answer": "$60$ mph",
+         "goal": "The question asks for the speed of the car.",
+         "plan": "Distance and time are known, so put them into $d = rt$ and solve for $r$.",
+         "steps": [
+          "Divide both sides by 2.5: $r = 60$."
+         ]
+        },
+        {
+         "q": "How far do you go in 40 minutes at 45 mph?",
+         "use": "$d = 45 \\cdot \\frac{40}{60}$",
+         "answer": "$30$ miles",
+         "goal": "The question asks for the distance traveled.",
+         "plan": "The speed is in miles per hour, so the time must be in hours. Change 40 minutes to $\\frac{40}{60}$ of an hour.",
+         "steps": [
+          "Multiply: $45 \\cdot \\frac{2}{3} = 30$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "ratio_part",
+       "name": "Доля в отношении",
+       "en": "Share of a ratio",
+       "tex": "a : b \\Rightarrow \\text{part} = \\frac{a}{a + b} \\cdot \\text{total}",
+       "examples": [
+        {
+         "q": "Boys to girls is $3:5$ in a class of 40. How many boys are there?",
+         "use": "$\\frac{3}{8} \\cdot 40$",
+         "answer": "$15$",
+         "goal": "The question asks for the number of boys.",
+         "plan": "The ratio $3:5$ splits the class into $3 + 5 = 8$ equal parts, and boys take 3 of them.",
+         "steps": [
+          "Each part is $\\frac{40}{8} = 5$ students.",
+          "Multiply: $3 \\cdot 5 = 15$."
+         ],
+         "check": "Girls: $5 \\cdot 5 = 25$, and $15 + 25 = 40$."
+        },
+        {
+         "q": "63 is split in the ratio $2:7$. What is the larger part?",
+         "use": "$\\frac{7}{9} \\cdot 63$",
+         "answer": "$49$",
+         "goal": "The question asks for the larger part.",
+         "plan": "The ratio $2:7$ makes $2 + 7 = 9$ equal parts, and the larger part takes 7 of them.",
+         "steps": [
+          "Each part is $\\frac{63}{9} = 7$.",
+          "Multiply: $7 \\cdot 7 = 49$."
+         ],
+         "check": "The smaller part is 14, and $14 + 49 = 63$."
+        }
+       ]
+      },
+      {
+       "id": "units",
+       "name": "Перевод единиц",
+       "en": "Unit conversion",
+       "tex": "\\text{value} \\cdot \\frac{\\text{new unit}}{\\text{old unit}}",
+       "examples": [
+        {
+         "q": "Convert 90 km/h to m/s.",
+         "use": "$90 \\cdot \\frac{1000}{3600}$",
+         "answer": "$25$ m/s",
+         "goal": "The question asks for the speed in meters per second.",
+         "plan": "One km is 1,000 m and one hour is 3,600 s, so multiply by 1,000 and divide by 3,600.",
+         "steps": [
+          "Simplify: $\\frac{90000}{3600} = 25$."
+         ]
+        },
+        {
+         "q": "How many seconds are in 2.5 hours?",
+         "use": "$2.5 \\cdot 60 \\cdot 60$",
+         "answer": "$9000$",
+         "goal": "The question asks for the number of seconds.",
+         "plan": "Convert one unit at a time: an hour has 60 minutes and a minute has 60 seconds.",
+         "steps": [
+          "Hours to minutes: $2.5 \\cdot 60 = 150$.",
+          "Minutes to seconds: $150 \\cdot 60 = 9000$."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "percents",
+     "name": "Проценты",
+     "en": "Percentages",
+     "bank": "x:psda:pct",
+     "formulas": [
+      {
+       "id": "percent_of",
+       "name": "Процент от числа",
+       "en": "Percent of a number",
+       "tex": "\\text{part} = \\frac{p}{100} \\cdot \\text{whole}",
+       "examples": [
+        {
+         "q": "What is 30% of 80?",
+         "use": "$\\frac{30}{100} \\cdot 80$",
+         "answer": "$24$",
+         "goal": "The question asks for 30% of 80.",
+         "plan": "Percent means out of 100, and \"of\" means multiply.",
+         "steps": [
+          "Simplify: $0.3 \\cdot 80 = 24$."
+         ]
+        },
+        {
+         "q": "18 is what percent of 72?",
+         "use": "$18 = \\frac{p}{100} \\cdot 72$",
+         "answer": "$25\\%$",
+         "goal": "The question asks for the percent that 18 is of 72.",
+         "plan": "Here the part is 18 and the whole is 72, and the percent is unknown.",
+         "steps": [
+          "Divide both sides by 72: $\\frac{p}{100} = \\frac{18}{72} = 0.25$.",
+          "Multiply by 100: $p = 25$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "percent_change",
+       "name": "Изменение в процентах",
+       "en": "Percent change",
+       "tex": "\\frac{\\text{new} - \\text{old}}{\\text{old}} \\cdot 100\\%",
+       "examples": [
+        {
+         "q": "A price rises from $\\$50$ to $\\$65$. What is the percent increase?",
+         "use": "$\\frac{65 - 50}{50} \\cdot 100\\%$",
+         "answer": "$30\\%$",
+         "goal": "The question asks for the percent increase.",
+         "plan": "Percent change compares the change with the old value, which is 50.",
+         "steps": [
+          "The change is 15, so $\\frac{15}{50} = 0.3$.",
+          "Write it as a percent: 30%."
+         ]
+        },
+        {
+         "q": "A price falls from $\\$80$ to $\\$60$. What is the percent decrease?",
+         "use": "$\\frac{60 - 80}{80} \\cdot 100\\%$",
+         "answer": "$25\\%$",
+         "goal": "The question asks for the percent decrease.",
+         "plan": "Compare the change with the old value, which is 80, not 60.",
+         "steps": [
+          "The change is $-20$, so $\\frac{-20}{80} = -0.25$.",
+          "The negative sign means a decrease of 25%."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "multiplier",
+       "name": "Цена после изменения",
+       "en": "Percent multiplier",
+       "tex": "\\text{new} = \\text{old} \\cdot \\left(1 \\pm \\frac{p}{100}\\right)",
+       "examples": [
+        {
+         "q": "A $\\$60$ jacket is 15% off. What is the new price?",
+         "use": "$60 \\cdot 0.85$",
+         "answer": "$\\$51$",
+         "goal": "The question asks for the price after the discount.",
+         "plan": "15% off leaves $100\\% - 15\\% = 85\\%$ of the price, so multiply by 0.85.",
+         "steps": [
+          "Multiply: $60 \\cdot 0.85 = 51$."
+         ]
+        },
+        {
+         "q": "After a 20% increase, a price is $\\$96$. What was it before?",
+         "use": "$96 = x \\cdot 1.2$",
+         "answer": "$\\$80$",
+         "goal": "The question asks for the price before the increase.",
+         "plan": "The new price is the old price times 1.2. Divide to go backwards. Don't take 20% off 96.",
+         "steps": [
+          "Divide both sides by 1.2: $x = \\frac{96}{1.2} = 80$."
+         ],
+         "check": "$80 \\cdot 1.2 = 96$."
+        }
+       ]
+      },
+      {
+       "id": "repeated",
+       "name": "Несколько изменений подряд",
+       "en": "Repeated percent change",
+       "tex": "\\text{old} \\cdot (1 \\pm p_1)(1 \\pm p_2)",
+       "examples": [
+        {
+         "q": "A price rises 20%, then falls 20%. What is the overall change?",
+         "use": "$1.2 \\cdot 0.8 = 0.96$",
+         "answer": "$4\\%$ decrease",
+         "goal": "The question asks for the overall percent change.",
+         "plan": "Each change works on the latest price, so multiply the two multipliers. Don't just add the percents.",
+         "steps": [
+          "The final price is 96% of the original.",
+          "$100\\% - 96\\% = 4\\%$, so it's a decrease."
+         ],
+         "check": "Start at 100: up 20% gives 120, and down 20% gives 96."
+        },
+        {
+         "q": "A price rises 10% twice. What is the overall change?",
+         "use": "$1.1 \\cdot 1.1 = 1.21$",
+         "answer": "$21\\%$ increase",
+         "goal": "The question asks for the overall percent change.",
+         "plan": "Each 10% rise is a multiplier of 1.1. Multiply them, because the second rise applies to the larger price.",
+         "steps": [
+          "The final price is 121% of the original.",
+          "$121\\% - 100\\% = 21\\%$, so it's an increase."
+         ],
+         "check": "Start at 100: 110, then 121."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "statistics",
+     "name": "Статистика",
+     "en": "Statistics",
+     "bank": "x:psda:one",
+     "formulas": [
+      {
+       "id": "mean",
+       "name": "Среднее",
+       "en": "Mean",
+       "tex": "\\bar{x} = \\frac{\\text{sum of values}}{n}",
+       "examples": [
+        {
+         "q": "Find the mean of 4, 8, 9, 11, 13.",
+         "use": "$\\frac{45}{5}$",
+         "answer": "$9$",
+         "goal": "The question asks for the mean of five numbers.",
+         "plan": "Add the values, then divide by how many there are.",
+         "steps": [
+          "The sum is $4 + 8 + 9 + 11 + 13 = 45$.",
+          "Divide by 5: $9$."
+         ]
+        },
+        {
+         "q": "The mean of four tests is 85. What fifth score makes the mean 87?",
+         "use": "$87 \\cdot 5 - 85 \\cdot 4 = 435 - 340$",
+         "answer": "$95$",
+         "goal": "The question asks for the fifth test score.",
+         "plan": "Work with totals, because a mean times the count gives the sum.",
+         "steps": [
+          "The five tests must total 435, and the first four total 340.",
+          "Subtract: $435 - 340 = 95$."
+         ],
+         "check": "$\\frac{340 + 95}{5} = 87$."
+        }
+       ]
+      },
+      {
+       "id": "weighted",
+       "name": "Среднее двух групп",
+       "en": "Weighted mean",
+       "tex": "\\bar{x} = \\frac{n_1 \\bar{x}_1 + n_2 \\bar{x}_2}{n_1 + n_2}",
+       "examples": [
+        {
+         "q": "10 students average 70 and 30 students average 90. What is the overall mean?",
+         "use": "$\\frac{10 \\cdot 70 + 30 \\cdot 90}{40} = \\frac{3400}{40}$",
+         "answer": "$85$",
+         "goal": "The question asks for the overall mean.",
+         "plan": "The groups have different sizes, so don't just average 70 and 90. Weight each mean by its group size.",
+         "steps": [
+          "The total of all scores is $700 + 2700 = 3400$.",
+          "Divide by the 40 students: $85$."
+         ]
+        },
+        {
+         "q": "6 items average 10 and 4 items average 15. What is the overall mean?",
+         "use": "$\\frac{6 \\cdot 10 + 4 \\cdot 15}{10}$",
+         "answer": "$12$",
+         "goal": "The question asks for the overall mean.",
+         "plan": "Weight each mean by its group size, then divide by all the items.",
+         "steps": [
+          "The total is $60 + 60 = 120$.",
+          "Divide by the 10 items: $12$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "median",
+       "name": "Медиана",
+       "en": "Median",
+       "tex": "\\text{odd } n: \\text{ middle value};\\quad \\text{even } n: \\text{ mean of the two middle values}",
+       "examples": [
+        {
+         "q": "Find the median of 3, 7, 8, 12, 20.",
+         "use": "Middle of 5 values: the 3rd",
+         "answer": "$8$",
+         "goal": "The question asks for the median.",
+         "plan": "The list is in order and has an odd number of values, so the median is the middle one.",
+         "steps": [
+          "Two values lie on each side of the 3rd value, so the median is 8."
+         ]
+        },
+        {
+         "q": "Find the median of 2, 4, 6, 9, 11, 15.",
+         "use": "$\\frac{6 + 9}{2}$",
+         "answer": "$7.5$",
+         "goal": "The question asks for the median.",
+         "plan": "The list has an even number of values, so take the mean of the two in the middle, 6 and 9.",
+         "steps": [
+          "Add and halve: $\\frac{15}{2} = 7.5$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "range",
+       "name": "Размах",
+       "en": "Range",
+       "tex": "\\text{range} = \\max - \\min",
+       "examples": [
+        {
+         "q": "Find the range of 12, 5, 19, 8.",
+         "use": "$19 - 5$",
+         "answer": "$14$",
+         "goal": "The question asks for the range.",
+         "plan": "The range is the largest value minus the smallest. The list is out of order, so find those first: 19 and 5.",
+         "steps": [
+          "Subtract: $19 - 5 = 14$."
+         ]
+        },
+        {
+         "q": "The outlier 30 is removed from 3, 9, 10, 12, 30. How much does the range fall?",
+         "use": "$(30 - 3) - (12 - 3) = 27 - 9$",
+         "answer": "$18$",
+         "goal": "The question asks for how much the range falls.",
+         "plan": "Find the range with and without 30, then subtract.",
+         "steps": [
+          "With 30, the range is 27.",
+          "Without 30, the largest value is 12 and the range is 9.",
+          "The difference is $27 - 9 = 18$."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "probability",
+     "name": "Вероятность",
+     "en": "Probability",
+     "bank": "x:psda:prob",
+     "formulas": [
+      {
+       "id": "basic_prob",
+       "name": "Вероятность события",
+       "en": "Probability",
+       "tex": "P(A) = \\frac{\\text{favorable outcomes}}{\\text{all outcomes}}",
+       "examples": [
+        {
+         "q": "A bag has 3 red, 5 blue and 2 green marbles. What is the chance of red?",
+         "use": "$\\frac{3}{3 + 5 + 2}$",
+         "answer": "$\\frac{3}{10}$",
+         "goal": "The question asks for the chance of drawing red.",
+         "plan": "Count the favorable outcomes and all outcomes. There are 3 red marbles.",
+         "steps": [
+          "The total is 10 marbles, so the probability is $\\frac{3}{10}$."
+         ]
+        },
+        {
+         "q": "What is the chance of an even number on a die?",
+         "use": "$\\frac{3}{6}$",
+         "answer": "$\\frac{1}{2}$",
+         "goal": "The question asks for the chance of an even number.",
+         "plan": "A die has 6 outcomes, and the even ones are 2, 4 and 6.",
+         "steps": [
+          "Simplify: $\\frac{3}{6} = \\frac{1}{2}$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "conditional",
+       "name": "Условная вероятность",
+       "en": "Conditional probability",
+       "tex": "P(A \\mid B) = \\frac{n(A \\text{ and } B)}{n(B)}",
+       "examples": [
+        {
+         "q": "Of 40 juniors, 30 play a sport. A junior is picked. What is the chance they play?",
+         "use": "$\\frac{30}{40}$",
+         "answer": "$\\frac{3}{4}$",
+         "goal": "The question asks for the chance that a junior plays a sport.",
+         "plan": "The student is already a junior, so only the 40 juniors count as the total.",
+         "steps": [
+          "Simplify: $\\frac{30}{40} = \\frac{3}{4}$."
+         ]
+        },
+        {
+         "q": "Of 60 players, 24 are seniors. A player is picked. What is the chance they are a senior?",
+         "use": "$\\frac{24}{60}$",
+         "answer": "$\\frac{2}{5}$",
+         "goal": "The question asks for the chance that a player is a senior.",
+         "plan": "The person is already a player, so only the 60 players count as the total.",
+         "steps": [
+          "Simplify: $\\frac{24}{60} = \\frac{2}{5}$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "complement",
+       "name": "Противоположное событие",
+       "en": "Complement",
+       "tex": "P(\\text{not } A) = 1 - P(A)",
+       "examples": [
+        {
+         "q": "The chance of rain is $0.35$. What is the chance of no rain?",
+         "use": "$1 - 0.35$",
+         "answer": "$0.65$",
+         "goal": "The question asks for the chance of no rain.",
+         "plan": "Rain and no rain cover every case, so their probabilities add up to 1.",
+         "steps": [
+          "Subtract: $1 - 0.35 = 0.65$."
+         ]
+        },
+        {
+         "q": "Two coins are tossed. What is the chance of at least one head?",
+         "use": "$1 - \\frac{1}{4}$",
+         "answer": "$\\frac{3}{4}$",
+         "goal": "The question asks for the chance of at least one head.",
+         "plan": "\"At least one\" has several cases, but its opposite has just one: no heads at all.",
+         "steps": [
+          "The chance of no heads is $\\frac{1}{2} \\cdot \\frac{1}{2} = \\frac{1}{4}$.",
+          "Subtract from 1: $\\frac{3}{4}$."
+         ],
+         "check": "The outcomes are HH, HT, TH and TT, and 3 of the 4 have a head."
+        }
+       ]
+      },
+      {
+       "id": "independent",
+       "name": "Независимые события",
+       "en": "Independent events",
+       "tex": "P(A \\text{ and } B) = P(A) \\cdot P(B)",
+       "examples": [
+        {
+         "q": "Two coins are tossed. What is the chance of two heads?",
+         "use": "$\\frac{1}{2} \\cdot \\frac{1}{2}$",
+         "answer": "$\\frac{1}{4}$",
+         "goal": "The question asks for the chance of two heads.",
+         "plan": "One coin doesn't affect the other, so multiply the probabilities.",
+         "steps": [
+          "Multiply: $\\frac{1}{4}$."
+         ],
+         "check": "Of HH, HT, TH and TT, only one is two heads."
+        },
+        {
+         "q": "Independent events have $P(A) = 0.4$ and $P(B) = 0.5$. Find $P(A \\text{ and } B)$.",
+         "use": "$0.4 \\cdot 0.5$",
+         "answer": "$0.2$",
+         "goal": "The question asks for the chance of both events.",
+         "plan": "The events are independent, so multiply.",
+         "steps": [
+          "Multiply: $0.2$."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "inference",
+     "name": "Выборка и погрешность",
+     "en": "Sampling and margin of error",
+     "bank": "x:psda:infer",
+     "formulas": [
+      {
+       "id": "margin",
+       "name": "Предел погрешности",
+       "en": "Margin of error",
+       "tex": "\\text{estimate} \\pm \\text{margin}",
+       "examples": [
+        {
+         "q": "A poll finds 42% support with a margin of error of 3%. What is the likely range?",
+         "use": "$42 - 3$ to $42 + 3$",
+         "answer": "$39\\%$ to $45\\%$",
+         "goal": "The question asks for the likely range.",
+         "plan": "A margin of error gives a range around the estimate: subtract it for the low end and add it for the high end.",
+         "steps": [
+          "The low end is 39% and the high end is 45%."
+         ]
+        },
+        {
+         "q": "A sample mean is $7.2$ hours with a margin of error of $0.4$. What is the likely range?",
+         "use": "$7.2 - 0.4$ to $7.2 + 0.4$",
+         "answer": "$6.8$ to $7.6$",
+         "goal": "The question asks for the likely range.",
+         "plan": "Subtract and add the margin of error.",
+         "steps": [
+          "The low end is 6.8 and the high end is 7.6."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "sample",
+       "name": "От выборки ко всем",
+       "en": "From sample to population",
+       "tex": "\\frac{\\text{sample part}}{\\text{sample size}} \\cdot \\text{population}",
+       "examples": [
+        {
+         "q": "30 of 200 sampled students like a plan. Estimate how many of 5,000 students do.",
+         "use": "$\\frac{30}{200} \\cdot 5000$",
+         "answer": "$750$",
+         "goal": "The question asks for an estimate for all students.",
+         "plan": "A random sample reflects the population, so apply the sample's share to all 5,000 students.",
+         "steps": [
+          "The share is $\\frac{30}{200} = 0.15$.",
+          "Multiply: $0.15 \\cdot 5000 = 750$."
+         ]
+        },
+        {
+         "q": "40 of 250 sampled homes have solar panels. Estimate how many of 10,000 homes do.",
+         "use": "$\\frac{40}{250} \\cdot 10000$",
+         "answer": "$1600$",
+         "goal": "The question asks for an estimate for all homes.",
+         "plan": "Apply the sample's share to all 10,000 homes.",
+         "steps": [
+          "The share is $\\frac{40}{250} = 0.16$.",
+          "Multiply: $0.16 \\cdot 10000 = 1600$."
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sat_geometry",
+   "title": "SAT · Геометрия и тригонометрия",
+   "en": "Geometry and Trigonometry",
+   "topics": [
+    {
+     "id": "circles",
+     "name": "Круг и окружность",
+     "en": "Circles",
+     "bank": "x:geo:circ",
+     "formulas": [
+      {
+       "id": "circle_area",
+       "name": "Площадь круга",
+       "en": "Area of a circle",
+       "tex": "A = \\pi r^2",
+       "examples": [
+        {
+         "q": "Find the area of a circle with radius 5.",
+         "use": "$A = \\pi \\cdot 5^2$",
+         "answer": "$25\\pi$",
+         "goal": "The question asks for the area of a circle.",
+         "plan": "The radius is 5, so put it into the area formula.",
+         "steps": [
+          "Square: $5^2 = 25$, so the area is $25\\pi$."
+         ]
+        },
+        {
+         "q": "Find the area of a circle with diameter 12.",
+         "use": "$r = 6,\\ A = \\pi \\cdot 6^2$",
+         "answer": "$36\\pi$",
+         "goal": "The question asks for the area of a circle.",
+         "plan": "The diameter is given, but the formula needs the radius. Halve it: $r = 6$.",
+         "steps": [
+          "Square: $6^2 = 36$, so the area is $36\\pi$."
+         ]
+        }
+       ],
+       "image": "circle"
+      },
+      {
+       "id": "circumference",
+       "name": "Длина окружности",
+       "en": "Circumference",
+       "tex": "C = 2\\pi r",
+       "examples": [
+        {
+         "q": "Find the circumference of a circle with radius 7.",
+         "use": "$C = 2\\pi \\cdot 7$",
+         "answer": "$14\\pi$",
+         "goal": "The question asks for the circumference of a circle.",
+         "plan": "The radius is 7, so put it into the formula.",
+         "steps": [
+          "Multiply: $2 \\cdot 7 = 14$, so the circumference is $14\\pi$."
+         ]
+        },
+        {
+         "q": "A circle has circumference $18\\pi$. Find its radius.",
+         "use": "$18\\pi = 2\\pi r$",
+         "answer": "$r = 9$",
+         "goal": "The question asks for the radius of a circle.",
+         "plan": "The circumference is known, so solve the formula for $r$.",
+         "steps": [
+          "Divide both sides by $2\\pi$: $r = 9$."
+         ]
+        }
+       ],
+       "image": "circle"
+      }
+     ]
+    },
+    {
+     "id": "arcs",
+     "name": "Дуга и сектор",
+     "en": "Arcs and sectors",
+     "bank": "x:geo:circ",
+     "formulas": [
+      {
+       "id": "arc",
+       "name": "Длина дуги",
+       "en": "Arc length",
+       "tex": "L = \\frac{\\theta}{360^\\circ} \\cdot 2\\pi r",
+       "examples": [
+        {
+         "q": "Find the length of a $60^\\circ$ arc with radius 6.",
+         "use": "$L = \\frac{60}{360} \\cdot 12\\pi$",
+         "answer": "$2\\pi$",
+         "goal": "The question asks for the length of an arc.",
+         "plan": "An arc is a fraction of the circle. The full circumference is $2\\pi \\cdot 6 = 12\\pi$.",
+         "steps": [
+          "$60^\\circ$ is $\\frac{1}{6}$ of the circle.",
+          "Multiply: $\\frac{12\\pi}{6} = 2\\pi$."
+         ]
+        },
+        {
+         "q": "Find the length of a $120^\\circ$ arc with radius 9.",
+         "use": "$L = \\frac{120}{360} \\cdot 18\\pi$",
+         "answer": "$6\\pi$",
+         "goal": "The question asks for the length of an arc.",
+         "plan": "The full circumference is $2\\pi \\cdot 9 = 18\\pi$.",
+         "steps": [
+          "$120^\\circ$ is $\\frac{1}{3}$ of the circle.",
+          "Multiply: $\\frac{18\\pi}{3} = 6\\pi$."
+         ]
+        }
+       ],
+       "image": "sector"
+      },
+      {
+       "id": "sector",
+       "name": "Площадь сектора",
+       "en": "Sector area",
+       "tex": "A = \\frac{\\theta}{360^\\circ} \\cdot \\pi r^2",
+       "examples": [
+        {
+         "q": "Find the area of a $90^\\circ$ sector with radius 6.",
+         "use": "$A = \\frac{90}{360} \\cdot 36\\pi$",
+         "answer": "$9\\pi$",
+         "goal": "The question asks for the area of a sector.",
+         "plan": "A sector is a fraction of the circle. The full area is $\\pi \\cdot 6^2 = 36\\pi$.",
+         "steps": [
+          "$90^\\circ$ is $\\frac{1}{4}$ of the circle.",
+          "Multiply: $\\frac{36\\pi}{4} = 9\\pi$."
+         ]
+        },
+        {
+         "q": "Find the area of a $72^\\circ$ sector with radius 10.",
+         "use": "$A = \\frac{72}{360} \\cdot 100\\pi$",
+         "answer": "$20\\pi$",
+         "goal": "The question asks for the area of a sector.",
+         "plan": "The full area is $\\pi \\cdot 10^2 = 100\\pi$.",
+         "steps": [
+          "$72^\\circ$ is $\\frac{1}{5}$ of the circle.",
+          "Multiply: $\\frac{100\\pi}{5} = 20\\pi$."
+         ]
+        }
+       ],
+       "image": "sector"
+      }
+     ]
+    },
+    {
+     "id": "circle_eq",
+     "name": "Уравнение окружности",
+     "en": "Equation of a circle",
+     "bank": "x:geo:circ",
+     "formulas": [
+      {
+       "id": "circle_standard",
+       "name": "Уравнение окружности",
+       "en": "Standard form",
+       "tex": "(x - h)^2 + (y - k)^2 = r^2",
+       "examples": [
+        {
+         "q": "Find the center and radius of $(x - 2)^2 + (y + 3)^2 = 16$.",
+         "use": "$h = 2,\\ k = -3,\\ r = \\sqrt{16}$",
+         "answer": "Center $(2, -3)$, radius $4$",
+         "goal": "The question asks for the center and radius.",
+         "plan": "Compare with the standard form. Signs flip inside: $y + 3$ means $k = -3$. The right side is $r^2$, not $r$.",
+         "steps": [
+          "The center is $(2, -3)$.",
+          "The radius is $\\sqrt{16} = 4$."
+         ]
+        },
+        {
+         "q": "Write the equation of a circle with center $(-1, 4)$ and radius 3.",
+         "use": "$(x - (-1))^2 + (y - 4)^2 = 3^2$",
+         "answer": "$(x + 1)^2 + (y - 4)^2 = 9$",
+         "goal": "The question asks for the equation of a circle.",
+         "plan": "Put $h = -1$, $k = 4$ and $r = 3$ into the standard form.",
+         "steps": [
+          "Simplify: $x - (-1) = x + 1$ and $3^2 = 9$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "complete_square",
+       "name": "Выделение полного квадрата",
+       "en": "Completing the square",
+       "tex": "x^2 + bx = \\left(x + \\frac{b}{2}\\right)^2 - \\left(\\frac{b}{2}\\right)^2",
+       "examples": [
+        {
+         "q": "Find the radius of $x^2 + y^2 - 6x + 4y = 12$.",
+         "use": "$(x - 3)^2 - 9 + (y + 2)^2 - 4 = 12$",
+         "answer": "$r = 5$",
+         "goal": "The question asks for the radius of a circle.",
+         "plan": "Group the $x$ terms and the $y$ terms, then complete the square for each.",
+         "steps": [
+          "Move the constants to the right: $(x - 3)^2 + (y + 2)^2 = 12 + 9 + 4 = 25$.",
+          "So $r^2 = 25$ and $r = 5$."
+         ]
+        },
+        {
+         "q": "Find the center of $x^2 + y^2 + 8x = 9$.",
+         "use": "$(x + 4)^2 - 16 + y^2 = 9$",
+         "answer": "$(-4, 0)$",
+         "goal": "The question asks for the center of a circle.",
+         "plan": "Only $x$ has a linear term, so complete the square for $x$.",
+         "steps": [
+          "Move 16 to the right: $(x + 4)^2 + y^2 = 25$.",
+          "Read the center: $h = -4$ and $k = 0$."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "triangles",
+     "name": "Треугольники",
+     "en": "Triangles",
+     "bank": "x:geo:lines",
+     "formulas": [
+      {
+       "id": "triangle_area",
+       "name": "Площадь треугольника",
+       "en": "Area of a triangle",
+       "tex": "A = \\frac{1}{2}bh",
+       "examples": [
+        {
+         "q": "Find the area of a triangle with base 10 and height 6.",
+         "use": "$A = \\frac{1}{2} \\cdot 10 \\cdot 6$",
+         "answer": "$30$",
+         "goal": "The question asks for the area of a triangle.",
+         "plan": "The base and height are given, so use the area formula.",
+         "steps": [
+          "Multiply: $\\frac{1}{2} \\cdot 60 = 30$."
+         ]
+        },
+        {
+         "q": "A triangle has area 24 and base 8. Find its height.",
+         "use": "$24 = \\frac{1}{2} \\cdot 8 \\cdot h$",
+         "answer": "$h = 6$",
+         "goal": "The question asks for the height of a triangle.",
+         "plan": "The area and base are known, so solve the formula for $h$.",
+         "steps": [
+          "Simplify: $24 = 4h$.",
+          "Divide by 4: $h = 6$."
+         ]
+        }
+       ],
+       "image": "triangle"
+      },
+      {
+       "id": "pythagoras",
+       "name": "Теорема Пифагора",
+       "en": "Pythagorean theorem",
+       "tex": "a^2 + b^2 = c^2",
+       "examples": [
+        {
+         "q": "The legs are 6 and 8. Find the hypotenuse.",
+         "use": "$c^2 = 36 + 64 = 100$",
+         "answer": "$10$",
+         "goal": "The question asks for the hypotenuse.",
+         "plan": "It's a right triangle with both legs known, so use the Pythagorean theorem.",
+         "steps": [
+          "Take the square root: $c = \\sqrt{100} = 10$."
+         ]
+        },
+        {
+         "q": "The hypotenuse is 13 and one leg is 5. Find the other leg.",
+         "use": "$b^2 = 169 - 25 = 144$",
+         "answer": "$12$",
+         "goal": "The question asks for the other leg.",
+         "plan": "The hypotenuse is $c = 13$, so subtract the known leg's square from $13^2$.",
+         "steps": [
+          "Take the square root: $b = \\sqrt{144} = 12$."
+         ]
+        }
+       ],
+       "image": "right"
+      },
+      {
+       "id": "angle_sum",
+       "name": "Сумма углов",
+       "en": "Angle sum",
+       "tex": "\\angle A + \\angle B + \\angle C = 180^\\circ",
+       "examples": [
+        {
+         "q": "Two angles are $50^\\circ$ and $60^\\circ$. Find the third.",
+         "use": "$180 - 50 - 60$",
+         "answer": "$70^\\circ$",
+         "goal": "The question asks for the third angle.",
+         "plan": "The angles of a triangle add up to $180^\\circ$.",
+         "steps": [
+          "Subtract: $70^\\circ$."
+         ]
+        },
+        {
+         "q": "The top angle of an isosceles triangle is $40^\\circ$. Find a base angle.",
+         "use": "$\\frac{180 - 40}{2}$",
+         "answer": "$70^\\circ$",
+         "goal": "The question asks for a base angle.",
+         "plan": "The base angles of an isosceles triangle are equal, so they share what's left of $180^\\circ$ evenly.",
+         "steps": [
+          "The two base angles total $140^\\circ$.",
+          "Halve it: $70^\\circ$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "triangle_ineq",
+       "name": "Неравенство треугольника",
+       "en": "Triangle inequality",
+       "tex": "|a - b| < c < a + b",
+       "examples": [
+        {
+         "q": "Two sides are 5 and 9. What is the largest possible whole third side?",
+         "use": "$4 < c < 14$",
+         "answer": "$13$",
+         "goal": "The question asks for the largest whole third side.",
+         "plan": "The third side must be longer than the difference of the two sides and shorter than their sum.",
+         "steps": [
+          "The side must be less than 14, and 14 itself isn't allowed.",
+          "The largest whole number is 13."
+         ]
+        },
+        {
+         "q": "Two sides are 3 and 7. What is the smallest possible whole third side?",
+         "use": "$4 < c < 10$",
+         "answer": "$5$",
+         "goal": "The question asks for the smallest whole third side.",
+         "plan": "The third side must be greater than $7 - 3 = 4$ and less than $7 + 3 = 10$.",
+         "steps": [
+          "The side must be more than 4, and 4 itself isn't allowed.",
+          "The smallest whole number is 5."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "special",
+     "name": "Особые прямоугольные треугольники",
+     "en": "Special right triangles",
+     "bank": "x:geo:rtrig",
+     "formulas": [
+      {
+       "id": "t30",
+       "name": "Углы 30°, 60°, 90°",
+       "en": "30-60-90 triangle",
+       "tex": "x,\\quad x\\sqrt{3},\\quad 2x",
+       "examples": [
+        {
+         "q": "The short leg is 4. Find the hypotenuse and the long leg.",
+         "use": "$x = 4$",
+         "answer": "$8$ and $4\\sqrt{3}$",
+         "goal": "The question asks for the hypotenuse and the long leg.",
+         "plan": "The sides of a 30-60-90 triangle are always in the ratio shown. The short leg is $x$.",
+         "steps": [
+          "Hypotenuse: $2x = 8$.",
+          "Long leg: $x\\sqrt{3} = 4\\sqrt{3}$."
+         ]
+        },
+        {
+         "q": "The hypotenuse is 10. Find both legs.",
+         "use": "$2x = 10$",
+         "answer": "$5$ and $5\\sqrt{3}$",
+         "goal": "The question asks for both legs.",
+         "plan": "The hypotenuse is $2x$, so halve it to find $x$.",
+         "steps": [
+          "The short leg is $x = 5$.",
+          "The long leg is $5\\sqrt{3}$."
+         ]
+        }
+       ],
+       "image": "t30"
+      },
+      {
+       "id": "t45",
+       "name": "Углы 45°, 45°, 90°",
+       "en": "45-45-90 triangle",
+       "tex": "x,\\quad x,\\quad x\\sqrt{2}",
+       "examples": [
+        {
+         "q": "A leg is 6. Find the hypotenuse.",
+         "use": "$x = 6$",
+         "answer": "$6\\sqrt{2}$",
+         "goal": "The question asks for the hypotenuse.",
+         "plan": "A 45-45-90 triangle has two equal legs, and the hypotenuse is a leg times $\\sqrt{2}$.",
+         "steps": [
+          "Multiply: $6\\sqrt{2}$."
+         ]
+        },
+        {
+         "q": "The hypotenuse is 10. Find a leg.",
+         "use": "$x\\sqrt{2} = 10 \\Rightarrow x = \\frac{10}{\\sqrt{2}}$",
+         "answer": "$5\\sqrt{2}$",
+         "goal": "The question asks for a leg.",
+         "plan": "The hypotenuse is $x\\sqrt{2}$, so divide by $\\sqrt{2}$.",
+         "steps": [
+          "Multiply top and bottom by $\\sqrt{2}$: $\\frac{10\\sqrt{2}}{2} = 5\\sqrt{2}$."
+         ]
+        }
+       ],
+       "image": "t45"
+      }
+     ]
+    },
+    {
+     "id": "similar",
+     "name": "Подобие",
+     "en": "Similar figures",
+     "bank": "x:geo:lines",
+     "formulas": [
+      {
+       "id": "similar_sides",
+       "name": "Стороны подобных фигур",
+       "en": "Similar sides",
+       "tex": "\\frac{a_1}{a_2} = \\frac{b_1}{b_2} = k",
+       "examples": [
+        {
+         "q": "Similar triangles have sides 6 and 9 that match. A side of 8 matches which side?",
+         "use": "$\\frac{6}{9} = \\frac{8}{x}$",
+         "answer": "$12$",
+         "goal": "The question asks for the matching side.",
+         "plan": "Similar triangles have matching sides in the same ratio, so set up a proportion.",
+         "steps": [
+          "Cross-multiply: $6x = 72$.",
+          "Divide by 6: $x = 12$."
+         ]
+        },
+        {
+         "q": "A 5 ft post casts a 2 ft shadow. A tree casts a 12 ft shadow. How tall is the tree?",
+         "use": "$\\frac{5}{2} = \\frac{x}{12}$",
+         "answer": "$30$ ft",
+         "goal": "The question asks for the height of the tree.",
+         "plan": "The sun hits both at the same angle, so the triangles are similar. Set height over shadow on both sides.",
+         "steps": [
+          "Cross-multiply: $2x = 60$.",
+          "Divide by 2: $x = 30$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "similar_scale",
+       "name": "Площадь и объём при подобии",
+       "en": "Scaling area and volume",
+       "tex": "\\text{area} \\cdot k^2,\\quad \\text{volume} \\cdot k^3",
+       "examples": [
+        {
+         "q": "A figure of area 5 is scaled by 3. Find the new area.",
+         "use": "$5 \\cdot 3^2$",
+         "answer": "$45$",
+         "goal": "The question asks for the new area.",
+         "plan": "Area has two dimensions, so a scale of 3 multiplies it by $3^2$.",
+         "steps": [
+          "Multiply: $5 \\cdot 9 = 45$."
+         ]
+        },
+        {
+         "q": "A solid of volume 10 is scaled by 2. Find the new volume.",
+         "use": "$10 \\cdot 2^3$",
+         "answer": "$80$",
+         "goal": "The question asks for the new volume.",
+         "plan": "Volume has three dimensions, so a scale of 2 multiplies it by $2^3$.",
+         "steps": [
+          "Multiply: $10 \\cdot 8 = 80$."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "polygons",
+     "name": "Многоугольники",
+     "en": "Polygons",
+     "bank": "x:geo:area",
+     "formulas": [
+      {
+       "id": "rectangle",
+       "name": "Прямоугольник",
+       "en": "Rectangle",
+       "tex": "A = lw,\\quad P = 2(l + w)",
+       "examples": [
+        {
+         "q": "Find the area and perimeter of an 8 by 5 rectangle.",
+         "use": "$A = 8 \\cdot 5,\\ P = 2(8 + 5)$",
+         "answer": "$40$ and $26$",
+         "goal": "The question asks for the area and the perimeter.",
+         "plan": "Use both rectangle formulas with $l = 8$ and $w = 5$.",
+         "steps": [
+          "Area: $40$.",
+          "Perimeter: $2 \\cdot 13 = 26$."
+         ]
+        },
+        {
+         "q": "A rectangle has area 48 and width 6. Find its perimeter.",
+         "use": "$l = 8,\\ P = 2(8 + 6)$",
+         "answer": "$28$",
+         "goal": "The question asks for the perimeter.",
+         "plan": "The length is missing, so find it from the area first: $48 = 6l$.",
+         "steps": [
+          "Divide by 6: $l = 8$.",
+          "Perimeter: $2 \\cdot 14 = 28$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "trapezoid",
+       "name": "Трапеция",
+       "en": "Trapezoid",
+       "tex": "A = \\frac{a + b}{2} \\cdot h",
+       "examples": [
+        {
+         "q": "The bases are 6 and 10 and the height is 4. Find the area.",
+         "use": "$A = \\frac{6 + 10}{2} \\cdot 4$",
+         "answer": "$32$",
+         "goal": "The question asks for the area of a trapezoid.",
+         "plan": "Average the two bases, then multiply by the height.",
+         "steps": [
+          "The average of the bases is 8.",
+          "Multiply: $8 \\cdot 4 = 32$."
+         ]
+        },
+        {
+         "q": "A trapezoid has area 30, height 5 and one base 4. Find the other base.",
+         "use": "$30 = \\frac{4 + b}{2} \\cdot 5$",
+         "answer": "$b = 8$",
+         "goal": "The question asks for the other base.",
+         "plan": "The area is known, so solve the formula for $b$.",
+         "steps": [
+          "Divide both sides by 5: $6 = \\frac{4 + b}{2}$.",
+          "Multiply by 2: $12 = 4 + b$.",
+          "Subtract 4: $b = 8$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "interior",
+       "name": "Сумма внутренних углов",
+       "en": "Interior angles",
+       "tex": "(n - 2) \\cdot 180^\\circ",
+       "examples": [
+        {
+         "q": "Find the interior angle sum of a hexagon.",
+         "use": "$(6 - 2) \\cdot 180$",
+         "answer": "$720^\\circ$",
+         "goal": "The question asks for the interior angle sum.",
+         "plan": "A hexagon has $n = 6$ sides.",
+         "steps": [
+          "Multiply: $4 \\cdot 180 = 720$."
+         ]
+        },
+        {
+         "q": "Find each angle of a regular octagon.",
+         "use": "$\\frac{(8 - 2) \\cdot 180}{8}$",
+         "answer": "$135^\\circ$",
+         "goal": "The question asks for each angle of a regular octagon.",
+         "plan": "An octagon has $n = 8$ sides. In a regular polygon all the angles are equal, so divide the sum by 8.",
+         "steps": [
+          "The sum is $6 \\cdot 180 = 1080$.",
+          "Divide: $\\frac{1080}{8} = 135$."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "volumes",
+     "name": "Объёмы",
+     "en": "Volumes",
+     "bank": "x:geo:area",
+     "formulas": [
+      {
+       "id": "box",
+       "name": "Прямоугольный параллелепипед",
+       "en": "Rectangular box",
+       "tex": "V = lwh",
+       "examples": [
+        {
+         "q": "Find the volume of a 2 by 3 by 4 box.",
+         "use": "$V = 2 \\cdot 3 \\cdot 4$",
+         "answer": "$24$",
+         "goal": "The question asks for the volume of a box.",
+         "plan": "Multiply length, width and height.",
+         "steps": [
+          "Multiply: $24$."
+         ]
+        },
+        {
+         "q": "Find the volume of a cube with edge 5.",
+         "use": "$V = 5^3$",
+         "answer": "$125$",
+         "goal": "The question asks for the volume of a cube.",
+         "plan": "A cube is a box with all edges equal, so $l = w = h = 5$.",
+         "steps": [
+          "Multiply: $5 \\cdot 5 \\cdot 5 = 125$."
+         ]
+        }
+       ],
+       "image": "box"
+      },
+      {
+       "id": "cylinder",
+       "name": "Цилиндр",
+       "en": "Cylinder",
+       "tex": "V = \\pi r^2 h",
+       "examples": [
+        {
+         "q": "Find the volume of a cylinder with $r = 3$ and $h = 5$.",
+         "use": "$V = \\pi \\cdot 9 \\cdot 5$",
+         "answer": "$45\\pi$",
+         "goal": "The question asks for the volume of a cylinder.",
+         "plan": "Find the area of the circular base, then multiply by the height.",
+         "steps": [
+          "The base is $9\\pi$.",
+          "Multiply: $9\\pi \\cdot 5 = 45\\pi$."
+         ]
+        },
+        {
+         "q": "A cylinder has volume $64\\pi$ and radius 4. Find its height.",
+         "use": "$64\\pi = \\pi \\cdot 16 \\cdot h$",
+         "answer": "$h = 4$",
+         "goal": "The question asks for the height of a cylinder.",
+         "plan": "The volume and radius are known, so solve the formula for $h$.",
+         "steps": [
+          "Divide both sides by $16\\pi$: $h = 4$."
+         ]
+        }
+       ],
+       "image": "cylinder"
+      },
+      {
+       "id": "sphere",
+       "name": "Шар",
+       "en": "Sphere",
+       "tex": "V = \\frac{4}{3}\\pi r^3",
+       "examples": [
+        {
+         "q": "Find the volume of a sphere with radius 3.",
+         "use": "$V = \\frac{4}{3}\\pi \\cdot 27$",
+         "answer": "$36\\pi$",
+         "goal": "The question asks for the volume of a sphere.",
+         "plan": "Put $r = 3$ into the formula, so $r^3 = 27$.",
+         "steps": [
+          "Multiply: $\\frac{4}{3} \\cdot 27 = 36$, so the volume is $36\\pi$."
+         ]
+        },
+        {
+         "q": "Find the volume of a sphere with radius 6.",
+         "use": "$V = \\frac{4}{3}\\pi \\cdot 216$",
+         "answer": "$288\\pi$",
+         "goal": "The question asks for the volume of a sphere.",
+         "plan": "Put $r = 6$ into the formula, so $r^3 = 216$.",
+         "steps": [
+          "Multiply: $\\frac{4}{3} \\cdot 216 = 288$, so the volume is $288\\pi$."
+         ]
+        }
+       ],
+       "image": "sphere"
+      },
+      {
+       "id": "cone",
+       "name": "Конус",
+       "en": "Cone",
+       "tex": "V = \\frac{1}{3}\\pi r^2 h",
+       "examples": [
+        {
+         "q": "Find the volume of a cone with $r = 3$ and $h = 4$.",
+         "use": "$V = \\frac{1}{3}\\pi \\cdot 9 \\cdot 4$",
+         "answer": "$12\\pi$",
+         "goal": "The question asks for the volume of a cone.",
+         "plan": "A cone is one third of a cylinder with the same base and height.",
+         "steps": [
+          "Multiply: $\\frac{1}{3} \\cdot 36 = 12$, so the volume is $12\\pi$."
+         ]
+        },
+        {
+         "q": "Find the volume of a cone with $r = 6$ and $h = 5$.",
+         "use": "$V = \\frac{1}{3}\\pi \\cdot 36 \\cdot 5$",
+         "answer": "$60\\pi$",
+         "goal": "The question asks for the volume of a cone.",
+         "plan": "Put $r = 6$ and $h = 5$ into the formula.",
+         "steps": [
+          "Multiply: $\\frac{1}{3} \\cdot 180 = 60$, so the volume is $60\\pi$."
+         ]
+        }
+       ],
+       "image": "cone"
+      },
+      {
+       "id": "pyramid",
+       "name": "Пирамида",
+       "en": "Pyramid",
+       "tex": "V = \\frac{1}{3}lwh",
+       "examples": [
+        {
+         "q": "A pyramid has a 6 by 6 base and height 5. Find its volume.",
+         "use": "$V = \\frac{1}{3} \\cdot 6 \\cdot 6 \\cdot 5$",
+         "answer": "$60$",
+         "goal": "The question asks for the volume of a pyramid.",
+         "plan": "A pyramid is one third of a box with the same base and height.",
+         "steps": [
+          "The base area is 36.",
+          "Multiply: $\\frac{1}{3} \\cdot 36 \\cdot 5 = 60$."
+         ]
+        },
+        {
+         "q": "A pyramid has a 4 by 3 base and height 10. Find its volume.",
+         "use": "$V = \\frac{1}{3} \\cdot 4 \\cdot 3 \\cdot 10$",
+         "answer": "$40$",
+         "goal": "The question asks for the volume of a pyramid.",
+         "plan": "Use the formula with a base of 4 by 3.",
+         "steps": [
+          "The base area is 12.",
+          "Multiply: $\\frac{1}{3} \\cdot 12 \\cdot 10 = 40$."
+         ]
+        }
+       ],
+       "image": "pyramid"
+      }
+     ]
+    },
+    {
+     "id": "surface",
+     "name": "Площадь поверхности",
+     "en": "Surface area",
+     "bank": "x:geo:area",
+     "formulas": [
+      {
+       "id": "box_surface",
+       "name": "Поверхность параллелепипеда",
+       "en": "Surface area of a box",
+       "tex": "S = 2(lw + lh + wh)",
+       "examples": [
+        {
+         "q": "Find the surface area of a 2 by 3 by 4 box.",
+         "use": "$S = 2(6 + 8 + 12)$",
+         "answer": "$52$",
+         "goal": "The question asks for the surface area of a box.",
+         "plan": "A box has three pairs of equal faces, so add one of each pair and double.",
+         "steps": [
+          "The faces are $2 \\cdot 3 = 6$, $2 \\cdot 4 = 8$ and $3 \\cdot 4 = 12$.",
+          "Add and double: $2 \\cdot 26 = 52$."
+         ]
+        },
+        {
+         "q": "Find the surface area of a cube with edge 3.",
+         "use": "$S = 6 \\cdot 3^2$",
+         "answer": "$54$",
+         "goal": "The question asks for the surface area of a cube.",
+         "plan": "A cube has 6 equal square faces.",
+         "steps": [
+          "One face has area 9.",
+          "Multiply: $6 \\cdot 9 = 54$."
+         ]
+        }
+       ],
+       "image": "box"
+      },
+      {
+       "id": "cylinder_surface",
+       "name": "Поверхность цилиндра",
+       "en": "Surface area of a cylinder",
+       "tex": "S = 2\\pi r^2 + 2\\pi rh",
+       "examples": [
+        {
+         "q": "Find the surface area of a cylinder with $r = 3$ and $h = 5$.",
+         "use": "$S = 18\\pi + 30\\pi$",
+         "answer": "$48\\pi$",
+         "goal": "The question asks for the surface area of a cylinder.",
+         "plan": "Add the two circles, $2\\pi r^2$, and the side, $2\\pi rh$.",
+         "steps": [
+          "Add: $18\\pi + 30\\pi = 48\\pi$."
+         ]
+        },
+        {
+         "q": "Find the surface area of a cylinder with $r = 2$ and $h = 7$.",
+         "use": "$S = 8\\pi + 28\\pi$",
+         "answer": "$36\\pi$",
+         "goal": "The question asks for the surface area of a cylinder.",
+         "plan": "Add the two circles and the side, with $r = 2$ and $h = 7$.",
+         "steps": [
+          "Add: $8\\pi + 28\\pi = 36\\pi$."
+         ]
+        }
+       ],
+       "image": "cylinder"
+      }
+     ]
+    },
+    {
+     "id": "trig",
+     "name": "Тригонометрия",
+     "en": "Trigonometry",
+     "bank": "x:geo:rtrig",
+     "formulas": [
+      {
+       "id": "sohcahtoa",
+       "name": "Синус, косинус, тангенс",
+       "en": "SOH-CAH-TOA",
+       "tex": "\\sin = \\frac{\\text{opp}}{\\text{hyp}},\\ \\cos = \\frac{\\text{adj}}{\\text{hyp}},\\ \\tan = \\frac{\\text{opp}}{\\text{adj}}",
+       "examples": [
+        {
+         "q": "In a right triangle, the side opposite $A$ is 3, and the hypotenuse is 5. Find $\\sin A$.",
+         "use": "$\\sin A = \\frac{3}{5}$",
+         "answer": "$\\frac{3}{5}$",
+         "goal": "The question asks for $\\sin A$.",
+         "plan": "Sine is the opposite side over the hypotenuse, and both are given.",
+         "steps": [
+          "Nothing needs simplifying."
+         ]
+        },
+        {
+         "q": "The legs are 5 (opposite $A$) and 12 (adjacent). Find $\\cos A$.",
+         "use": "Hypotenuse $= 13$, $\\cos A = \\frac{12}{13}$",
+         "answer": "$\\frac{12}{13}$",
+         "goal": "The question asks for $\\cos A$.",
+         "plan": "Cosine is the adjacent side over the hypotenuse, so find the hypotenuse first.",
+         "steps": [
+          "$c = \\sqrt{5^2 + 12^2} = \\sqrt{169} = 13$.",
+          "The adjacent side is 12."
+         ]
+        }
+       ],
+       "image": "right"
+      },
+      {
+       "id": "cofunction",
+       "name": "Синус и косинус дополнительных углов",
+       "en": "Complementary angles",
+       "tex": "\\sin x^\\circ = \\cos(90 - x)^\\circ",
+       "examples": [
+        {
+         "q": "If $\\sin 35^\\circ = \\cos k^\\circ$ with $0 < k < 90$, find $k$.",
+         "use": "$k = 90 - 35$",
+         "answer": "$55$",
+         "goal": "The question asks for the value of $k$.",
+         "plan": "The sine of an angle equals the cosine of its complement, so the two angles add up to $90^\\circ$.",
+         "steps": [
+          "Subtract: $k = 55$."
+         ]
+        },
+        {
+         "q": "If $\\sin(x + 20)^\\circ = \\cos(2x + 10)^\\circ$, find $x$ in the first quadrant.",
+         "use": "$(x + 20) + (2x + 10) = 90$",
+         "answer": "$x = 20$",
+         "goal": "The question asks for the value of $x$.",
+         "plan": "Sine equals cosine here, so the two angles add up to $90^\\circ$.",
+         "steps": [
+          "Combine: $3x + 30 = 90$.",
+          "Subtract 30: $3x = 60$.",
+          "Divide by 3: $x = 20$."
+         ],
+         "check": "The angles are $40^\\circ$ and $50^\\circ$, which add up to $90^\\circ$."
+        }
+       ]
+      },
+      {
+       "id": "pythagorean_id",
+       "name": "Основное тождество",
+       "en": "Pythagorean identity",
+       "tex": "\\sin^2 x + \\cos^2 x = 1",
+       "examples": [
+        {
+         "q": "For an acute angle, $\\sin x = \\frac{3}{5}$. Find $\\cos x$.",
+         "use": "$\\cos^2 x = 1 - \\frac{9}{25} = \\frac{16}{25}$",
+         "answer": "$\\frac{4}{5}$",
+         "goal": "The question asks for $\\cos x$.",
+         "plan": "Sine and cosine are linked by the identity, so solve it for $\\cos^2 x$.",
+         "steps": [
+          "Take the square root: $\\cos x = \\frac{4}{5}$. It's positive because the angle is acute."
+         ]
+        },
+        {
+         "q": "For an acute angle, $\\sin x = \\frac{5}{13}$. Find $\\cos x$.",
+         "use": "$\\cos^2 x = 1 - \\frac{25}{169} = \\frac{144}{169}$",
+         "answer": "$\\frac{12}{13}$",
+         "goal": "The question asks for $\\cos x$.",
+         "plan": "Use the identity to find $\\cos^2 x$.",
+         "steps": [
+          "Take the square root: $\\cos x = \\frac{12}{13}$. It's positive because the angle is acute."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "radians",
+     "name": "Радианы",
+     "en": "Radians and the unit circle",
+     "bank": "x:geo:rtrig",
+     "formulas": [
+      {
+       "id": "deg_rad",
+       "name": "Градусы и радианы",
+       "en": "Degrees and radians",
+       "tex": "180^\\circ = \\pi \\text{ radians}",
+       "examples": [
+        {
+         "q": "Convert $120^\\circ$ to radians.",
+         "use": "$120 \\cdot \\frac{\\pi}{180}$",
+         "answer": "$\\frac{2\\pi}{3}$",
+         "goal": "The question asks for the angle in radians.",
+         "plan": "Since $180^\\circ = \\pi$, multiply degrees by $\\frac{\\pi}{180}$.",
+         "steps": [
+          "Simplify: $\\frac{120}{180} = \\frac{2}{3}$, so the angle is $\\frac{2\\pi}{3}$."
+         ]
+        },
+        {
+         "q": "Convert $\\frac{3\\pi}{4}$ radians to degrees.",
+         "use": "$\\frac{3\\pi}{4} \\cdot \\frac{180}{\\pi}$",
+         "answer": "$135^\\circ$",
+         "goal": "The question asks for the angle in degrees.",
+         "plan": "To go the other way, multiply by $\\frac{180}{\\pi}$.",
+         "steps": [
+          "The $\\pi$ cancels: $\\frac{3 \\cdot 180}{4} = 135$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "unit_circle",
+       "name": "Единичная окружность",
+       "en": "Unit circle",
+       "tex": "(x, y) = (\\cos\\theta,\\ \\sin\\theta)",
+       "examples": [
+        {
+         "q": "Find the point on the unit circle at $60^\\circ$.",
+         "use": "$(\\cos 60^\\circ,\\ \\sin 60^\\circ)$",
+         "answer": "$\\left(\\frac{1}{2},\\ \\frac{\\sqrt{3}}{2}\\right)$",
+         "goal": "The question asks for the point on the unit circle.",
+         "plan": "A point on the unit circle is $(\\cos\\theta, \\sin\\theta)$, so use the 60° values.",
+         "steps": [
+          "$\\cos 60^\\circ = \\frac{1}{2}$ and $\\sin 60^\\circ = \\frac{\\sqrt{3}}{2}$."
+         ]
+        },
+        {
+         "q": "Find the point on the unit circle at $180^\\circ$.",
+         "use": "$(\\cos 180^\\circ,\\ \\sin 180^\\circ)$",
+         "answer": "$(-1, 0)$",
+         "goal": "The question asks for the point on the unit circle.",
+         "plan": "$180^\\circ$ is halfway around, on the negative x-axis.",
+         "steps": [
+          "$\\cos 180^\\circ = -1$ and $\\sin 180^\\circ = 0$."
+         ]
+        }
+       ]
+      },
+      {
+       "id": "arc_radian",
+       "name": "Дуга в радианах",
+       "en": "Arc length in radians",
+       "tex": "s = r\\theta",
+       "examples": [
+        {
+         "q": "Find the arc length for $r = 4$ and $\\theta = \\frac{\\pi}{2}$.",
+         "use": "$s = 4 \\cdot \\frac{\\pi}{2}$",
+         "answer": "$2\\pi$",
+         "goal": "The question asks for the arc length.",
+         "plan": "The angle is in radians, so use $s = r\\theta$ directly.",
+         "steps": [
+          "Simplify: $\\frac{4\\pi}{2} = 2\\pi$."
+         ]
+        },
+        {
+         "q": "An arc of length 15 has radius 5. Find $\\theta$ in radians.",
+         "use": "$15 = 5\\theta$",
+         "answer": "$\\theta = 3$",
+         "goal": "The question asks for the angle in radians.",
+         "plan": "The arc length and radius are known, so solve for $\\theta$.",
+         "steps": [
+          "Divide both sides by 5: $\\theta = 3$."
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

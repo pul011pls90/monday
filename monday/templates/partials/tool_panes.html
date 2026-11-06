@@ -1,5 +1,6 @@
 {# Formula sheets (drawer on the right) and Desmos (pane on the left, resizable).
-   Expects: sheets (enabled ReferenceSheet list), calculator (bool).
+   Expects: sheets (ReferenceSheet list for this exam), sheet_place (which section this is), calculator (bool);
+   sheets_locked says the student's own sheets are off here on purpose. Each sheet can be switched on the spot.
    Pages mark the bar above the pane with data-calc-top, the footer with data-calc-bottom,
    and the content that moves right with class "calc-shift". #}
 <aside class="drawer" data-drawer="ref" hidden aria-label="{{ _('Формулы') }}">
@@ -7,27 +8,33 @@
   <div class="drawer__body">
     {% if sat_ref %}{% include "partials/sat_reference.html" %}{% if sheets %}<h2 class="sat-ref__mine">{{ _("Мои формулы") }}</h2>{% endif %}{% endif %}
     {% for sh in sheets %}
-      <section class="sheet-view">
-        <h3>{{ sh.title }}</h3>
+      <section class="sheet-view{{ ' is-off' if not sh.is_on(sheet_place) }}" data-sheet>
+        <div class="sheet-view__head"><h3>{{ sh.title }}</h3>
+          <label class="set-switch set-switch--sm"><input type="checkbox" data-sheet-place="{{ sheet_place }}" data-url="{{ url_for('student.formula_sheet_place', sheet_id=sh.id) }}" {{ 'checked' if sh.is_on(sheet_place) }}><span aria-hidden="true"></span><b class="sr-only">{{ _("Показывать здесь: %(title)s", title=sh.title) }}</b></label></div>
+        <div class="sheet-view__body">
         {% for branch, entries in sh.entries|branch_groups %}
           {% if branch %}<div class="sheet-view__branch">{{ branch }}</div>{% endif %}
           <div class="sheet-view__grid">
           {% for e in entries %}
             <div class="sheet-entry">
-              {% if e.image_path %}<img src="{{ url_for('uploaded_file', filename=e.image_path) }}" alt="" data-lightbox>{% endif %}
+              {% if e.image_path %}<img src="{{ e.image_path|sheet_image }}" alt="" data-lightbox>{% endif %}
               <div class="sheet-entry__topic">{{ e.topic }}</div>
               {% if e.formula %}<div class="sheet-entry__formula math">{{ e.formula|math_wrap }}</div>{% endif %}
             </div>
           {% endfor %}
           </div>
         {% endfor %}
+        </div>
       </section>
-    {% else %}{% if not sat_ref %}
-      <div class="empty"><h3>{{ _("Пока нет включённых листов") }}</h3><p>{{ _("Собери свои формулы на странице «Формулы» — они будут открываться здесь в любом тесте.") }}</p></div>{% endif %}
+    {% else %}{% if sheets_locked %}
+      <p class="small muted">{{ _("В тесте понедельника свои формулы выключены, чтобы рейтинг был честным.") }}</p>
+    {% elif not sat_ref %}
+      <div class="empty"><h3>{{ _("Пока нет листов для этого экзамена") }}</h3><p>{{ _("Собери свои формулы на странице «Формулы» — они будут открываться здесь.") }}</p></div>{% endif %}
     {% endfor %}
     <a class="small" href="{{ url_for('student.formulas') }}" target="_blank" rel="noopener" style="font-weight:700">{{ _("Открыть страницу «Формулы»") }} →</a>
   </div>
 </aside>
+<script defer src="{{ url_for('static', filename='js/sheet-places.js') }}"></script>
 {% if entry_rules %}
 <aside class="drawer drawer--left" data-drawer="entry" hidden aria-label="{{ _('Правильная запись ответа') }}">
   <div class="drawer__head"><h2>{{ _("Правильная запись ответа") }}</h2><button type="button" class="icon-btn icon-btn--sm" data-drawer-close aria-label="{{ _('Закрыть') }}">{{ ui.icon('x', 16) }}</button></div>

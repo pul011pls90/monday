@@ -16,7 +16,8 @@ from flask_login import current_user
 from .access import student_required
 from .constants import COLLECTION_EXAMS, EXAMS, FORMAT_FOR_EXAM, TEST_FORMATS, UNIVERSITY_EXAM
 from .extensions import db
-from .models import Attempt, AttemptAnswer, BankState, ContentNode, Question, ReferenceSheet, Work
+from .formulas import sheets_for
+from .models import Attempt, AttemptAnswer, BankState, ContentNode, Question, Work
 from .services import content_tree, display_answer, is_correct, student_pool
 from .content_i18n import localize
 from .taxonomy import exam_view, keyset
@@ -287,13 +288,11 @@ def play(attempt_id):
             state = "is-ok" if st.last_correct else "is-bad"
         grid.append({"n": k + 1, "state": state, "marked": bool(st and st.marked), "d": diff.get(qid) or 2})
     fmt = TEST_FORMATS.get(FORMAT_FOR_EXAM.get(exam, ""), TEST_FORMATS["plain"])
-    sheets = (ReferenceSheet.query.filter_by(user_id=current_user.id, enabled=True)
-              .order_by(ReferenceSheet.position, ReferenceSheet.id).all())
     state = states.get(question.id)
     return render_template("student/bank_play.html", att=att, i=i, n=len(plan), question=question,
                            item=localize(question.snapshot()), state=state, grid=grid, checked=len(checked_ids),
                            letters=_letters(exam), exam=exam, calculator=fmt["calculator"] or exam is None,
-                           sheets=sheets, seen_before=question.id in last)
+                           sheets=sheets_for(current_user, exam), sheet_place="bank", seen_before=question.id in last)
 
 
 # --------------------------------------------------------------------------- booklet view
@@ -403,7 +402,7 @@ def sheet(attempt_id):
         ranges.append(f"{idx[0] + 1}" if len(idx) == 1 else f"{idx[0] + 1}–{idx[-1] + 1}")
     return render_template("student/bank_sheet.html", att=att, exam=exam, pages=pages, p=p, page_state=page_state, ranges=ranges,
                            page=pages[p] if pages else {"rows": [], "compare": False}, done=done, n=len(plan),
-                           letters=_letters(exam), calculator=fmt["calculator"] or exam is None,
+                           letters=_letters(exam), calculator=fmt["calculator"] or exam is None, sheets=sheets_for(current_user, exam), sheet_place="bank",
                            checked=len({a.question_id for a in att.answers}),
                            has_number=any(it.get("answer_type") == "number" for row in (pages[p]["rows"] if pages else [])
                                           for _i, it in row))

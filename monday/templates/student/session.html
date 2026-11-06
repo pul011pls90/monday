@@ -13,11 +13,11 @@
 {% endfor %}
 {% set level_names = {'ladder': _('лестница'), 'easy': _('лёгкие'), 'medium': _('средние'), 'hard': _('сложные'), 'mix': _('вперемешку')} %}
 {% with close_url=url_for("student.sessions"), label=(mode.name ~ " · " ~ (cfg.minutes ~ " " ~ _("мин") if cfg.minutes else _("без лимита")) ~ " · " ~ level_names.get(cfg.level, '')) if cfg else (mode.name ~ " · ~" ~ mode.approx ~ " " ~ _("мин")), dot_color=None,
-        counter=_("Вопрос %(n)s из %(t)s", n=idx+1, t=total), timer_seconds=None, deadline=deadline %}
+        counter=_("Вопрос %(n)s из %(t)s", n=idx+1, t=total), timer_seconds=None, deadline=deadline, formulas_button=True %}
   {% include "partials/session_bar.html" %}
 {% endwith %}
 
-<main class="page" style="margin:0 auto;max-width:clamp(1040px, 72vw, 1440px)" data-ajax-region>
+<main class="page calc-shift" style="margin:0 auto;max-width:clamp(1040px, 72vw, 1440px)" data-ajax-region>
   {{ ui.flashes() }}
   <div class="chips">
     {% if question.skill %}<span class="tag tag--line">{{ question.skill.name }}</span>{% endif %}
@@ -99,4 +99,6 @@
     <button class="btn btn--ghost btn--sm" type="submit" name="action" value="finish">{{ _("Закончить сессию сейчас") }}</button></form>
   {% endif %}
 </main>
+{% with sat_ref=exam == 'SAT' %}{% include "partials/tool_panes.html" %}{% endwith %}
 {% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/test.js') }}"></script>{% endblock %}
