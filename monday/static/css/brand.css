@@ -3506,7 +3506,7 @@ button.ts__row:focus-visible { outline: 2px solid var(--pulse); outline-offset: 
 }
 
 /* the MONDAY wordmark sits in the middle of every top bar, not only in tests */
-.topbar__brand { z-index: 0; }
+.topbar__brand { z-index: 0; pointer-events: auto; text-decoration: none; cursor: pointer; }   /* a link home; tests use the session bar, where the same word is not one */
 .topbar > :not(.topbar__brand) { position: relative; z-index: 1; }
 @media (max-width: 900px) { .topbar__brand { display: none; } }
 
@@ -3687,13 +3687,12 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 
 /* ---------------------------------------------------------------- settings: header, tabs, one row per setting */
 .page--settings { max-width: calc(860px + 2 * clamp(16px, 3vw, 64px)); }
-.set-hero { display: flex; align-items: center; gap: 24px; padding: 28px 32px; border-radius: 22px; background: #0A0A0A; color: #FFFFFF; }
-[data-theme="dark"] .set-hero { background: var(--surface); border: var(--bw, 1px) solid var(--line); }
+.set-hero { display: flex; align-items: center; gap: 24px; padding: 28px 32px; border-radius: 22px; background: var(--surface); color: var(--text); border: var(--bw, 1px) solid var(--line); }
 .set-hero__photo { flex: none; }
 .set-hero__who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .set-hero__who h1 { font-size: 28px; color: inherit; margin: 0; }
-.set-hero__who span { color: rgba(255, 255, 255, .7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.set-hero__badge { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1.5px solid rgba(255, 255, 255, .3); font-weight: 700; font-size: 14px; }
+.set-hero__who span { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.set-hero__badge { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1.5px solid var(--line); font-weight: 700; font-size: 14px; }
 .set-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: var(--surface-2); align-self: flex-start; flex-wrap: wrap; }
 .set-tabs a { padding: 8px 14px; border-radius: 10px; font-weight: 600; font-size: 14px; color: var(--muted); text-decoration: none; }
 .set-tabs a:hover { color: var(--text); }
@@ -4029,13 +4028,13 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 /* liquid glass: blocks over the dotted background are see-through and blur what's behind them, so the dots turn into a soft
    glow and never fight the text. Blocks with dropdowns stay as they are: glass would trap a menu under the next block. */
 :root { --glass: color-mix(in srgb, var(--surface) 62%, transparent); --glass-soft: color-mix(in srgb, var(--surface) 38%, transparent); --glass-blur: blur(14px) saturate(1.5); }
-.page-sky ~ .app :is(.rv-screen, .work-card, .bank-topic, .bk-filter-box, .bk-stat, .mt-stage, .mt-next, .sp-index, .sp-head, .card:not(:has(details, select))) {
+.page-sky ~ .app :is(.rv-screen, .work-card, .bank-topic, .bk-filter-box, .bk-stat, .mt-stage, .mt-next, .sp-index, .sp-head, .set-hero, .card:not(:has(details, select))) {
   background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
 }
 .page-sky ~ .app .rv-explain { background: color-mix(in srgb, var(--accent-soft) 55%, transparent); }
 .page-sky ~ .app .rv-answers > div { background: var(--glass-soft); }
 @media (max-width: 760px), (prefers-reduced-transparency: reduce) {
-  .page-sky ~ .app :is(.rv-screen, .work-card, .bank-topic, .bk-filter-box, .bk-stat, .mt-stage, .mt-next, .sp-index, .sp-head, .card:not(:has(details, select))) {
+  .page-sky ~ .app :is(.rv-screen, .work-card, .bank-topic, .bk-filter-box, .bk-stat, .mt-stage, .mt-next, .sp-index, .sp-head, .set-hero, .card:not(:has(details, select))) {
     background: color-mix(in srgb, var(--surface) 92%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none;
   }
 }

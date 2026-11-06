@@ -162,3 +162,11 @@ def test_session_results_use_the_shared_review():
     assert 'class="rv-explain"' in body and 'class="rv-question"' in body and "sd-row" not in body
     assert body.index('class="rv-explain"') < body.index('class="rv-question"')
     assert "С подсказкой" in body and "sd-level--" in body and "sd-act is-main" not in body
+
+
+def test_top_logo_goes_home_on_pages_but_not_while_solving():
+    c, _email = new_student("logo")
+    assert re.search(r'<a class="session-bar__brand topbar__brand" href="/"', ok(c, "/bank/").data.decode())
+    r = c.post("/bank/start", data={"exam": "ORT"})
+    body = ok(c, r.location).data.decode()
+    assert "session-bar__brand" in body and not re.search(r'<a [^>]*session-bar__brand', body)

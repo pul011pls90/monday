@@ -1,4 +1,4 @@
-"""«Мои результаты» as a designed PDF: blue hero, summary tiles, then one block per sector
+"""«Мои результаты» as a designed PDF: a header like the home page, summary tiles, then one block per sector
 (an exam's tests, Monday tests, homework, sessions) with its mean and every result under it.
 
 Takes the rows student.py also writes to the CSV. Imported only when someone downloads
@@ -6,6 +6,7 @@ the PDF, so reportlab costs nothing on the 512 MB plan until then. The fonts are
 TTF builds of the app's own Onest and Unbounded (reportlab cannot read woff2).
 """
 import io
+import math
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -31,9 +32,14 @@ MUTED = HexColor("#5E5E5E")
 LINE = HexColor("#E4E4E1")
 ACCENT = HexColor("#1F4FE0")
 NAVY = HexColor("#0A1A5C")
-BRIGHT = HexColor("#4C86FF")
 SOFT = HexColor("#E8F1FB")
 TRACK = HexColor("#DCE5F5")
+LOGO = ("#7FA3F3", "#4275E9", "#2B60E5", "#2456D9", "#153893", "#020B29")   # the letters of the wordmark, as in brand.css
+
+# the sky of hero.js at the size of the PDF header
+SKY = HexColor("#2B60E5")
+SKY_PX, SKY_CELL, SKY_DRIFT = 3.5, 58, 7.3
+BAYER = [(v + .5) / 16 for v in (0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5)]
 
 PAGE_W, PAGE_H = A4
 MARGIN = 40
@@ -108,23 +114,69 @@ def _fit(c, text, font, size, width, smallest=9):
     return text
 
 
-def _dots(c, x, y, w, h):
-    """The app's halftone: dots swell towards the bottom right corner and vanish on the way left."""
-    step = 7
-    path = c.beginPath()
-    for i in range(int(w / step) + 1):
-        for j in range(int(h / step) + 1):
-            near = 1 - (((w - i * step) / w) ** 2 + ((j * step) / h) ** 2 * .35) ** .5 / .8
-            if near > .04:
-                path.circle(x + i * step, y + j * step, .35 + 1.75 * near)
-    c.setFillColor(white)
-    c.setFillAlpha(.3)
-    c.drawPath(path, stroke=0, fill=1)
+def _smooth(a, b, v):
+    t = min(max((v - a) / (b - a), 0), 1)
+    return t * t * (3 - 2 * t)
+
+
+def _hash(x, y):
+    v = math.sin(x * 127.1 + y * 311.7) * 43758.5453
+    return v - math.floor(v)
+
+
+def _noise(x, y):
+    xi, yi = math.floor(x), math.floor(y)
+    xf, yf = x - xi, y - yi
+    u, v = xf * xf * (3 - 2 * xf), yf * yf * (3 - 2 * yf)
+    a, b, c, d = _hash(xi, yi), _hash(xi + 1, yi), _hash(xi, yi + 1), _hash(xi + 1, yi + 1)
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
+
+
+def _clouds(x, y):
+    return _noise(x, y) * .55 + _noise(x * 2.1, y * 2.1) * .3 + _noise(x * 4.3, y * 4.3) * .15
+
+
+def _sky(c, w, h, clear):
+    """One still frame of the home page's sky (hero.js): pixel clouds and a thin grid. The clouds start after `clear`, right of the text."""
+    clouds, grain = c.beginPath(), c.beginPath()
+    for ix in range(int(w / SKY_PX) + 1):
+        for iy in range(int(h / SKY_PX) + 1):
+            x, y = ix * SKY_PX, iy * SKY_PX
+            quiet = _smooth(clear, clear + w * .16, x)
+            if not quiet:
+                continue
+            density = _smooth(.38, .78, _clouds(x * .012 + SKY_DRIFT, y * .024 - SKY_DRIFT * .3))
+            if density * quiet > BAYER[(iy & 3) * 4 + (ix & 3)]:
+                clouds.rect(x, y, SKY_PX - .8, SKY_PX - .8)
+            elif ix % 3 == 0 and iy % 3 == 0 and quiet > .6:
+                grain.rect(x + .7, y + .7, 1.4, 1.4)
+    c.setFillColor(SKY)
+    c.setFillAlpha(.1)
+    c.drawPath(grain, stroke=0, fill=1)
+    c.setFillAlpha(.4)
+    c.drawPath(clouds, stroke=0, fill=1)
     c.setFillAlpha(1)
+    c.setStrokeColor(SKY)
+    c.setStrokeAlpha(.14)
+    c.setLineWidth(.5)
+    for x in range(SKY_CELL, int(w), SKY_CELL):
+        c.line(x, 0, x, h)
+    for y in range(SKY_CELL, int(h), SKY_CELL):
+        c.line(0, y, w, y)
+    c.setStrokeAlpha(1)
+
+
+def _wordmark(c, x, y, size):
+    """MONDAY letter by letter in the colours of the logo at the top of the site."""
+    c.setFont(WORDMARK, size)
+    for letter, colour in zip("MONDAY", LOGO):
+        c.setFillColor(HexColor(colour))
+        c.drawString(x, y, letter)
+        x += pdfmetrics.stringWidth(letter, WORDMARK, size)
 
 
 class Hero(Flowable):
-    """Top of the first page: wordmark, title, who and when."""
+    """Top of the first page: wordmark, title, who and when, on the home page's sky."""
 
     def __init__(self, title, student, meta):
         super().__init__()
@@ -140,16 +192,19 @@ class Hero(Flowable):
         shape = c.beginPath()
         shape.roundRect(0, 0, w, h, 16)
         c.clipPath(shape, stroke=0, fill=0)
-        c.linearGradient(0, h, w, 0, (NAVY, ACCENT, BRIGHT), (0, .62, 1), extend=True)
-        _dots(c, w * .35, 0, w * .65, h)
-        c.restoreState()
-
         c.setFillColor(white)
-        c.setFont(WORDMARK, 13)
-        c.drawString(pad, h - pad - 11, "MONDAY")
+        c.rect(0, 0, w, h, stroke=0, fill=1)
+        _sky(c, w, h, max(w * .36, min(pdfmetrics.stringWidth(self.title, BOLD, 27), w * .7) + pad + 8))
+        c.restoreState()
+        c.setStrokeColor(LINE)
+        c.setLineWidth(1)
+        c.roundRect(0, 0, w, h, 16, stroke=1, fill=0)
+
+        _wordmark(c, pad, h - pad - 11, 13)
+        c.setFillColor(INK)
         c.drawString(pad, 66, _fit(c, self.title, BOLD, 27, w - 2 * pad, 16))
         c.drawString(pad, 42, _fit(c, self.student, SEMIBOLD, 13, w - 2 * pad))
-        c.setFillColor(HexColor("#D7E3FF"))
+        c.setFillColor(MUTED)
         c.drawString(pad, 24, _fit(c, self.meta, REGULAR, 10, w - 2 * pad))
 
 
