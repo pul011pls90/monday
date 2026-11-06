@@ -11,7 +11,7 @@ from .access import admin_required
 from .constants import EXAMS
 from .extensions import db
 from .models import (Attempt, ContentNode, Question, StudentProfile, StudentRecord, User, Work, utcnow)
-from .services import content_gaps, progress_summary
+from .services import content_gaps, progress_summary, temporary_password
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -203,6 +203,19 @@ def methodist(user_id):
     db.session.commit()
     flash(_("%(name)s теперь методист: проверяет вопросы ассистентов.", name=u.name) if u.is_methodist
           else _("%(name)s больше не методист.", name=u.name), "success")
+    return _back()
+
+
+@bp.route("/users/<int:user_id>/reset-password", methods=["POST"])
+@admin_required
+def reset_password(user_id):
+    u = db.session.get(User, user_id) or abort(404)
+    if u.is_admin:
+        flash(_("Пароль администратора меняется только в его настройках."), "error")
+        return _back()
+    raw = temporary_password(u)
+    db.session.commit()
+    flash(_("Временный пароль для %(name)s: %(password)s. Он показан один раз.", name=u.name, password=raw), "success")
     return _back()
 
 

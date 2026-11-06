@@ -8,6 +8,7 @@
 {% set theme = current_user.theme %}
 {% set days = PREFS.get('study_days') or [0, 1, 2, 3, 4, 5, 6] %}
 {% set exam = EXAMS[p.exam] if p.exam in EXAMS else None %}
+{% set second = PREFS.get('second_exam') if PREFS.get('second_exam') != p.exam else None %}
 
 {% macro row(icon, title, desc, cls='') -%}
 <section class="set-row {{ cls }}">
@@ -18,13 +19,14 @@
 {%- endmacro %}
 
 {# a value with «Изменить»; the form opens under it #}
-{% macro edit(field, tab, shown, label=_('Изменить')) -%}
+{% macro edit(field, tab, shown, label=_('Изменить'), auto=false) -%}
 <details class="set-edit">
   <summary><span class="set-edit__value">{{ shown }}</span><span class="btn btn--secondary btn--sm">{{ label }}</span></summary>
-  <form method="post" class="set-edit__form">
+  <form method="post" class="set-edit__form"{% if auto %} data-autosave{% endif %}>
     {{ ui.csrf() }}<input type="hidden" name="action" value="field"><input type="hidden" name="field" value="{{ field }}"><input type="hidden" name="tab" value="{{ tab }}">
     {{ caller() }}
-    <button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button>
+    {% if auto %}<noscript><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></noscript>
+    {% else %}<button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button>{% endif %}
   </form>
 </details>
 {%- endmacro %}
@@ -54,7 +56,15 @@
     {% call edit('name', 'profile', current_user.name) %}<input class="input" name="value" value="{{ current_user.name }}" minlength="2" required aria-label="{{ _('Имя и фамилия') }}">{% endcall %}
   {% endcall %}
   {% call row('inbox', _('Почта'), _('Почта для входа в аккаунт.')) %}
-    <div class="set-line"><span class="set-edit__value">{{ current_user.email }}</span></div>
+    <details class="set-edit">
+      <summary><span class="set-edit__value">{{ current_user.email }}</span><span class="btn btn--secondary btn--sm">{{ _("Изменить") }}</span></summary>
+      <form method="post" class="set-edit__form">
+        {{ ui.csrf() }}<input type="hidden" name="action" value="email">
+        <input class="input" type="email" name="email" autocomplete="email" required placeholder="{{ _('Новая почта') }}" aria-label="{{ _('Новая почта') }}">
+        <input class="input" type="password" name="password" autocomplete="current-password" required placeholder="{{ _('Текущий пароль') }}" aria-label="{{ _('Текущий пароль') }}">
+        <button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button>
+      </form>
+    </details>
   {% endcall %}
   {% call row('camera', _('Фото'), _('Нажми на фото в шапке, чтобы загрузить новое.')) %}
     <div class="set-line"><span class="set-edit__value">{{ _("Загружено") if current_user.avatar_path else _("Нет фото — показываются инициалы") }}</span>
@@ -68,6 +78,12 @@
     {% call edit('language', 'profile', LANGUAGES[current_user.language] if current_user.language in LANGUAGES else current_user.language) %}
       <select class="select" name="value" aria-label="{{ _('Язык') }}">{% for code, label in LANGUAGES.items() %}<option value="{{ code }}" {{ 'selected' if current_user.language == code }}>{{ label }}</option>{% endfor %}</select>
     {% endcall %}
+  {% endcall %}
+  {% call row('pin', _('Город или область'), '') %}
+    {% call edit('region', 'profile', p.region or _('Не указан')) %}<input class="input" name="value" value="{{ p.region or '' }}" aria-label="{{ _('Город или область') }}">{% endcall %}
+  {% endcall %}
+  {% call row('home', _('Школа'), '') %}
+    {% call edit('school', 'profile', p.school or _('Не указана')) %}<input class="input" name="value" value="{{ p.school or '' }}" aria-label="{{ _('Школа') }}">{% endcall %}
   {% endcall %}
   {% call row('users', _('Мои учителя'), _('Учитель видит твои результаты и выдаёт задания. Подключиться можно по его коду.')) %}
     {% for r in teachers %}
@@ -105,11 +121,14 @@
   {% call row('skills', _('Класс'), '') %}
     {% call edit('grade', 'exam', p.grade or _('Не указан')) %}<input class="input" name="value" value="{{ p.grade or '' }}" aria-label="{{ _('Класс') }}">{% endcall %}
   {% endcall %}
-  {% call row('pin', _('Город или область'), '') %}
-    {% call edit('region', 'exam', p.region or _('Не указан')) %}<input class="input" name="value" value="{{ p.region or '' }}" aria-label="{{ _('Город или область') }}">{% endcall %}
-  {% endcall %}
-  {% call row('home', _('Школа'), '') %}
-    {% call edit('school', 'exam', p.school or _('Не указана')) %}<input class="input" name="value" value="{{ p.school or '' }}" aria-label="{{ _('Школа') }}">{% endcall %}
+  {% call row('collections', _('Второй предмет'), _('Если готовишься к двум экзаменам. Переключатель появится вверху страницы, цель и дата у каждого свои.')) %}
+    {% call edit('second_exam', 'exam', (second|exam_label) if second else _('Не выбран'), auto=true) %}
+      <select class="select" name="value" aria-label="{{ _('Второй предмет') }}">
+        <option value="">{{ _("Не выбран") }}</option>
+        {% for code, e in EXAMS.items() if code != p.exam %}<option value="{{ code }}" {{ 'selected' if second == code }}>{{ e.label }} · {{ e.country }}</option>{% endfor %}
+        <option value="{{ UNIVERSITY_EXAM }}" {{ 'selected' if second == UNIVERSITY_EXAM }}>{{ UNIVERSITY_EXAM|exam_label }}</option>
+      </select>
+    {% endcall %}
   {% endcall %}
 </div>
 
@@ -168,6 +187,20 @@
       <div class="set-line"><span class="set-edit__value">{{ _("Включено") if PREFS.calc_open else _("Выключено") }}</span>
         <label class="set-switch"><input type="checkbox" name="calc_open" value="1" {{ 'checked' if PREFS.calc_open }}><span aria-hidden="true"></span><b class="sr-only">{{ _("Калькулятор") }}</b></label></div>
     {% endcall %}
+    {% call row('check', _('Показывать ответ'), _('Что выбрано заранее, когда собираешь свою сессию. Перед стартом можно поменять.')) %}
+      <div class="set-line"><span class="set-edit__value">{{ _("В конце") if PREFS.session_explain == 'end' else _("Сразу") }}</span>
+        <div class="settings-chips">
+          <label class="cb-chip"><input type="radio" name="session_explain" value="now" {{ 'checked' if PREFS.session_explain != 'end' }}><span>{{ _("Сразу") }}</span></label>
+          <label class="cb-chip"><input type="radio" name="session_explain" value="end" {{ 'checked' if PREFS.session_explain == 'end' }}><span>{{ _("В конце") }}</span></label>
+        </div></div>
+    {% endcall %}
+    {% call row('list', _('Вид вопросов в банке'), _('Как открывать вопросы: страницами с листом ответов или по одному.')) %}
+      <div class="set-line"><span class="set-edit__value">{{ _("По одному") if PREFS.bank_view == 'one' else _("Страницами") }}</span>
+        <div class="settings-chips">
+          <label class="cb-chip"><input type="radio" name="bank_view" value="sheet" {{ 'checked' if PREFS.bank_view != 'one' }}><span>{{ _("Страницами") }}</span></label>
+          <label class="cb-chip"><input type="radio" name="bank_view" value="one" {{ 'checked' if PREFS.bank_view == 'one' }}><span>{{ _("По одному") }}</span></label>
+        </div></div>
+    {% endcall %}
     <noscript><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></noscript>
   </form>
 </div>
@@ -185,6 +218,14 @@
       </form>
     </details>
   {% endcall %}
+  <form method="post" data-autosave class="set-stack">
+    {{ ui.csrf() }}<input type="hidden" name="action" value="privacy">
+    {% call row('users', _('Скрыть меня из рейтингов'), _('Другие ученики не увидят твоё имя и балл. Своё место ты видишь как обычно.')) %}
+      <div class="set-line"><span class="set-edit__value">{{ _("Скрыт") if PREFS.hide_rank else _("Виден всем") }}</span>
+        <label class="set-switch"><input type="checkbox" name="hide_rank" value="1" {{ 'checked' if PREFS.hide_rank }}><span aria-hidden="true"></span><b class="sr-only">{{ _("Скрыть меня из рейтингов") }}</b></label></div>
+    {% endcall %}
+    <noscript><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></noscript>
+  </form>
   {% call row('arrow-down', _('Мои результаты'), _('Все пройденные тесты и сессии одной таблицей: CSV для Excel или оформленный PDF.')) %}
     <div class="set-line"><span class="set-edit__value">CSV</span><a class="btn btn--secondary btn--sm" href="{{ url_for('student.profile_export') }}">{{ _("Скачать") }}</a></div>
     <div class="set-line"><span class="set-edit__value">PDF</span><a class="btn btn--secondary btn--sm" href="{{ url_for('student.profile_export_pdf') }}">{{ _("Скачать") }}</a></div>

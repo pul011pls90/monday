@@ -12,10 +12,10 @@ from sqlalchemy.orm import joinedload
 from .models import local_date, local_midnight_utc, local_now, today as local_today  # noqa: F401
 from .access import student_required
 from .auth import link_invite_code
-from .constants import EXAMS, LATIN_FORMATS, MISTAKE_REASONS, MODES, PACE, SESSION_LEVELS, SESSION_MINUTES, WORK_CATEGORIES
+from .constants import EXAMS, FORMAT_FOR_EXAM, LATIN_FORMATS, UNIVERSITY_EXAM, MISTAKE_REASONS, MODES, PACE, SESSION_LEVELS, SESSION_MINUTES, WORK_CATEGORIES
 from .extensions import db
 from .models import utcnow
-from .models import Assignment, Attempt, AttemptAnswer, ContentNode, Question, Skill, StudentProfile, StudentRecord, Work, WorkVersion
+from .models import Assignment, Attempt, AttemptAnswer, ContentNode, Question, Skill, StudentProfile, StudentRecord, User, Work, WorkVersion
 from .search import search
 from .services import (answer_item, build_custom_plan, ladder_next, countdown_label, current_module, current_monday_work, grade_version_attempt,
                        homework_state, is_correct, seconds_left, version_layout, latest_attempt, mistake_breakdown, monday_ranking, mondays_left,
@@ -112,7 +112,7 @@ def home():
     assignments = [a for a in student_assignments(current_user.id)
                    if homework_state(a, current_user.id) in ("new", "in_progress", "overdue")]
     last_monday = _previous_monday_work(p.exam)
-    rows = monday_ranking(last_monday, limit=None)
+    rows = monday_ranking(last_monday, limit=None, viewer_id=current_user.id)
     my_place, _a = user_rank(rows, current_user.id)
     left = mondays_left(p.exam_date)
     week_solved = (AttemptAnswer.query.join(Attempt)
@@ -477,7 +477,12 @@ def session_done(attempt_id):
     wrong = [a for a in answers if not a.is_correct]
     weak = Counter(a.skill_id for a in wrong if a.skill_id)
     next_skill = db.session.get(ContentNode, weak.most_common(1)[0][0]) if weak else None
-    return render_template("student/session_done.html", att=att, mode=MODES.get(att.mode), mode_key=att.mode, cfg=cfg,
+    # the same review as after a test: explanation on the left, the question on the right
+    rows = [{"item": a.question.snapshot(), "answer": a,
+             "note": _("С подсказкой · ½") if a.is_correct and a.hint_used else MISTAKE_REASONS.get(a.mistake_reason)}
+            for a in answers if a.question]
+    layout = {"format": FORMAT_FOR_EXAM.get(cfg.get("exam") or _exam()), "modules": [{"start": 0, "end": len(rows)}]}
+    return render_template("student/session_done.html", att=att, mode=MODES.get(att.mode), mode_key=att.mode, cfg=cfg, rows=rows, layout=layout,
                            answers=answers, levels=levels, hinted=hinted, score=score, wrong=wrong, next_skill=next_skill)
 
 
@@ -1276,8 +1281,8 @@ def monday():
     scope_value = {"region": p.region, "school": p.school}.get(scope)
     previous = _previous_monday_work(p.exam)
     upcoming = _upcoming_monday_work(p.exam)
-    all_rows = monday_ranking(previous, limit=None)
-    rows = monday_ranking(previous, scope if scope in ("region", "school") else None, scope_value, limit=None)
+    all_rows = monday_ranking(previous, limit=None, viewer_id=current_user.id)
+    rows = monday_ranking(previous, scope if scope in ("region", "school") else None, scope_value, limit=None, viewer_id=current_user.id)
     my_place, my_attempt = user_rank(rows, current_user.id)
     start = next_monday_test_start()
     # school duel: my school vs the strongest other school by average score
@@ -1295,10 +1300,10 @@ def monday():
         Attempt.work_version_id.in_([v.id for v in upcoming.versions])).filter(Attempt.finished_at.isnot(None)).first()
     # ranking for all three scopes at once (switching needs no reload), movement vs the week before
     older = next((w for w in prev_two if previous and w.week_start and previous.week_start and w.week_start < previous.week_start), None)
-    old_places = {a.user_id: i for i, a in enumerate(monday_ranking(older, limit=None), 1)} if older else {}
+    old_places = {a.user_id: i for i, a in enumerate(monday_ranking(older, limit=None, viewer_id=current_user.id), 1)} if older else {}
     ranks = {}
     for key, value in (("country", None), ("region", p.region), ("school", p.school)):
-        lst = all_rows if key == "country" else (monday_ranking(previous, key, value, limit=None) if value else [])
+        lst = all_rows if key == "country" else (monday_ranking(previous, key, value, limit=None, viewer_id=current_user.id) if value else [])
         ranks[key] = _rank_payload(lst, old_places, current_user.id)
     country_place, _ca = user_rank(all_rows, current_user.id)
     strip = [bool(x.is_correct) for x in sorted(my_attempt.answers, key=lambda x: x.index)] if my_attempt else []
@@ -1341,6 +1346,22 @@ def monday_start():
 # --------------------------------------------------------------------------- profile
 
 
+@bp.route("/exam/switch", methods=["POST"])
+@student_required
+def switch_exam():
+    """Swaps the main exam with the second one. Each keeps its own goal and date."""
+    p, other = current_user.profile, current_user.pref("second_exam")
+    if p.exam and other in EXAMS and other != p.exam:
+        plans = dict(current_user.pref("exam_plans") or {})
+        plans[p.exam] = {"goal": p.goal_score, "date": p.exam_date.isoformat() if p.exam_date else None}
+        saved = plans.get(other) or {}
+        current_user.set_prefs(second_exam=p.exam, exam_plans=plans)
+        p.exam, p.goal_score, p.exam_date = other, saved.get("goal"), _parse_date(saved.get("date"))
+        db.session.commit()
+        flash(_("Теперь готовимся к %(exam)s.", exam=EXAMS[other]["label"]), "success")
+    return redirect(url_for("student.home"))
+
+
 @bp.route("/profile", methods=["GET", "POST"])
 @student_required
 def profile():
@@ -1378,6 +1399,10 @@ def profile():
                 e = EXAMS[value]
                 if p.goal_score is not None and not e["min"] <= p.goal_score <= e["max"]:
                     p.goal_score = None  # the old goal belongs to another exam's scale
+                if current_user.pref("second_exam") == value:
+                    current_user.set_prefs(second_exam=None)
+            elif field == "second_exam" and (not value or value == UNIVERSITY_EXAM or (value in EXAMS and value != p.exam)):
+                current_user.set_prefs(second_exam=value or None)
             elif field == "exam_date":
                 p.exam_date = _parse_date(value) or p.exam_date
             elif field == "goal_score":
@@ -1416,10 +1441,30 @@ def profile():
             flash(_("Цель сохранена."), "success")
             return redirect(url_for("student.profile") + "#study")
         elif action == "practice":
-            current_user.set_prefs(bank_timer=bool(request.form.get("bank_timer")), calc_open=bool(request.form.get("calc_open")))
+            current_user.set_prefs(bank_timer=bool(request.form.get("bank_timer")), calc_open=bool(request.form.get("calc_open")),
+                                   bank_view="one" if request.form.get("bank_view") == "one" else "sheet",
+                                   session_explain="end" if request.form.get("session_explain") == "end" else "now")
             db.session.commit()
             flash(_("Настройки практики сохранены."), "success")
             return redirect(url_for("student.profile") + "#study")
+        elif action == "privacy":
+            current_user.set_prefs(hide_rank=bool(request.form.get("hide_rank")))
+            db.session.commit()
+            flash(_("Сохранено."), "success")
+            return redirect(url_for("student.profile") + "#security")
+        elif action == "email":
+            email = request.form.get("email", "").strip().lower()
+            if not current_user.check_password(request.form.get("password", "")):
+                flash(_("Пароль неверный — почта не изменена."), "error")
+            elif "@" not in email or "." not in email.split("@")[-1] or len(email) > 255:
+                flash(_("Укажите корректный email."), "error")
+            elif User.query.filter(User.email == email, User.id != current_user.id).first():
+                flash(_("Этот email уже зарегистрирован."), "error")
+            else:
+                current_user.email = email
+                db.session.commit()
+                flash(_("Почта изменена. Теперь входи с ней."), "success")
+            return redirect(url_for("student.profile") + "#profile")
         elif action == "delete":
             if not current_user.check_password(request.form.get("password", "")):
                 flash(_("Пароль неверный — аккаунт не удалён."), "error")

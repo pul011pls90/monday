@@ -1,6 +1,6 @@
-{# Step-by-step review of a finished collection test (like Bluebook): explanation on the left,
+{# Step-by-step review of a finished test or session (like Bluebook): explanation on the left,
    the question with the answers on the right, a question picker at the bottom.
-   Expects: att, rows, layout. Without JavaScript every question is shown one under another. #}
+   Expects: att, rows (item, answer, optional note for the tag), layout. Without JavaScript every question is shown one under another. #}
 {% set abc = 'ABCDEFGH' if layout.format in LATIN_FORMATS else None %}
 {% set mods = layout.modules %}
 <section class="section rv" data-rv>
@@ -16,7 +16,7 @@
       <aside class="rv-explain">
         <div class="row row--between">
           <span class="q-num">{% if mods|length > 1 %}{{ _("Модуль %(k)s", k=ns.k) }} · {% endif %}{{ _("Вопрос %(n)s", n=ns.num) }}</span>
-          <span class="tag {{ 'tag--ok' if state == 'ok' else ('tag--line' if state in ('skip', 'wait') else ('tag--soft' if state == 'part' else 'tag--bad')) }}">{{ _("Верно") if state == 'ok' else (_("Нет ответа") if state == 'skip' else (_("Ждёт оценки") if state == 'wait' else (_("%(p)s из %(m)s", p=a.points, m=item.weight) if state == 'part' else _("Ошибка")))) }}</span>
+          <span class="tag {{ 'tag--ok' if state == 'ok' else ('tag--line' if state in ('skip', 'wait') else ('tag--soft' if state == 'part' else 'tag--bad')) }}">{{ row.note or _("Верно") if state == 'ok' else (_("Нет ответа") if state == 'skip' else (_("Ждёт оценки") if state == 'wait' else (_("%(p)s из %(m)s", p=a.points, m=item.weight) if state == 'part' else (row.note or _("Ошибка"))))) }}</span>
         </div>
         <dl class="rv-answers">
           <div><dt>{{ _("Ваш ответ") }}</dt><dd>{% if written %}<span class="small">{{ _("фото решения") if a.photo_path else (_("на бумаге") if a.given else _("нет решения")) }}</span>{% elif not a.given %}<span class="muted">{{ _("нет ответа") }}</span>{% elif item.answer_type == 'number' %}<span class="num">{{ a.given }}</span>{% else %}{{ (abc or LETTERS)[a.given|int] }}{% endif %}</dd></div>

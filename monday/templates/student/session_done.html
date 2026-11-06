@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block title %}{{ _("Итоги сессии") }}{% endblock %}
-{% block page_class %}page--narrow{% endblock %}
+{% block page_class %}page--rv{% endblock %}
 {% block content %}
 {% set n = answers|length %}
 {% macro pts(v) %}{{ (v|round(1)|string).replace('.0', '').replace('.', ',') }}{% endmacro %}
@@ -21,8 +21,8 @@
 <section class="sd-levels" aria-label="{{ _('По сложности') }}">
   {# only the difficulties that were in this session; the score counts a hint as half, like the total #}
   {% for d, name in ((1, _("Лёгкие")), (2, _("Средние")), (3, _("Сложные"))) if levels.get(d) %}{% set lv = levels[d] %}
-  <div class="sd-level">
-    <span class="small muted">{{ name }}</span>
+  <div class="sd-level sd-level--{{ d }}">
+    <span class="small">{{ name }}</span>
     <b class="num">{{ pts(lv.ok) }}/{{ lv.n }}</b>
     <span class="sd-bar"><i style="width: {{ (100 * lv.ok / lv.n)|round|int }}%"></i></span>
   </div>
@@ -37,7 +37,7 @@
 </section>
 {% endif %}
 
-{# what to do next: one row of action tiles — the most useful one filled #}
+{# what to do next: one row of action tiles; repeating the mistakes is the filled one when there are any #}
 <section class="sd-next-actions" aria-labelledby="sd-next-h">
   <div class="sd-next-actions__head"><h2 id="sd-next-h" class="eyebrow">{{ _("Что дальше") }}</h2>
     <a href="{{ url_for('student.journal') }}">{{ ui.icon('journal', 16) }}{{ _("Журнал ошибок") }}</a></div>
@@ -51,33 +51,11 @@
       <button class="sd-act" type="submit">{{ ui.icon('skills', 22) }}<b>{{ next_skill.name }}</b><span>{{ _("Больше всего ошибок здесь · 5 мин") }}</span></button></form>
     {% endif %}
     <form method="post" action="{{ url_for('student.session_again', attempt_id=att.id) }}">{{ ui.csrf() }}
-      <button class="sd-act{{ ' is-main' if not wrong }}" type="submit">{{ ui.icon('play', 22) }}<b>{{ _("Ещё раз с теми же настройками") if mode_key == 'custom' else _("Ещё одна сессия") }}</b><span>{{ _("Новые вопросы") }}</span></button></form>
+      <button class="sd-act" type="submit">{{ ui.icon('play', 22) }}<b>{{ _("Ещё раз с теми же настройками") if mode_key == 'custom' else _("Ещё одна сессия") }}</b><span>{{ _("Новые вопросы") }}</span></button></form>
     <a class="sd-act" href="{{ url_for('student.sessions') }}#custom">{{ ui.icon('settings', 22) }}<b>{{ _("Своя сессия") }}</b><span>{{ _("Темы, время и сложность — на выбор") }}</span></a>
   </div>
 </section>
 
-<div class="list sd-list">
-  {% for a in answers %}
-    {% set item = a.question.snapshot()|loc if a.question else None %}
-    <details class="sd-row {{ 'is-bad' if not a.is_correct else ('is-half' if a.is_correct and a.hint_used else 'is-ok') }}"{% if cfg.explain == 'end' and not a.is_correct %} open{% endif %}>
-      <summary>
-        {% set half = a.is_correct and a.hint_used %}
-        <span class="stack-sm" style="gap:2px;min-width:0">
-          <span class="math sd-row__text">{{ item.text if item and item.text else _("Задача с рисунком") }}</span>
-          <span class="small muted">{{ a.skill.name if a.skill }} · {{ DIFFICULTIES[(a.question.difficulty if a.question else 2) or 2] }}</span>
-        </span>
-        <span class="sd-row__tag">{% if not a.is_correct %}<span class="tag tag--bad">{{ MISTAKE_REASONS.get(a.mistake_reason, _("в журнале")) }}</span>{% elif half %}<span class="tag tag--warn">{{ _("подсказка · ½") }}</span>{% else %}<span class="tag tag--ok">{{ _("верно") }}</span>{% endif %}</span>
-        <span class="bank-topic__chev">{{ ui.icon('chevron-down', 18) }}</span>
-      </summary>
-      {% if item %}
-      <div class="sd-row__body">
-        <div class="small"><b>{{ _("Твой ответ:") }}</b> {{ ui.answer_text(item, a.given) }} · <b>{{ _("Верный:") }}</b> <span class="math">{{ ui.correct_text(item) }}</span></div>
-        {% if item.explanation %}<div class="explain__text math">{{ item.explanation }}</div>{% endif %}
-        {{ ui.report_button(a.question_id) }}
-      </div>
-      {% endif %}
-    </details>
-  {% endfor %}
-</div>
+{% if rows %}{% include "student/_review_steps.html" %}{% endif %}
 {% endblock %}
 

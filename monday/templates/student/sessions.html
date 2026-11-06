@@ -120,8 +120,8 @@
       <fieldset class="cb__filter">
         <legend>{{ ui.icon('check', 20) }}{{ _("Проверка") }}</legend>
         <div class="cb__chips">
-          <label class="cb-chip"><input type="radio" name="explain" value="now" checked><span>{{ _("Сразу") }}</span></label>
-          <label class="cb-chip"><input type="radio" name="explain" value="end"><span>{{ _("В конце") }}</span></label>
+          <label class="cb-chip"><input type="radio" name="explain" value="now" {{ 'checked' if PREFS.session_explain != 'end' }}><span>{{ _("Сразу") }}</span></label>
+          <label class="cb-chip"><input type="radio" name="explain" value="end" {{ 'checked' if PREFS.session_explain == 'end' }}><span>{{ _("В конце") }}</span></label>
         </div>
       </fieldset>
     </div>

@@ -151,6 +151,7 @@
 
 <div class="row">
   {% if r.student_user_id %}
+  <form method="post" action="{{ url_for('teacher.student_reset_password', record_id=r.id) }}" data-confirm="{{ _('Сбросить пароль ученика? Старый перестанет работать.') }}">{{ ui.csrf() }}<button class="btn btn--secondary" type="submit">{{ _("Сбросить пароль") }}</button></form>
   <form method="post" action="{{ url_for('teacher.student_unlink', record_id=r.id) }}" data-confirm="{{ _('Отвязать аккаунт ученика? Строка в таблице останется.') }}">{{ ui.csrf() }}<button class="btn btn--secondary" type="submit">{{ _("Отвязать аккаунт") }}</button></form>
   {% endif %}
   <form method="post" action="{{ url_for('teacher.student_delete', record_id=r.id) }}" data-confirm="{{ _('Удалить ученика из таблицы? Выданные задания тоже удалятся.') }}">{{ ui.csrf() }}<button class="btn btn--danger" type="submit">{{ ui.icon('trash', 18) }}{{ _("Удалить из таблицы") }}</button></form>

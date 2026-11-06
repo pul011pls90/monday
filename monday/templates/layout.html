@@ -84,11 +84,17 @@
   {% endif %}
 
   <div class="main">
+    {# the second subject, one click away: an exam swaps with the main one, a course just opens #}
+    {% macro exam_switch() -%}
+    {% set other = PREFS.get('second_exam') %}
+    {% if other == UNIVERSITY_EXAM %}<a class="topbar__switch" href="{{ url_for('bank.index', exam=other) }}">{{ other|exam_label }}</a>
+    {% elif other and other != current_user.profile.exam %}<form method="post" action="{{ url_for('student.switch_exam') }}" class="topbar__switch-form">{{ ui.csrf() }}<button class="topbar__switch" type="submit" title="{{ _('Переключиться на %(exam)s', exam=other|exam_label) }}">{{ other|exam_label }}</button></form>{% endif %}
+    {%- endmacro %}
     {% block topbar scoped %}
     <header class="topbar">
       {% if extras %}<button class="icon-btn nav-burger{{ ' has-active' if ns.extra_active }}" type="button" data-nav-open aria-controls="nav-drawer" aria-expanded="false" aria-label="{{ _('Меню') }}">{{ ui.icon('menu') }}</button>{% endif %}
       <div class="session-bar__brand topbar__brand" aria-hidden="true">{% for ch in "MONDAY" %}<span>{{ ch }}</span>{% endfor %}</div>
-      <div class="topbar__context">{% block context %}{% if current_user.profile and current_user.profile.exam %}{{ current_user.profile.exam|exam_label }} · {{ _("математика") }}{% elif current_user.is_teacher %}{{ _("Кабинет учителя") }}{% elif current_user.is_assistant %}{{ _("Кабинет ассистента") }}{% endif %}{% endblock %}</div>
+      <div class="topbar__context">{% block context %}{% if current_user.profile and current_user.profile.exam %}{{ current_user.profile.exam|exam_label }} · {{ _("математика") }}{{ exam_switch() }}{% elif current_user.is_teacher %}{{ _("Кабинет учителя") }}{% elif current_user.is_assistant %}{{ _("Кабинет ассистента") }}{% endif %}{% endblock %}</div>
       <div class="topbar__tools">
         {% block topbar_extra %}{% endblock %}
         <form method="post" action="{{ url_for('auth.toggle_theme') }}" data-theme-toggle>

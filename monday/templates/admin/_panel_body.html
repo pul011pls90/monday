@@ -77,6 +77,13 @@
       <p class="small muted" style="margin-top:6px">{{ _("Методист проверяет вопросы ассистентов вместе с админом.") }}</p>
     </form>
     {% endif %}
+    {% if not u.is_admin %}
+    <form method="post" action="{{ url_for('admin.reset_password', user_id=u.id) }}" data-confirm="{{ _('Сбросить пароль? Старый перестанет работать.') }}">{{ ui.csrf() }}
+      <input type="hidden" name="next" value="{{ back }}">
+      <button class="btn btn--secondary">{{ _("Сбросить пароль") }}</button>
+      <p class="small muted" style="margin-top:6px">{{ _("Покажем временный пароль один раз, его нужно передать человеку.") }}</p>
+    </form>
+    {% endif %}
     <form method="post" action="{{ url_for('admin.block', user_id=u.id) }}">{{ ui.csrf() }}
       <input type="hidden" name="next" value="{{ back }}">
       {% if u.is_blocked %}<button class="btn btn--secondary" name="on" value="">{{ _("Разблокировать") }}</button>

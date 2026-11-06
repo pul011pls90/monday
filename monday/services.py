@@ -6,6 +6,7 @@ here so pages stay thin and the rules are in one place.
 import json
 import random
 import re
+import secrets
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
 from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal, InvalidOperation
@@ -771,8 +772,17 @@ def current_monday_work(exam):
             .order_by(Work.week_start.desc()).first())
 
 
-def monday_ranking(work, scope=None, value=None, limit=50):
-    """Best attempt per student on a Monday test, ranked by score then time."""
+def temporary_password(user):
+    """Replaces a forgotten password with a new one for a teacher or admin to pass on. The site sends no email yet.
+    Letters that look alike are left out, because the password is usually read out or retyped."""
+    raw = "".join(secrets.choice("abcdefghjkmnpqrstuvwxyz23456789") for _ in range(10))
+    user.set_password(raw)
+    return raw
+
+
+def monday_ranking(work, scope=None, value=None, limit=50, viewer_id=None):
+    """Best attempt per student on a Monday test, ranked by score then time.
+    Students who chose to hide are left out, except for themselves (viewer_id): they still see their own place."""
     if not work or not work.current_version:
         return []
     version_ids = [v.id for v in work.versions]
@@ -787,6 +797,8 @@ def monday_ranking(work, scope=None, value=None, limit=50):
     for a in best.values():
         p = a.user.profile
         if scope and value and (not p or getattr(p, scope) != value):
+            continue
+        if a.user.pref("hide_rank") and a.user_id != viewer_id:
             continue
         rows.append(a)
     rows.sort(key=lambda a: (-a.score, a.duration_sec or 0))

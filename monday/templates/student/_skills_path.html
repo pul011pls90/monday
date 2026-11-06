@@ -1,8 +1,8 @@
 {# Level path (the «Список» view of the skill map). #}
 {# Level path: each topic is a chapter, each skill a level on a winding road. The first level that is not
    mastered yet (and has questions) is the place to continue — it glows with «Старт». #}
-{% set xs = [10, 31, 55, 76, 88, 69, 44, 22, 8, 36, 63, 84, 58, 27] %}
-{% set row_h = 128 %}
+{% set xs = [12, 28, 46, 62, 74, 62, 46, 28] %}
+{% set row_h = 84 %}
 {% set ns = namespace(current=None) %}
 {% for t in topics %}{% for i in t["items"] %}{% if ns.current is none and i.state not in ('outside', 'mastered') and i.n %}{% set ns.current = i.skill.id %}{% endif %}{% endfor %}{% endfor %}
 <div class="sp-layout">
@@ -33,20 +33,23 @@
         <h2 id="ch-h-{{ t.node.id }}">{{ t.name }}</h2>
         <div class="sp-head__progress"><span class="sp-head__bar"><i style="width: {{ pct }}%"></i></span><span class="num">{{ t.mastered }} / {{ t.counted }}</span></div>
       </header>
-      <span class="sp-street" aria-hidden="true"><i>M{{ loop.index }}</i>{{ t.name }}</span>
       {# the road runs down the page while the levels sweep across it left↔right, so each step is a diagonal;
          the x stops are uneven so the road stays rough #}
       {% set h = levels|length * row_h + 40 %}
       <div class="sp-road" style="height: {{ h }}px">
         <svg class="sp-road__line" viewBox="0 0 100 {{ h }}" preserveAspectRatio="none" aria-hidden="true">
-          {% set ns2 = namespace(d='') %}
+          {# d: the whole road. done: its part up to the first skill not mastered yet, drawn over it in blue #}
+          {% set ns2 = namespace(d='', done='', lead=0, run=true) %}
+          {% for i in levels %}{% if ns2.run and i.state == 'mastered' %}{% set ns2.lead = ns2.lead + 1 %}{% else %}{% set ns2.run = false %}{% endif %}{% endfor %}
           {% for i in levels %}
             {% set x = xs[loop.index0 % xs|length] %}{% set y = loop.index0 * row_h + row_h / 2 %}
             {% if loop.first %}{% set ns2.d = 'M' ~ x ~ ',' ~ y %}
             {% else %}{% set px = xs[(loop.index0 - 1) % xs|length] %}{% set py = y - row_h %}
               {% set ns2.d = ns2.d ~ ' C' ~ px ~ ',' ~ (py + row_h * 0.45) ~ ' ' ~ x ~ ',' ~ (y - row_h * 0.45) ~ ' ' ~ x ~ ',' ~ y %}{% endif %}
+            {% if ns2.lead and loop.index0 == ns2.lead %}{% set ns2.done = ns2.d %}{% elif ns2.lead and loop.last %}{% set ns2.done = ns2.d %}{% endif %}
           {% endfor %}
           <path d="{{ ns2.d }}" vector-effect="non-scaling-stroke"/>
+          {% if ns2.done %}<path class="sp-road__done" d="{{ ns2.done }}" vector-effect="non-scaling-stroke"/>{% endif %}
         </svg>
         <ol class="sp-levels">
         {% for i in levels %}
@@ -56,11 +59,11 @@
             <form method="post" action="{{ url_for('student.start_session', mode='franklin') }}">
               {{ ui.csrf() }}<input type="hidden" name="skill_id" value="{{ i.skill.id }}"><input type="hidden" name="exam" value="{{ view }}">
               <button class="sp-dot" type="submit" {{ 'disabled' if not playable }} aria-label="{{ _('Тренировать: %(n)s', n=i.skill.name) }}" title="{{ _('Тренировать · 5 мин') }}">
-                {% if i.state == 'mastered' %}{{ ui.icon('check', 26) }}{% elif cur %}{{ ui.icon('play', 26) }}{% else %}<span class="num">{{ loop.index }}</span>{% endif %}
+                {% if i.state == 'mastered' %}{{ ui.icon('check', 20) }}{% elif cur %}{{ ui.icon('play', 20) }}{% else %}<span class="num">{{ loop.index }}</span>{% endif %}
               </button>
             </form>
-            {% if cur %}<span class="sp-start">{{ _("Старт") }}</span>{% endif %}
             <span class="sp-label">
+              {% if cur %}<span class="sp-start">{{ _("Старт") }}</span>{% endif %}
               <b>{{ i.skill.name }}</b>
               <small>{% if not playable %}{{ _("нет вопросов") }}{% elif i.state == 'mastered' %}{{ _("освоена") }}{% elif i.accuracy is not none %}{{ _("точность %(p)s%%", p=((i.accuracy or 0) * 100)|round|int) }}{% else %}{{ _("новая") }} · {{ i.n }} {{ i.n|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}{% endif %}</small>
             </span>

@@ -17,9 +17,9 @@ from .constants import EXAMS, MISTAKE_REASONS, WORK_CATEGORIES, WORK_KINDS
 from .extensions import db
 from .models import utcnow
 from .models import (INPUT_FORMATS, MATERIAL_TYPES, QUESTION_WORD_LIMIT, Assignment, Attempt, AttemptAnswer,
-                     ContentNode, Question, Report, Skill, StudentRecord, Work, new_invite_code)
+                     ContentNode, Question, Report, Skill, StudentRecord, User, Work, new_invite_code)
 from .services import (content_tree, homework_state, latest_attempt, mistake_breakdown, parse_number,
-                       progress_summary, publish_work, record_progress, skill_map, visible_nodes)
+                       progress_summary, publish_work, record_progress, skill_map, temporary_password, visible_nodes)
 
 bp = Blueprint("teacher", __name__, url_prefix="/teacher")
 
@@ -389,6 +389,20 @@ def student_new_code(record_id):
         r.invite_code = new_invite_code()
         db.session.commit()
         flash(_("Новый код: %(code)s. Старый больше не работает.", code=r.invite_code), "success")
+    return redirect(url_for("teacher.student_detail", record_id=r.id))
+
+
+@bp.route("/students/<int:record_id>/reset-password", methods=["POST"])
+@teacher_required
+def student_reset_password(record_id):
+    r = _own_record(record_id)
+    student = db.session.get(User, r.student_user_id) if r.student_user_id else None
+    if not student or student.role != "student":
+        abort(404)
+    raw = temporary_password(student)
+    db.session.commit()
+    flash(_("Временный пароль для %(name)s: %(password)s. Он показан один раз. Передайте его ученику, пусть сменит его в настройках.",
+            name=student.name, password=raw), "success")
     return redirect(url_for("teacher.student_detail", record_id=r.id))
 
 

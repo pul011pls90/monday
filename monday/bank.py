@@ -244,7 +244,7 @@ def start():
     att = Attempt(user=current_user, mode="bank", plan=plan, position=0, total=len(plan), draft={"exam": exam})
     db.session.add(att)
     db.session.commit()
-    if request.form.get("view") == "one":
+    if (request.form.get("view") or current_user.pref("bank_view")) == "one":
         return redirect(url_for("bank.play", attempt_id=att.id))
     return redirect(url_for("bank.sheet", attempt_id=att.id))
 
