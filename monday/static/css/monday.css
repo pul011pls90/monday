@@ -131,7 +131,10 @@ p { margin: 0; }
 .text-2 { color: var(--text-2); }
 .small { font-size: 13px; }
 .nowrap { white-space: nowrap; }
-.num { font-variant-numeric: tabular-nums; }
+/* numbers keep their natural width: equal-width digits leave a wide gap around this font's narrow 1 ("1 2"). Only a running
+   timer needs them, so its digits don't jitter */
+.num { font-variant-numeric: normal; }
+[data-qtimer] { font-variant-numeric: tabular-nums; }
 
 /* -------------------------------------------------------------------------- layout */
 
