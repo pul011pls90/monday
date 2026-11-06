@@ -91,7 +91,14 @@ def _view(user, exam, pool):
         groups = [g for g in groups if g["skills"]]
         if groups:
             view.append({**sec, "groups": groups})
+    if len(view) == 1:   # a course is one branch of the map: its subtopics are the useful tiles, not one tile for all of it
+        view = [_own_tile(g) for g in view[0]["groups"]]
     return _logarithms_apart(view)
+
+
+def _own_tile(group):
+    """A subtopic as a tile of its own. It keeps its key, so its rows and counts work like any other topic's."""
+    return {"key": group["key"], "name": group["name"], "en": "", "groups": [{**group, "key": None, "name": ""}]}
 
 
 def _logarithms_apart(view):
@@ -104,7 +111,7 @@ def _logarithms_apart(view):
         rest = [g for g in sec["groups"] if g not in logs]
         if rest:
             out.append({**sec, "groups": rest})
-        out += [{"key": g["key"], "name": g["name"], "en": "", "groups": [{**g, "key": None, "name": ""}]} for g in logs]
+        out += [_own_tile(g) for g in logs]
     return out
 
 

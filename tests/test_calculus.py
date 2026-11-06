@@ -50,7 +50,7 @@ def test_bank_option_shows_only_calculus_topics():
     page = ok(c, "/bank/?exam=CALC1").get_data(as_text=True)
     assert 'value="CALC1" checked' in page
     names = [t.split('class="bk-tile__name">')[1].split("<")[0] for t in page.split('class="bank-topic bk-tile')[1:]]
-    assert names == ["Calculus I"]
+    assert names == ["Пределы", "Непрерывность", "Производная"]
     assert "Теорема о промежуточном значении" in page
     r = c.post("/bank/start", data={"exam": "CALC1"})
     att_id = int(r.location.split("/bank/s/")[1].split("/")[0])
