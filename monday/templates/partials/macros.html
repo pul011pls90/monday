@@ -64,7 +64,7 @@
   <h3 class="work-card__title">{{ w.title }}</h3>
   <div class="author">{{ avatar(w.author, 'avatar--sm') }}{{ w.author.public_name }}</div>
   {% set topics = w|work_bullets %}
-  {% if topics %}<ul class="work-card__topics" aria-label="{{ _('Темы') }}">{% for t in topics %}<li>{{ t }}</li>{% endfor %}</ul>{% endif %}
+  {% if topics %}<p class="work-card__topics" title="{{ topics|join(', ') }}">{{ topics|join(', ') }}</p>{% endif %}
   <div class="work-card__meta">
     {% set n = v.question_count if v else 0 %}{% set lv = v.level if v else None %}
     <span class="meta-item work-card__count">{{ icon('list', 16) }}<span class="nw">{{ n }} {{ n|plural_ru(_("вопрос"), _("вопроса"), _("вопросов")) }}</span></span>

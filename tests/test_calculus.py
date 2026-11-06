@@ -81,4 +81,4 @@ def test_every_test_page_lists_its_topics():
     assert "Теорема о промежуточном значении" in ok(c, f"/works/{ivt}").get_data(as_text=True)
     assert "<b>Темы:</b>" in ok(c, f"/works/{ort}").get_data(as_text=True)
     cards = ok(c, "/collections?cat=thematic").get_data(as_text=True)
-    assert '<ul class="work-card__topics"' in cards and "<li>bisection steps</li>" in cards and "<li>fixed points and helper functions</li>" in cards
+    assert 'class="work-card__topics"' in cards and "bisection steps, fixed points and helper functions</p>" in cards
