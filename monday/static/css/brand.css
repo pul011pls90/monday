@@ -62,9 +62,12 @@ body:not(.auth-body) {
 [data-theme="dark"] .rail__item.is-active { background: var(--nav-active-bg); color: var(--nav-active-text); }
 .rail__logo {
   width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center;
-  background: var(--surface); color: #7FA3F3; border: 2px solid #7FA3F3; font-size: 19px;   /* the M of the wordmark */
+  --logo-ink: linear-gradient(90deg, #7FA3F3, #4275E9, #2B60E5, #2456D9, #153893, #020B29);   /* the wordmark's letters, left to right */
+  border: 2px solid transparent; font-size: 19px; color: transparent; -webkit-text-fill-color: transparent;
+  background: var(--logo-ink) text, linear-gradient(var(--surface), var(--surface)) padding-box, var(--logo-ink) border-box;
+  -webkit-background-clip: text, padding-box, border-box;
 }
-[data-theme="dark"] .rail__logo { color: #FFFFFF; border-color: #FFFFFF; }
+[data-theme="dark"] .rail__logo { color: #FFFFFF; -webkit-text-fill-color: #FFFFFF; border-color: #FFFFFF; background: var(--surface); -webkit-background-clip: border-box; }
 
 /* ---------------------------------------------------------------- cards */
 
