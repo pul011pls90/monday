@@ -646,6 +646,11 @@ def collections():
         works.sort(key=_olympiad_order)
     elif sort == "short":
         works.sort(key=lambda w: w.time_limit_min or 0)
+    elif sort in ("easy", "hard"):
+        # same difficulty keeps natural title order; tests without a level go last either way
+        works.sort(key=lambda w: _natural_key(w.title))
+        step = 1 if sort == "easy" else -1
+        works.sort(key=lambda w: (w.current_version.level is None, step * (w.current_version.level or 0)))
     elif sort == "popular":
         counts = defaultdict(int)
         for a in Attempt.query.filter(Attempt.mode == "collection").all():

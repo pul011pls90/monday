@@ -1,6 +1,7 @@
 """Calculus I: its topic map, tests and bank option stay apart from the school exams."""
 import json
 import os
+import re
 
 from monday.extensions import db
 from monday.models import Attempt, ContentNode, Question, Work
@@ -91,3 +92,11 @@ def test_collections_page_is_ready_for_live_search():
     found = ok(c, "/collections?q=производная").get_data(as_text=True)
     assert "Calculus I · Derivatives" in found  # a subtopic's name finds the tests inside it
     assert "AMO 2023" not in ok(c, "/collections?q=calculus").get_data(as_text=True)  # "без калькулятора" is not calculus
+
+
+def test_collections_sort_by_difficulty():
+    c = login(client(), "student@monday.kg", "student123")
+    levels = lambda page: [int(n) for n in re.findall(r'level-pill level-pill--(\d)', page.split('id="all-h"')[1])]
+    easy = levels(ok(c, "/collections?sort=easy").get_data(as_text=True))
+    hard = levels(ok(c, "/collections?sort=hard").get_data(as_text=True))
+    assert easy == sorted(easy) and hard == sorted(hard, reverse=True) and len(set(easy)) > 1
