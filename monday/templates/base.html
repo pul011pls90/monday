@@ -17,12 +17,14 @@
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
   {% block head %}{% endblock %}
 </head>
-<body class="{% block body_class %}{% endblock %}" data-confirm-ok="{{ _('Да') }}" data-confirm-cancel="{{ _('Отмена') }}">
+<body class="{% block body_class %}{% endblock %}" data-confirm-ok="{{ _('Да') }}" data-confirm-cancel="{{ _('Отмена') }}"
+      data-date-empty="{{ _('Выбрать дату') }}" data-date-today="{{ _('Сегодня') }}" data-date-clear="{{ _('Очистить') }}" data-date-prev="{{ _('Предыдущий месяц') }}" data-date-next="{{ _('Следующий месяц') }}">
   {% block body %}{% endblock %}
   <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="{{ _('Рисунок') }}"><img alt=""></div>
   <script defer src="{{ url_for('static', filename='vendor/katex/katex.min.js') }}"></script>
   <script defer src="{{ url_for('static', filename='vendor/katex/contrib/auto-render.min.js') }}"></script>
   <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='js/date-picker.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>
