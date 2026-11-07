@@ -707,11 +707,23 @@ def start_work(work_id):
     work = db.session.get(Work, work_id)
     if not work or work.status != "published" or work.kind != "collection":
         abort(404)
+    open_ones = _open_collection_attempts(work)
+    if open_ones and request.form.get("restart") != "1":   # one unfinished attempt at a time: carry on with it
+        return redirect(url_for("student.attempt_run", attempt_id=open_ones[0].id))
+    for old in open_ones:   # «Начать заново»: the unfinished attempt and its answers go, a new one starts with a full timer
+        db.session.delete(old)
     att = Attempt(user=current_user, mode="collection", work_version=work.current_version,
                   total=work.current_version.question_count)
     db.session.add(att)
     db.session.commit()
     return redirect(url_for("student.attempt_run", attempt_id=att.id))
+
+
+def _open_collection_attempts(work):
+    return (Attempt.query.filter(Attempt.user_id == current_user.id, Attempt.mode == "collection",
+                                 Attempt.finished_at.is_(None),
+                                 Attempt.work_version_id.in_([v.id for v in work.versions]))
+            .order_by(Attempt.started_at.desc()).all())
 
 
 @bp.route("/attempts/<int:attempt_id>", methods=["GET", "POST"])

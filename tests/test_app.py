@@ -1654,3 +1654,29 @@ def test_custom_session_builder_ladder_hint_retry():
     s.post("/sessions/presets", data={"action": "delete", "index": "0"})
     s.post("/goal", data={"minutes": "30", "next": "/home"})
     assert 'name="daily_goal" value="30" checked' in s.get("/profile").data.decode()
+
+
+def test_unfinished_collection_continue_or_restart():
+    from monday.models import Attempt, AttemptAnswer, Work
+    c = login(client(), "student@monday.kg", "student123")
+    with APP.app_context():
+        w = Work.query.filter_by(title="Геометрия: площади").first()
+        wid, n = w.id, w.current_version.question_count
+    run = c.post(f"/works/{wid}/start").headers["Location"]
+    att_id = int(run.rstrip("/").split("/")[-1])
+    with APP.app_context():
+        from monday.extensions import db
+        a = db.session.get(Attempt, att_id)
+        a.draft = {"q0": "1", "q1": ""}
+        db.session.commit()
+    ok(c, f"/works/{wid}", contains=["Продолжить", "Начать заново", f"отвечено 1 из {n}"])
+    assert c.post(f"/works/{wid}/start").headers["Location"] == run          # a second start carries on
+    fresh = c.post(f"/works/{wid}/start", data={"restart": "1"}).headers["Location"]
+    assert fresh != run
+    with APP.app_context():
+        from monday.extensions import db
+        assert db.session.get(Attempt, att_id) is None                      # the old answers are gone
+        assert not db.session.get(Attempt, int(fresh.split("/")[-1])).draft
+        mine = Attempt.query.filter_by(work_version_id=w.current_version.id).filter(Attempt.finished_at.is_(None))
+        assert mine.join(Attempt.user).filter_by(email="student@monday.kg").count() == 1
+    assert "Начать тест" not in ok(c, f"/works/{wid}").data.decode()

@@ -4161,3 +4161,9 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .set-switch--sm > span::after { left: 3px; top: 3px; width: 16px; height: 16px; }
 .set-switch--sm input:checked + span::after { transform: translateX(14px); }
 
+
+/* a collection with an unfinished attempt: carry on, or start again from zero */
+.work-resume { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+.work-resume form { margin: 0; display: grid; }
+.work-resume .btn { width: 100%; justify-content: center; }
+@media (max-width: 560px) { .work-resume { grid-template-columns: 1fr; } }

@@ -19,7 +19,17 @@
   <div class="card card--soft card--tight small">{{ _("Таймер запустится сразу. Ответы можно менять до конца. Когда время выйдет, тест сдастся автоматически.") }}</div>
   {% set open = attempts|rejectattr('finished_at')|first %}
   {% if open %}
-    <a class="btn btn--primary btn--lg" href="{{ url_for('student.attempt_run', attempt_id=open.id) }}">{{ _("Продолжить попытку") }}</a>
+    {% set ns = namespace(n=0) %}{% for key, val in (open.draft or {}).items() %}{% if key[:1] == 'q' and key[1:].isdigit() and val|string|trim %}{% set ns.n = ns.n + 1 %}{% endif %}{% endfor %}
+    {% set answered = ns.n %}
+    <p class="small text-2" style="margin:0">{{ _("Есть незаконченная попытка: отвечено %(n)s из %(total)s.", n=answered, total=v.question_count) }}</p>
+    <div class="work-resume">
+      <a class="btn btn--primary btn--lg" href="{{ url_for('student.attempt_run', attempt_id=open.id) }}">{{ _("Продолжить") }}</a>
+      <form method="post" action="{{ url_for('student.start_work', work_id=work.id) }}"
+            data-confirm="{{ _('Начать заново? Ответы этой попытки сотрутся, таймер начнётся сначала.') }}" data-confirm-ok="{{ _('Начать заново') }}">
+        {{ ui.csrf() }}<input type="hidden" name="restart" value="1">
+        <button class="btn btn--secondary btn--lg" type="submit">{{ _("Начать заново") }}</button>
+      </form>
+    </div>
   {% else %}
     <form method="post" action="{{ url_for('student.start_work', work_id=work.id) }}">{{ ui.csrf() }}<button class="btn btn--primary btn--lg" type="submit">{{ _("Начать тест") }}</button></form>
   {% endif %}
