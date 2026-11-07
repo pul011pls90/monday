@@ -93,7 +93,9 @@ def test_sat_pack_is_imported_with_two_35_minute_modules():
             assert v.layout["modules"] == [{"start": 0, "end": 22, "minutes": 35}, {"start": 22, "end": 44, "minutes": 35}]
             assert all(item["skill_id"] for item in v.items)
         pack_q = Question.query.filter(Question.image_path.like("packs/%")).all()
-        assert pack_q and all(os.path.exists(os.path.join(APP.config["UPLOAD_FOLDER"], q.image_path)) for q in pack_q)
+        from monday.packs import PACK_DIR
+        assert pack_q and all(os.path.exists(os.path.join(PACK_DIR, q.image_path.split("/")[1], "figures", q.image_path.split("/")[2]))
+                              for q in pack_q)
 
 
 def test_sat_entry_rules_and_sheet_in_sat_collections():

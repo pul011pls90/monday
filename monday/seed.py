@@ -10,12 +10,10 @@ All maths questions are generated with their answers computed, so the
 answer keys are correct.
 """
 import math
-import os
 import random
 from datetime import date, datetime, timedelta
 from fractions import Fraction
 
-from flask import current_app
 
 from .extensions import db
 from .models import today as local_today  # noqa: E402
@@ -344,7 +342,7 @@ def gen_questions(rng):
 
 
 def _write_figure(spec, filename):
-    """Draw a simple geometry figure as SVG into the uploads folder."""
+    """Draw a simple geometry figure as SVG and store it with the uploads."""
     kind = spec[0]
     if kind == "right":
         _, a, b = spec
@@ -368,8 +366,12 @@ def _write_figure(spec, filename):
         )
     svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" width="960" height="720" '
            f'font-family="Arial, sans-serif"><rect width="320" height="240" fill="#FFFFFF"/>{body}</svg>')
-    with open(os.path.join(current_app.config["UPLOAD_FOLDER"], filename), "w") as f:
-        f.write(svg)
+    from flask import current_app
+    from .storage import save
+    try:
+        save(filename, svg.encode(), "image/svg+xml")
+    except OSError as e:   # storage not reachable: the demo starts anyway, these few figures are just missing
+        current_app.logger.warning("demo figure %s not stored: %s", filename, e)
 
 
 def _wrong_answer(item, rng):

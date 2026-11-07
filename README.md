@@ -139,7 +139,7 @@ permanent id, so new branches can be attached at any time without breaking resul
   The forecast maps skill accuracy onto the exam's score scale (`EXAMS` in constants.py).
 - **Monday test.** Opens Mondays 19:00–24:00. For the demo it is open every day;
   set `MONDAY_TEST_ALWAYS_OPEN=0` to enforce the window.
-- **Images.** Teachers upload PNG/JPG/WEBP up to 8 MB; files go to `instance/uploads/`.
+- **Images.** Teachers upload PNG/JPG/WEBP up to 8 MB; files go to `instance/uploads/`, or to a private Supabase Storage bucket when `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` are set (see «Supabase» below).
   On a phone turned sideways, the picture sits left and the answers right.
 
 ## Translations
@@ -190,6 +190,31 @@ Checked before release: the whole test suite runs on PostgreSQL
 Speed: static files are cached by browsers for a year (their URLs carry a version), pages are compressed
 (a 100 KB page travels as ~6 KB), menu links are fetched when the pointer rests on them, and uploaded photos
 are shrunk to ~200 KB (iPhone HEIC included).
+
+## Supabase (database and photos)
+
+Monday can keep its data in a Supabase Postgres database and its uploads (solution photos, avatars, question
+figures, formula-sheet pictures) in a private Supabase Storage bucket. The app itself doesn't change; Render only
+gets three settings. Pack figures stay in the repository and need no storage.
+
+1. supabase.com → **New project**, region **Frankfurt (eu-central-1)**, a strong database password.
+2. **Connect** → **Session pooler** → copy the URI (it ends in `pooler.supabase.com:5432/postgres`; put the
+   password in it). Render's servers can't reach Supabase's direct address, only the pooler.
+3. **Project Settings → API**: copy the project URL and the **service_role** key (secret: never in the repository
+   or the browser).
+4. Optional, if there is data to keep: copy it while nobody is using the site
+   (`venv/bin/python tools/move_to_supabase.py --from "<old DATABASE_URL>" --to "<pooler URI>"`; it prints row counts
+   for both sides and refuses a database that already has data). Files from an uploads folder:
+   `--uploads <folder>` with `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` set.
+5. Render → the service → **Environment**: `DATABASE_URL` = the pooler URI, `SUPABASE_URL` = the project URL,
+   `SUPABASE_SERVICE_KEY` = the service_role key. On the free plan also set `SEED_DEMO=0`, `ADMIN_EMAIL` and
+   `ADMIN_PASSWORD` if the database should start without demo accounts. Save: Render redeploys.
+
+On start-up the app creates the tables (an empty database), the private bucket `uploads` (`SUPABASE_BUCKET` changes
+the name) and switches on row level security for every table, so Supabase's own web API can't read them; the app
+connects as the tables' owner and isn't affected. Photos open only through `/uploads/<name>`, which checks the sign-in
+and then sends the browser to a link that works for two hours. Free Supabase projects pause after a week without
+any visits; the weekly Monday test usually keeps them awake, the Pro plan never pauses.
 
 ## Not built yet (space left for it)
 

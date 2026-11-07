@@ -4,7 +4,7 @@ import sys
 from datetime import date, datetime
 
 import click
-from flask import Flask, g, redirect, request, send_from_directory, session, url_for
+from flask import Flask, abort, g, redirect, request, send_from_directory, session, url_for
 from flask_babel import format_date, format_datetime
 from flask_babel import gettext as _
 from flask_login import current_user, login_required
@@ -116,6 +116,17 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     @app.route("/uploads/<path:filename>")
     @login_required
     def uploaded_file(filename):
+        """Pack figures come from the repository; everything else from the uploads folder or Supabase Storage."""
+        from . import storage
+        if filename.startswith("packs/") and filename.count("/") == 2:
+            _, pack, name = filename.split("/")
+            from .packs import PACK_DIR
+            return send_from_directory(os.path.join(PACK_DIR, pack, "figures"), name)
+        if storage.using_supabase():
+            url = storage.signed_url(filename)
+            if not url:
+                abort(404)
+            return redirect(url)
         return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
     with app.app_context():
@@ -123,6 +134,9 @@ def create_app(config_object=Config, *, seed_if_empty=True):
             return app
         db.create_all()
         _check_schema()
+        _lock_supabase_api()
+        from .storage import ensure_bucket
+        ensure_bucket()
         if seed_if_empty and not User.query.first():
             if app.config.get("SEED_DEMO", True):
                 from .seed import seed_demo
@@ -140,6 +154,18 @@ def create_app(config_object=Config, *, seed_if_empty=True):
             refresh_demo_mondays()  # demo Monday tests + demo students' results follow the calendar
 
     return app
+
+
+def _lock_supabase_api():
+    """Supabase also publishes the tables through its own web API (PostgREST). Monday never uses it, so row level
+    security is switched on with no rules: the API sees nothing, while the app (the tables' owner) works as before."""
+    url = str(db.engine.url)
+    if db.engine.dialect.name != "postgresql" or "supabase" not in url:
+        return
+    from sqlalchemy import text
+    with db.engine.begin() as conn:
+        for (name,) in conn.execute(text("SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND NOT rowsecurity")):
+            conn.execute(text(f'ALTER TABLE public."{name}" ENABLE ROW LEVEL SECURITY'))
 
 
 def _check_schema():
@@ -410,5 +436,5 @@ def _register_speed(app):
             resp.cache_control.max_age = 604800
         elif request.endpoint == "uploaded_file":
             resp.cache_control.private = True
-            resp.cache_control.max_age = 86400
+            resp.cache_control.max_age = 3600 if resp.status_code in (301, 302) else 86400   # signed links last 2 h
         return resp

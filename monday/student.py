@@ -872,7 +872,6 @@ ALLOWED_PHOTO = {"png", "jpg", "jpeg", "webp", "heic"}
 @student_required
 def attempt_photo(attempt_id):
     """Photo of a written solution (part 2 of ЕГЭ etc.), attached while the test is running."""
-    import os
     import secrets as _secrets
     att = _own_attempt(attempt_id)
     if att.finished_at or att.mode in MODES:
@@ -886,8 +885,6 @@ def attempt_photo(attempt_id):
     ext = (f.filename.rsplit(".", 1)[-1].lower() if f and "." in f.filename else "")
     if not f or ext not in ALLOWED_PHOTO:
         return jsonify(ok=False, reason="type", message=_("Нужна фотография: JPG, PNG, WEBP или HEIC.")), 400
-    folder = os.path.join(current_app.config["UPLOAD_FOLDER"], "solutions")
-    os.makedirs(folder, exist_ok=True)
     from .images import store_image
     name = store_image(f, f"solutions/a{att.id}_{idx}_{_secrets.token_hex(6)}", kind="photo")
     draft = dict(att.draft or {})

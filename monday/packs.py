@@ -13,12 +13,11 @@ Each collection lists question ids in order plus its test format (SAT: two 22-qu
 A pack with "bank": false (olympiads) keeps its questions as drafts: its tests are published, but the questions never
 reach exam practice, the daily question or the teachers' bank. Students find them in the bank under «Олимпиада».
 
-A pack is imported once (AppMeta remembers it). Figures are copied into the uploads folder, so they come back
-whenever the database is rebuilt (e.g. on a fresh Render instance).
+A pack is imported once (AppMeta remembers it). Its figures stay in the repository: /uploads/packs/<pack>/<file>
+is served from monday/data/packs/<pack>/figures, so they need no upload storage.
 """
 import json
 import os
-import shutil
 
 from flask import current_app
 
@@ -41,18 +40,6 @@ def _meta_key(pack_id):
 
 def is_imported(pack_id):
     return db.session.get(AppMeta, _meta_key(pack_id)) is not None
-
-
-def _copy_figures(pack_id):
-    src = os.path.join(PACK_DIR, pack_id, "figures")
-    if not os.path.isdir(src):
-        return
-    dst = os.path.join(current_app.config["UPLOAD_FOLDER"], "packs", pack_id)
-    os.makedirs(dst, exist_ok=True)
-    for name in os.listdir(src):
-        target = os.path.join(dst, name)
-        if not os.path.exists(target):
-            shutil.copyfile(os.path.join(src, name), target)
 
 
 def _foreign_questions(ids, own_pack, publish, author):
@@ -80,7 +67,6 @@ def _foreign_questions(ids, own_pack, publish, author):
 
 def import_pack(pack_id, publish=True, author=None):
     """Create the pack's questions and collections. Returns (questions, works) created; (0, 0) if already there."""
-    _copy_figures(pack_id)
     if is_imported(pack_id):
         return 0, 0
     with open(os.path.join(PACK_DIR, pack_id + ".json"), encoding="utf-8") as f:
@@ -133,7 +119,6 @@ def sync_pack(pack_id, publish=True):
     from .services import publish_work
     if not is_imported(pack_id):
         return import_pack(pack_id, publish=publish)
-    _copy_figures(pack_id)
     with open(os.path.join(PACK_DIR, pack_id + ".json"), encoding="utf-8") as f:
         pack = json.load(f)
     author = User.query.filter_by(role="admin").order_by(User.id).first()

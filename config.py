@@ -30,15 +30,34 @@ def _database_url():
     return url
 
 
+def _engine_options(url):
+    """Postgres on a small plan: a few pooled connections, checked before use (the server may drop idle ones).
+    Supabase's pooler (Supavisor, *.pooler.supabase.com) needs SSL, and in transaction mode (port 6543) it can't
+    keep prepared statements, so psycopg is told not to make them; harmless in session mode (port 5432)."""
+    if url.startswith("sqlite"):
+        return {}
+    opts = {"pool_pre_ping": True, "pool_recycle": 280}
+    if "supabase.co" in url or "supabase.com" in url:
+        opts.update(pool_size=3, max_overflow=4, connect_args={"prepare_threshold": None,
+                                                               **({} if "sslmode=" in url else {"sslmode": "require"})})
+    return opts
+
+
 class Config:
     SECRET_KEY = _secret_key()
 
     # SQLite for local development. For production set DATABASE_URL,
-    # e.g. postgresql://user:pass@host:5432/monday (Supabase works too).
+    # e.g. postgresql://user:pass@host:5432/monday, or Supabase's pooler string (Connect → Session pooler).
     SQLALCHEMY_DATABASE_URI = _database_url()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # Postgres on a small plan: a few pooled connections, checked before use (the server may drop idle ones)
-    SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True, "pool_recycle": 280} if not SQLALCHEMY_DATABASE_URI.startswith("sqlite") else {}
+    SQLALCHEMY_ENGINE_OPTIONS = _engine_options(SQLALCHEMY_DATABASE_URI)
+
+    # Supabase Storage for uploads (photos, figures, avatars). Without these two the uploads folder below is used.
+    # The service key stays on the server only; the bucket is private and created at start-up if missing.
+    SUPABASE_URL = os.environ.get("SUPABASE_URL", "")              # https://<project>.supabase.co
+    SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
+    SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "uploads")
 
     # Uploaded photos and figures. On Render this points at the persistent disk (e.g. /var/data/uploads).
     UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER") or os.path.join(INSTANCE_DIR, "uploads")
