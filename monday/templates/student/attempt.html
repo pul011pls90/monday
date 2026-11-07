@@ -25,7 +25,7 @@
     {% if att.mode == 'homework' %}<span class="tag tag--soft">{{ _("Домашнее задание") }}</span>{% elif att.mode == 'monday' %}<span class="tag">{{ _("Тест понедельника") }}</span>{% endif %}
     <span class="row small test-tools__status" style="gap:12px">
       <span class="test-tools__answered" style="font-weight:700"><span class="btn-label">{{ _("Отвечено:") }} </span>{{ ui.icon('check', 14) }}<span data-answered class="num">0 / {{ mod.end - mod.start }}</span></span>
-      <span class="save-state muted" data-save-state data-saving="{{ _('Сохраняем…') }}" data-saved="{{ _('Ответы сохранены') }}" data-failed="{{ _('Нет связи — ответы сохранятся при сдаче') }}" aria-live="polite"></span>
+      <span class="save-state muted" data-save-state data-saving="{{ _('Сохраняем…') }}" data-saved="{{ _('Ответы сохранены') }}" data-failed="{{ _('Нет связи. Ответы сохранятся, когда сдашь работу') }}" aria-live="polite"></span>
     </span>
   </div>
   <div class="test-tools__center">
@@ -167,7 +167,7 @@
     <div class="ort-submit">
       <button class="btn btn--primary btn--lg" type="submit">{{ _("Сдать работу") }}</button>
       <p class="small submit-hint" data-submit-hint hidden></p>
-      <p class="text-2 small">{{ _("Ответы сохраняются сами. После сдачи изменить их нельзя.") }}{% if ort_once %}<br>{{ _("Как на бланке ОРТ: ответ можно исправить только один раз — исправленный ответ отмечается квадратом.") }}{% endif %}</p>
+      <p class="text-2 small">{{ _("Ответы сохраняются сами. После сдачи изменить их нельзя.") }}{% if ort_once %}<br>{{ _("Как на бланке ОРТ: ответ можно исправить один раз. Исправленный ответ отмечается квадратом.") }}{% endif %}</p>
     </div>
     </aside>
     </div>
@@ -282,7 +282,7 @@
           {{ ui.question_body(item, 'q' ~ idx, selected=draft.get('q' ~ idx), letters=abc, photo=draft.get('p' ~ idx), weight_tag=False) }}
           {% if entry_rules and item.answer_type in ('number', 'written') %}
             <div class="entry-help">
-              {% if entry_rules == 'sat' %}<span class="entry-preview small" data-entry-preview hidden>{{ _("Ваш ответ:") }} <span class="math" data-entry-math></span></span>{% endif %}
+              {% if entry_rules == 'sat' %}<span class="entry-preview small" data-entry-preview hidden>{{ _("Твой ответ:") }} <span class="math" data-entry-math></span></span>{% endif %}
               <button type="button" class="link-btn small" data-drawer-open="entry">{{ ui.icon('info', 14) }} {{ _("Правильная запись ответа") }}</button>
             </div>
           {% endif %}

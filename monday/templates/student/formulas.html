@@ -103,7 +103,7 @@
             </div>
             <input class="input input--mono" name="formula" placeholder="S = \frac{a+b}{2} \cdot h" autocomplete="off" data-math-input>
             <div class="formula-row__preview math" data-math-preview aria-live="polite"></div></div>
-          <div class="field"><label>{{ _("Картинка — необязательно") }}</label><input class="input input--file" type="file" name="image" accept="image/png,image/jpeg,image/webp"></div>
+          <div class="field"><label>{{ _("Картинка (необязательно)") }}</label><input class="input input--file" type="file" name="image" accept="image/png,image/jpeg,image/webp"></div>
           <button type="button" class="icon-btn icon-btn--sm formula-row__del" data-row-del aria-label="{{ _('Убрать строку') }}" hidden>{{ ui.icon('x', 12) }}</button>
         </div>
       </div>
@@ -116,7 +116,7 @@
   </details>
 </section>
 {% else %}
-<div class="empty"><h3>{{ _("Ещё нет ни одного листа") }}</h3><p>{{ _("Создай лист — например, «Тригонометрия» или «SAT формулы» — и собирай туда то, что легко забыть.") }}</p></div>
+<div class="empty"><h3>{{ _("Ещё нет ни одного листа") }}</h3><p>{{ _("Создай лист, например «Тригонометрия», и записывай туда формулы, которые забываешь.") }}</p></div>
 {% endfor %}
 {% endif %}
 {% endblock %}

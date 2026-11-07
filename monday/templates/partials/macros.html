@@ -97,7 +97,7 @@
 {% if item.answer_type == 'written' %}
   {% if not reveal %}
   <div class="written-box" data-written="{{ name }}">
-    <p class="small text-2">{{ _("Решите на бумаге с полным обоснованием. Затем сфотографируйте решение и прикрепите его — или отметьте, что решение записано. Баллы ставятся после сдачи: сначала вы сами по критериям, потом может поправить учитель.") }}</p>
+    <p class="small text-2">{{ _("Реши на бумаге с полным обоснованием. Сфотографируй решение и прикрепи его или отметь, что решение записано. После сдачи ты сам ставишь баллы по критериям, учитель может их поправить.") }}</p>
     <div class="row" style="gap:12px;flex-wrap:wrap;align-items:center">
       <label class="btn btn--secondary btn--sm file-btn">{{ icon('camera', 16) }}<span>{{ _("Прикрепить фото решения") }}</span>
         <input class="sr-only" type="file" accept="image/*" capture="environment" data-photo-input {{ 'disabled' if disabled }}></label>
@@ -110,7 +110,7 @@
   {% endif %}
 {% elif item.answer_type == 'number' %}
   <div class="field answer-input">
-    <label for="{{ name }}">{{ 'Your answer' if item.text and not item.text|has_cyrillic else _("Ваш ответ") }}</label>
+    <label for="{{ name }}">{{ 'Your answer' if item.text and not item.text|has_cyrillic else _("Твой ответ") }}</label>
     <input class="input input--mono" id="{{ name }}" name="{{ name }}" inputmode="text" autocomplete="off" spellcheck="false"
            value="{{ selected or '' }}" {{ 'disabled' if disabled }}>
     {% if not reveal %}{{ input_hint(item, rounding_only=rounding_only) }}{% endif %}
@@ -131,7 +131,7 @@
             <span class="option__letter">{{ L[loop.index0] }}</span>
             <span class="option__text math">{{ opt }}</span>
             {% if state == 'is-correct' %}<span class="option__note">{{ _("Верно") }}</span>
-            {% elif state == 'is-wrong' %}<span class="option__note">{{ _("Ваш ответ") }}</span>{% endif %}
+            {% elif state == 'is-wrong' %}<span class="option__note">{{ _("Твой ответ") }}</span>{% endif %}
           </span>
         </label>
         {% if not disabled %}<button type="button" class="option__strike" data-strike aria-pressed="false" aria-label="{{ _('Зачеркнуть вариант %(l)s', l=L[loop.index0]) }}"><span>{{ L[loop.index0] }}</span></button>{% endif %}
@@ -212,7 +212,7 @@
   <div class="q-figure__frame">
     <img src="{{ url_for('uploaded_file', filename=item.image_path) }}" alt="{{ _('Рисунок к задаче') }}" data-lightbox>
   </div>
-  <figcaption class="small muted">{{ _("Нажмите на рисунок, чтобы увеличить") }}</figcaption>
+  <figcaption class="small muted">{{ _("Нажми на рисунок, чтобы увеличить") }}</figcaption>
 </figure>
 {% endif %}
 {%- endmacro %}
@@ -304,7 +304,7 @@
   {% else %}
   <form method="post" action="{{ action }}" class="rubric-form">
     {{ csrf() }}
-    <p class="small text-2" style="margin:0 0 8px">{{ _("Сравните своё решение с эталоном и выберите, какой критерий оно выполняет:") if who == 'self' else _("Выберите балл по критериям:") }}</p>
+    <p class="small text-2" style="margin:0 0 8px">{{ _("Сравните своё решение с эталоном и выберите, какой критерий оно выполняет:") if who == 'self' else _("Выбери балл по критериям:") }}</p>
     <ul class="rubric">
     {% for r in item.rubric or [] %}
       <li><label><input type="radio" name="points" value="{{ r.points }}" {{ 'checked' if a.points == r.points }} required> <b>{{ r.points }}</b> <span class="math">{{ r.text }}</span></label></li>

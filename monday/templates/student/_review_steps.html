@@ -19,7 +19,7 @@
           <span class="tag {{ 'tag--ok' if state == 'ok' else ('tag--line' if state in ('skip', 'wait') else ('tag--soft' if state == 'part' else 'tag--bad')) }}">{{ row.note or _("Верно") if state == 'ok' else (_("Нет ответа") if state == 'skip' else (_("Ждёт оценки") if state == 'wait' else (_("%(p)s из %(m)s", p=a.points, m=item.weight) if state == 'part' else (row.note or _("Ошибка"))))) }}</span>
         </div>
         <dl class="rv-answers">
-          <div><dt>{{ _("Ваш ответ") }}</dt><dd>{% if written %}<span class="small">{{ _("фото решения") if a.photo_path else (_("на бумаге") if a.given else _("нет решения")) }}</span>{% elif not a.given %}<span class="muted">{{ _("нет ответа") }}</span>{% elif item.answer_type == 'number' %}<span class="num">{{ a.given }}</span>{% else %}{{ (abc or LETTERS)[a.given|int] }}{% endif %}</dd></div>
+          <div><dt>{{ _("Твой ответ") }}</dt><dd>{% if written %}<span class="small">{{ _("фото решения") if a.photo_path else (_("на бумаге") if a.given else _("нет решения")) }}</span>{% elif not a.given %}<span class="muted">{{ _("нет ответа") }}</span>{% elif item.answer_type == 'number' %}<span class="num">{{ a.given }}</span>{% else %}{{ (abc or LETTERS)[a.given|int] }}{% endif %}</dd></div>
           <div><dt>{{ _("Верный ответ") }}</dt><dd>{% if written %}<span class="math small">{{ item.correct }}</span>{% elif item.answer_type == 'number' %}<span class="num">{{ item.correct|answer }}</span>{% else %}{{ (abc or LETTERS)[item.correct|int] }}{% endif %}</dd></div>
         </dl>
         <h3 class="rv-explain__title">{{ _("Решение") if written else _("Объяснение") }}</h3>

@@ -13,8 +13,8 @@
     <div class="auth__spiral" data-spiral aria-hidden="true"></div>
     <div class="auth__brand">
       <div class="auth__wordmark" data-wordmark>{% for ch in "MONDAY" %}<span>{{ ch }}</span>{% endfor %}</div>
-      <p class="auth__tagline">{{ _("Вся математика экзамена — в одном движении.") }}</p>
-      <p class="auth__hint">{{ _("Нажми на точки — они соберут слово.") }}</p>
+      <p class="auth__tagline">{{ _("Математика к ОРТ, ЕНТ, ЕГЭ, ОГЭ, SAT и CSCA.") }}</p>
+      <p class="auth__hint">{{ _("Нажми на точки, и они сложатся в слово.") }}</p>
       <div class="auth__exams">ОРТ · ЕНТ · ЕГЭ · ОГЭ · SAT · CSCA</div>
     </div>
   </section>
@@ -35,7 +35,7 @@
 
       <div class="auth-card__head">
         <h1>{{ _("С возвращением") if tab == 'login' else _("Создай аккаунт") }}</h1>
-        <p>{{ _("Войди, чтобы продолжить подготовку.") if tab == 'login' else _("Прогресс сохраняется — с телефона и с компьютера.") }}</p>
+        <p>{{ _("Войди, чтобы продолжить подготовку.") if tab == 'login' else _("Занимайся с телефона и с компьютера: прогресс общий.") }}</p>
       </div>
 
       <nav class="auth-tabs" aria-label="{{ _('Вход или регистрация') }}">
@@ -100,7 +100,7 @@
           <label for="invite_code">{{ _("Код от учителя") }} <span class="muted" style="font-weight:400">{{ _("— если есть") }}</span></label>
           <input class="input input--mono" id="invite_code" name="invite_code" placeholder="MND-XXXX" value="{{ form.get('invite_code', '') or '' }}" autocapitalize="characters">
         </div>
-        <p class="auth-hint" data-teacher-only hidden>{{ _("Аккаунт учителя откроется после проверки администратором — обычно в течение дня.") }}</p>
+        <p class="auth-hint" data-teacher-only hidden>{{ _("Аккаунт учителя откроется после проверки. Обычно это занимает день.") }}</p>
         <button class="btn btn--primary btn--lg btn--block" type="submit">{{ _("Создать аккаунт") }}</button>
       </form>
       {% endif %}
@@ -116,7 +116,7 @@
       </details>
       {% endif %}
 
-      <p class="auth-card__legal">{{ _("Продолжая, вы соглашаетесь с условиями использования и политикой конфиденциальности.") }}</p>
+      <p class="auth-card__legal">{{ _("Регистрируясь, ты соглашаешься с условиями и политикой конфиденциальности.") }}</p>
     </div>
   </section>
 </div>

@@ -12,9 +12,10 @@
   <div class="mh__text">
     <h1 class="mh__title display" id="mh-title">{{ _("Тест") }}<br>{{ _("понедельника") }}</h1>
     {% if scene_mode == 'before' %}
-      <div class="mhb-count" data-countdown data-cell="8" data-seconds="{{ seconds_left }}" role="timer" aria-label="{{ _('До старта') }}">
-        {% for key, label in [('d', _('дн')), ('h', _('ч')), ('m', _('мин')), ('s', _('сек'))] %}
-          <div class="mhb-cell"><canvas class="mh__pix" data-pix="{{ key }}" aria-hidden="true"></canvas><b class="sr-only" data-{{ key }}>–</b><span>{{ label }}</span></div>
+      {# four white cards, the same as the countdown to the exam on Home #}
+      <div class="mhb-cards" data-countdown data-seconds="{{ seconds_left }}" role="timer" aria-live="off" aria-label="{{ _('До старта') }}">
+        {% for key, label in [('d', _('дней')), ('h', _('часов')), ('m', _('минут')), ('s', _('секунд'))] %}
+          <div><b class="num" data-{{ key }}>–</b><small>{{ label }}</small></div>
         {% endfor %}
       </div>
     {% endif %}
@@ -50,9 +51,9 @@
   <section class="card rk" data-rank aria-labelledby="rank-h"
            data-scope="{{ scope if scope in ('country', 'region', 'school') else 'country' }}"
            data-t-you="{{ _('Ты') }}" data-t-more="{{ _('ещё %(n)s участников', n='{n}') }}" data-t-new="{{ _('новый') }}"
-           data-t-gap="{{ _('до #%(p)s — %(n)s зад.', p='{p}', n='{n}') }}" data-t-gaptime="{{ _('до #%(p)s — решить быстрее', p='{p}') }}"
-           data-t-top="{{ _('Ты первый!') }}" data-t-empty="{{ _('В этом рейтинге пока нет результатов.') }}"
-           data-t-notin="{{ _('Тебя нет в этом рейтинге — пройди тест в понедельник.') }}">
+           data-t-gap="{{ _('До %(p)s-го места: %(n)s зад.', p='{p}', n='{n}') }}" data-t-gaptime="{{ _('До %(p)s-го места: реши быстрее', p='{p}') }}"
+           data-t-top="{{ _('Ты на первом месте.') }}" data-t-empty="{{ _('В этом рейтинге пока нет результатов.') }}"
+           data-t-notin="{{ _('Пройди тест в понедельник, чтобы попасть в рейтинг.') }}">
     <div class="rk__head">
       <h2 id="rank-h">{{ _("Рейтинг прошлой недели") }}</h2>
       <div class="seg-switch" role="tablist" aria-label="{{ _('Уровень') }}">
@@ -81,7 +82,7 @@
       {% if strip %}<div class="rk-strip" role="img" aria-label="{{ _('Ответы: %(n)s верно из %(t)s', n=strip|select|list|length, t=strip|length) }}">{% for ok in strip %}<i class="{{ 'is-ok' if ok else 'is-bad' }}" style="--d:{{ loop.index0 }}"></i>{% endfor %}</div>{% endif %}
       <a href="{{ url_for('student.attempt_result', attempt_id=my_attempt.id) }}" class="rk-link">{{ _("Разбор и ошибки") }} →</a>
       {% else %}
-      <p class="text-2">{{ _("Ты не участвовал на прошлой неделе. Ближайший тест — в понедельник в 19:00.") }}</p>
+      <p class="text-2">{{ _("На прошлой неделе ты не писал тест. Следующий в понедельник в 19:00.") }}</p>
       {% endif %}
     </section>
 

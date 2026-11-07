@@ -25,8 +25,8 @@
     <form class="daily__panel q-screen" data-daily-panel="{{ loop.index0 }}" hidden
           action="{{ url_for('daily.answer', pick_id=it.pick.id) }}" method="post" data-daily
           data-answer-type="{{ it['item'].answer_type }}" data-name="dq{{ it.pick.id }}"
-          data-ok="{{ _('Верно!') }}" data-bad="{{ _('Неверно.') }}" data-answer-label="{{ _('Верный ответ:') }}"
-          data-rate="{{ _('В классе верно: {ok} из {total}') }}" data-empty="{{ _('Выберите или введите ответ.') }}"
+          data-ok="{{ _('Верно') }}" data-bad="{{ _('Неверно.') }}" data-answer-label="{{ _('Верный ответ:') }}"
+          data-rate="{{ _('В классе верно: {ok} из {total}') }}" data-empty="{{ _('Выбери или введи ответ.') }}"
           {% if a %}data-done{% endif %}>
       {{ ui.csrf() }}
       <div class="q-head">
@@ -37,7 +37,7 @@
         {{ ui.question_body(it['item'], 'dq' ~ it.pick.id, selected=a.given if a else None, reveal=a is not none, disabled=a is not none, letters=daily.letters) }}
       </div>
       <div class="daily__foot">
-        <div class="feedback {{ ('feedback--ok' if a.is_correct else 'feedback--bad') if a }}" data-daily-feedback aria-live="polite">{% if a %}{{ _('Верно!') if a.is_correct else _('Неверно.') }}{% endif %}</div>
+        <div class="feedback {{ ('feedback--ok' if a.is_correct else 'feedback--bad') if a }}" data-daily-feedback aria-live="polite">{% if a %}{{ _('Верно') if a.is_correct else _('Неверно.') }}{% endif %}</div>
         <span class="small muted" data-daily-rate>{% if a and it.rate %}{{ _("В классе верно: %(ok)s из %(t)s", ok=it.rate.ok, t=it.rate.total) }}{% endif %}</span>
         <div class="row" style="gap:8px">
           {% if not a %}<button class="btn btn--primary btn--lg" type="submit" data-daily-submit>{{ _("Ответить") }}</button>{% endif %}
@@ -53,9 +53,9 @@
 
   <section class="card daily-end" data-daily-panel="{{ n }}" hidden aria-labelledby="end-h">
     <div class="daily-end__icon" aria-hidden="true">{{ ui.icon('check', 28) }}</div>
-    <h2 id="end-h">{{ _("Вопросы дня — готово") }}</h2>
+    <h2 id="end-h">{{ _("Вопросы дня решены") }}</h2>
     <p class="text-2"><span data-daily-score>{{ daily['items']|selectattr('answer')|map(attribute='answer')|selectattr('is_correct')|list|length }}</span> {{ _("из") }} {{ n }} {{ _("верно") }} · {{ _("серия") }} <b data-daily-streak>{{ daily.streak }}</b></p>
-    <p class="small muted">{{ _("Ошибки уже в Журнале — к ним можно вернуться в сессии «Дарвин».") }}</p>
+    <p class="small muted">{{ _("Ошибки уже в Журнале. Вернуться к ним можно в сессии «Дарвин».") }}</p>
     <div class="row" style="gap:10px;justify-content:center">
       <a class="btn btn--secondary" href="{{ url_for('student.journal') }}">{{ _("Открыть журнал") }}</a>
       <a class="btn btn--primary" href="{{ url_for('student.home') }}">{{ _("На главную") }}</a>

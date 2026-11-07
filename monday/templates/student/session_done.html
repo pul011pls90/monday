@@ -52,7 +52,7 @@
     {% endif %}
     <form method="post" action="{{ url_for('student.session_again', attempt_id=att.id) }}">{{ ui.csrf() }}
       <button class="sd-act" type="submit">{{ ui.icon('play', 22) }}<b>{{ _("Ещё раз с теми же настройками") if mode_key == 'custom' else _("Ещё одна сессия") }}</b><span>{{ _("Новые вопросы") }}</span></button></form>
-    <a class="sd-act" href="{{ url_for('student.sessions') }}#custom">{{ ui.icon('settings', 22) }}<b>{{ _("Своя сессия") }}</b><span>{{ _("Темы, время и сложность — на выбор") }}</span></a>
+    <a class="sd-act" href="{{ url_for('student.sessions') }}#custom">{{ ui.icon('settings', 22) }}<b>{{ _("Своя сессия") }}</b><span>{{ _("Выбери темы, время и сложность") }}</span></a>
   </div>
 </section>
 

@@ -18,7 +18,7 @@
     {{ ui.csrf() }}
     <div class="stack-sm">
       <h1>{{ _("Какой экзамен сдаёшь?") }}</h1>
-      <p class="text-2" style="font-size:17px;max-width:560px">{{ _("Одна карта навыков — разные маршруты. Выбери экзамен, и Monday покажет только то, что на нём будет.") }}</p>
+      <p class="text-2" style="font-size:17px;max-width:560px">{{ _("Выбери экзамен. Задания и тесты будут только по его темам.") }}</p>
     </div>
     <div class="exam-grid" role="radiogroup" aria-label="{{ _('Экзамен') }}">
       {% for code, e in EXAMS.items() %}

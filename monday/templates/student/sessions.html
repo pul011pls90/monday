@@ -55,7 +55,7 @@
       </div>
     </div>
 
-    <p class="cb__lead cb__lead--wide">{{ _("Настрой фильтры ниже. Отметь несколько тем галочками и нажми «Начать сессию» — или запусти одну тему кнопкой ▶.") }}</p>
+    <p class="cb__lead cb__lead--wide">{{ _("Отметь темы и нажми «Начать сессию». Одну тему можно запустить кнопкой ▶.") }}</p>
 
     <div class="cb__stats">
       <div class="cb__stat">
@@ -84,7 +84,7 @@
         </div>
         <div class="sb__pace" data-sb-pace aria-live="polite"
              data-pace='{{ PACE|tojson }}'
-             data-t-free="{{ _('Без лимита — в своём темпе') }}"
+             data-t-free="{{ _('Без ограничения времени') }}"
              data-t-ok="{{ _('≈ {s} на вопрос · успеешь спокойно') }}"
              data-t-tight="{{ _('≈ {s} на вопрос · придётся спешить') }}"
              data-t-bad="{{ _('Мало времени: нужно ≈ {need}, выходит {s}') }}"
@@ -106,7 +106,7 @@
           <label class="cb-chip"><input type="radio" name="level" value="hard"><span>{{ _("Сложные") }} <small class="num">{{ totals[3] }}</small></span></label>
           <label class="cb-chip"><input type="radio" name="level" value="mix"><span>{{ _("Микс") }}</span></label>
         </div>
-        <p class="cb__note" data-sb-ladder-note>{{ _("Два верных подряд — уровень выше, ошибка — ниже.") }}</p>
+        <p class="cb__note" data-sb-ladder-note>{{ _("Два верных ответа подряд поднимают уровень, ошибка опускает.") }}</p>
       </fieldset>
       <fieldset class="cb__filter">
         <legend>{{ ui.icon('list', 20) }}{{ _("Откуда задачи") }}</legend>

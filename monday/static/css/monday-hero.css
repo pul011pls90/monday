@@ -93,3 +93,13 @@
 /* mountains are drawn directly as Pulse dots: no recolouring filter */
 .mh.is-raw-scene .mh__canvas, [data-theme="dark"] .mh.is-raw-scene .mh__canvas { filter: none; mix-blend-mode: normal; }
 [data-theme="dark"] .mh, .mh { border: 0 !important; }
+
+/* countdown to the start: four white cards, as on Home (.hc-count) */
+.mhb-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 92px)); gap: 10px; margin-top: 8px; }
+.mhb-cards > div { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.mhb-cards b { width: 100%; display: grid; place-items: center; padding: 16px 4px; border-radius: 16px; background: var(--surface);
+  border: var(--bw, 1px) solid var(--line); box-shadow: 0 4px 14px rgba(10, 10, 40, .06);
+  font: 800 clamp(24px, 2.3vw, 34px)/1 var(--font-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--text); }
+.mhb-cards small { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+  text-shadow: 0 0 10px var(--surface), 0 0 4px var(--surface); }
+@media (max-width: 640px) { .mhb-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; } .mhb-cards b { padding: 12px 0; font-size: 22px; } }

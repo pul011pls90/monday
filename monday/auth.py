@@ -35,23 +35,23 @@ def link_invite_code(user, code):
     """Attach a student account to a teacher's table row. Returns (ok, message)."""
     code = (code or "").strip().upper()
     if not code:
-        return False, _("Введите код.")
+        return False, _("Введи код.")
     if not code.startswith("MND-"):
         code = "MND-" + code
     record = StudentRecord.query.filter_by(invite_code=code).first()
     if not record:
-        return False, _("Код не найден. Проверьте его у учителя.")
+        return False, _("Такого кода нет. Уточни его у учителя.")
     if record.student_user_id and record.student_user_id != user.id:
         return False, _("Этот код уже использован другим учеником.")
     if StudentRecord.query.filter_by(teacher_id=record.teacher_id, student_user_id=user.id).filter(
             StudentRecord.id != record.id).first():
-        return False, _("Вы уже подключены к этому учителю.")
+        return False, _("Ты уже подключён к этому учителю.")
     record.student_user_id = user.id
     record.linked_at = utcnow()
     if user.profile and not user.profile.exam and record.exam:
         user.profile.exam = record.exam
     db.session.commit()
-    return True, _("Вы подключены к учителю: %(name)s.", name=record.teacher.name)
+    return True, _("Готово, ты подключён к учителю: %(name)s.", name=record.teacher.name)
 
 
 @bp.route("/")
@@ -72,7 +72,7 @@ def login():
             flash(_("Неверный email или пароль."), "error")
             return render_template("auth/welcome.html", tab="login", form=request.form), 401
         if user.is_blocked:
-            flash(_("Аккаунт заблокирован. Напишите администратору."), "error")
+            flash(_("Аккаунт заблокирован. Напиши администратору."), "error")
             return render_template("auth/welcome.html", tab="login", form=request.form), 403
         login_user(user, remember=bool(request.form.get("remember")))
         pending_code = session.pop("invite_code", None)
@@ -134,7 +134,7 @@ def google_callback():
     state = session.pop("google_state", None)
     if not state or request.args.get("state") != state or not request.args.get("code"):
         if request.args.get("error") != "access_denied":   # «Отмена» on Google's page needs no message
-            flash(_("Не удалось войти через Google. Попробуйте ещё раз."), "error")
+            flash(_("Не получилось войти через Google. Попробуй ещё раз."), "error")
         return redirect(url_for("auth.login"))
     try:
         token = _google_post(GOOGLE_TOKEN, {
@@ -144,15 +144,15 @@ def google_callback():
         info = _google_get(GOOGLE_USER, token["access_token"])
     except Exception as e:   # Google unreachable or the code was refused
         current_app.logger.warning("Google sign-in failed: %s", e)
-        flash(_("Не удалось войти через Google. Попробуйте ещё раз."), "error")
+        flash(_("Не получилось войти через Google. Попробуй ещё раз."), "error")
         return redirect(url_for("auth.login"))
     email = (info.get("email") or "").strip().lower()
     if not email or not info.get("email_verified"):
-        flash(_("Google не подтвердил email этого аккаунта. Войдите по email и паролю."), "error")
+        flash(_("Google не подтвердил почту этого аккаунта. Войди по почте и паролю."), "error")
         return redirect(url_for("auth.login"))
     user = User.query.filter_by(email=email).first()
     if user and user.is_blocked:
-        flash(_("Аккаунт заблокирован. Напишите администратору."), "error")
+        flash(_("Аккаунт заблокирован. Напиши администратору."), "error")
         return redirect(url_for("auth.login"))
     if not user:
         lang = request.cookies.get("lang")
@@ -183,9 +183,9 @@ def register():
         role = "teacher" if form.get("role") == "teacher" else "student"
         errors = []
         if len(name) < 2:
-            errors.append(_("Укажите имя."))
+            errors.append(_("Напиши имя."))
         if "@" not in email or "." not in email.split("@")[-1]:
-            errors.append(_("Укажите корректный email."))
+            errors.append(_("Проверь email: в нём ошибка."))
         if len(password) < 8:
             errors.append(_("Пароль должен быть не короче 8 символов."))
         if User.query.filter_by(email=email).first():
@@ -227,7 +227,7 @@ def join(code):
         flash(msg, "success" if ok else "error")
         return redirect(_home_for(current_user))
     session["invite_code"] = record.invite_code
-    flash(_("%(name)s приглашает вас в Monday. Зарегистрируйтесь или войдите — код подключится автоматически.",
+    flash(_("%(name)s зовёт тебя в Monday. Зарегистрируйся или войди, и код подключится сам.",
             name=record.teacher.name), "info")
     return redirect(url_for("auth.register"))
 
@@ -310,7 +310,7 @@ def set_avatar():
         return redirect(nxt)
     upload = request.files.get("avatar")
     if not upload or not upload.filename:
-        flash(_("Выберите фото."), "error")
+        flash(_("Выбери фото."), "error")
         return redirect(nxt)
     ext = secure_filename(upload.filename).rsplit(".", 1)[-1].lower() if "." in upload.filename else ""
     if ext not in current_app.config["ALLOWED_IMAGE_EXTENSIONS"]:

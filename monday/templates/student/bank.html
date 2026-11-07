@@ -134,8 +134,8 @@
 
     {% if topics %}
     <div class="bank-start" data-bank-start>
-      <span class="bank-start__text" data-sel-text data-none="{{ _('Ничего не выбрано — сессия по всем фильтрам: %(n)s', n=matching) }}"
-            data-some="{{ _('Выбрано навыков: {k} · вопросов: {q}') }}">{{ _('Ничего не выбрано — сессия по всем фильтрам: %(n)s', n=matching) }}</span>
+      <span class="bank-start__text" data-sel-text data-none="{{ _('Ничего не выбрано. Сессия пойдёт по всем вопросам: %(n)s', n=matching) }}"
+            data-some="{{ _('Выбрано навыков: {k} · вопросов: {q}') }}">{{ _('Ничего не выбрано. Сессия пойдёт по всем вопросам: %(n)s', n=matching) }}</span>
       <button class="btn btn--primary" type="submit" {{ 'disabled' if not stats.total }}>{{ _("Начать сессию") }}{{ ui.icon('arrow-right', 18) }}</button>
     </div>
     {% endif %}

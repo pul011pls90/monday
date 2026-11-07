@@ -7,7 +7,7 @@
 {% for r in replies %}
 <div class="flash {{ 'flash--success' if r.status == 'fixed' else 'flash--info' }} rp-reply" data-report-card>
   {{ ui.icon('flag', 18) }}
-  <span><b>{{ _("Ты сообщил об ошибке — вопрос исправлен.") if r.status == 'fixed' else _("Ты сообщил об ошибке — учитель проверил: в вопросе всё верно.") }}</b>
+  <span><b>{{ _("Вопрос, о котором ты сообщил, исправлен. Спасибо.") if r.status == 'fixed' else _("Учитель проверил вопрос, о котором ты сообщил: ошибки в нём нет.") }}</b>
     {% if r.reply %}{{ r.handled_by.name if r.handled_by else '' }}: «{{ r.reply }}»{% endif %}</span>
   <button type="button" class="btn btn--ghost btn--sm" data-report-seen data-action="{{ url_for('reports.seen', report_id=r.id) }}" data-csrf="{{ csrf_token() }}">{{ _("Понятно") }}</button>
 </div>
@@ -51,7 +51,7 @@
           {% if now_p < goal and mondays %}<span><b class="num">+{{ ((goal - now_p) / mondays)|round(0, 'ceil')|int }}</b><small>{{ _("в неделю") }}</small></span>{% endif %}
         </div>
       {% else %}
-        <p class="hc__line">{{ _("Поставь цель — будем считать, сколько осталось.") }}</p>
+        <p class="hc__line">{{ _("Поставь цель, и мы покажем, сколько баллов до неё осталось.") }}</p>
       {% endif %}
     </div>
     <a class="btn btn--primary hc__btn" href="{{ url_for('student.profile') }}#exam">{{ _("Изменить") if goal else _("Поставить цель") }}</a>
@@ -72,7 +72,7 @@
       </div>
       <a class="hc__link" href="{{ url_for('student.profile') }}#exam">{{ _("Изменить дату") }}</a>
     {% else %}
-      <p class="hc__line">{{ _("Укажи дату экзамена — и начнём отсчёт.") }}</p>
+      <p class="hc__line">{{ _("Укажи дату экзамена, чтобы видеть, сколько дней осталось.") }}</p>
       <a class="btn btn--primary hc__btn" href="{{ url_for('student.profile') }}#exam">{{ _("Указать дату") }}</a>
     {% endif %}
   </section>
@@ -101,7 +101,7 @@
     {% elif plan %}
       <p class="home-today__done">{{ _("План на сегодня выполнен. Можно взять свободную сессию ниже.") }}</p>
     {% else %}
-      <p class="text-2">{{ _("Всё освоено — возьми полный вариант в Сборниках и проверь себя на время.") }}</p>
+      <p class="text-2">{{ _("Все темы освоены. Реши полный вариант в Сборниках на время.") }}</p>
       <a class="btn btn--primary btn--lg home-today__go" href="{{ url_for('student.collections') }}">{{ _("К сборникам") }}</a>
     {% endif %}
   </section>
@@ -157,7 +157,7 @@
   </a>
   <a class="card hc hc-tile" href="{{ url_for('student.journal') }}">
     <div class="hc__head"><span class="hc__ic">{{ ui.icon('journal', 20) }}</span><h2>{{ _("Журнал ошибок") }}</h2></div>
-    <p class="hc__line">{{ _("Все ошибки в одном месте — разбери их, чтобы не повторять.") }}</p>
+    <p class="hc__line">{{ _("Здесь твои ошибки. Разбери их, чтобы не повторять.") }}</p>
     <div class="hc-tile__fact">
       {% if week_mistakes %}<b class="num">{{ week_mistakes }} {{ week_mistakes|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }}</b><span>{{ _("за эту неделю") }}{% if breakdown.get('careless') %} · {{ breakdown.get('careless') }} {{ _("по невнимательности") }}{% endif %}</span>
       {% else %}<b>{{ _("Ошибок нет") }}</b><span>{{ _("на этой неделе") }}</span>{% endif %}

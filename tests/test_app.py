@@ -348,7 +348,7 @@ def test_journal_update_and_monday_test():
 def test_profile_updates_and_invalid_code():
     c = login(client(), "student@monday.kg", "student123")
     r = c.post("/profile", data={"action": "join", "invite_code": "MND-ZZZZ"}, follow_redirects=True)
-    assert "Код не найден" in r.data.decode()
+    assert "Такого кода нет" in r.data.decode()
     r = c.post("/profile", data={"action": "profile", "name": "Тима Манашов", "exam": "ORT", "exam_date": "",
                                  "goal_score": "200", "grade": "11", "region": "Чуйская область",
                                  "school": "Гимназия №1, Токмок", "language": "ky"}, follow_redirects=True)
@@ -1176,7 +1176,7 @@ def test_question_bank_filters_and_play():
         assert st.marked and st.seconds == 17 and st.last_correct
     r = c.get("/bank/?exam=SAT&mk=yes")
     body = r.data.decode()
-    assert "сессия по всем фильтрам: 1<" in body  # the filter keeps the one marked question
+    assert "Сессия пойдёт по всем вопросам: 1<" in body  # the filter keeps the one marked question
     done = re.search(r'<span class="num">\d+</span> из <span class="num">(\d+)</span> решено', body)
     assert done and int(done.group(1)) > 1  # the card counts the whole exam, not just the filtered question
 
@@ -1250,7 +1250,7 @@ def test_questions_of_the_day():
     from monday.models import DailyPick, DailyAnswer, Question
     s = login(client(), "student@monday.kg", "student123")
     ok(s, "/home", contains=["Вопросы дня", "выбрал"])
-    ok(s, "/daily/", contains=["Вопросы дня", "Ответить", "Вопросы дня — готово"])
+    ok(s, "/daily/", contains=["Вопросы дня", "Ответить", "Вопросы дня решены"])
     with APP.app_context():
         pick = DailyPick.query.filter(DailyPick.teacher_id.isnot(None), DailyPick.day == __import__("monday.models", fromlist=["today"]).today()).first()
         pid, correct = pick.id, pick.question.correct
@@ -1501,7 +1501,7 @@ def test_ort_sheet_allows_one_correction():
         idx = next(i for i, it in enumerate(work.current_version.items) if it["answer_type"] == "choice")
     run = s.post(f"/homework/{aid}/start").headers["Location"]
     att_id = int(run.rstrip("/").split("/")[-1])
-    ok(s, run, contains="только один раз")
+    ok(s, run, contains="можно исправить один раз")
     save = lambda v: s.post(f"/attempts/{att_id}/save", data={"name": f"q{idx}", "value": v})
     assert save("0").status_code == 200      # first mark: circle
     assert save("0").status_code == 200      # same mark again is fine

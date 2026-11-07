@@ -67,7 +67,7 @@
     </details>
   {% endcall %}
   {% call row('camera', _('Фото'), _('Нажми на фото в шапке, чтобы загрузить новое.')) %}
-    <div class="set-line"><span class="set-edit__value">{{ _("Загружено") if current_user.avatar_path else _("Нет фото — показываются инициалы") }}</span>
+    <div class="set-line"><span class="set-edit__value">{{ _("Загружено") if current_user.avatar_path else _("Без фото видны инициалы") }}</span>
       {% if current_user.avatar_path %}
       <form method="post" action="{{ url_for('auth.set_avatar') }}">
         {{ ui.csrf() }}<input type="hidden" name="next" value="{{ request.path }}"><input type="hidden" name="remove" value="1">
@@ -103,7 +103,7 @@
 
 {# ------------------------------------------------------------ Экзамен #}
 <div class="set-pane" data-set-pane="exam" role="tabpanel">
-  {% call row('flag', _('Экзамен'), _('К какому экзамену готовишься — от этого зависят задания и тесты.')) %}
+  {% call row('flag', _('Экзамен'), _('Экзамен, к которому готовишься. От него зависят задания и тесты.')) %}
     {% call edit('exam', 'exam', (exam.label ~ ' · ' ~ exam.country) if exam else '—') %}
       <select class="select" name="value" aria-label="{{ _('Экзамен') }}">{% for code, e in EXAMS.items() %}<option value="{{ code }}" {{ 'selected' if p.exam == code }}>{{ e.label }} · {{ e.country }}</option>{% endfor %}</select>
     {% endcall %}

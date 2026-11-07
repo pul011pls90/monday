@@ -46,9 +46,9 @@
         data-i="{{ i }}" data-question="{{ question.id }}" data-answer-type="{{ question.answer_type }}"
         data-check="{{ url_for('bank.check', attempt_id=att.id) }}" data-reveal="{{ url_for('bank.reveal', attempt_id=att.id) }}"
         data-mark-url="{{ url_for('bank.mark') }}" data-time-url="{{ url_for('bank.time_spent') }}"
-        data-correct-label="{{ _('Верно!') }}" data-wrong-label="{{ _('Неверно. Попробуй ещё раз или открой объяснение.') }}"
+        data-correct-label="{{ _('Верно') }}" data-wrong-label="{{ _('Неверно. Попробуй ещё раз или открой объяснение.') }}"
         data-answer-label="{{ _('Верный ответ:') }}" data-video-label="{{ _('Видео учителя') }}"
-        data-empty-label="{{ _('Выберите или введите ответ.') }}"
+        data-empty-label="{{ _('Выбери или введи ответ.') }}"
         {% if state and state.attempts and state.last_correct %}data-solved{% endif %}>
     {{ ui.csrf() }}
     <div class="q-head">

@@ -51,7 +51,7 @@ def onboarding():
     if request.method == "POST":
         exam = request.form.get("exam")
         if exam not in EXAMS:
-            flash(_("Выберите экзамен."), "error")
+            flash(_("Выбери экзамен."), "error")
             return render_template("student/onboarding.html", profile=profile), 400
         profile.exam = exam
         profile.exam_date = _parse_date(request.form.get("exam_date"))
@@ -93,7 +93,7 @@ def _goal_for(exam, raw, old=None):
     e = EXAMS.get(exam)
     if goal is None or not e or e["min"] <= goal <= e["max"]:
         return goal
-    flash(_("Целевой балл для %(exam)s — от %(a)s до %(b)s.", exam=e["label"], a=e["min"], b=e["max"]), "error")
+    flash(_("Целевой балл для %(exam)s: от %(a)s до %(b)s.", exam=e["label"], a=e["min"], b=e["max"]), "error")
     return old if old is not None and e["min"] <= old <= e["max"] else None
 
 
@@ -429,7 +429,7 @@ def session_play(attempt_id):
         elif action == "answer" and answer is None:
             given = request.form.get("given", "").strip()
             if not given:
-                flash(_("Выберите или введите ответ."), "error")
+                flash(_("Выбери или введи ответ."), "error")
                 return redirect(url_for("student.session_play", attempt_id=att.id))
             ok = is_correct(question, given)
             answer = AttemptAnswer(attempt=att, index=idx, question=question, skill_id=question.skill_id, given=given,
@@ -507,7 +507,7 @@ def _read_session_cfg(form):
 def _start_custom(cfg):
     questions, cfg = build_custom_plan(current_user, cfg)
     if not questions:
-        flash(_("Под эти настройки нет вопросов — выбери другие темы или сложность."), "error")
+        flash(_("По этим настройкам вопросов нет. Выбери другие темы или сложность."), "error")
         return redirect(url_for("student.sessions"))
     att = Attempt(user=current_user, mode="custom", plan=[q.id for q in questions], position=0,
                   total=cfg.get("count") or len(questions), draft={"cfg": cfg})
@@ -1452,7 +1452,7 @@ def profile():
             elif field == "language" and value in current_app.config["LANGUAGES"]:
                 current_user.language = value
             else:
-                flash(_("Не получилось сохранить — проверь значение."), "error")
+                flash(_("Не получилось сохранить. Проверь значение."), "error")
                 return redirect(url_for("student.profile") + "#" + tab)
             db.session.commit()
             flash(_("Сохранено."), "success")
@@ -1495,9 +1495,9 @@ def profile():
         elif action == "email":
             email = request.form.get("email", "").strip().lower()
             if not current_user.check_password(request.form.get("password", "")):
-                flash(_("Пароль неверный — почта не изменена."), "error")
+                flash(_("Пароль неверный, почта осталась прежней."), "error")
             elif "@" not in email or "." not in email.split("@")[-1] or len(email) > 255:
-                flash(_("Укажите корректный email."), "error")
+                flash(_("Проверь email: в нём ошибка."), "error")
             elif User.query.filter(User.email == email, User.id != current_user.id).first():
                 flash(_("Этот email уже зарегистрирован."), "error")
             else:
@@ -1507,7 +1507,7 @@ def profile():
             return redirect(url_for("student.profile") + "#profile")
         elif action == "delete":
             if not current_user.check_password(request.form.get("password", "")):
-                flash(_("Пароль неверный — аккаунт не удалён."), "error")
+                flash(_("Пароль неверный, аккаунт не удалён."), "error")
                 return redirect(url_for("student.profile") + "#security")
             _delete_account(current_user)
             from flask_login import logout_user

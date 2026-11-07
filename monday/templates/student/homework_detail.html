@@ -65,7 +65,7 @@
       <form method="post" action="{{ url_for('student.homework_start', assignment_id=a.id) }}">{{ ui.csrf() }}
         <button class="btn btn--primary btn--lg btn--block" type="submit">{{ ui.icon('play', 18) }}{{ _("Начать") }}{% if v.time_limit_min %} · {{ v.time_limit_min|minutes }}{% endif %}</button>
       </form>
-      <p class="hwd__hint">{{ _("Таймер запустится сразу. Ответы сохраняются — можно выйти и продолжить.") if v.time_limit_min else _("Ответы сохраняются — можно выйти и продолжить.") }}</p>
+      <p class="hwd__hint">{{ _("Таймер запустится сразу. Ответы сохраняются, можно выйти и вернуться.") if v.time_limit_min else _("Ответы сохраняются, можно выйти и вернуться.") }}</p>
     {% elif state == 'in_progress' %}
       <a class="btn btn--primary btn--lg btn--block" href="{{ url_for('student.attempt_run', attempt_id=open_attempt.id) }}">{{ ui.icon('play', 18) }}{{ _("Продолжить") }}</a>
     {% elif last %}

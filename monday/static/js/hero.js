@@ -177,7 +177,7 @@ document.querySelectorAll("[data-hero]").forEach(function (hero) {
 /* Home: live countdown to the exam date (the day starts at local midnight) */
 (function () {
   "use strict";
-  const box = document.querySelector("[data-countdown]");
+  const box = document.querySelector("[data-countdown]:not([data-seconds])");   // the Monday test page counts on its own (scenes.js)
   if (!box) return;
   const [y, m, d] = box.dataset.countdown.split("-").map(Number);
   const end = new Date(y, m - 1, d).getTime();

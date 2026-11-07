@@ -55,7 +55,7 @@
     {% if item %}
     <dl class="rv-answers">
       {% set L = letters or LETTERS %}
-      <div><dt>{{ _("Ваш ответ") }}</dt><dd>{% if row.blank %}<span class="muted">{{ _("нет ответа") }}</span>{% elif item.answer_type == 'choice' and a.given|string in (range(item.options|length)|map('string')|list) %}<span class="mr-letter mr-letter--bad">{{ L[a.given|int] }}</span>{% else %}{{ ui.answer_text(item, a.given, letters=letters) }}{% endif %}</dd></div>
+      <div><dt>{{ _("Твой ответ") }}</dt><dd>{% if row.blank %}<span class="muted">{{ _("нет ответа") }}</span>{% elif item.answer_type == 'choice' and a.given|string in (range(item.options|length)|map('string')|list) %}<span class="mr-letter mr-letter--bad">{{ L[a.given|int] }}</span>{% else %}{{ ui.answer_text(item, a.given, letters=letters) }}{% endif %}</dd></div>
       <div><dt>{{ _("Верный ответ") }}</dt><dd>{% if item.answer_type == 'choice' %}<span class="mr-letter mr-letter--ok">{{ L[item.correct|int] }}</span>{% else %}{{ ui.correct_text(item, letters=letters) }}{% endif %}</dd></div>
     </dl>
     <h3 class="rv-explain__title">{{ _("Объяснение") }}</h3>
