@@ -50,9 +50,24 @@ def onboarding():
     profile = current_user.profile or StudentProfile(user=current_user)
     if request.method == "POST":
         exam = request.form.get("exam")
-        if exam not in EXAMS:
-            flash(_("Выбери экзамен."), "error")
-            return render_template("student/onboarding.html", profile=profile), 400
+        name = request.form.get("name", "").strip()
+        grade = request.form.get("grade", "")
+        problems = [m for bad, m in ((exam not in EXAMS, _("Выбери экзамен.")), (len(name) < 2, _("Напиши имя.")),
+                                     (grade not in ONBOARD_GRADES, _("Выбери класс."))) if bad]
+        if problems:
+            for m in problems:
+                flash(m, "error")
+            return render_template("student/onboarding.html", profile=profile, GRADES=ONBOARD_GRADES), 400
+        current_user.name = name[:120]
+        profile.grade = grade
+        try:
+            profile.daily_goal = max(5, min(int(request.form.get("daily_goal", "")), 240))
+        except ValueError:
+            pass
+        days = sorted({int(d) for d in request.form.getlist("study_days") if d.isdigit() and 0 <= int(d) <= 6})
+        level = request.form.get("start_level")
+        current_user.set_prefs(study_days=days or list(range(7)),
+                               start_level=level if level in ("zero", "mid", "strong") else "mid")
         profile.exam = exam
         profile.exam_date = _parse_date(request.form.get("exam_date"))
         profile.goal_score = _goal_for(exam, request.form.get("goal_score"), profile.goal_score)
@@ -70,7 +85,10 @@ def onboarding():
             ok, msg = link_invite_code(current_user, code)
             flash(msg, "success" if ok else "error")
         return redirect(url_for("student.home"))
-    return render_template("student/onboarding.html", profile=profile)
+    return render_template("student/onboarding.html", profile=profile, GRADES=ONBOARD_GRADES)
+
+
+ONBOARD_GRADES = ("8", "9", "10", "11", "Выпускник", "Студент")   # stored as the profile's «класс»
 
 
 def _parse_date(value):

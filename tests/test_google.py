@@ -54,11 +54,11 @@ def test_new_google_student_gets_first_steps_and_keeps_progress(google):
     r, q = sign_in(c, **{"X-Forwarded-Proto": "https"})
     assert q["redirect_uri"] == ["https://localhost/login/google/callback"] == [seen["redirect_uri"]]  # https behind Render
     assert r.status_code == 302 and "/onboarding" in r.headers["Location"]          # the welcome page
-    ok(c, "/onboarding", contains="Какой экзамен сдаёшь?")
+    ok(c, "/onboarding", contains=["Расскажи о себе", "Мой уровень сейчас", "data-hero-bg"])
     with APP.app_context():
         u = User.query.filter_by(email=person["email"]).first()
         assert u.role == "student" and u.name == "Айдана Google" and u.profile and not u.profile.onboarded
-    assert c.post("/onboarding", data={"exam": "ORT", "goal_score": "180", "language": "ru"}).status_code == 302
+    assert c.post("/onboarding", data={"exam": "ORT", "goal_score": "180", "language": "ru", "name": "Айдана Google", "grade": "11"}).status_code == 302
     with APP.app_context():
         w = Work.query.filter_by(title="Геометрия: площади").first()
         wid, first = w.id, w.current_version.items[0]

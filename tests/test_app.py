@@ -163,10 +163,20 @@ def test_register_student_with_invite_code_and_onboarding():
     with APP.app_context():
         rec = StudentRecord.query.filter_by(invite_code=code).first()
         assert rec.student is not None and rec.student.email == "new.student@mail.com"
-    ok(c, "/onboarding", contains="Какой экзамен сдаёшь?")
-    r = c.post("/onboarding", data={"exam": "ENT", "exam_date": "2027-06-01", "goal_score": "120", "language": "ru"})
+    ok(c, "/onboarding", contains=["Расскажи о себе", "Мой уровень сейчас", "data-hero-bg"])
+    r = c.post("/onboarding", data={"exam": "ENT", "exam_date": "2027-06-01", "goal_score": "120", "language": "ru",
+                                    "name": "Новый Ученик", "grade": "11", "start_level": "zero", "study_days": ["0", "2"], "daily_goal": "45"})
     assert r.status_code == 302
     ok(c, "/home", contains="понедельник")
+    from monday.models import User
+    with APP.app_context():
+        u = User.query.filter_by(email="new.student@mail.com").first()
+        assert u.profile.grade == "11" and u.profile.daily_goal == 45
+        assert u.pref("study_days") == [0, 2] and u.pref("start_level") == "zero"
+    c2 = client()
+    c2.post("/register", data={"name": "Ещё Один", "email": "one.more@mail.com", "password": "password1", "role": "student"})
+    r = c2.post("/onboarding", data={"exam": "ORT", "name": "", "grade": ""})
+    assert r.status_code == 400 and "Напиши имя" in r.data.decode() and "Выбери класс" in r.data.decode()
 
 
 def test_register_teacher_needs_approval():
