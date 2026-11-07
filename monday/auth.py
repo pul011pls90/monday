@@ -83,15 +83,92 @@ def login():
     return render_template("auth/welcome.html", tab="login", form={})
 
 
+GOOGLE_AUTH = "https://accounts.google.com/o/oauth2/v2/auth"
+GOOGLE_TOKEN = "https://oauth2.googleapis.com/token"
+GOOGLE_USER = "https://openidconnect.googleapis.com/v1/userinfo"
+
+
+def _google_post(url, fields):
+    """Google's token endpoint (a function of its own so tests can stand in for Google)."""
+    import json
+    import urllib.parse
+    import urllib.request
+    req = urllib.request.Request(url, data=urllib.parse.urlencode(fields).encode(), method="POST")
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        return json.loads(resp.read())
+
+
+def _google_get(url, token):
+    import json
+    import urllib.request
+    req = urllib.request.Request(url, headers={"Authorization": "Bearer " + token})
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        return json.loads(resp.read())
+
+
 @bp.route("/login/google")
 def google_login():
-    """Sign in with Google. Needs GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (OAuth) — not set up yet."""
+    """Sign in with Google (OAuth 2 / OpenID Connect, only name and email). Needs GOOGLE_CLIENT_ID and _SECRET."""
+    import secrets
+    import urllib.parse
     from flask import current_app
+    if current_user.is_authenticated:
+        return redirect(_home_for(current_user))
     if not current_app.config.get("GOOGLE_CLIENT_ID"):
         flash(_("Вход через Google заработает после подключения ключей Google. Пока войдите по email."), "info")
         return redirect(url_for("auth.login"))
-    flash(_("Вход через Google скоро появится."), "info")  # OAuth flow goes here
-    return redirect(url_for("auth.login"))
+    session["google_state"] = state = secrets.token_urlsafe(24)
+    session["google_next"] = _safe_next(request.args.get("next"))
+    return redirect(GOOGLE_AUTH + "?" + urllib.parse.urlencode({
+        "client_id": current_app.config["GOOGLE_CLIENT_ID"],
+        "redirect_uri": url_for("auth.google_callback", _external=True),
+        "response_type": "code", "scope": "openid email profile", "state": state, "prompt": "select_account"}))
+
+
+@bp.route("/login/google/callback")
+def google_callback():
+    """Google sends the student back here. The same email = the same Monday account; a new email = a new student,
+    who then goes through the usual first steps (exam, goal). Teachers and admins are never created here."""
+    import secrets
+    from flask import current_app
+    state = session.pop("google_state", None)
+    if not state or request.args.get("state") != state or not request.args.get("code"):
+        if request.args.get("error") != "access_denied":   # «Отмена» on Google's page needs no message
+            flash(_("Не удалось войти через Google. Попробуйте ещё раз."), "error")
+        return redirect(url_for("auth.login"))
+    try:
+        token = _google_post(GOOGLE_TOKEN, {
+            "code": request.args["code"], "client_id": current_app.config["GOOGLE_CLIENT_ID"],
+            "client_secret": current_app.config.get("GOOGLE_CLIENT_SECRET") or "",
+            "redirect_uri": url_for("auth.google_callback", _external=True), "grant_type": "authorization_code"})
+        info = _google_get(GOOGLE_USER, token["access_token"])
+    except Exception as e:   # Google unreachable or the code was refused
+        current_app.logger.warning("Google sign-in failed: %s", e)
+        flash(_("Не удалось войти через Google. Попробуйте ещё раз."), "error")
+        return redirect(url_for("auth.login"))
+    email = (info.get("email") or "").strip().lower()
+    if not email or not info.get("email_verified"):
+        flash(_("Google не подтвердил email этого аккаунта. Войдите по email и паролю."), "error")
+        return redirect(url_for("auth.login"))
+    user = User.query.filter_by(email=email).first()
+    if user and user.is_blocked:
+        flash(_("Аккаунт заблокирован. Напишите администратору."), "error")
+        return redirect(url_for("auth.login"))
+    if not user:
+        lang = request.cookies.get("lang")
+        user = User(name=(info.get("name") or email.split("@")[0]).strip()[:120], email=email, role="student",
+                    is_approved=True, language=lang if lang in Config.LANGUAGES else "ru",
+                    theme=request.cookies.get("theme") if request.cookies.get("theme") in ("light", "dark") else "light")
+        user.set_password(secrets.token_urlsafe(32))   # nobody knows it; a teacher or admin can give a temporary one
+        user.profile = StudentProfile()
+        db.session.add(user)
+        db.session.commit()
+    login_user(user, remember=True)
+    code = session.pop("invite_code", None)
+    if code and user.role == "student":
+        ok, msg = link_invite_code(user, code)
+        flash(msg, "success" if ok else "error")
+    return redirect(session.pop("google_next", None) or _home_for(user))
 
 
 @bp.route("/register", methods=["GET", "POST"])

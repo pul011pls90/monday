@@ -27,6 +27,10 @@ def select_locale():
 def create_app(config_object=Config, *, seed_if_empty=True):
     app = Flask(__name__, instance_path=os.path.join(os.path.dirname(os.path.dirname(__file__)), "instance"))
     app.config.from_object(config_object)
+    # Render (and most hosts) end HTTPS in front of the app: trust their X-Forwarded-Proto/Host once, so links
+    # built with _external (Google's return address, invite links) start with https://.
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
     db.init_app(app)
