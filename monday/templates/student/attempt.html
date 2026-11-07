@@ -46,7 +46,7 @@
   {# when the timer runs out the form is sent as-is: to "next module" in module 1, to "hand in" in the last one #}
   <form method="post" id="test-form" data-test data-nav="{{ layout.nav }}" {% if entry_rules == 'sat' %}data-sat-entry{% endif %}
         {% if not last_module %}action="{{ url_for('student.attempt_next_module', attempt_id=att.id) }}"{% endif %}
-        data-autosave="{{ url_for('student.attempt_save', attempt_id=att.id) }}" data-photo-url="{{ url_for('student.attempt_photo', attempt_id=att.id) }}" data-attempt="{{ att.id }}"
+        data-autosave="{{ url_for('student.attempt_save', attempt_id=att.id) }}" data-photo-url="{{ url_for('student.attempt_photo', attempt_id=att.id) }}" data-attempt="{{ att.id }}"{% if att.mode == 'collection' %} data-alive="{{ url_for('student.attempt_alive', attempt_id=att.id) }}"{% endif %}
         data-start="{{ mod.start }}" data-end="{{ mod.end }}"
         {% if att.mode == 'homework' and last_module %}data-require-answer data-earlier-answered="{{ earlier_answered }}"
         data-empty-msg="{{ _('Ответьте хотя бы на один вопрос, чтобы сдать работу.') }}"

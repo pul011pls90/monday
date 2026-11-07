@@ -75,6 +75,7 @@ body:not(.auth-body) {
 }
 .card, .q-card, .explain, fieldset { background: color-mix(in srgb, var(--surface) 92%, transparent); }
 [data-theme="dark"] .card, [data-theme="dark"] .q-card, [data-theme="dark"] fieldset { border-color: rgba(255, 255, 255, .16); }
+.table-wrap { background: var(--surface); }   /* tables sit on a solid block, so the sky never shows through the rows */
 .card--soft { box-shadow: none; }
 .card--dashed { box-shadow: none; background: transparent; }
 

@@ -187,6 +187,13 @@
     body.set("csrf_token", csrf); body.set("name", name); body.set("value", value);
     return fetch(form.dataset.autosave, { method: "POST", body, headers: { "X-CSRFToken": csrf }, credentials: "same-origin" }).catch(() => {});
   };
+  // collections: tell the server the page is open, so the timer pauses from the moment the student leaves
+  if (form.dataset.alive) {
+    const alive = () => { const b = new FormData(); b.set("csrf_token", csrf); return b; };
+    const ping = () => fetch(form.dataset.alive, { method: "POST", body: alive(), headers: { "X-CSRFToken": csrf }, credentials: "same-origin" }).catch(() => {});
+    setInterval(ping, 15000);
+    window.addEventListener("pagehide", () => { if (!navigator.sendBeacon || !navigator.sendBeacon(form.dataset.alive, alive())) ping(); });
+  }
   const answered = (idx) => $$(`[name="q${idx}"]`, form).some((f) => (f.type === "radio" || f.type === "checkbox" ? f.checked : f.value.trim() !== ""));
 
   /* written answers: attach a photo of the solution */

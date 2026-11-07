@@ -1680,3 +1680,30 @@ def test_unfinished_collection_continue_or_restart():
         mine = Attempt.query.filter_by(work_version_id=w.current_version.id).filter(Attempt.finished_at.is_(None))
         assert mine.join(Attempt.user).filter_by(email="student@monday.kg").count() == 1
     assert "Начать тест" not in ok(c, f"/works/{wid}").data.decode()
+
+
+def test_collection_timer_pauses_while_away():
+    import re
+    from datetime import timedelta
+    from monday.extensions import db
+    from monday.models import Attempt, Work, utcnow
+    c = login(client(), "student@monday.kg", "student123")
+    with APP.app_context():
+        wid = Work.query.filter_by(title="Геометрия: площади").first().id
+    run = c.post(f"/works/{wid}/start", data={"restart": "1"}).headers["Location"]
+    att_id = int(run.split("/")[-1])
+    left = lambda body: int(re.search(r'data-timer="(\d+)"', body).group(1))
+    first = left(ok(c, run).data.decode())
+    with APP.app_context():                      # 5 minutes used, then the student left 40 minutes ago
+        a = db.session.get(Attempt, att_id)
+        a.started_at = utcnow() - timedelta(minutes=45)
+        a.active_at = utcnow() - timedelta(minutes=40)
+        db.session.commit()
+    back = left(ok(c, run).data.decode())
+    assert abs(back - (first - 300)) <= 3        # the 40 minutes away don't count
+    assert c.post(f"/attempts/{att_id}/alive").status_code == 204
+    with APP.app_context():
+        a = db.session.get(Attempt, att_id)
+        assert a.active_at and (utcnow() - a.active_at).total_seconds() < 5
+    run2 = c.post(f"/works/{wid}/start", data={"restart": "1"}).headers["Location"]
+    assert 'data-alive=' in ok(c, run2).data.decode()

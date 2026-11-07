@@ -434,6 +434,7 @@ class Attempt(db.Model):
     draft = db.Column(JSONText, default=dict)  # timed tests: answers saved as the student goes {"q0": "2"}
     module = db.Column(db.Integer, nullable=False, default=1)  # SAT: current module (earlier ones are locked)
     module_started_at = db.Column(db.DateTime)
+    active_at = db.Column(db.DateTime)  # collections: the last moment the test page was open (the timer pauses while away)
 
     user = db.relationship("User")
     work_version = db.relationship("WorkVersion")

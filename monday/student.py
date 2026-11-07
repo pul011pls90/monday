@@ -742,6 +742,8 @@ def attempt_run(attempt_id):
         return redirect(url_for("student.attempt_result", attempt_id=att.id))
     version = att.work_version
     layout = version_layout(version)
+    if request.method == "GET":
+        _resume_clock(att)
     k, mod = current_module(att, layout)
     if request.method == "POST":
         _merge_module_answers(att, mod, request.form)
@@ -839,6 +841,37 @@ def attempt_next_module(attempt_id):
     if blocked:
         return blocked
     return _finish_attempt(att, att.work_version)
+
+
+PAUSES = ("collection",)   # tests whose timer stops while the student is away (homework and the Monday test keep running)
+
+
+def _resume_clock(att):
+    """A collection test continues with the time it had when the student left: the time away moves the start forward.
+    The page reports every 15 s and once more when it is closed (/alive), so at most a few seconds are lost or gained."""
+    if att.mode not in PAUSES:
+        return
+    now = utcnow()
+    if att.active_at:
+        away = now - att.active_at
+        if away > timedelta(seconds=2):
+            att.started_at = (att.started_at or now) + away
+            if att.module_started_at:
+                att.module_started_at += away
+    att.active_at = now
+    db.session.commit()
+
+
+@bp.route("/attempts/<int:attempt_id>/alive", methods=["POST"])
+@student_required
+def attempt_alive(attempt_id):
+    """The test page is still open (sent every 15 s, and when the page is left)."""
+    att = _own_attempt(attempt_id)
+    if att.finished_at or att.mode not in PAUSES:
+        return "", 204
+    att.active_at = utcnow()
+    db.session.commit()
+    return "", 204
 
 
 @bp.route("/attempts/<int:attempt_id>/save", methods=["POST"])
