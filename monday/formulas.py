@@ -9,7 +9,7 @@ from pathlib import Path
 
 from .constants import EXAMS
 from .extensions import db
-from .models import ReferenceSheet, SheetEntry
+from .models import ContentNode, ReferenceSheet, SheetEntry
 
 FOLDER = Path(__file__).parent / "data" / "formulas"
 IMAGE_PREFIX = "img:"   # an entry's picture from static/img/formulas rather than from uploads
@@ -42,8 +42,8 @@ def stored(formula):
 
 
 def added_ids(user, template):
-    """Ids of this template's formulas that are already in one of the student's sheets."""
-    have = {e.formula for sheet in ReferenceSheet.query.filter_by(user_id=user.id) for e in sheet.entries}
+    """Ids of this template's formulas already in the student's sheets for that exam. The same formula can sit on two exams' sheets."""
+    have = {e.formula for sheet in ReferenceSheet.query.filter_by(user_id=user.id, exam=template["exam"]) for e in sheet.entries}
     return {f["id"] for f in formulas_of(template) if stored(f) in have}
 
 
@@ -73,6 +73,14 @@ def add_formulas(user, template, topic, title, formula_id=None):
                                       image_path=IMAGE_PREFIX + f["image"] + ".svg" if f.get("image") else None))
         db.session.commit()
     return len(fresh)
+
+
+def bank_key(topic):
+    """What the bank calls this topic: SAT domains have their own keys, other exams use a skill of the master map."""
+    if topic["bank"].startswith("x:"):
+        return topic["bank"]
+    node = ContentNode.query.filter_by(code=topic["bank"]).first()
+    return f"n{node.id}" if node else ""
 
 
 def exam_name(code):

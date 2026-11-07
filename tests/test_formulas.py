@@ -15,6 +15,10 @@ def sat():
     return [t for t in fx.all_templates() if t["exam"] == "SAT"]
 
 
+def ort():
+    return [t for t in fx.all_templates() if t["exam"] == "ORT"]
+
+
 def test_sat_templates_are_complete_and_ids_unique():
     blocks = sat()
     assert len(blocks) == 4 and sum(len(t["topics"]) for t in blocks) == 28
@@ -134,3 +138,34 @@ def test_monday_tests_never_show_own_formulas():
     body = ok(c, f"/attempts/{ids[0]}").data.decode()
     assert "Шпаргалка" not in body and "свои формулы выключены" in body
     assert "Шпаргалка" in ok(c, f"/attempts/{ids[1]}").data.decode()
+
+
+def test_ort_templates_are_complete_and_explained():
+    blocks = ort()
+    assert len(blocks) == 6 and sum(len(t["topics"]) for t in blocks) >= 30
+    every = [f for t in blocks for f in fx.formulas_of(t)]
+    assert len(every) >= 80 and len({f["id"] for f in every}) == len(every)
+    examples = [e for f in every for e in f["examples"]]
+    assert all(len(f["examples"]) >= 2 for f in every) and sum("Колонка А" in e["q"] for e in examples) >= 10
+    assert all(e["goal"].startswith("Нужно ") and e["plan"] and e["steps"] and e["use"] and e["answer"] for e in examples)
+    assert all(e[k].count("$") % 2 == 0 for e in examples for k in ("q", "plan", "use", "answer"))
+    assert all(not f.get("image") or os.path.exists(os.path.join(IMAGES, f["image"] + ".svg")) for f in every)
+
+
+def test_ort_practice_links_reach_real_bank_topics():
+    with APP.app_context():
+        keys = keyset(exam_view(User.query.filter_by(email="student@monday.kg").first(), "ORT"))
+        assert all(fx.bank_key(topic) in keys for t in ort() for topic in t["topics"])
+
+
+def test_own_exam_templates_come_first_and_sheets_stay_apart():
+    c, email = new_student("fxort")
+    body = ok(c, "/formulas?tab=monday").data.decode()
+    assert body.index("ОРТ · Алгебра") < body.index("SAT · Алгебра")
+    c.post("/formulas/t/sat_geometry/add", data={"topic": "triangles", "formula": "pythagoras"})
+    assert "Добавлено" not in ok(c, "/formulas/t/ort_geometry?topic=triangles").data.decode().split('id="f-pythagoras"')[1].split("</article>")[0]
+    c.post("/formulas/t/ort_geometry/add", data={"topic": "triangles", "formula": "pythagoras"})
+    with APP.app_context():
+        titles = {s.title for s in ReferenceSheet.query.filter_by(user_id=User.query.filter_by(email=email).first().id)}
+    assert titles == {"Мои формулы SAT", "Мои формулы ОРТ"}
+

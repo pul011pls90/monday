@@ -1668,7 +1668,7 @@ def formula_template(template_id):
     template = monday_formulas.find_template(template_id) or abort(404)
     topics = template["topics"]
     topic = next((t for t in topics if t["id"] == request.args.get("topic")), topics[0])
-    return render_template("student/formula_template.html", template=template, topic=topic,
+    return render_template("student/formula_template.html", template=template, topic=topic, bank_key=monday_formulas.bank_key(topic),
                            added=monday_formulas.added_ids(current_user, template))
 
 
