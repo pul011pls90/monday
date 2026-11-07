@@ -23,7 +23,7 @@
   <section class="auth__side">
     <div class="auth-card">
       <div class="auth-card__top">
-        <span class="auth-card__logo">M</span>
+        <img class="auth-card__logo" src="{{ url_for('static', filename='img/favicon.svg') }}" width="40" height="40" alt="Monday">
         <form method="post" action="{{ url_for('auth.set_language') }}">
           {{ ui.csrf() }}<input type="hidden" name="next" value="{{ request.full_path }}">
           <label class="sr-only" for="lang">{{ _("Язык") }}</label>

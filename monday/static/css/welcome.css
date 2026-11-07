@@ -93,10 +93,7 @@
   display: flex; flex-direction: column; gap: 18px;
 }
 .auth-card__top { display: flex; justify-content: space-between; align-items: center; }
-.auth-card__logo {
-  width: 40px; height: 40px; border-radius: 12px; background: var(--ink); color: #FFFFFF;
-  display: grid; place-items: center; font: 800 18px var(--font-display);
-}
+.auth-card__logo { display: block; width: 40px; height: 40px; }   /* the app icon: white, gradient frame and M */
 .auth-lang {
   font: 600 13px var(--font); color: var(--ink-2); background: transparent; border: 1px solid var(--edge);
   border-radius: 999px; padding: 6px 28px 6px 12px; min-height: 34px; cursor: pointer;
