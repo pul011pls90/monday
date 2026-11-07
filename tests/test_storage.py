@@ -78,3 +78,44 @@ def test_supabase_database_settings():
     assert "connect_args" not in _engine_options("postgresql+psycopg://u:p@db.example.com/monday")
     o = _engine_options("postgresql+psycopg://postgres.abc:p@aws-0-eu-central-1.pooler.supabase.com:6543/postgres")
     assert o["connect_args"] == {"prepare_threshold": None, "sslmode": "require"} and o["pool_size"] == 3
+
+
+def test_new_secret_keys_and_a_broken_key_never_stop_the_site(monkeypatch):
+    sent = []
+
+    class Reply:
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def read(self): return b"{}"
+
+    def urlopen(req, timeout=20):
+        sent.append(dict(req.header_items()))
+        if "\n" in req.get_header("Apikey"):
+            raise ValueError("Invalid header value")
+        return Reply()
+
+    monkeypatch.setattr(storage.urllib.request, "urlopen", urlopen)
+    monkeypatch.setitem(APP.config, "SUPABASE_URL", "https://proj.supabase.co")
+    with APP.app_context():
+        monkeypatch.setitem(APP.config, "SUPABASE_SERVICE_KEY", "sb_secret_abc")
+        storage.ensure_bucket()
+        assert sent[-1]["Apikey"] == "sb_secret_abc" and "Authorization" not in sent[-1]
+        monkeypatch.setitem(APP.config, "SUPABASE_SERVICE_KEY", "eyJhbGc")
+        storage.ensure_bucket()
+        assert sent[-1]["Authorization"] == "Bearer eyJhbGc"
+        monkeypatch.setitem(APP.config, "SUPABASE_SERVICE_KEY", "sb_secret_a\nb")
+        storage.ensure_bucket()   # logs a warning, doesn't raise
+
+
+def test_pasted_line_breaks_are_dropped(monkeypatch):
+    import importlib
+    import config
+    monkeypatch.setenv("SUPABASE_SERVICE_KEY", " sb_secret_ab\ncd \n")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://u:p%40x@host:5432/postgres\n")
+    try:
+        importlib.reload(config)
+        assert config.Config.SUPABASE_SERVICE_KEY == "sb_secret_abcd"
+        assert config.Config.SQLALCHEMY_DATABASE_URI == "postgresql+psycopg://u:p%40x@host:5432/postgres"
+    finally:
+        monkeypatch.undo()
+        importlib.reload(config)

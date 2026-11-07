@@ -21,7 +21,7 @@ def _secret_key():
 
 def _database_url():
     """DATABASE_URL (Render gives postgres://…, SQLAlchemy wants postgresql+psycopg://…), else local SQLite."""
-    url = os.environ.get("DATABASE_URL", "")
+    url = "".join(os.environ.get("DATABASE_URL", "").split())   # a pasted line break would break the address
     if not url:
         return "sqlite:///" + os.path.join(INSTANCE_DIR, "monday.db")
     for old in ("postgres://", "postgresql://"):
@@ -55,8 +55,9 @@ class Config:
 
     # Supabase Storage for uploads (photos, figures, avatars). Without these two the uploads folder below is used.
     # The service key stays on the server only; the bucket is private and created at start-up if missing.
-    SUPABASE_URL = os.environ.get("SUPABASE_URL", "")              # https://<project>.supabase.co
-    SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
+    SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()      # https://<project>.supabase.co
+    # the legacy service_role key (eyJ…) or a new secret key (sb_secret_…); spaces and line breaks from pasting are dropped
+    SUPABASE_SERVICE_KEY = "".join(os.environ.get("SUPABASE_SERVICE_KEY", "").split())
     SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "uploads")
 
     # Uploaded photos and figures. On Render this points at the persistent disk (e.g. /var/data/uploads).

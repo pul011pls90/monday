@@ -29,7 +29,8 @@ def _api(path, data=None, headers=None, timeout=20):
     req = urllib.request.Request(c["SUPABASE_URL"].rstrip("/") + "/storage/v1/" + path, data=data,
                                  method="POST" if data is not None else "GET")
     key = c["SUPABASE_SERVICE_KEY"]
-    for k, v in {"Authorization": "Bearer " + key, "apikey": key, "Content-Type": "application/json", **(headers or {})}.items():
+    auth = {"apikey": key} if key.startswith("sb_") else {"apikey": key, "Authorization": "Bearer " + key}   # new secret keys go in apikey only
+    for k, v in {**auth, "Content-Type": "application/json", **(headers or {})}.items():
         req.add_header(k, v)
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return resp.read()
@@ -85,5 +86,5 @@ def ensure_bucket():
     except urllib.error.HTTPError as e:
         if e.code not in (400, 409):   # already there
             current_app.logger.warning("Supabase bucket %s: HTTP %s", bucket, e.code)
-    except OSError as e:
-        current_app.logger.warning("Supabase Storage not reachable: %s", e)
+    except (OSError, ValueError) as e:   # unreachable, or a malformed key: the site still starts (the key is not logged)
+        current_app.logger.warning("Supabase Storage not usable: %s", type(e).__name__)
