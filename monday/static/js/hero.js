@@ -141,12 +141,13 @@ document.querySelectorAll("[data-hero]").forEach(function (hero) {
     pointer.cy += (pointer.y - pointer.cy) * 0.18;
     pointer.presence += ((pointer.inside ? 1 : 0) - pointer.presence) * 0.08;
     if (t - last > 3.5) { shuffleTiles(); last = t; }
-    // the background clouds drift slowly, so 15 redraws a second look the same as 60 and cost a quarter
-    if (!bg || ms - drawn >= 66) { draw(t); drawn = ms; }
+    // the background clouds drift slowly, so 15 redraws a second look the same as 60 and cost a quarter;
+    // step up while the cursor is actively parting the clouds
+    if (!bg || ms - drawn >= (pointer.presence > 0.05 ? 25 : 66)) { draw(t); drawn = ms; }
     if (!reduce) requestAnimationFrame(frame);
   }
 
-  if (false) (bg ? window : hero).addEventListener("pointermove", (e) => {
+  (bg ? window : hero).addEventListener("pointermove", (e) => {
     const r = hero.getBoundingClientRect();
     pointer.x = e.clientX - r.left; pointer.y = e.clientY - r.top;
     if (!pointer.inside) { pointer.cx = pointer.x; pointer.cy = pointer.y; }

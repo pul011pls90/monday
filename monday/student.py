@@ -16,12 +16,12 @@ from .auth import link_invite_code
 from .constants import EXAMS, FORMAT_FOR_EXAM, LATIN_FORMATS, UNIVERSITY_EXAM, MISTAKE_REASONS, MODES, PACE, SESSION_LEVELS, SESSION_MINUTES, WORK_CATEGORIES
 from .extensions import db
 from .models import utcnow
-from .models import Assignment, Attempt, AttemptAnswer, ContentNode, Question, Skill, StudentProfile, StudentRecord, User, Work, WorkVersion
+from .models import Assignment, Attempt, AttemptAnswer, BankState, ContentNode, Question, Skill, StudentProfile, StudentRecord, User, Work, WorkVersion
 from .search import search
 from .services import (answer_item, build_custom_plan, ladder_next, countdown_label, current_module, current_monday_work, grade_version_attempt,
                        homework_state, is_correct, seconds_left, version_layout, latest_attempt, mistake_breakdown, monday_ranking, mondays_left,
                        next_monday_test_start, open_mistakes, pick_practice_questions, progress_summary,
-                       recommended_mode, skill_map, student_assignments, student_pool, pool_index, user_rank, week_start)
+                       recommended_mode, skill_map, skill_stats, student_assignments, student_pool, pool_index, user_rank, week_start)
 
 bp = Blueprint("student", __name__)
 
@@ -269,11 +269,13 @@ def sessions():
     exam = _exam()
     tmap = skill_map(current_user.id, exam)
     topic_of = {i["skill"].id: t["node"].id for t in tmap for i in t["items"]}
-    have, pool_ids = Counter(), set()
+    have, pool_ids, q_meta = Counter(), set(), {}
     for qid, sid, d in pool_index(exam):
         if sid in topic_of:
-            have[(topic_of[sid], d)] += 1
+            tid = topic_of[sid]
+            have[(tid, d)] += 1
             pool_ids.add(qid)
+            q_meta[qid] = (tid, sid, d)
     topics = []
     for t in tmap:
         n = {d: have[(t["node"].id, d)] for d in (1, 2, 3)}
@@ -281,14 +283,58 @@ def sessions():
             topics.append({"id": t["node"].id, "name": t["name"], "n": n})
     totals = {d: sum(t["n"][d] for t in topics) for d in (1, 2, 3)}
     bank_n = sum(totals.values())
-    # solved = questions of this same set answered at least once (the bank counts the same way)
-    answered_n = len(pool_ids & {qid for (qid,) in db.session.query(AttemptAnswer.question_id).join(Attempt)
-                                 .filter(Attempt.user_id == current_user.id).distinct()})
-    spent = (db.session.query(db.func.sum(Attempt.duration_sec))
-             .filter(Attempt.user_id == current_user.id).scalar() or 0)
-    return render_template("student/sessions.html", bank_n=bank_n, answered_n=answered_n,
-                           bank_pct=min(100, round(100 * answered_n / bank_n)) if bank_n else 0,
-                           spent_label=_("%(h)s ч %(m)s мин", h=spent // 3600, m=spent % 3600 // 60), recent=recent, topics=topics,
+
+    answered_qids = pool_ids & {
+        qid for (qid,) in db.session.query(AttemptAnswer.question_id).join(Attempt)
+        .filter(Attempt.user_id == current_user.id, AttemptAnswer.question_id.isnot(None)).distinct()
+    }
+    answered_n = len(answered_qids)
+
+    # Attribute each attempt's duration_sec evenly across its answers, plus BankState seconds.
+    att_rows = (
+        db.session.query(Attempt.id, Attempt.duration_sec, AttemptAnswer.question_id)
+        .join(AttemptAnswer, AttemptAnswer.attempt_id == Attempt.id)
+        .filter(Attempt.user_id == current_user.id, Attempt.duration_sec > 0)
+        .all()
+    )
+    by_att, att_dur = defaultdict(list), {}
+    for aid, dur, qid in att_rows:
+        att_dur[aid] = dur
+        by_att[aid].append(qid)
+    q_sec = defaultdict(float)
+    for aid, qids in by_att.items():
+        if qids:
+            per_q = att_dur[aid] / len(qids)
+            for qid in qids:
+                if qid in q_meta:
+                    q_sec[qid] += per_q
+    for s in BankState.query.filter_by(user_id=current_user.id).all():
+        if s.question_id in q_meta and s.seconds:
+            q_sec[s.question_id] += s.seconds
+
+    weak_sids = {sid for sid, st in skill_stats(current_user.id).items() if st["state"] != "mastered"}
+    mistake_sids = {a.skill_id for a in open_mistakes(current_user.id) if a.skill_id}
+    buckets = defaultdict(lambda: [0, 0, 0.0])
+    for qid, (tid, sid, d) in q_meta.items():
+        b = buckets[(tid, d, 1 if sid in weak_sids else 0, 1 if sid in mistake_sids else 0)]
+        b[0] += 1
+        if qid in answered_qids:
+            b[1] += 1
+        b[2] += q_sec.get(qid, 0.0)
+    filter_buckets = [
+        {"t": tid, "d": d, "w": w, "m": m, "n": n, "s": s, "sec": round(sec)}
+        for (tid, d, w, m), (n, s, sec) in buckets.items()
+    ]
+
+    init_n = sum(b["n"] for b in filter_buckets if b["w"])
+    init_s = sum(b["s"] for b in filter_buckets if b["w"])
+    init_sec = sum(b["sec"] for b in filter_buckets if b["w"])
+    if not init_n:
+        init_n, init_s, init_sec = bank_n, answered_n, round(sum(q_sec.values()))
+    spent_label = f"{init_sec // 60}:{init_sec % 60:02d}"
+    return render_template("student/sessions.html", bank_n=init_n, answered_n=init_s,
+                           bank_pct=min(100, round(100 * init_s / init_n)) if init_n else 0,
+                           spent_label=spent_label, filter_buckets=filter_buckets, recent=recent, topics=topics,
                            totals=totals, presets=current_user.profile.session_presets or [], practice=_practice_goal(),
                            PACE=PACE, SESSION_MINUTES=SESSION_MINUTES)
 
@@ -642,6 +688,29 @@ def _search_works(q, works):
     return search(q, documents)
 
 
+def _sort_works(items, sort):
+    if sort == "short":
+        items.sort(key=lambda w: w.time_limit_min or 0)
+    elif sort in ("easy", "hard"):
+        # same difficulty keeps natural title order; tests without a level go last either way
+        items.sort(key=lambda w: _natural_key(w.title))
+        step = 1 if sort == "easy" else -1
+        items.sort(key=lambda w: (w.current_version.level is None, step * (w.current_version.level or 0)))
+    elif sort == "popular":
+        counts = defaultdict(int)
+        for a in Attempt.query.filter(Attempt.mode == "collection").all():
+            if a.work_version:
+                counts[a.work_version.work_id] += 1
+        items.sort(key=lambda w: -counts[w.id])
+    elif sort == "new":
+        # Newest day first; within a day natural title order, so a series reads Test 1, Test 2, …
+        items.sort(key=lambda w: _natural_key(w.title))
+        items.sort(key=lambda w: _published(w).date(), reverse=True)
+    else:  # "exam": grouped by exam, full tests before topic sets, then natural title order
+        order = {code: i for i, code in enumerate(EXAMS)}
+        items.sort(key=lambda w: (order.get(w.exam, len(order)), w.category != "full", _natural_key(w.title)))
+
+
 @bp.route("/collections")
 @student_required
 def collections():
@@ -670,26 +739,11 @@ def collections():
         pass  # the search already put the best matches first
     elif cat == "olympiad" and sort == "exam":
         works.sort(key=_olympiad_order)
-    elif sort == "short":
-        works.sort(key=lambda w: w.time_limit_min or 0)
-    elif sort in ("easy", "hard"):
-        # same difficulty keeps natural title order; tests without a level go last either way
-        works.sort(key=lambda w: _natural_key(w.title))
-        step = 1 if sort == "easy" else -1
-        works.sort(key=lambda w: (w.current_version.level is None, step * (w.current_version.level or 0)))
-    elif sort == "popular":
-        counts = defaultdict(int)
-        for a in Attempt.query.filter(Attempt.mode == "collection").all():
-            if a.work_version:
-                counts[a.work_version.work_id] += 1
-        works.sort(key=lambda w: -counts[w.id])
-    elif sort == "new":
-        # Newest day first; within a day natural title order, so a series reads Test 1, Test 2, …
-        works.sort(key=lambda w: _natural_key(w.title))
-        works.sort(key=lambda w: _published(w).date(), reverse=True)
-    else:  # "exam": grouped by exam, full tests before topic sets, then natural title order
-        order = {code: i for i, code in enumerate(EXAMS)}
-        works.sort(key=lambda w: (order.get(w.exam, len(order)), w.category != "full", _natural_key(w.title)))
+    else:
+        _sort_works(works, sort)
+
+    if olympiads and sort != "exam":
+        _sort_works(olympiads, sort)
 
     # Recommendations: same exam; thematic sets that cover weak skills first.
     exam = _exam()
@@ -703,6 +757,8 @@ def collections():
         recommended = candidates[:4]
         for w in recommended:
             w.weak_match = w.category == "thematic" and covers_weak(w) > 0
+        if sort != "exam":
+            _sort_works(recommended, sort)
     return render_template("student/collections.html", works=works, recommended=recommended, exam_filter=exam_filter,
                            cat=cat, q=q, sort=sort, olympiads=olympiads[:5], olympiad_total=len(olympiads), grades=grades, grade=grade)
 
@@ -1699,12 +1755,65 @@ def formulas():
         return redirect(url_for("student.formulas"))
     sheets = (ReferenceSheet.query.filter_by(user_id=current_user.id)
               .order_by(ReferenceSheet.position, ReferenceSheet.id).all())
+    exam_filter = request.args.get("exam", "")
+    cat = request.args.get("cat", "")
+    q = request.args.get("q", "").strip()
+    sort = request.args.get("sort", "exam")
     tab = request.args.get("tab")
     if tab not in ("monday", "mine"):
-        tab = "mine" if sheets else "monday"
-    templates = monday_formulas.templates_for(_exam())
-    added = {t["id"]: len(monday_formulas.added_ids(current_user, t)) for t in templates}
-    return render_template("student/formulas.html", sheets=sheets, tab=tab, templates=templates, added=added)
+        tab = "monday" if (q or exam_filter or cat or "sort" in request.args) else ("mine" if sheets else "monday")
+    all_tpls = monday_formulas.templates_for(_exam())
+    added = {t["id"]: len(monday_formulas.added_ids(current_user, t)) for t in all_tpls}
+    templates = list(all_tpls)
+    if exam_filter in EXAMS:
+        templates = [t for t in templates if t["exam"] == exam_filter]
+    if cat in monday_formulas.FORMULA_CATEGORIES:
+        templates = [t for t in templates if cat in monday_formulas.TEMPLATE_CATEGORIES.get(t["id"], ())]
+    if q:
+        docs = []
+        for t in templates:
+            topic_names = " ".join(top["name"] + " " + top.get("en", "") for top in t["topics"])
+            formula_names = " ".join(f["name"] + " " + f.get("en", "") for top in t["topics"] for f in top["formulas"])
+            other = " ".join([t["exam"], EXAMS.get(t["exam"], {}).get("label", ""), t.get("en", ""), "Monday", topic_names, formula_names])
+            docs.append((t, t["title"], other))
+        templates = search(q, docs)
+    if sort == "topics":
+        templates.sort(key=lambda t: (-len(t["topics"]), _natural_key(t["title"])))
+    elif sort == "formulas":
+        templates.sort(key=lambda t: (-sum(len(top["formulas"]) for top in t["topics"]), _natural_key(t["title"])))
+    elif sort == "title":
+        templates.sort(key=lambda t: _natural_key(t["title"]))
+    exam_groups = []
+    if not (exam_filter or cat or q):
+        exam_descriptions_ru = {
+            "SAT": "Все формулы для SAT Math в одном месте: алгебра, продвинутая математика, анализ данных, геометрия и тригонометрия. Откройте, повторите и потренируйтесь на примерах.",
+            "CSCA": "Формулы для математики CSCA: множества, функции, геометрия, вероятность и статистика. Заходите, повторяйте и закрепляйте их на понятных примерах.",
+            "EGE": "Формулы профильной математики ЕГЭ — от алгебры и производной до стереометрии и экономических задач. Откройте нужный раздел и разберите примеры шаг за шагом.",
+            "ENT": "Формулы для ЕНТ по математике и математической грамотности: уравнения, неравенства, анализ, геометрия. Заходите, повторяйте и тренируйтесь на примерах.",
+            "OGE": "Всё нужное для ОГЭ по математике: алгебра, реальная математика, геометрия, вероятность. Откройте формулы, посмотрите схемы и закрепите их на примерах.",
+            "ORT": "Формулы для ОРТ по математике: числа, алгебра, функции и логарифмы, геометрия, тригонометрия, вероятность. Откройте, повторите и тренируйтесь на примерах.",
+        }
+        grouped = {}
+        for t in all_tpls:
+            g = grouped.setdefault(t["exam"], {
+                "code": t["exam"],
+                "label": EXAMS.get(t["exam"], {}).get("label", t["exam"]),
+                "exam_description_ru": exam_descriptions_ru.get(t["exam"], ""),
+                "templates_count": 0,
+                "topics_count": 0,
+                "formulas_count": 0,
+                "added_count": 0,
+                "sections": [],
+            })
+            g["templates_count"] += 1
+            g["topics_count"] += len(t["topics"])
+            g["formulas_count"] += sum(len(top["formulas"]) for top in t["topics"])
+            g["added_count"] += added[t["id"]]
+            g["sections"].append(t["title"].split(" · ", 1)[-1])
+        exam_groups = list(grouped.values())
+    return render_template("student/formulas.html", sheets=sheets, tab=tab, templates=templates, added=added,
+                           exam_groups=exam_groups, exam_filter=exam_filter, cat=cat, q=q, sort=sort,
+                           formula_cats=monday_formulas.FORMULA_CATEGORIES)
 
 
 @bp.route("/formulas/sheet/<int:sheet_id>/place", methods=["POST"])
@@ -1721,6 +1830,30 @@ def formula_sheet_place(sheet_id):
     return "", 204
 
 
+def _split_tex(tex):
+    """Split consecutive formulas on top-level `\\;;\\;` outside brackets/braces/parens."""
+    parts, buf, depth, i = [], [], 0, 0
+    while i < len(tex):
+        ch = tex[i]
+        if ch in "({[":
+            depth += 1
+        elif ch in ")}]":
+            depth = max(0, depth - 1)
+        if depth == 0 and tex.startswith(r"\;;\;", i):
+            part = "".join(buf).strip()
+            if part:
+                parts.append(part)
+            buf = []
+            i += 5
+            continue
+        buf.append(ch)
+        i += 1
+    tail = "".join(buf).strip()
+    if tail:
+        parts.append(tail)
+    return parts or [tex]
+
+
 @bp.route("/formulas/t/<template_id>")
 @student_required
 def formula_template(template_id):
@@ -1729,7 +1862,7 @@ def formula_template(template_id):
     topics = template["topics"]
     topic = next((t for t in topics if t["id"] == request.args.get("topic")), topics[0])
     return render_template("student/formula_template.html", template=template, topic=topic, bank_key=monday_formulas.bank_key(topic),
-                           added=monday_formulas.added_ids(current_user, template))
+                           added=monday_formulas.added_ids(current_user, template), split_tex=_split_tex)
 
 
 @bp.route("/formulas/t/<template_id>/add", methods=["POST"])
@@ -1743,3 +1876,32 @@ def formula_add(template_id):
     flash(_("Добавлено в «%(title)s»: %(n)s.", title=title, n=new) if new else _("Уже есть в твоих формулах."), "success" if new else "info")
     anchor = f"f-{formula_id}" if formula_id else None
     return redirect(url_for("student.formula_template", template_id=template_id, topic=topic["id"], _anchor=anchor))
+
+
+@bp.route("/support", methods=["GET", "POST"])
+@student_required
+def support():
+    """Student support page: quick contact form, FAQ, and recent submitted tickets/reports."""
+    from .models import Report
+    subjects = [
+        _("Техническая проблема"),
+        _("Ошибка в задаче или формуле"),
+        _("Вопрос по тесту понедельника"),
+        _("Идея или предложение"),
+    ]
+    if request.method == "POST":
+        subject = (request.form.get("subject") or "").strip()
+        if subject not in subjects:
+            subject = subjects[0]
+        message = (request.form.get("message") or "").strip()[:1800]
+        if not message:
+            flash(_("Опишите ваш вопрос или проблему."), "error")
+        else:
+            db.session.add(Report(author_id=current_user.id, kind="other", message=f"[{subject}] {message}"))
+            db.session.commit()
+            flash(_("Сообщение отправлено! Мы скоро ответим."), "success")
+            return redirect(url_for("student.support"))
+
+    my_reports = (Report.query.filter(Report.author_id == current_user.id)
+                  .order_by(Report.created_at.desc()).limit(6).all())
+    return render_template("student/support.html", subjects=subjects, my_reports=my_reports)

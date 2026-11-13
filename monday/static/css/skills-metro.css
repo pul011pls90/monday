@@ -11,7 +11,7 @@
 .skh-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .skh-exam { position: relative; }
 .skh-exam > summary { list-style: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px 0 18px; border-radius: 999px; cursor: pointer;
-  background: var(--btn-bg); color: var(--btn-text); font-weight: 700; font-size: 15px; }
+  background: var(--accent-soft); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent); font-weight: 700; font-size: 15px; }
 .skh-exam > summary::-webkit-details-marker { display: none; }
 .skh-exam > summary .ic { opacity: .8; transition: transform .15s; }
 .skh-exam[open] > summary .ic { transform: rotate(180deg); }
@@ -35,10 +35,10 @@
 .mt-next__route { grid-area: route; color: var(--text-2); font-size: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
 .mt-next__arrow { color: var(--muted); font-weight: 700; }
 .mt-next__step-name { color: var(--text); font-weight: 750; }
-.mt-next__go { grid-area: go; display: inline-flex; align-items: center; gap: 8px; min-height: 50px; padding: 0 24px; border: 0; border-radius: 999px; cursor: pointer;
-  background: var(--btn-bg); color: var(--btn-text); font: inherit; font-weight: 800; font-size: 16px; box-shadow: 0 5px 0 #0a1250; transition: transform .12s, box-shadow .12s; }
+.mt-next__go { grid-area: go; display: inline-flex; align-items: center; gap: 8px; min-height: 50px; padding: 0 24px; border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent); border-radius: 999px; cursor: pointer;
+  background: var(--accent-soft); color: var(--accent); font: inherit; font-weight: 800; font-size: 16px; box-shadow: 0 5px 0 color-mix(in srgb, var(--accent) 24%, transparent); transition: transform .12s, box-shadow .12s; }
 .mt-next__go:hover { transform: translateY(-1px); }
-.mt-next__go:active { transform: translateY(3px); box-shadow: 0 2px 0 #0a1250; }
+.mt-next__go:active { transform: translateY(3px); box-shadow: 0 2px 0 color-mix(in srgb, var(--accent) 24%, transparent); }
 
 /* the map: a white card like the Home hero; one colour per state —
    green «освоен», orange «в процессе», blue «вы здесь», grey «ещё не начат», gold only for stars */
@@ -105,7 +105,7 @@
 .mt-card__title { font-size: 18px; line-height: 1.25; }
 .mt-card__meta { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-2); }
 .mt-card .mt-stars em { color: var(--line-strong); }
-.mt-card__go { justify-self: start; margin-top: 6px; min-height: 44px; padding: 0 20px; border: 0; border-radius: 999px; background: var(--btn-bg); color: var(--btn-text); font: inherit; font-weight: 800; cursor: pointer; text-align: left; }
+.mt-card__go { justify-self: start; margin-top: 6px; min-height: 44px; padding: 0 20px; border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent); border-radius: 999px; background: var(--accent-soft); color: var(--accent); font: inherit; font-weight: 800; cursor: pointer; text-align: left; }
 
 .mt-legend { position: absolute; z-index: 2; left: 22px; bottom: 18px; display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--mt-ink-2); font-size: 12.5px; font-weight: 600; }
 .mt-legend span { display: inline-flex; align-items: center; gap: 7px; }

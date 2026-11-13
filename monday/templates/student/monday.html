@@ -1,47 +1,47 @@
 {% extends "layout.html" %}
-{% block scripts %}<script defer src="{{ url_for('static', filename='js/scenes.js') }}"></script><script defer src="{{ url_for('static', filename='js/monday-sky.js') }}"></script><script defer src="{{ url_for('static', filename='js/ranking.js') }}"></script>{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/scenes.js') }}"></script><script defer src="{{ url_for('static', filename='js/ranking.js') }}"></script>{% endblock %}
 {% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/monday-hero.css') }}">{% endblock %}
-{% block sky %}{% endblock %}{# the Monday scene is this page's background #}
 {% block title %}{{ _("Тест понедельника") }}{% endblock %}
 {% block content %}
 {% set p = current_user.profile %}
 {% set n_min = upcoming.time_limit_min if upcoming else 20 %}
 {% set n_tasks = upcoming.current_version.question_count if upcoming else 10 %}
 {% if already_taken %}{% set scene_mode = 'after' %}{% elif upcoming and window_open %}{% set scene_mode = 'live' %}{% else %}{% set scene_mode = 'before' %}{% endif %}
+
 <section class="mh mh--board{{ ' is-live' if scene_mode == 'live' }}" aria-labelledby="mh-title">
   <div class="mh__text">
     <h1 class="mh__title display" id="mh-title">{{ _("Тест") }}<br>{{ _("понедельника") }}</h1>
     {% if scene_mode == 'before' %}
-      {# four white cards, the same as the countdown to the exam on Home #}
-      <div class="mhb-cards" data-countdown data-seconds="{{ seconds_left }}" role="timer" aria-live="off" aria-label="{{ _('До старта') }}">
+      <div class="mhb-odo" data-countdown data-seconds="{{ seconds_left }}" role="timer" aria-live="off" aria-label="{{ _('До старта') }}">
         {% for key, label in [('d', _('дней')), ('h', _('часов')), ('m', _('минут')), ('s', _('секунд'))] %}
-          <div><b class="num" data-{{ key }}>–</b><small>{{ label }}</small></div>
+          <div class="mhb-odo__unit">
+            <div class="mhb-odo__digits num" data-odo="{{ key }}">00</div>
+            <small>{{ label }}</small>
+          </div>
+          {% if not loop.last %}<span class="mhb-odo__sep" aria-hidden="true">:</span>{% endif %}
         {% endfor %}
       </div>
     {% endif %}
-    <dl class="mhb-facts">
+    <div class="mhb-pills">
       {% if scene_mode == 'after' %}
-        <div><dt>{{ _("Результат") }}</dt><dd class="num">{{ already_taken.score }}/{{ already_taken.total }}</dd></div>
-        <div><dt>{{ _("Следующий старт") }}</dt><dd>{{ start_label }}</dd></div>
+        <span class="mhb-pill num">{{ ui.icon('check', 16) }}<span>{{ already_taken.score }}/{{ already_taken.total }}</span></span>
+        <span class="mhb-pill">{{ ui.icon('calendar', 16) }}<span>{{ _("Следующий старт") }}: {{ start_label }}</span></span>
       {% else %}
-        <div><dt>{{ _("Старт") if scene_mode == 'before' else _("Открыт до") }}</dt><dd>{{ start_label if scene_mode == 'before' else _("сегодня, 24:00") }}</dd></div>
-        <div><dt>{{ _("Время") }}</dt><dd>{{ _("%(n)s мин", n=n_min) }}</dd></div>
-        <div><dt>{{ _("Задачи") }}</dt><dd>{{ n_tasks }}</dd></div>
-      {% endif %}
-    </dl>
-    <div class="mh__cta">
-      {% if scene_mode == 'after' %}
-        <a class="btn btn--light btn--lg" href="{{ url_for('student.attempt_result', attempt_id=already_taken.id) }}">{{ _("Мой результат") }} {{ ui.icon('arrow-right', 18) }}</a>
-      {% elif scene_mode == 'live' %}
-        <form method="post" action="{{ url_for('student.monday_start') }}">{{ ui.csrf() }}<button class="btn btn--light btn--lg" type="submit">{{ _("Начать тест") }} {{ ui.icon('arrow-right', 18) }}</button></form>
-      {% else %}
-        <a class="btn btn--ghost-light btn--lg" href="{{ url_for('student.sessions') }}">{{ _("Разминка до старта") }} {{ ui.icon('arrow-right', 18) }}</a>
+        <span class="mhb-pill">{{ ui.icon('calendar', 16) }}<span>{{ start_label if scene_mode == 'before' else _("Открыт до 24:00") }}</span></span>
+        <span class="mhb-pill">{{ ui.icon('clock', 16) }}<span>{{ _("%(n)s мин", n=n_min) }}</span></span>
+        <span class="mhb-pill">{{ ui.icon('list', 16) }}<span>{{ _("%(n)s задач", n=n_tasks) }}</span></span>
       {% endif %}
     </div>
+    {% if scene_mode == 'after' %}
+      <div class="mh__cta">
+        <a class="btn btn--primary btn--lg" href="{{ url_for('student.attempt_result', attempt_id=already_taken.id) }}">{{ _("Мой результат") }} {{ ui.icon('arrow-right', 18) }}</a>
+      </div>
+    {% elif scene_mode == 'live' %}
+      <div class="mh__cta">
+        <form method="post" action="{{ url_for('student.monday_start') }}">{{ ui.csrf() }}<button class="btn btn--primary btn--lg" type="submit">{{ _("Начать тест") }} {{ ui.icon('arrow-right', 18) }}</button></form>
+      </div>
+    {% endif %}
   </div>
-  <canvas class="mh__sky" data-sky-print aria-hidden="true"></canvas>
-  <canvas class="mh__canvas" data-sky="1" data-scene="{{ scene }}" data-mode="{{ scene_mode }}" data-topics='{{ weak_topics|tojson }}'{% if config.MONDAY_TEST_ALWAYS_OPEN %} data-cycle="{{ scene_cycle|join(',') }}"{% endif %} aria-hidden="true"></canvas>
-  <button type="button" class="mh__next" data-scene-next aria-label="{{ _('Следующая анимация') }}" title="{{ _('Следующая анимация') }}">{{ _("Другая анимация") }} {{ ui.icon('arrow-right', 14) }}</button>
   {% if scene_mode == 'live' %}<span class="mh__badge"><i></i>{{ _("Идёт сейчас") }}</span>{% endif %}
 </section>
 {% if config.MONDAY_TEST_ALWAYS_OPEN and current_user.is_admin %}<p class="small muted">{{ _("Демо-режим: тест открыт в любой день. Отключается настройкой MONDAY_TEST_ALWAYS_OPEN=0.") }}</p>{% endif %}

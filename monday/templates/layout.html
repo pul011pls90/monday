@@ -44,26 +44,41 @@
         ('student.monday', 'calendar', _('Тест'), ['student.monday']),
         ('student.home', 'home', _('Главная'), ['student.home']),
         ('student.sessions', 'bolt', _('Сессии'), ['student.sessions', 'student.session_play', 'student.session_done']),
-        ('bank.index', 'questions', _('Банк'), ['bank.index']),
+        ('bank.index', 'bank', _('Банк'), ['bank.index']),
         ('student.collections', 'collections', _('Сборники'), ['student.collections', 'student.work_detail', 'student.attempt_run', 'student.attempt_result']),
         ('student.skills', 'skills', _('Навыки'), ['student.skills']),
         ('student.homework', 'homework', _('Домашка'), ['student.homework', 'student.homework_detail']),
         ('student.journal', 'journal', _('Журнал'), ['student.journal']),
-        ('student.formulas', 'list', _('Формулы'), ['student.formulas', 'student.formula_template']),
-        ('student.profile', 'settings', _('Настройки'), ['student.profile']),
+        ('student.formulas', 'formulas', _('Формулы'), ['student.formulas', 'student.formula_template']),
       ] %}
       {% set primary = ['student.monday', 'student.home', 'student.sessions', 'bank.index', 'student.homework'] %}
     {% endif %}
     {% for endpoint, ic, label, active in items %}{% set on = (nav_active == endpoint) if nav_active is defined else (ep in active) %}
-      <a class="rail__item{{ ' is-active' if on }}{{ ' rail__item--extra' if endpoint not in primary }}{{ ' rail__item--key' if endpoint == 'student.monday' }}" href="{{ url_for(endpoint) }}"{{ ' aria-current=page' if on }}>
-        {{ ui.icon(ic, 22) }}<span>{{ label }}</span>{% if endpoint == 'student.monday' and monday_live() %}<i class="rail__live" title="{{ _('Тест идёт сейчас') }}"></i>{% endif %}{% if endpoint == 'reports.inbox' %}{% set nr = open_reports() %}{% if nr %}<i class="rail__count">{{ nr }}</i>{% endif %}{% endif %}
+      <a class="rail__item{{ ' is-active' if on }}{{ ' rail__item--extra' if endpoint not in primary }}{{ ' rail__item--key' if endpoint == 'student.monday' }}" href="{{ url_for(endpoint) }}" title="{{ label }}" aria-label="{{ label }}"{{ ' aria-current=page' if on }}>
+        {{ ui.icon(ic, 22) }}<span class="rail__label">{{ label }}</span>{% if endpoint == 'student.monday' and monday_live() %}<i class="rail__live" title="{{ _('Тест идёт сейчас') }}"></i>{% endif %}{% if endpoint == 'reports.inbox' %}{% set nr = open_reports() %}{% if nr %}<i class="rail__count">{{ nr }}</i>{% endif %}{% endif %}
       </a>
     {% endfor %}
     <div class="spacer"></div>
+    {% if current_user.role == 'student' %}
+      <div class="rail__foot">
+        <a class="rail__item{{ ' is-active' if ep == 'student.support' }}" href="{{ url_for('student.support') }}" title="{{ _('Поддержка') }}" aria-label="{{ _('Поддержка') }}"{{ ' aria-current=page' if ep == 'student.support' }}>
+          {{ ui.icon('chat', 22) }}<span class="rail__label">{{ _('Поддержка') }}</span>
+        </a>
+        <a class="rail__item{{ ' is-active' if ep == 'student.profile' }}" href="{{ url_for('student.profile') }}" title="{{ _('Настройки') }}" aria-label="{{ _('Настройки') }}"{{ ' aria-current=page' if ep == 'student.profile' }}>
+          {{ ui.icon('settings', 22) }}<span class="rail__label">{{ _('Настройки') }}</span>
+        </a>
+      </div>
+    {% endif %}
   </nav>
 
   {# Phones: the bottom bar keeps five main sections; the rest live in this side menu (☰ in the top bar). #}
   {% set extras = items|rejectattr(0, 'in', primary)|list %}
+  {% if current_user.role == 'student' %}
+    {% set extras = extras + [
+      ('student.support', 'chat', _('Поддержка'), ['student.support']),
+      ('student.profile', 'settings', _('Настройки'), ['student.profile']),
+    ] %}
+  {% endif %}
   {% set ns = namespace(extra_active=false) %}
   {% for x in extras %}{% if ep in x[3] %}{% set ns.extra_active = true %}{% endif %}{% endfor %}
   {% if extras %}

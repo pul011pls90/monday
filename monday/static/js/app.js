@@ -101,19 +101,163 @@
     if (form.requestSubmit) form.requestSubmit(e.submitter || undefined); else form.submit();
   }, true);
 
-  /* ---------- image lightbox (delegated, so swapped-in content works too) ---------- */
+  /* ---------- image lightbox with zoom & pan (shared by all formula photos) ---------- */
   const lightbox = $("#lightbox");
   if (lightbox) {
+    const card = $("[data-lb-card]", lightbox);
+    const stage = $("[data-lb-stage]", lightbox);
+    const lbImg = $("[data-lb-img]", lightbox) || $("img", lightbox);
+    const levelEl = $("[data-lb-level]", lightbox);
+    const fitBtn = $("[data-lb-fit]", lightbox);
+    const MIN_Z = 1, MAX_Z = 3, STEP_Z = 0.25;
+    let scale = 1, tx = 0, ty = 0, fit = false;
+    const ptrs = new Map();
+    let dragStart = null, pinchStart = null, lastTap = null;
+
+    const clampPan = () => {
+      if (!stage || scale <= 1) { tx = 0; ty = 0; return; }
+      const maxX = Math.max(0, (stage.clientWidth * (scale - 1)) / 2);
+      const maxY = Math.max(0, (stage.clientHeight * (scale - 1)) / 2);
+      tx = Math.max(-maxX, Math.min(maxX, tx));
+      ty = Math.max(-maxY, Math.min(maxY, ty));
+    };
+
+    const apply = () => {
+      scale = Math.max(MIN_Z, Math.min(MAX_Z, Math.round(scale * 100) / 100));
+      clampPan();
+      if (lbImg) lbImg.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(${scale})`;
+      if (levelEl) levelEl.textContent = `${Math.round(scale * 100)}%`;
+      if (stage) stage.classList.toggle("is-zoomed", scale > 1);
+    };
+
+    const zoomTo = (next, clientX, clientY) => {
+      const target = Math.max(MIN_Z, Math.min(MAX_Z, next));
+      if (stage && clientX != null && clientY != null && scale > 0) {
+        const r = stage.getBoundingClientRect();
+        const dx = clientX - (r.left + r.width / 2);
+        const dy = clientY - (r.top + r.height / 2);
+        const ratio = target / scale;
+        tx = dx - (dx - tx) * ratio;
+        ty = dy - (dy - ty) * ratio;
+      }
+      scale = target;
+      apply();
+    };
+
+    const resetZoom = () => {
+      scale = 1; tx = 0; ty = 0; fit = false;
+      lightbox.classList.remove("is-fit");
+      if (fitBtn) fitBtn.classList.remove("is-active");
+      ptrs.clear(); dragStart = null; pinchStart = null;
+      apply();
+    };
+
+    const close = () => {
+      lightbox.classList.remove("is-open");
+      document.body.classList.remove("is-lightbox-open");
+      resetZoom();
+    };
+
+    lbImg?.addEventListener("load", () => {
+      if (card && lbImg.naturalWidth > 0 && lbImg.naturalHeight > 0) {
+        card.style.setProperty("--lb-aspect", String(lbImg.naturalWidth / lbImg.naturalHeight));
+      }
+    });
+
     document.addEventListener("click", (e) => {
-      const img = e.target.closest("img[data-lightbox]");
+      const img = e.target.closest("img[data-lightbox]") || e.target.closest(".fx-card__figure")?.querySelector("img[data-lightbox]");
       if (!img) return;
-      $("img", lightbox).src = img.src;
+      resetZoom();
+      if (card) card.style.setProperty("--lb-aspect", "1.6");
+      lbImg.src = img.src;
       lightbox.classList.add("is-open");
+      document.body.classList.add("is-lightbox-open");
     });
-    lightbox.addEventListener("click", () => lightbox.classList.remove("is-open"));
+
+    lightbox.addEventListener("click", (e) => {
+      if (e.target === lightbox) close();
+    });
+    $("[data-lb-close]", lightbox)?.addEventListener("click", close);
+    $("[data-lb-in]", lightbox)?.addEventListener("click", () => zoomTo(Math.round((scale + STEP_Z) / STEP_Z) * STEP_Z));
+    $("[data-lb-out]", lightbox)?.addEventListener("click", () => zoomTo(Math.round((scale - STEP_Z) / STEP_Z) * STEP_Z));
+    $("[data-lb-reset]", lightbox)?.addEventListener("click", resetZoom);
+    fitBtn?.addEventListener("click", () => {
+      fit = !fit;
+      lightbox.classList.toggle("is-fit", fit);
+      fitBtn.classList.toggle("is-active", fit);
+      tx = 0; ty = 0;
+      apply();
+    });
+
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") lightbox.classList.remove("is-open");
+      if (!lightbox.classList.contains("is-open")) return;
+      if (e.key === "Escape") { e.preventDefault(); close(); }
+      else if (e.key === "+" || e.key === "=") { e.preventDefault(); zoomTo(scale + STEP_Z); }
+      else if (e.key === "-" || e.key === "_") { e.preventDefault(); zoomTo(scale - STEP_Z); }
+      else if (e.key === "0") { e.preventDefault(); resetZoom(); }
     });
+
+    stage?.addEventListener("wheel", (e) => {
+      if (!lightbox.classList.contains("is-open")) return;
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? STEP_Z : -STEP_Z;
+        zoomTo(scale + delta, e.clientX, e.clientY);
+      }
+    }, { passive: false });
+
+    stage?.addEventListener("dblclick", (e) => {
+      e.preventDefault();
+      zoomTo(scale > 1.05 ? 1 : 2, e.clientX, e.clientY);
+    });
+
+    stage?.addEventListener("pointerdown", (e) => {
+      stage.setPointerCapture?.(e.pointerId);
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (ptrs.size === 1 && scale > 1) {
+        dragStart = { x: e.clientX, y: e.clientY, tx, ty };
+        stage.classList.add("is-dragging");
+      } else if (ptrs.size === 2) {
+        dragStart = null;
+        stage.classList.remove("is-dragging");
+        const [a, b] = [...ptrs.values()];
+        pinchStart = { dist: Math.hypot(b.x - a.x, b.y - a.y) || 1, scale };
+      }
+    });
+
+    stage?.addEventListener("pointermove", (e) => {
+      if (!ptrs.has(e.pointerId)) return;
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (ptrs.size === 2 && pinchStart) {
+        const [a, b] = [...ptrs.values()];
+        const dist = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+        zoomTo(pinchStart.scale * (dist / pinchStart.dist), (a.x + b.x) / 2, (a.y + b.y) / 2);
+      } else if (ptrs.size === 1 && dragStart && scale > 1) {
+        tx = dragStart.tx + (e.clientX - dragStart.x);
+        ty = dragStart.ty + (e.clientY - dragStart.y);
+        apply();
+      }
+    });
+
+    const endPtr = (e) => {
+      ptrs.delete(e.pointerId);
+      if (ptrs.size < 2) pinchStart = null;
+      if (ptrs.size === 0) {
+        dragStart = null;
+        stage.classList.remove("is-dragging");
+        if (e.pointerType === "touch") {
+          const now = Date.now();
+          if (lastTap && now - lastTap.t < 300 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 28) {
+            lastTap = null;
+            zoomTo(scale > 1.05 ? 1 : 2, e.clientX, e.clientY);
+          } else {
+            lastTap = { t: now, x: e.clientX, y: e.clientY };
+          }
+        }
+      }
+    };
+    stage?.addEventListener("pointerup", endPtr);
+    stage?.addEventListener("pointercancel", endPtr);
   }
 
   /* ---------- test timer: counts down and submits when time is up ---------- */

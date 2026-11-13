@@ -13,7 +13,75 @@
 </section>
 
 {% if tab == 'monday' %}
-<div class="grid work-grid--roomy">
+{% if not exam_filter or q or cat %}
+<form method="get" class="stack" style="gap:14px;margin-bottom:18px" role="search">
+  <input type="hidden" name="tab" value="monday">
+  <div class="row" style="gap:12px;flex-wrap:wrap">
+    <label class="search" style="flex:1 1 360px">
+      {{ ui.icon('search', 20) }}
+      <span class="sr-only">{{ _("Поиск формул") }}</span>
+      <input type="search" name="q" value="{{ q }}" placeholder="{{ _('Название, экзамен, тема или автор') }}">
+    </label>
+    <label class="row" style="gap:10px;font-size:14px;font-weight:600">{{ _("Тема") }}
+      <select class="select" name="cat" data-autosubmit style="width:auto;min-height:52px">
+        <option value="">{{ _("Все темы") }}</option>
+        {% for key, label in formula_cats.items() %}
+        <option value="{{ key }}" {{ 'selected' if cat == key }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="row" style="gap:10px;font-size:14px;font-weight:600">{{ _("Сортировка") }}
+      <select class="select" name="sort" data-autosubmit style="width:auto;min-height:52px">
+        <option value="exam" {{ 'selected' if sort == 'exam' }}>{{ _("По экзаменам") }}</option>
+        <option value="formulas" {{ 'selected' if sort == 'formulas' }}>{{ _("По числу формул") }}</option>
+        <option value="topics" {{ 'selected' if sort == 'topics' }}>{{ _("По числу тем") }}</option>
+        <option value="title" {{ 'selected' if sort == 'title' }}>{{ _("По алфавиту") }}</option>
+      </select>
+    </label>
+  </div>
+  <input type="hidden" name="exam" value="{{ exam_filter }}">
+  <div class="live-part" data-live="filters">
+  <div class="chips" role="group" aria-label="{{ _('Фильтры') }}">
+    <a class="chip{{ ' is-active' if not exam_filter and not cat }}" href="{{ url_for('student.formulas', tab='monday', q=q, sort=sort) }}">{{ _("Все") }}</a>
+    {% for code, e in EXAMS.items() %}
+      <a class="chip{{ ' is-active' if exam_filter == code }}" href="{{ url_for('student.formulas', tab='monday', exam=('' if exam_filter == code else code), q=q, cat=cat, sort=sort) }}">{{ e.label }}</a>
+    {% endfor %}
+  </div>
+  </div>
+</form>
+{% endif %}
+
+<div class="live-part" data-live="results">
+{% if exam_groups %}
+<div class="grid fx-exam-grid">
+  {% for g in exam_groups %}
+  <a class="card fx-exam-card" href="{{ url_for('student.formulas', tab='monday', exam=g.code, sort=sort) }}">
+    <div class="row row--between">
+      {{ ui.exam_tag(g.code) }}
+      {% if g.added_count %}<span class="small" style="font-weight:700;color:var(--accent)">{{ _("Добавлено %(a)s из %(b)s", a=g.added_count, b=g.formulas_count) }}</span>{% endif %}
+    </div>
+    <h3 class="fx-exam-card__title">{{ _("Формулы %(exam)s", exam=g.label) }}</h3>
+    <p class="fx-exam-card__desc">{{ g.exam_description_ru or (g.sections|join(' · ')) }}</p>
+    <div class="fx-exam-card__foot">
+      <div class="work-card__meta">
+        <span class="meta-item">{{ ui.icon('list', 16) }}<span>{{ g.templates_count }} {{ g.templates_count|plural_ru(_("раздел"), _("раздела"), _("разделов")) }} · {{ g.topics_count }} {{ g.topics_count|plural_ru(_("тема"), _("темы"), _("тем")) }} · {{ g.formulas_count }} {{ g.formulas_count|plural_ru(_("формула"), _("формулы"), _("формул")) }}</span></span>
+      </div>
+      <span class="btn btn--primary btn--block">{{ _("Открыть") }}</span>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% elif templates %}
+{% if exam_filter %}
+<div class="row row--between" style="margin-bottom:14px;flex-wrap:wrap;gap:10px">
+  <div class="row" style="gap:12px;align-items:center">
+    <a class="btn btn--secondary btn--sm" href="{{ url_for('student.formulas', tab='monday', sort=sort) }}">{{ ui.icon('arrow-left', 16) }}{{ _("Все экзамены") }}</a>
+    <h2 style="margin:0;font-size:20px">{{ _("Формулы %(exam)s", exam=EXAMS[exam_filter].label) }}</h2>
+  </div>
+  <span class="small muted">{{ templates|length }} {{ templates|length|plural_ru(_("раздел"), _("раздела"), _("разделов")) }}</span>
+</div>
+{% endif %}
+<div class="grid {{ 'fx-sub-grid' if exam_filter and not q and not cat else 'work-grid--roomy' }}">
   {% for t in templates %}
   {% set total = t.topics|map(attribute='formulas')|map('length')|sum %}
   <article class="card work-card">
@@ -29,6 +97,14 @@
     <a class="btn btn--primary btn--block" href="{{ url_for('student.formula_template', template_id=t.id) }}">{{ _("Открыть") }}</a>
   </article>
   {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <h3>{{ _("Ничего не нашлось") }}</h3>
+  <p>{{ _("Измените запрос или сбросьте фильтры.") }}</p>
+  <a class="btn btn--secondary" href="{{ url_for('student.formulas', tab='monday') }}">{{ _("Сбросить") }}</a>
+</div>
+{% endif %}
 </div>
 {% else %}
 <form method="post" class="card formula-new">
@@ -117,4 +193,4 @@
 {% endfor %}
 {% endif %}
 {% endblock %}
-{% block scripts %}<script defer src="{{ url_for('static', filename='js/sheet-places.js') }}"></script>{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/collections.js') }}"></script><script defer src="{{ url_for('static', filename='js/sheet-places.js') }}"></script>{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Поддержка") }}{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>{{ _("Поддержка") }}</h1>
+    <p class="sub">{{ _("Помощь по платформе, тестам понедельника и учебным материалам.") }}</p>
+  </div>
+</header>
+
+<div class="sup-grid">
+  <section class="card sup-card" aria-labelledby="sup-form-h">
+    <h2 id="sup-form-h">{{ _("Написать в поддержку") }}</h2>
+    <p class="sup-sub">{{ _("Опишите ситуацию — сообщение попадёт преподавателям и команде платформы.") }}</p>
+
+    <form method="post" action="{{ url_for('student.support') }}" class="sup-form">
+      {{ ui.csrf() }}
+      <div class="field">
+        <label for="sup-subject">{{ _("Тема обращения") }}</label>
+        <select id="sup-subject" name="subject" class="input">
+          {% for s in subjects %}
+            <option value="{{ s }}">{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="sup-message">{{ _("Сообщение") }}</label>
+        <textarea id="sup-message" name="message" rows="5" class="input" required placeholder="{{ _('Например: не открывается задача №4 в банке SAT или вопрос по таймеру…') }}"></textarea>
+      </div>
+
+      <div class="sup-form__foot">
+        <button type="submit" class="btn btn--primary btn--lg">{{ _("Отправить сообщение") }} {{ ui.icon('send', 16) }}</button>
+        <span class="small muted">{{ _("Обычно отвечаем в течение рабочего дня.") }}</span>
+      </div>
+    </form>
+
+    <div class="sup-links">
+      <a class="sup-link" href="{{ url_for('auth.about') }}">{{ _("О платформе") }}</a>
+      <a class="sup-link" href="{{ url_for('auth.terms') }}">{{ _("Правила") }}</a>
+      <a class="sup-link" href="{{ url_for('auth.privacy') }}">{{ _("Конфиденциальность") }}</a>
+    </div>
+  </section>
+
+  <div class="sup-side">
+    <section class="card sup-card" aria-labelledby="sup-faq-h">
+      <h2 id="sup-faq-h">{{ _("Частые вопросы") }}</h2>
+      <div class="sup-faq">
+        <details open>
+          <summary>{{ _("Как работает Тест понедельника?") }}</summary>
+          <p>{{ _("Окно запуска открывается каждый понедельник в 19:00. После старта даётся 20 минут на 10 задач, таймер нельзя поставить на паузу, а разбор открывается сразу после финиша.") }}</p>
+        </details>
+        <details>
+          <summary>{{ _("Как считается ежедневная серия?") }}</summary>
+          <p>{{ _("Выполняй дневную цель по минутам практики или решай «Вопрос дня» — серия обновляется автоматически.") }}</p>
+        </details>
+        <details>
+          <summary>{{ _("Нашёл ошибку в задаче или формуле — что делать?") }}</summary>
+          <p>{{ _("Можно нажать «Сообщить об ошибке» прямо под вопросом или написать сюда, указав тему и номер задачи.") }}</p>
+        </details>
+        <details>
+          <summary>{{ _("Как сменить экзамен или целевой балл?") }}</summary>
+          <p>{{ _("Открой «Настройки» внизу меню слева или нажми «Изменить» на карточке цели на главной странице.") }}</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="card sup-card" aria-labelledby="sup-hist-h">
+      <h2 id="sup-hist-h">{{ _("Мои обращения") }}</h2>
+      {% if my_reports %}
+        <ul class="sup-list">
+          {% for r in my_reports %}
+            <li class="sup-item">
+              <div class="sup-item__top">
+                <span class="sup-badge{{ ' is-done' if r.status == 'fixed' else (' is-rej' if r.status == 'rejected' else '') }}">
+                  {{ _("Решено") if r.status == 'fixed' else (_("Отклонено") if r.status == 'rejected' else _("Открыто")) }}
+                </span>
+                <span class="small muted">{{ r.created_at.strftime('%d.%m.%Y') if r.created_at else '' }}</span>
+              </div>
+              <p class="sup-item__msg">{{ r.message or _("Сообщение об ошибке в задаче") }}</p>
+              {% if r.reply %}
+                <div class="sup-item__reply"><b>{{ _("Ответ") }}:</b> {{ r.reply }}</div>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="small muted" style="margin:0">{{ _("Обращений пока нет — если возникнет вопрос, напиши через форму слева.") }}</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

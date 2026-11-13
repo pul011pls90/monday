@@ -20,7 +20,23 @@
 <body class="{% block body_class %}{% endblock %}" data-confirm-ok="{{ _('Да') }}" data-confirm-cancel="{{ _('Отмена') }}"
       data-date-empty="{{ _('Выбрать дату') }}" data-date-today="{{ _('Сегодня') }}" data-date-clear="{{ _('Очистить') }}" data-date-prev="{{ _('Предыдущий месяц') }}" data-date-next="{{ _('Следующий месяц') }}">
   {% block body %}{% endblock %}
-  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="{{ _('Рисунок') }}"><img alt=""></div>
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="{{ _('Рисунок') }}">
+    <div class="lightbox__card" data-lb-card>
+      <div class="lightbox__bar">
+        <span class="lightbox__zoom" data-lb-level>100%</span>
+        <div class="lightbox__tools" role="group" aria-label="{{ _('Масштаб') }}">
+          <button class="icon-btn lightbox__btn" type="button" data-lb-out aria-label="{{ _('Уменьшить') }}" title="−">−</button>
+          <button class="icon-btn lightbox__btn" type="button" data-lb-in aria-label="{{ _('Увеличить') }}" title="+">+</button>
+          <button class="icon-btn lightbox__btn" type="button" data-lb-reset aria-label="{{ _('Сбросить масштаб') }}" title="1:1 (0)">1x</button>
+          <button class="icon-btn lightbox__btn" type="button" data-lb-fit aria-label="{{ _('Во весь экран') }}" title="{{ _('Во весь экран') }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+          <button class="icon-btn lightbox__btn" type="button" data-lb-close aria-label="{{ _('Закрыть') }}" title="Esc">×</button>
+        </div>
+      </div>
+      <div class="lightbox__stage" data-lb-stage>
+        <img alt="" data-lb-img draggable="false">
+      </div>
+    </div>
+  </div>
   <script defer src="{{ url_for('static', filename='vendor/katex/katex.min.js') }}"></script>
   <script defer src="{{ url_for('static', filename='vendor/katex/contrib/auto-render.min.js') }}"></script>
   <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>

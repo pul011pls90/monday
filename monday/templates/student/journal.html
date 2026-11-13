@@ -17,11 +17,11 @@
       <div class="split-bar" role="img" aria-label="{% for k, label in MISTAKE_REASONS.items() %}{{ label }} {{ breakdown.get(k, 0) }}; {% endfor %}">
         {% for k in ['careless', 'gap', 'misread', 'time', None] %}{% if breakdown.get(k) %}<span style="flex:{{ breakdown[k] }};background:{{ colors[k] }}"></span>{% endif %}{% endfor %}
       </div>
-      <div class="grid grid-2" style="gap:10px 20px">
+      <div class="jr-reasons-legend">
         {% for k, label in MISTAKE_REASONS.items() %}
-          <div class="row" style="flex-wrap:nowrap"><span class="dot" style="border-radius:3px;background:{{ colors[k] }}"></span>{{ label }}<span class="spacer"></span><b class="num">{{ breakdown.get(k, 0) }}</b></div>
+          <div class="jr-reason-row"><span class="dot" style="border-radius:3px;background:{{ colors[k] }}"></span><span class="jr-reason-row__label">{{ label }}</span><b class="num">{{ breakdown.get(k, 0) }}</b></div>
         {% endfor %}
-        {% if breakdown.get(None) %}<div class="row muted" style="flex-wrap:nowrap"><span class="dot" style="border-radius:3px;background:var(--surface-3)"></span>{{ _("Причина не указана") }}<span class="spacer"></span><b class="num">{{ breakdown[None] }}</b></div>{% endif %}
+        {% if breakdown.get(None) %}<div class="jr-reason-row muted"><span class="dot" style="border-radius:3px;background:var(--surface-3)"></span><span class="jr-reason-row__label">{{ _("Причина не указана") }}</span><b class="num">{{ breakdown[None] }}</b></div>{% endif %}
       </div>
     {% else %}
       <p class="text-2">{{ _("За последние 7 дней ошибок нет.") }}</p>
@@ -114,7 +114,7 @@
 
       <div class="jr-card__topics">
         {% for name, n in day.topics[:3] %}
-          <span class="tag tag--soft tag--xs" title="{{ name }}">{{ name }}{% if n > 1 %} <b>×{{ n }}</b>{% endif %}</span>
+          <span class="tag tag--soft tag--xs" title="{{ name }}"><span class="tag__text">{{ name }}</span>{% if n > 1 %} <b>×{{ n }}</b>{% endif %}</span>
         {% endfor %}
         {% if day.topics|length > 3 %}
           <span class="tag tag--line tag--xs muted">+{{ day.topics|length - 3 }}</span>
@@ -148,7 +148,7 @@
           <span class="dot--section dot--section-recent"></span>
           <span>{{ _("Недавние записи") }}</span>
         </h3>
-        <span class="jr-section__sub">{{ _("За последние 7 дней") }} · {{ recent_days|length }} {{ recent_days|length|plural_ru(_("день"), _("дня"), _("дней")) }}</span>
+        <span class="jr-section__sub hw-sub-pill">{{ _("За последние 7 дней") }} <i class="hw-sub-pill__sep" aria-hidden="true">·</i> <b>{{ recent_days|length }} {{ recent_days|length|plural_ru(_("день"), _("дня"), _("дней")) }}</b></span>
       </div>
       <div class="grid grid-4 jr-grid">
         {% for day in recent_days %}{{ render_day_card(day) }}{% endfor %}
@@ -163,7 +163,7 @@
           <span class="dot--section dot--section-week"></span>
           <span>{{ _("1–2 недели назад") }}</span>
         </h3>
-        <span class="jr-section__sub">{{ _("Предыдущая неделя") }} · {{ week_days|length }} {{ week_days|length|plural_ru(_("день"), _("дня"), _("дней")) }}</span>
+        <span class="jr-section__sub hw-sub-pill">{{ _("Предыдущая неделя") }} <i class="hw-sub-pill__sep" aria-hidden="true">·</i> <b>{{ week_days|length }} {{ week_days|length|plural_ru(_("день"), _("дня"), _("дней")) }}</b></span>
       </div>
       <div class="grid grid-4 jr-grid">
         {% for day in week_days %}{{ render_day_card(day) }}{% endfor %}
@@ -178,7 +178,7 @@
           <span class="dot--section dot--section-month"></span>
           <span>{{ _("Месяц назад и ранее") }}</span>
         </h3>
-        <span class="jr-section__sub">{{ _("Более 2 недель назад") }} · {{ month_days|length }} {{ month_days|length|plural_ru(_("день"), _("дня"), _("дней")) }}</span>
+        <span class="jr-section__sub hw-sub-pill">{{ _("Более 2 недель назад") }} <i class="hw-sub-pill__sep" aria-hidden="true">·</i> <b>{{ month_days|length }} {{ month_days|length|plural_ru(_("день"), _("дня"), _("дней")) }}</b></span>
       </div>
       <div class="grid grid-4 jr-grid">
         {% for day in month_days %}{{ render_day_card(day) }}{% endfor %}

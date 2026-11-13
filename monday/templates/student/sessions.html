@@ -1,13 +1,6 @@
 {% extends "layout.html" %}
 {% block title %}{{ _("Сессии") }}{% endblock %}
 {% block content %}
-<div class="page-head">
-  <div class="page-head__text">
-    <h1>{{ _("Сессии") }}</h1>
-    <p>{{ _("Выбери проверенный готовый режим или собери свою сессию под конкретную цель.") }}</p>
-  </div>
-  {{ ui.goal_chip(practice) }}
-</div>
 {# messages are shown by layout.html #}
 
 {% set builtin = [
@@ -17,7 +10,8 @@
   ('einstein', {'minutes': 30, 'count': 5, 'level': 'hard', 'topics': 'all', 'explain': 'now'}),
 ] %}
 
-<!-- Sessions Tab Navigation -->
+<!-- Sessions Tab Navigation (Ready modes hidden for now) -->
+{#
 <div class="sessions-tabs-wrap">
   <div class="sessions-tabs-nav" role="tablist" aria-label="{{ _('Выбор формата') }}">
     <button type="button" class="sessions-tab-btn is-active" data-tab="ready" aria-selected="true" role="tab" id="tab-btn-ready" aria-controls="pane-ready">
@@ -36,69 +30,42 @@
 <div id="pane-ready" class="sessions-tab-pane is-active" role="tabpanel" aria-labelledby="tab-btn-ready">
   {{ ui.time_cards() }}
 </div>
+#}
 
-<!-- Tab Pane 2: Custom Session Builder (Balanced Rows Layout) -->
-<div id="pane-custom" class="sessions-tab-pane" role="tabpanel" aria-labelledby="tab-btn-custom" hidden>
-  <section class="cb" aria-labelledby="sb-h" data-sb>
+<!-- Tab Pane 2: Custom Session Builder (Clean Reference Layout) -->
+<div id="pane-custom" class="sessions-tab-pane is-active" role="tabpanel">
+  <section class="cb cb--clean" aria-labelledby="sb-h" data-sb>
     <form method="post" action="{{ url_for('student.session_custom') }}" id="sb-form">
     {{ ui.csrf() }}
     <div class="cb__head">
-      <h2 id="sb-h" class="cb__title">{{ _("Собери свою сессию") }}</h2>
-      <div class="cb__presets" role="group" aria-label="{{ _('Шаблоны') }}">
-        {% for key, c in builtin %}
-          <button type="button" class="cb__preset sc-mode--{{ key }}" data-sb-preset='{{ c|tojson }}'>{{ MODES[key].name }}</button>
-        {% endfor %}
-        {% for pr in presets %}
-          <span class="cb__preset cb__preset--own"><button type="button" data-sb-preset='{{ pr.cfg|tojson }}'>{{ ui.icon('bookmark', 14) }}{{ pr.name }}</button>
-            <button type="submit" form="preset-del-{{ loop.index0 }}" aria-label="{{ _('Удалить режим %(n)s', n=pr.name) }}" title="{{ _('Удалить') }}">×</button></span>
-        {% endfor %}
+      <div>
+        <h1 id="sb-h" class="cb__title">{{ _("Сессии") }}</h1>
+        <p class="cb__lead">{{ _("Собери свою сессию: отметь темы или запусти одну тему кнопкой ▶.") }}</p>
       </div>
     </div>
 
-    <p class="cb__lead cb__lead--wide">{{ _("Отметь темы и нажми «Начать сессию». Одну тему можно запустить кнопкой ▶.") }}</p>
-
-    <div class="cb__stats">
+    <div class="cb__stats cb__stats--two">
       <div class="cb__stat">
-        <div class="cb__eyebrow">{{ _("Прогресс по банку") }}</div>
-        <div class="cb__big num">{{ bank_pct }}<small>%</small></div>
-        <div class="cb__sub">{{ _("%(a)s из %(t)s задач решено", a=answered_n, t=bank_n) }}</div>
+        <div class="cb__eyebrow">{{ _("Прогресс") }}</div>
+        <div class="cb__big num"><span data-sb-pct>{{ bank_pct }}</span><small>%</small></div>
+        <div class="cb__sub" data-sb-progress-sub>{{ _("%(a)s из %(t)s решено", a=answered_n, t=bank_n) }}</div>
       </div>
       <div class="cb__stat">
-        <div class="cb__eyebrow">{{ _("Время в практике") }}</div>
-        <div class="cb__big num">{{ spent_label }}</div>
-        <div class="cb__sub">{{ _("за все сессии") }}</div>
-      </div>
-      {# questions and time: two sliders in one block, the pace hint under them #}
-      <div class="cb__stat cb__stat--size">
-        <div class="cb__slider">
-          <div class="cb__eyebrow">{{ _("Вопросов в сессии") }}</div>
-          <div class="cb__big num"><output data-sb-count-out>10</output></div>
-          <input class="sb__range" type="range" name="count" min="1" max="30" value="10" data-sb-count aria-label="{{ _('Сколько вопросов') }}">
-        </div>
-        {# the last stop (65) means «без лимита»; the form sends the hidden minutes field #}
-        <div class="cb__slider">
-          <div class="cb__eyebrow">{{ _("Время") }}</div>
-          <div class="cb__big num"><output data-sb-min-out data-t-free="{{ _('без лимита') }}" data-t-min="{{ _('мин') }}">15 <small>{{ _("мин") }}</small></output></div>
-          <input class="sb__range" type="range" min="5" max="65" step="5" value="15" data-sb-min aria-label="{{ _('Время') }}">
-          <input type="hidden" name="minutes" value="15" data-sb-min-val>
-        </div>
-        <div class="sb__pace" data-sb-pace aria-live="polite"
-             data-pace='{{ PACE|tojson }}'
-             data-t-free="{{ _('Без ограничения времени') }}"
-             data-t-ok="{{ _('≈ {s} на вопрос · успеешь спокойно') }}"
-             data-t-tight="{{ _('≈ {s} на вопрос · придётся спешить') }}"
-             data-t-bad="{{ _('Мало времени: нужно ≈ {need}, выходит {s}') }}"
-             data-t-fix-count="{{ _('Взять {n} вопр.') }}" data-t-fix-min="{{ _('Поставить {m} мин') }}"
-             data-t-sec="{{ _('{n} с') }}" data-t-min="{{ _('{m} мин {s} с') }}">
-          <span data-sb-pace-text></span>
-          <span class="sb__fix" data-sb-fix></span>
-        </div>
+        <div class="cb__eyebrow">{{ _("Всего времени") }}</div>
+        <div class="cb__big num" data-sb-time>{{ spent_label }}</div>
+        <div class="cb__sub">{{ _("По выбранным фильтрам") }}</div>
       </div>
     </div>
 
-    <div class="cb__filters">
+    <div class="cb__filter-box">
+      <div class="cb__sec cb__sec--filters">
+        <span class="cb__filter-box__title">{{ ui.icon('filter', 16) }}{{ _("Фильтры") }}</span>
+        <button type="reset" class="btn btn--secondary btn--sm cb__reset">{{ ui.icon('reset', 15) }}{{ _("Сбросить") }}</button>
+      </div>
+
+      <div class="cb__filters cb__filters--four">
       <fieldset class="cb__filter">
-        <legend>{{ ui.icon('chart', 20) }}{{ _("Сложность") }}</legend>
+        <legend>{{ ui.icon('chart', 18) }}{{ _("Сложность") }}</legend>
         <div class="cb__chips">
           <label class="cb-chip"><input type="radio" name="level" value="ladder" checked><span>{{ _("Лестница") }}</span></label>
           <label class="cb-chip"><input type="radio" name="level" value="easy"><span>{{ _("Лёгкие") }} <small class="num">{{ totals[1] }}</small></span></label>
@@ -106,10 +73,9 @@
           <label class="cb-chip"><input type="radio" name="level" value="hard"><span>{{ _("Сложные") }} <small class="num">{{ totals[3] }}</small></span></label>
           <label class="cb-chip"><input type="radio" name="level" value="mix"><span>{{ _("Микс") }}</span></label>
         </div>
-        <p class="cb__note" data-sb-ladder-note>{{ _("Два верных ответа подряд поднимают уровень, ошибка опускает.") }}</p>
       </fieldset>
       <fieldset class="cb__filter">
-        <legend>{{ ui.icon('list', 20) }}{{ _("Откуда задачи") }}</legend>
+        <legend>{{ ui.icon('list', 18) }}{{ _("Откуда задачи") }}</legend>
         <div class="cb__chips">
           <label class="cb-chip"><input type="radio" name="topics" value="weak" checked><span>{{ _("Слабые темы") }}</span></label>
           <label class="cb-chip"><input type="radio" name="topics" value="all"><span>{{ _("Все темы") }}</span></label>
@@ -118,12 +84,38 @@
         </div>
       </fieldset>
       <fieldset class="cb__filter">
-        <legend>{{ ui.icon('check', 20) }}{{ _("Проверка") }}</legend>
+        <legend>{{ ui.icon('check', 18) }}{{ _("Проверка") }}</legend>
         <div class="cb__chips">
           <label class="cb-chip"><input type="radio" name="explain" value="now" {{ 'checked' if PREFS.session_explain != 'end' }}><span>{{ _("Сразу") }}</span></label>
           <label class="cb-chip"><input type="radio" name="explain" value="end" {{ 'checked' if PREFS.session_explain == 'end' }}><span>{{ _("В конце") }}</span></label>
         </div>
       </fieldset>
+      <fieldset class="cb__filter cb__filter--size">
+        <legend>{{ ui.icon('clock', 18) }}{{ _("Объём и время") }}</legend>
+        <div class="cb__mini-sliders">
+          <div class="cb__mini-slider">
+            <div class="cb__mini-row"><span>{{ _("Вопросов") }}</span><b class="num"><output data-sb-count-out>10</output></b></div>
+            <input class="sb__range" type="range" name="count" min="1" max="30" value="10" data-sb-count aria-label="{{ _('Сколько вопросов') }}">
+          </div>
+          <div class="cb__mini-slider">
+            <div class="cb__mini-row"><span>{{ _("Время") }}</span><b class="num"><output data-sb-min-out data-t-free="{{ _('без лимита') }}" data-t-min="{{ _('мин') }}">15 <small>{{ _("мин") }}</small></output></b></div>
+            <input class="sb__range" type="range" min="5" max="65" step="5" value="15" data-sb-min aria-label="{{ _('Время') }}">
+            <input type="hidden" name="minutes" value="15" data-sb-min-val>
+          </div>
+        </div>
+        <div class="sb__pace cb__pace-inline" data-sb-pace aria-live="polite"
+             data-pace='{{ PACE|tojson }}'
+             data-t-free="{{ _('Без ограничения времени') }}"
+             data-t-ok="{{ _('≈ {s} на вопрос') }}"
+             data-t-tight="{{ _('≈ {s} на вопрос · быстро') }}"
+             data-t-bad="{{ _('Мало времени ({s})') }}"
+             data-t-fix-count="{{ _('{n} вопр.') }}" data-t-fix-min="{{ _('{m} мин') }}"
+             data-t-sec="{{ _('{n} с') }}" data-t-min="{{ _('{m} мин {s} с') }}">
+          <span data-sb-pace-text></span>
+          <span class="sb__fix" data-sb-fix></span>
+        </div>
+      </fieldset>
+    </div>
     </div>
 
     <div class="cb__sec">
@@ -145,17 +137,9 @@
       {% endfor %}
     </div>
 
-    <div class="cb__actions">
-      <button type="reset" class="btn btn--secondary cb__reset">{{ ui.icon('reset', 16) }}{{ _("Сбросить") }}</button>
-      <details class="sb__save">
-        <summary class="btn btn--secondary">{{ ui.icon('bookmark', 16) }}{{ _("Сохранить как мой режим") }}</summary>
-        <div class="sb__save-panel">
-          <label class="label" for="preset-name">{{ _("Название") }}</label>
-          <input class="input" id="preset-name" name="name" maxlength="40" placeholder="{{ _('Например, «Утро: 10 лёгких»') }}">
-          <button class="btn btn--primary btn--sm" type="submit" formaction="{{ url_for('student.session_presets') }}">{{ _("Сохранить") }}</button>
-        </div>
-      </details>
-      <button class="btn btn--primary btn--lg cb__start" type="submit">{{ ui.icon('play', 18) }}{{ _("Начать сессию") }}</button>
+    <div class="cb__actions cb__actions--end">
+      <span class="small muted">{{ _("Выбери темы выше или начни по текущим фильтрам.") }}</span>
+      <button class="btn btn--primary cb__start" type="submit">{{ _("Начать сессию") }} {{ ui.icon('arrow-right', 16) }}</button>
     </div>
     </form>
     {% for pr in presets %}
@@ -254,6 +238,51 @@
 
   if (window.location.hash === '#custom') {
     setTab('custom');
+  }
+
+  const buckets = {{ filter_buckets|tojson }};
+  const sb = document.querySelector('[data-sb]');
+  const pctEl = document.querySelector('[data-sb-pct]');
+  const subEl = document.querySelector('[data-sb-progress-sub]');
+  const timeEl = document.querySelector('[data-sb-time]');
+  const subTpl = {{ _("%(a)s из %(t)s решено", a="__A__", t="__T__")|tojson }};
+  const diffMap = { easy: 1, medium: 2, hard: 3 };
+
+  function updateStats() {
+    if (!sb || !pctEl || !subEl || !timeEl) return;
+    const lvl = sb.querySelector('input[name="level"]:checked')?.value || 'ladder';
+    const wantD = diffMap[lvl] || 0;
+    const picked = new Set(
+      Array.from(sb.querySelectorAll('input[name="topic"]:checked')).map(el => Number(el.value))
+    );
+    const topicMode = sb.querySelector('input[name="topics"]:checked')?.value || 'weak';
+
+    let n = 0, s = 0, sec = 0;
+    for (const b of buckets) {
+      if (wantD && b.d !== wantD) continue;
+      if (picked.size > 0) {
+        if (!picked.has(b.t)) continue;
+      } else if (topicMode === 'weak') {
+        if (!b.w) continue;
+      } else if (topicMode === 'mistakes') {
+        if (!b.m) continue;
+      }
+      n += b.n;
+      s += b.s;
+      sec += b.sec;
+    }
+    const pct = n ? Math.min(100, Math.round(100 * s / n)) : 0;
+    const mm = Math.floor(sec / 60);
+    const ss = String(sec % 60).padStart(2, '0');
+    pctEl.textContent = pct;
+    subEl.textContent = subTpl.replace('__A__', s).replace('__T__', n);
+    timeEl.textContent = `${mm}:${ss}`;
+  }
+
+  if (sb) {
+    sb.addEventListener('change', updateStats);
+    sb.addEventListener('reset', () => setTimeout(updateStats, 0));
+    updateStats();
   }
 })();
 </script>

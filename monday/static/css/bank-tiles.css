@@ -7,6 +7,19 @@
   gap: 14px !important;
 }
 
+.bk-shell {
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: var(--bw, 1px) solid var(--line);
+  border-radius: 22px;
+  box-shadow: 0 8px 28px rgba(2, 11, 41, .05);
+  padding: clamp(16px, 2.4vw, 26px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .page.bank-page .page-head.bk-head {
   margin-bottom: 0 !important;
 }

@@ -12,6 +12,7 @@
 } %}
 {% set groups = [('d', 'bars', _('Сложность')), ('st', 'status', _('Статус ответа')), ('mk', 'bookmark', _('Отмеченные')), ('t', 'filter', _('Тип ответа')), ('src', 'journal', _('Источник'))] %}
 
+<div class="bk-shell">
 <div class="page-head bk-head">
   <div class="page-head__text">
     <h1>{{ _("Банк вопросов") }}</h1>
@@ -141,5 +142,6 @@
     {% endif %}
   </form>
 </section>
+</div>
 {% endblock %}
 {% block scripts %}<script defer src="{{ url_for('static', filename='js/bank.js') }}"></script>{% endblock %}

@@ -1,5 +1,8 @@
 {% extends "layout.html" %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/homework.css') }}">{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/collections.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/homework.css') }}">
+{% endblock %}
 {% block title %}{{ _("Домашние задания") }}{% endblock %}
 {% block content %}
 <div class="page-head">
@@ -97,12 +100,12 @@
     {% if last and last.total %}<span class="meta-item">{{ ui.icon('check', 16) }}{{ last.score }} {{ _("из") }} {{ last.total }}</span>
     {% else %}<span class="meta-item">{{ ui.icon('list', 16) }}{{ n }} {{ n|plural_ru(_("задача"), _("задачи"), _("задач")) }}</span>{% endif %}
   </div>
-  <a class="btn btn--secondary btn--block" href="{{ url_for('student.homework_detail', assignment_id=a.id) }}">{{ _("Открыть") }}</a>
+  <a class="btn btn--primary btn--block" href="{{ url_for('student.homework_detail', assignment_id=a.id) }}">{{ _("Открыть") }}</a>
 </article>
 {%- endmacro %}
 
 <section class="section">
-  <div class="section__head"><h2 class="jr-main-heading">{{ _("Выполненные") }}</h2><span class="small muted">{{ done|length }}</span></div>
+  <div class="section__head"><h2 class="jr-main-heading">{{ _("Выполненные") }}</h2><span class="hw-count-pill"><b>{{ done|length }}</b></span></div>
   {% if done %}
   {% set recent, week, older = [], [], [] %}
   {% for a, state in done %}
@@ -114,9 +117,9 @@
     <section class="jr-section">
       <div class="jr-section__head">
         <h3 class="jr-section__title"><span class="dot--section dot--section-{{ dot }}"></span><span>{{ title }}</span></h3>
-        <span class="jr-section__sub">{{ sub }} · {{ items|length }} {{ items|length|plural_ru(_("задание"), _("задания"), _("заданий")) }}</span>
+        <span class="jr-section__sub hw-sub-pill">{{ sub }} <i class="hw-sub-pill__sep" aria-hidden="true">·</i> <b>{{ items|length }} {{ items|length|plural_ru(_("задание"), _("задания"), _("заданий")) }}</b></span>
       </div>
-      <div class="grid grid-5 work-grid--compact">{% for a, state in items %}{{ hw_card(a, state) }}{% endfor %}</div>
+      <div class="grid work-grid--roomy hw-done-grid">{% for a, state in items %}{{ hw_card(a, state) }}{% endfor %}</div>
     </section>
     {% endfor %}
   </div>

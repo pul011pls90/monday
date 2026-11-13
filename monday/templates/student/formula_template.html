@@ -3,9 +3,9 @@
 {% block content %}
 <a href="{{ url_for('student.formulas', tab='monday') }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Все шаблоны") }}</a>
 <div class="page-head">
-  <div class="page-head__text">
+  <div class="page-head__text{{ ' page-head__text--csca' if template.exam in ('CSCA', 'OGE', 'EGE', 'ENT') }}">
     <h1>{{ template.title }}</h1>
-    <p>{{ template.en }}</p>
+    {% if template.en %}<p>{{ template.en }}</p>{% endif %}
   </div>
 </div>
 
@@ -17,7 +17,7 @@
   </nav>
 
   <div class="fx-main">
-    <header class="fx-head">
+    <header class="fx-head{{ ' fx-head--csca' if template.exam in ('CSCA', 'OGE', 'EGE', 'ENT') }}">
       <div><h2>{{ topic.name }}</h2>{% if topic.en %}<p>{{ topic.en }}</p>{% endif %}</div>
       <div class="fx-head__tools">
         <form method="post" action="{{ url_for('bank.start') }}">{{ ui.csrf() }}<input type="hidden" name="exam" value="{{ template.exam }}"><input type="hidden" name="only" value="{{ bank_key }}">
@@ -36,8 +36,17 @@
           <button class="btn btn--secondary btn--sm" type="submit">{{ ui.icon('plus', 16) }}{{ _("В мои формулы") }}</button></form>{% endif %}
       </div>
       <div class="fx-card__formula">
-        <div class="fx-card__tex math">${{ f.tex }}$</div>
-        {% if f.image %}<img src="{{ url_for('static', filename='img/formulas/' ~ f.image ~ '.svg') }}" alt="" data-lightbox>{% endif %}
+        <div class="fx-card__tex">
+          {% for eq in split_tex(f.tex) %}
+          <div class="fx-card__eq math">${{ eq }}$</div>
+          {% endfor %}
+        </div>
+        {% if f.image %}
+        <div class="fx-card__figure">
+          <img src="{{ url_for('static', filename='img/formulas/' ~ f.image ~ '.svg') }}" alt="{{ f.name }}" data-lightbox title="{{ _('Нажмите, чтобы увеличить') }}">
+          <button type="button" class="fx-card__zoom">{{ ui.icon('search', 14) }} {{ _('Увеличить') }}</button>
+        </div>
+        {% endif %}
       </div>
       <div class="fx-examples">
         {% for e in f.examples %}
