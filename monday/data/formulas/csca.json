@@ -1,0 +1,1572 @@
+{
+  "exam": "CSCA",
+  "templates": [
+    {
+      "id": "csca_sets",
+      "title": "CSCA · Множества и неравенства",
+      "en": "Sets and inequalities",
+      "topics": [
+        {
+          "id": "sets",
+          "name": "Множества",
+          "en": "Sets",
+          "bank": "inequalities",
+          "formulas": [
+            {
+              "id": "csca_union_count",
+              "name": "Формула включений-исключений",
+              "en": "Union count",
+              "tex": "|A \\cup B| = |A| + |B| - |A \\cap B|",
+              "image": "csca_01_venn_union",
+              "examples": [
+                {
+                  "q": "In a group of students, $|A| = 18$, $|B| = 14$, and $|A \\cap B| = 5$. Find $|A \\cup B|$.",
+                  "goal": "The question asks for the number of elements in the union $A \\cup B$.",
+                  "plan": "We know $|A|$, $|B|$, and the overlap $|A \\cap B|$, so apply the inclusion-exclusion formula.",
+                  "use": "$|A \\cup B| = 18 + 14 - 5$",
+                  "steps": [
+                    "Add the sizes of the two sets: $18 + 14 = 32$.",
+                    "Subtract the overlap counted twice: $32 - 5 = 27$."
+                  ],
+                  "answer": "$27$",
+                  "check": "$(18 - 5) + (14 - 5) + 5 = 13 + 9 + 5 = 27$."
+                },
+                {
+                  "q": "There are $36$ students in a club: $25$ play chess ($A$) and $19$ play tennis ($B$). Everyone plays at least one game. How many play both?",
+                  "goal": "The question asks for the size of the intersection $|A \\cap B|$.",
+                  "plan": "Since everyone plays at least one game, $|A \\cup B| = 36$. Rearrange the union formula for $|A \\cap B|$.",
+                  "use": "$36 = 25 + 19 - |A \\cap B|$",
+                  "steps": [
+                    "Add the two counts: $25 + 19 = 44$.",
+                    "Subtract the total: $|A \\cap B| = 44 - 36 = 8$."
+                  ],
+                  "answer": "$8$",
+                  "check": "$25 + 19 - 8 = 36$, matching the total number of students."
+                }
+              ]
+            },
+            {
+              "id": "csca_demorgan",
+              "name": "Законы де Моргана",
+              "en": "De Morgan's laws",
+              "tex": "(A \\cup B)^c = A^c \\cap B^c \\;;\\; (A \\cap B)^c = A^c \\cup B^c",
+              "image": "csca_02_demorgan",
+              "examples": [
+                {
+                  "q": "Let $U = \\{1,2,\\dots,10\\}$, $A = \\{1,2,3,4\\}$, and $B = \\{3,4,5,6\\}$. Find $(A \\cup B)^c$.",
+                  "goal": "The question asks for the complement of the union $A \\cup B$.",
+                  "plan": "Use De Morgan's first law: $(A \\cup B)^c = A^c \\cap B^c$.",
+                  "use": "$(A \\cup B)^c = \\{5,6,7,8,9,10\\} \\cap \\{1,2,7,8,9,10\\}$",
+                  "steps": [
+                    "Find $A^c = \\{5,6,7,8,9,10\\}$ and $B^c = \\{1,2,7,8,9,10\\}$.",
+                    "Take their intersection: $\\{7,8,9,10\\}$."
+                  ],
+                  "answer": "$\\{7, 8, 9, 10\\}$",
+                  "check": "$A \\cup B = \\{1,2,3,4,5,6\\}$, whose complement in $U$ is $\\{7,8,9,10\\}$."
+                },
+                {
+                  "q": "Using the same $U = \\{1,2,\\dots,10\\}$, $A = \\{1,2,3,4\\}$, $B = \\{3,4,5,6\\}$, find $(A \\cap B)^c$.",
+                  "goal": "The question asks for the complement of the intersection $A \\cap B$.",
+                  "plan": "Use De Morgan's second law: $(A \\cap B)^c = A^c \\cup B^c$.",
+                  "use": "$(A \\cap B)^c = \\{5,6,7,8,9,10\\} \\cup \\{1,2,7,8,9,10\\}$",
+                  "steps": [
+                    "Combine all elements in $A^c$ or $B^c$.",
+                    "Only $3$ and $4$ are missing."
+                  ],
+                  "answer": "$\\{1, 2, 5, 6, 7, 8, 9, 10\\}$",
+                  "check": "$A \\cap B = \\{3,4\\}$, so removing $\\{3,4\\}$ from $U$ gives the exact same set."
+                }
+              ]
+            },
+            {
+              "id": "csca_subsets",
+              "name": "Количество подмножеств",
+              "en": "Number of subsets",
+              "tex": "2^n \\text{ subsets } \\;;\\; 2^n - 1 \\text{ proper subsets}",
+              "image": "csca_03_subset_tree",
+              "examples": [
+                {
+                  "q": "How many subsets does the set $S = \\{1, 2, 3, 4, 5\\}$ have?",
+                  "goal": "The question asks for the total number of subsets of a $5$-element set.",
+                  "plan": "Each element can be either included or excluded ($2$ choices each), so use $2^n$ with $n = 5$.",
+                  "use": "$2^5$",
+                  "steps": [
+                    "Substitute $n = 5$: $2^5 = 2 \\cdot 2 \\cdot 2 \\cdot 2 \\cdot 2$.",
+                    "Multiply: $2^5 = 32$."
+                  ],
+                  "answer": "$32$",
+                  "check": "Subsets by size: $\\binom{5}{0}+\\binom{5}{1}+\\binom{5}{2}+\\binom{5}{3}+\\binom{5}{4}+\\binom{5}{5} = 1+5+10+10+5+1 = 32$."
+                },
+                {
+                  "q": "How many proper subsets does $T = \\{a, b, c, d\\}$ have?",
+                  "goal": "The question asks for the number of proper subsets (excluding $T$ itself).",
+                  "plan": "Count all subsets with $2^n$, then subtract $1$ for the set $T$ itself.",
+                  "use": "$2^4 - 1$",
+                  "steps": [
+                    "Compute $2^4 = 16$.",
+                    "Subtract $1$: $16 - 1 = 15$."
+                  ],
+                  "answer": "$15$",
+                  "check": "Subsets of sizes $0, 1, 2, 3$ total $1 + 4 + 6 + 4 = 15$."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "inequalities",
+          "name": "Неравенства",
+          "en": "Inequalities",
+          "bank": "ineq_quad",
+          "formulas": [
+            {
+              "id": "csca_quad_formula",
+              "name": "Формула корней квадратного уравнения",
+              "en": "Quadratic formula",
+              "tex": "x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a},\\; \\Delta = b^2 - 4ac",
+              "image": "csca_04_quad_roots",
+              "examples": [
+                {
+                  "q": "Solve $x^2 - 5x + 6 = 0$ using the quadratic formula.",
+                  "goal": "The question asks for the roots of a quadratic equation.",
+                  "plan": "Identify $a = 1$, $b = -5$, $c = 6$ and substitute into the quadratic formula.",
+                  "use": "$x = \\frac{5 \\pm \\sqrt{(-5)^2 - 4(1)(6)}}{2(1)}$",
+                  "steps": [
+                    "Compute $\\Delta = 25 - 24 = 1$.",
+                    "Find $x = \\frac{5 \\pm 1}{2}$, giving $x = 3$ and $x = 2$."
+                  ],
+                  "answer": "$x = 2,\\; x = 3$",
+                  "check": "$2^2 - 5(2) + 6 = 0$ and $3^2 - 5(3) + 6 = 0$."
+                },
+                {
+                  "q": "Solve $2x^2 + 7x - 4 = 0$.",
+                  "goal": "The question asks for the solutions when the leading coefficient $a \\neq 1$.",
+                  "plan": "Take $a = 2$, $b = 7$, $c = -4$ and watch the negative sign in $-4ac$.",
+                  "use": "$x = \\frac{-7 \\pm \\sqrt{7^2 - 4(2)(-4)}}{2(2)}$",
+                  "steps": [
+                    "Compute $\\Delta = 49 + 32 = 81$, so $\\sqrt{\\Delta} = 9$.",
+                    "Find $x = \\frac{-7 + 9}{4} = \\frac{1}{2}$ and $x = \\frac{-7 - 9}{4} = -4$."
+                  ],
+                  "answer": "$x = \\frac{1}{2},\\; x = -4$",
+                  "check": "$2(\\frac{1}{2})^2 + 7(\\frac{1}{2}) - 4 = \\frac{1}{2} + \\frac{7}{2} - 4 = 0$, and $2(16) - 28 - 4 = 0$."
+                }
+              ]
+            },
+            {
+              "id": "csca_vieta",
+              "name": "Теорема Виета",
+              "en": "Vieta's formulas",
+              "tex": "x_1 + x_2 = -\\frac{b}{a} \\;;\\; x_1 \\cdot x_2 = \\frac{c}{a}",
+              "image": "csca_05_vieta",
+              "examples": [
+                {
+                  "q": "If $x_1$ and $x_2$ are the roots of $x^2 - 7x + 10 = 0$, find $x_1^2 + x_2^2$.",
+                  "goal": "The question asks for $x_1^2 + x_2^2$ without solving for each root.",
+                  "plan": "Use Vieta's formulas to get $x_1 + x_2 = 7$ and $x_1 x_2 = 10$, then rewrite $x_1^2 + x_2^2 = (x_1 + x_2)^2 - 2x_1 x_2$.",
+                  "use": "$x_1^2 + x_2^2 = 7^2 - 2(10)$",
+                  "steps": [
+                    "Square the sum: $7^2 = 49$.",
+                    "Subtract $2 \\cdot 10 = 20$: $49 - 20 = 29$."
+                  ],
+                  "answer": "$29$",
+                  "check": "The roots are $2$ and $5$, and $2^2 + 5^2 = 4 + 25 = 29$."
+                },
+                {
+                  "q": "For $2x^2 + 6x - 5 = 0$ with roots $x_1, x_2$, find $\\frac{1}{x_1} + \\frac{1}{x_2}$.",
+                  "goal": "The question asks for the sum of the reciprocals of the roots.",
+                  "plan": "Combine over a common denominator: $\\frac{x_1 + x_2}{x_1 x_2}$, then plug in Vieta's values with $a = 2$.",
+                  "use": "$\\frac{-6/2}{-5/2}$",
+                  "steps": [
+                    "Compute $x_1 + x_2 = -3$ and $x_1 x_2 = -\\frac{5}{2}$.",
+                    "Divide: $\\frac{-3}{-5/2} = \\frac{6}{5}$."
+                  ],
+                  "answer": "$\\frac{6}{5}$",
+                  "check": "Since $a$ cancels in $\\frac{-b/a}{c/a} = -\\frac{b}{c}$, we get $-\\frac{6}{-5} = \\frac{6}{5}$."
+                }
+              ]
+            },
+            {
+              "id": "csca_quad_ineq",
+              "name": "Квадратные неравенства",
+              "en": "Quadratic inequality",
+              "tex": "ax^2+bx+c>0 \\iff x<x_1 \\text{ or } x>x_2 \\;;\\; ax^2+bx+c<0 \\iff x_1<x<x_2",
+              "image": "csca_06_quad_ineq",
+              "examples": [
+                {
+                  "q": "Solve $x^2 - 5x + 4 > 0$.",
+                  "goal": "The question asks where the upward parabola ($a = 1 > 0$) is positive.",
+                  "plan": "Find the roots $x_1 = 1$, $x_2 = 4$ and take the outer intervals.",
+                  "use": "$(x - 1)(x - 4) > 0$",
+                  "steps": [
+                    "The roots are $1$ and $4$.",
+                    "Since $a > 0$ and the sign is $> 0$, $x < 1$ or $x > 4$."
+                  ],
+                  "answer": "$(-\\infty, 1) \\cup (4, +\\infty)$",
+                  "check": "Test $x = 0$: $0 - 0 + 4 = 4 > 0$; test $x = 2$: $4 - 10 + 4 = -2 < 0$."
+                },
+                {
+                  "q": "How many integer values of $x$ satisfy $x^2 - 5x + 4 < 0$?",
+                  "goal": "The question asks for the integer solutions where the parabola is negative.",
+                  "plan": "With $a = 1 > 0$ and roots $1, 4$, the $< 0$ region is the inner interval $1 < x < 4$.",
+                  "use": "$1 < x < 4$",
+                  "steps": [
+                    "List integers strictly between $1$ and $4$: $x = 2, 3$.",
+                    "Count them: $2$ integers."
+                  ],
+                  "answer": "$2$",
+                  "check": "At $x=2$: $-2 < 0$; at $x=3$: $9 - 15 + 4 = -2 < 0$; endpoints $1, 4$ give $0$."
+                }
+              ]
+            },
+            {
+              "id": "csca_abs_ineq",
+              "name": "Неравенства с модулем",
+              "en": "Absolute value inequalities",
+              "tex": "|x| < a \\iff -a < x < a \\;;\\; |x| > a \\iff x < -a \\text{ or } x > a",
+              "image": "csca_07_abs_ineq",
+              "examples": [
+                {
+                  "q": "Solve $|x - 1| < 3$.",
+                  "goal": "The question asks for all $x$ within distance $3$ of $1$.",
+                  "plan": "Rewrite $|x - 1| < 3$ as a double inequality $-3 < x - 1 < 3$.",
+                  "use": "$-3 < x - 1 < 3$",
+                  "steps": [
+                    "Add $1$ to all three parts: $-2 < x < 4$.",
+                    "Write as an open interval."
+                  ],
+                  "answer": "$(-2, 4)$",
+                  "check": "At $x = 0$: $|0 - 1| = 1 < 3$ (inside); at $x = 4$: $|4 - 1| = 3$ (boundary)."
+                },
+                {
+                  "q": "Solve $|2x| > 6$.",
+                  "goal": "The question asks for $x$ where $|2x|$ exceeds $6$.",
+                  "plan": "Split into two cases: $2x < -6$ or $2x > 6$.",
+                  "use": "$2x < -6 \\text{ or } 2x > 6$",
+                  "steps": [
+                    "Divide each inequality by $2$.",
+                    "Get $x < -3$ or $x > 3$."
+                  ],
+                  "answer": "$(-\\infty, -3) \\cup (3, +\\infty)$",
+                  "check": "At $x = -4$: $|-8| = 8 > 6$; at $x = 2$: $|4| = 4 \\not> 6$."
+                }
+              ]
+            },
+            {
+              "id": "csca_rat_ineq",
+              "name": "Дробно-рациональные неравенства",
+              "en": "Rational inequality",
+              "tex": "\\frac{f}{g} > 0 \\iff f \\cdot g > 0 \\text{ and } g \\neq 0",
+              "image": "csca_08_sign_chart",
+              "examples": [
+                {
+                  "q": "Solve $\\frac{x + 2}{x - 1} < 0$.",
+                  "goal": "The question asks where a quotient of two linear factors is negative.",
+                  "plan": "Replace the quotient sign with the product $(x + 2)(x - 1) < 0$ and exclude $x = 1$.",
+                  "use": "$(x + 2)(x - 1) < 0,\\; x \\neq 1$",
+                  "steps": [
+                    "Critical points are $x = -2$ and $x = 1$.",
+                    "The product is negative between the roots: $-2 < x < 1$."
+                  ],
+                  "answer": "$(-2, 1)$",
+                  "check": "At $x = 0$: $\\frac{2}{-1} = -2 < 0$. At $x = 2$: $\\frac{4}{1} = 4 > 0$."
+                },
+                {
+                  "q": "Solve $\\frac{x - 3}{x + 1} \\ge 0$.",
+                  "goal": "The question asks where the fraction is positive or zero.",
+                  "plan": "Include the numerator's root $x = 3$, but strictly exclude the denominator's root $x = -1$.",
+                  "use": "$(x - 3)(x + 1) \\ge 0,\\; x \\neq -1$",
+                  "steps": [
+                    "Critical points are $-1$ (open) and $3$ (closed).",
+                    "Outer intervals give $x < -1$ or $x \\ge 3$."
+                  ],
+                  "answer": "$(-\\infty, -1) \\cup [3, +\\infty)$",
+                  "check": "At $x = 3$, $\\frac{0}{4} = 0 \\ge 0$; at $x = -2$, $\\frac{-5}{-1} = 5 > 0$."
+                }
+              ]
+            },
+            {
+              "id": "csca_am_gm",
+              "name": "Неравенство Коши (AM–GM)",
+              "en": "AM–GM inequality",
+              "tex": "\\frac{a+b}{2} \\ge \\sqrt{ab},\\; \\text{for } a, b \\ge 0",
+              "image": "csca_09_am_gm",
+              "examples": [
+                {
+                  "q": "Compare the arithmetic and geometric means of $a = 4$ and $b = 9$.",
+                  "goal": "The question asks for both means of $4$ and $9$ to verify AM $\\ge$ GM.",
+                  "plan": "Compute $\\frac{a + b}{2}$ and $\\sqrt{ab}$ directly.",
+                  "use": "$\\frac{4 + 9}{2} \\ge \\sqrt{4 \\cdot 9}$",
+                  "steps": [
+                    "Arithmetic mean: $\\frac{13}{2} = 6.5$.",
+                    "Geometric mean: $\\sqrt{36} = 6$. Indeed $6.5 \\ge 6$."
+                  ],
+                  "answer": "$\\text{AM} = 6.5,\\; \\text{GM} = 6$",
+                  "check": "Difference $6.5 - 6 = 0.5 > 0$ because $4 \\neq 9$."
+                },
+                {
+                  "q": "Find the minimum value of $x + \\frac{25}{x}$ for $x > 0$.",
+                  "goal": "The question asks for the minimum of a sum whose product is constant.",
+                  "plan": "Apply AM–GM in the form $a + b \\ge 2\\sqrt{ab}$ with $a = x$ and $b = \\frac{25}{x}$.",
+                  "use": "$x + \\frac{25}{x} \\ge 2\\sqrt{x \\cdot \\frac{25}{x}}$",
+                  "steps": [
+                    "Cancel $x$: $2\\sqrt{25} = 2 \\cdot 5 = 10$.",
+                    "Equality holds when $x = \\frac{25}{x} \\Rightarrow x = 5$."
+                  ],
+                  "answer": "$10$",
+                  "check": "At $x = 5$: $5 + \\frac{25}{5} = 10$. At $x = 1$: $1 + 25 = 26 > 10$."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "csca_functions",
+      "title": "CSCA · Функции",
+      "en": "Functions, exponentials, logarithms, trigonometry, sequences and calculus",
+      "topics": [
+        {
+          "id": "functions",
+          "name": "Функции",
+          "en": "Functions",
+          "bank": "fn_props",
+          "formulas": [
+            {
+              "id": "csca_vertex",
+              "name": "Вершина параболы",
+              "en": "Parabola vertex",
+              "tex": "x = -\\frac{b}{2a} \\;;\\; y = \\frac{4ac - b^2}{4a}",
+              "image": "csca_10_vertex",
+              "examples": [
+                {
+                  "q": "Find the vertex of $y = 2x^2 - 8x + 11$.",
+                  "goal": "The question asks for the coordinates $(x, y)$ of the parabola's vertex.",
+                  "plan": "Use $x = -\\frac{b}{2a}$ with $a = 2$, $b = -8$, then substitute back for $y$.",
+                  "use": "$x = -\\frac{-8}{2(2)} = 2$",
+                  "steps": [
+                    "Find $x$-coordinate: $x = \\frac{8}{4} = 2$.",
+                    "Plug $x = 2$ into $y$: $y = 2(4) - 8(2) + 11 = 3$."
+                  ],
+                  "answer": "$(2, 3)$",
+                  "check": "Formula check: $y = \\frac{4(2)(11) - (-8)^2}{4(2)} = \\frac{88 - 64}{8} = 3$."
+                },
+                {
+                  "q": "What is the maximum value of $y = -x^2 + 6x - 5$?",
+                  "goal": "The question asks for the vertex $y$-value since $a = -1 < 0$ opens downward.",
+                  "plan": "Compute $x = -\\frac{b}{2a}$, then evaluate $y$ at that $x$.",
+                  "use": "$x = -\\frac{6}{2(-1)} = 3$",
+                  "steps": [
+                    "Vertex $x = 3$.",
+                    "Substitute $x = 3$: $y = -(9) + 6(3) - 5 = 4$."
+                  ],
+                  "answer": "$4$",
+                  "check": "Completing the square: $-(x - 3)^2 + 4 \\le 4$, maximum is $4$."
+                }
+              ]
+            },
+            {
+              "id": "csca_even_odd",
+              "name": "Чётные и нечётные функции",
+              "en": "Even / odd functions",
+              "tex": "\\text{Even: } f(-x) = f(x) \\;;\\; \\text{Odd: } f(-x) = -f(x)",
+              "image": "csca_11_even_odd",
+              "examples": [
+                {
+                  "q": "Is $f(x) = x^4 - 2x^2$ even, odd, or neither?",
+                  "goal": "The question asks to determine the parity of $f(x)$.",
+                  "plan": "Replace $x$ with $-x$ and compare $f(-x)$ to $f(x)$.",
+                  "use": "$f(-x) = (-x)^4 - 2(-x)^2 = x^4 - 2x^2$",
+                  "steps": [
+                    "Both powers are even, so signs vanish.",
+                    "Since $f(-x) = f(x)$, the function is even."
+                  ],
+                  "answer": "Even",
+                  "check": "Test $x = 3$ and $x = -3$: $f(3) = 81 - 18 = 63$ and $f(-3) = 63$."
+                },
+                {
+                  "q": "If $g(x) = x^3 + 5x$ and $g(2) = 18$, what is $g(-2)$?",
+                  "goal": "The question asks for $g(-2)$ using symmetry.",
+                  "plan": "Check parity: $g(-x) = (-x)^3 + 5(-x) = -(x^3 + 5x) = -g(x)$, so $g$ is odd.",
+                  "use": "$g(-2) = -g(2)$",
+                  "steps": [
+                    "Since $g$ is odd, negate the output.",
+                    "$g(-2) = -18$."
+                  ],
+                  "answer": "$-18$",
+                  "check": "Direct check: $(-2)^3 + 5(-2) = -8 - 10 = -18$."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "exponential",
+          "name": "Показательная функция",
+          "en": "Exponential functions",
+          "bank": "exp_fn",
+          "formulas": [
+            {
+              "id": "csca_exp_laws",
+              "name": "Свойства степеней",
+              "en": "Exponent laws",
+              "tex": "a^m \\cdot a^n = a^{m+n} \\;;\\; (a^m)^n = a^{mn} \\;;\\; a^{-n} = \\frac{1}{a^n}",
+              "image": "csca_12_exp",
+              "examples": [
+                {
+                  "q": "Simplify $2^3 \\cdot 2^4$.",
+                  "goal": "The question asks to multiply two powers with the same base.",
+                  "plan": "Keep the base $2$ and add the exponents: $a^m \\cdot a^n = a^{m+n}$.",
+                  "use": "$2^{3 + 4} = 2^7$",
+                  "steps": [
+                    "Add exponents: $3 + 4 = 7$.",
+                    "Evaluate $2^7 = 128$."
+                  ],
+                  "answer": "$128$",
+                  "check": "$2^3 = 8$, $2^4 = 16$, and $8 \\cdot 16 = 128$."
+                },
+                {
+                  "q": "Evaluate $(3^2)^3 \\cdot 5^{-2}$ as an exact fraction.",
+                  "goal": "The question asks to apply the power-of-a-power and negative-exponent laws.",
+                  "plan": "Use $(a^m)^n = a^{mn}$ on $(3^2)^3$ and $a^{-n} = \\frac{1}{a^n}$ on $5^{-2}$.",
+                  "use": "$3^{2 \\cdot 3} \\cdot \\frac{1}{5^2}$",
+                  "steps": [
+                    "Compute $3^6 = 729$.",
+                    "Multiply by $\\frac{1}{25}$ to get $\\frac{729}{25}$."
+                  ],
+                  "answer": "$\\frac{729}{25}$",
+                  "check": "$(3^2)^3 = 9^3 = 729$ and $5^{-2} = \\frac{1}{25}$."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "logarithmic",
+          "name": "Логарифмы",
+          "en": "Logarithmic functions",
+          "bank": "log_props",
+          "formulas": [
+            {
+              "id": "csca_log_laws",
+              "name": "Свойства логарифмов",
+              "en": "Logarithm laws",
+              "tex": "\\log(MN)=\\log M+\\log N \\;;\\; \\log\\frac{M}{N}=\\log M-\\log N \\;;\\; \\log M^n=n\\log M",
+              "image": "csca_13_log",
+              "examples": [
+                {
+                  "q": "Evaluate $\\log_{10} 25 + \\log_{10} 4$.",
+                  "goal": "The question asks for the sum of two base-$10$ logarithms.",
+                  "plan": "Combine them using $\\log M + \\log N = \\log(MN)$.",
+                  "use": "$\\log_{10}(25 \\cdot 4) = \\log_{10}(100)$",
+                  "steps": [
+                    "Multiply inside: $25 \\cdot 4 = 100$.",
+                    "Since $10^2 = 100$, $\\log_{10} 100 = 2$."
+                  ],
+                  "answer": "$2$",
+                  "check": "$10^{\\log_{10} 25 + \\log_{10} 4} = 25 \\cdot 4 = 100 = 10^2$."
+                },
+                {
+                  "q": "Evaluate $\\log_3 54 - \\log_3 2$.",
+                  "goal": "The question asks for the difference of two logarithms with base $3$.",
+                  "plan": "Use the quotient law $\\log M - \\log N = \\log(M/N)$.",
+                  "use": "$\\log_3\\left(\\frac{54}{2}\\right) = \\log_3 27$",
+                  "steps": [
+                    "Divide: $54 / 2 = 27$.",
+                    "Since $27 = 3^3$, $\\log_3 3^3 = 3$."
+                  ],
+                  "answer": "$3$",
+                  "check": "$\\log_3(3^3 \\cdot 2) - \\log_3 2 = (3 + \\log_3 2) - \\log_3 2 = 3$."
+                }
+              ]
+            },
+            {
+              "id": "csca_change_base",
+              "name": "Переход к новому основанию",
+              "en": "Change of base",
+              "tex": "\\log_a b = \\frac{\\ln b}{\\ln a} \\;;\\; a^{\\log_a N} = N",
+              "image": "csca_14_change_base",
+              "examples": [
+                {
+                  "q": "Evaluate $\\log_9 81$ using the change-of-base formula to base $3$.",
+                  "goal": "The question asks for $\\log_9 81$ by changing to a simpler base.",
+                  "plan": "Apply $\\log_a b = \\frac{\\log_c b}{\\log_c a}$ with $c = 3$.",
+                  "use": "$\\log_9 81 = \\frac{\\log_3 81}{\\log_3 9}$",
+                  "steps": [
+                    "Since $81 = 3^4$ and $9 = 3^2$, the numerator is $4$ and denominator is $2$.",
+                    "Divide: $\\frac{4}{2} = 2$."
+                  ],
+                  "answer": "$2$",
+                  "check": "Check by definition: $9^2 = 81$."
+                },
+                {
+                  "q": "Evaluate $5^{\\log_5 7} + \\log_2 8$.",
+                  "goal": "The question asks to simplify an exponential-logarithm expression.",
+                  "plan": "Use the identity $a^{\\log_a N} = N$ on the first term.",
+                  "use": "$5^{\\log_5 7} = 7$",
+                  "steps": [
+                    "Replace $5^{\\log_5 7}$ with $7$.",
+                    "Evaluate $\\log_2 8 = 3$, then add: $7 + 3 = 10$."
+                  ],
+                  "answer": "$10$",
+                  "check": "Both identities give exact integers: $7 + 3 = 10$."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "trigonometric",
+          "name": "Тригонометрия",
+          "en": "Trigonometric functions",
+          "bank": "trig_identities",
+          "formulas": [
+            {
+              "id": "csca_pyth_trig",
+              "name": "Основное тригонометрическое тождество",
+              "en": "Pythagorean identity",
+              "tex": "\\sin^2 x + \\cos^2 x = 1 \\;;\\; \\tan x = \\frac{\\sin x}{\\cos x}",
+              "image": "csca_15_unit_circle",
+              "examples": [
+                {
+                  "q": "If $\\sin x = \\frac{3}{5}$ and $0 < x < \\frac{\\pi}{2}$, find $\\cos x$ and $\\tan x$.",
+                  "goal": "The question asks for $\\cos x$ and $\\tan x$ in the first quadrant.",
+                  "plan": "Use $\\sin^2 x + \\cos^2 x = 1$ (taking the positive root) and $\\tan x = \\frac{\\sin x}{\\cos x}$.",
+                  "use": "$\\cos x = \\sqrt{1 - \\left(\\frac{3}{5}\\right)^2}$",
+                  "steps": [
+                    "Compute $\\cos x = \\sqrt{1 - \\frac{9}{25}} = \\frac{4}{5}$.",
+                    "Divide: $\\tan x = \\frac{3/5}{4/5} = \\frac{3}{4}$."
+                  ],
+                  "answer": "$\\cos x = \\frac{4}{5},\\; \\tan x = \\frac{3}{4}$",
+                  "check": "$(\\frac{3}{5})^2 + (\\frac{4}{5})^2 = \\frac{9 + 16}{25} = 1$."
+                },
+                {
+                  "q": "If $\\cos x = -\\frac{5}{13}$ and $\\frac{\\pi}{2} < x < \\pi$, find $\\sin x$.",
+                  "goal": "The question asks for $\\sin x$ in Quadrant II.",
+                  "plan": "Use $\\sin^2 x = 1 - \\cos^2 x$; in Quadrant II, $\\sin x > 0$.",
+                  "use": "$\\sin x = \\sqrt{1 - \\left(-\\frac{5}{13}\\right)^2}$",
+                  "steps": [
+                    "Compute $1 - \\frac{25}{169} = \\frac{144}{169}$.",
+                    "Take the positive root: $\\sin x = \\frac{12}{13}$."
+                  ],
+                  "answer": "$\\frac{12}{13}$",
+                  "check": "$(\\frac{12}{13})^2 + (-\\frac{5}{13})^2 = \\frac{144 + 25}{169} = 1$."
+                }
+              ]
+            },
+            {
+              "id": "csca_sum_diff_trig",
+              "name": "Формулы сложения",
+              "en": "Sum / difference",
+              "tex": "\\sin(A\\pm B)=\\sin A\\cos B\\pm\\cos A\\sin B \\;;\\; \\cos(A\\pm B)=\\cos A\\cos B\\mp\\sin A\\sin B",
+              "image": "csca_16_sum_diff",
+              "examples": [
+                {
+                  "q": "Find the exact value of $\\sin 75^\\circ$.",
+                  "goal": "The question asks for $\\sin 75^\\circ$ using special angles.",
+                  "plan": "Write $75^\\circ = 45^\\circ + 30^\\circ$ and apply $\\sin(A + B)$.",
+                  "use": "$\\sin(45^\\circ + 30^\\circ) = \\sin 45^\\circ \\cos 30^\\circ + \\cos 45^\\circ \\sin 30^\\circ$",
+                  "steps": [
+                    "Substitute $\\frac{\\sqrt{2}}{2} \\cdot \\frac{\\sqrt{3}}{2} + \\frac{\\sqrt{2}}{2} \\cdot \\frac{1}{2}$.",
+                    "Combine fractions: $\\frac{\\sqrt{6} + \\sqrt{2}}{4}$."
+                  ],
+                  "answer": "$\\frac{\\sqrt{6} + \\sqrt{2}}{4}$",
+                  "check": "Decimal check: $\\frac{2.449 + 1.414}{4} \\approx 0.966 \\approx \\sin 75^\\circ$."
+                },
+                {
+                  "q": "Find the exact value of $\\cos 15^\\circ$.",
+                  "goal": "The question asks for $\\cos 15^\\circ$ as a difference of special angles.",
+                  "plan": "Write $15^\\circ = 45^\\circ - 30^\\circ$ and use $\\cos(A - B) = \\cos A\\cos B + \\sin A\\sin B$.",
+                  "use": "$\\cos(45^\\circ - 30^\\circ) = \\cos 45^\\circ\\cos 30^\\circ + \\sin 45^\\circ\\sin 30^\\circ$",
+                  "steps": [
+                    "Substitute $\\frac{\\sqrt{2}}{2} \\cdot \\frac{\\sqrt{3}}{2} + \\frac{\\sqrt{2}}{2} \\cdot \\frac{1}{2}$.",
+                    "Simplify: $\\frac{\\sqrt{6} + \\sqrt{2}}{4}$."
+                  ],
+                  "answer": "$\\frac{\\sqrt{6} + \\sqrt{2}}{4}$",
+                  "check": "$\\cos 15^\\circ = \\sin(90^\\circ - 15^\\circ) = \\sin 75^\\circ$, matching the first example."
+                }
+              ]
+            },
+            {
+              "id": "csca_double_angle",
+              "name": "Формулы двойного угла",
+              "en": "Double angle",
+              "tex": "\\sin 2x = 2\\sin x\\cos x \\;;\\; \\cos 2x = \\cos^2 x - \\sin^2 x = 1 - 2\\sin^2 x = 2\\cos^2 x - 1",
+              "image": "csca_17_double_angle",
+              "examples": [
+                {
+                  "q": "If $\\sin x = \\frac{3}{5}$ and $\\cos x = \\frac{4}{5}$, find $\\sin 2x$.",
+                  "goal": "The question asks for $\\sin 2x$ given $\\sin x$ and $\\cos x$.",
+                  "plan": "Substitute directly into $\\sin 2x = 2\\sin x\\cos x$.",
+                  "use": "$\\sin 2x = 2 \\cdot \\frac{3}{5} \\cdot \\frac{4}{5}$",
+                  "steps": [
+                    "Multiply the numerators: $2 \\cdot 3 \\cdot 4 = 24$.",
+                    "Denominator: $5 \\cdot 5 = 25$."
+                  ],
+                  "answer": "$\\frac{24}{25}$",
+                  "check": "Also $\\cos 2x = (\\frac{4}{5})^2 - (\\frac{3}{5})^2 = \\frac{7}{25}$, and $(\\frac{24}{25})^2 + (\\frac{7}{25})^2 = \\frac{625}{625} = 1$."
+                },
+                {
+                  "q": "Given $\\sin x = \\frac{1}{3}$, find $\\cos 2x$.",
+                  "goal": "The question asks for $\\cos 2x$ when only $\\sin x$ is known.",
+                  "plan": "Use the sine-only form $\\cos 2x = 1 - 2\\sin^2 x$.",
+                  "use": "$\\cos 2x = 1 - 2\\left(\\frac{1}{3}\\right)^2$",
+                  "steps": [
+                    "Square $\\frac{1}{3}$ to get $\\frac{1}{9}$.",
+                    "Subtract: $1 - \\frac{2}{9} = \\frac{7}{9}$."
+                  ],
+                  "answer": "$\\frac{7}{9}$",
+                  "check": "Since $\\cos^2 x = 1 - \\frac{1}{9} = \\frac{8}{9}$, $\\cos^2 x - \\sin^2 x = \\frac{8}{9} - \\frac{1}{9} = \\frac{7}{9}$."
+                }
+              ]
+            },
+            {
+              "id": "csca_sine_wave",
+              "name": "Свойства синусоиды",
+              "en": "Sine wave properties",
+              "tex": "T = \\frac{2\\pi}{\\omega} \\;;\\; \\text{amplitude } = |A| \\quad (y = A\\sin(\\omega x + \\varphi) + k)",
+              "image": "csca_18_sine_wave",
+              "examples": [
+                {
+                  "q": "Find the period and amplitude of $y = -5\\sin(4x + \\frac{\\pi}{3}) + 2$.",
+                  "goal": "The question asks for the period $T$ and amplitude $|A|$ of a sine wave.",
+                  "plan": "Read $A = -5$ and $\\omega = 4$ directly from the equation.",
+                  "use": "$T = \\frac{2\\pi}{4},\\; |A| = |-5|$",
+                  "steps": [
+                    "Amplitude is $|-5| = 5$.",
+                    "Period is $T = \\frac{2\\pi}{4} = \\frac{\\pi}{2}$."
+                  ],
+                  "answer": "$T = \\frac{\\pi}{2},\\; \\text{amplitude} = 5$",
+                  "check": "As $x$ increases by $\\frac{\\pi}{2}$, $4x$ increases by $4 \\cdot \\frac{\\pi}{2} = 2\\pi$, one full cycle."
+                },
+                {
+                  "q": "A sine wave $y = 3\\sin(\\omega x)$ has period $T = \\pi$. Find $\\omega > 0$.",
+                  "goal": "The question asks for the angular frequency $\\omega$ from the period.",
+                  "plan": "Solve $T = \\frac{2\\pi}{\\omega}$ for $\\omega$.",
+                  "use": "$\\pi = \\frac{2\\pi}{\\omega}$",
+                  "steps": [
+                    "Multiply by $\\omega$ and divide by $\\pi$.",
+                    "Get $\\omega = 2$."
+                  ],
+                  "answer": "$2$",
+                  "check": "$T = \\frac{2\\pi}{2} = \\pi$, matching the given period."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sequences",
+          "name": "Последовательности",
+          "en": "Sequences & series",
+          "bank": "sequences",
+          "formulas": [
+            {
+              "id": "csca_arith_seq",
+              "name": "Арифметическая прогрессия",
+              "en": "Arithmetic sequence",
+              "tex": "a_n = a_1 + (n-1)d \\;;\\; S_n = \\frac{n(a_1 + a_n)}{2}",
+              "image": "csca_19_arith_seq",
+              "examples": [
+                {
+                  "q": "An arithmetic sequence starts with $a_1 = 3$ and common difference $d = 4$. Find $a_{10}$.",
+                  "goal": "The question asks for the $10$th term of an arithmetic sequence.",
+                  "plan": "Use $a_n = a_1 + (n - 1)d$ with $n = 10$.",
+                  "use": "$a_{10} = 3 + (10 - 1) \\cdot 4$",
+                  "steps": [
+                    "Multiply: $9 \\cdot 4 = 36$.",
+                    "Add $3$: $a_{10} = 39$."
+                  ],
+                  "answer": "$39$",
+                  "check": "Reversing: $\\frac{39 - 3}{4} + 1 = 9 + 1 = 10$ terms."
+                },
+                {
+                  "q": "Find the sum $S_{10}$ of the first $10$ terms of the same sequence ($a_1 = 3$, $a_{10} = 39$).",
+                  "goal": "The question asks for the sum of the first $10$ terms.",
+                  "plan": "Apply $S_n = \\frac{n(a_1 + a_n)}{2}$ with $n = 10$.",
+                  "use": "$S_{10} = \\frac{10(3 + 39)}{2}$",
+                  "steps": [
+                    "Add first and last: $3 + 39 = 42$.",
+                    "Compute $\\frac{10 \\cdot 42}{2} = 5 \\cdot 42 = 210$."
+                  ],
+                  "answer": "$210$",
+                  "check": "Average term is $\\frac{3 + 39}{2} = 21$, and $10 \\cdot 21 = 210$."
+                }
+              ]
+            },
+            {
+              "id": "csca_geom_seq",
+              "name": "Геометрическая прогрессия",
+              "en": "Geometric sequence",
+              "tex": "a_n = a_1 r^{n-1} \\;;\\; S_n = \\frac{a_1(1-r^n)}{1-r},\\; r\\neq 1 \\;;\\; S_\\infty = \\frac{a_1}{1-r},\\; |r|<1",
+              "image": "csca_20_geom_seq",
+              "examples": [
+                {
+                  "q": "In a geometric sequence, $a_1 = 2$ and ratio $r = 3$. Find $a_5$.",
+                  "goal": "The question asks for the $5$th term of a geometric sequence.",
+                  "plan": "Use $a_n = a_1 r^{n-1}$ with $n = 5$.",
+                  "use": "$a_5 = 2 \\cdot 3^{5-1} = 2 \\cdot 3^4$",
+                  "steps": [
+                    "Compute $3^4 = 81$.",
+                    "Multiply: $2 \\cdot 81 = 162$."
+                  ],
+                  "answer": "$162$",
+                  "check": "Terms: $2, 6, 18, 54, 162$."
+                },
+                {
+                  "q": "Find the infinite sum $6 + 2 + \\frac{2}{3} + \\frac{2}{9} + \\dots$",
+                  "goal": "The question asks for the sum of an infinite geometric series.",
+                  "plan": "Identify $a_1 = 6$ and $r = \\frac{2}{6} = \\frac{1}{3}$ (since $|r| < 1$), then use $S_\\infty = \\frac{a_1}{1 - r}$.",
+                  "use": "$S_\\infty = \\frac{6}{1 - 1/3}$",
+                  "steps": [
+                    "Compute the denominator: $1 - \\frac{1}{3} = \\frac{2}{3}$.",
+                    "Divide: $\\frac{6}{2/3} = 9$."
+                  ],
+                  "answer": "$9$",
+                  "check": "Partial sum of first $3$ terms is $6 + 2 + \\frac{2}{3} = 8.67$, approaching $9$."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "calculus",
+          "name": "Производная",
+          "en": "Calculus & derivatives",
+          "bank": "derivative",
+          "formulas": [
+            {
+              "id": "csca_deriv_def",
+              "name": "Определение производной",
+              "en": "Derivative definition",
+              "tex": "f'(a) = \\lim_{h \\to 0} \\frac{f(a+h) - f(a)}{h}",
+              "image": "csca_21_deriv_def",
+              "examples": [
+                {
+                  "q": "Use the limit definition to find $f'(2)$ for $f(x) = x^2$.",
+                  "goal": "The question asks for the derivative at $a = 2$ from first principles.",
+                  "plan": "Plug $f(2+h) = (2+h)^2$ and $f(2) = 4$ into the difference quotient.",
+                  "use": "$f'(2) = \\lim_{h \\to 0} \\frac{(2+h)^2 - 4}{h}$",
+                  "steps": [
+                    "Expand: $\\frac{4 + 4h + h^2 - 4}{h} = \\frac{h(4 + h)}{h} = 4 + h$.",
+                    "Take $h \\to 0$: $4 + 0 = 4$."
+                  ],
+                  "answer": "$4$",
+                  "check": "Power rule check: $(x^2)' = 2x$, and at $x = 2$ it equals $2(2) = 4$."
+                },
+                {
+                  "q": "Evaluate $\\lim_{h \\to 0} \\frac{(4+h)^2 + (4+h) - 20}{h}$.",
+                  "goal": "The question asks to recognise a limit as a derivative $f'(4)$.",
+                  "plan": "Notice $f(x) = x^2 + x$ has $f(4) = 16 + 4 = 20$, so the limit equals $f'(4)$.",
+                  "use": "$f'(x) = 2x + 1 \\text{ at } x = 4$",
+                  "steps": [
+                    "Differentiate $x^2 + x$ to get $2x + 1$.",
+                    "Evaluate at $x = 4$: $2(4) + 1 = 9$."
+                  ],
+                  "answer": "$9$",
+                  "check": "Algebraic expansion: $\\frac{8h + h^2 + h}{h} = 9 + h \\to 9$."
+                }
+              ]
+            },
+            {
+              "id": "csca_basic_deriv",
+              "name": "Таблица производных",
+              "en": "Basic derivatives",
+              "tex": "(x^n)'=nx^{n-1} \\;;\\; (e^x)'=e^x \\;;\\; (\\ln x)'=\\frac{1}{x} \\;;\\; (\\sin x)'=\\cos x \\;;\\; (\\cos x)'=-\\sin x",
+              "image": "csca_22_basic_deriv",
+              "examples": [
+                {
+                  "q": "Find $f'(2)$ if $f(x) = x^4 - 3x$.",
+                  "goal": "The question asks for the derivative of a polynomial at $x = 2$.",
+                  "plan": "Apply the power rule $(x^n)' = nx^{n-1}$ term by term.",
+                  "use": "$f'(x) = 4x^3 - 3$",
+                  "steps": [
+                    "Substitute $x = 2$: $4(2)^3 - 3$.",
+                    "Compute $4(8) - 3 = 29$."
+                  ],
+                  "answer": "$29$",
+                  "check": "At $x = 2$: $32 - 3 = 29$."
+                },
+                {
+                  "q": "Find $g'(0)$ if $g(x) = 2e^x + \\sin x$.",
+                  "goal": "The question asks for the derivative of $2e^x + \\sin x$ at $x = 0$.",
+                  "plan": "Use $(e^x)' = e^x$ and $(\\sin x)' = \\cos x$.",
+                  "use": "$g'(x) = 2e^x + \\cos x$",
+                  "steps": [
+                    "Plug in $x = 0$: $2e^0 + \\cos 0$.",
+                    "Since $e^0 = 1$ and $\\cos 0 = 1$, get $2 + 1 = 3$."
+                  ],
+                  "answer": "$3$",
+                  "check": "Both $e^0 = 1$ and $\\cos 0 = 1$, giving $2(1) + 1 = 3$."
+                }
+              ]
+            },
+            {
+              "id": "csca_deriv_rules",
+              "name": "Правила дифференцирования",
+              "en": "Derivative rules",
+              "tex": "(uv)'=u'v+uv' \\;;\\; \\left(\\frac{u}{v}\\right)'=\\frac{u'v-uv'}{v^2} \\;;\\; [f(g(x))]'=f'(g(x))\\cdot g'(x)",
+              "image": "csca_23_deriv_rules",
+              "examples": [
+                {
+                  "q": "Differentiate $y = x e^x$ and evaluate at $x = 1$.",
+                  "goal": "The question asks for the derivative of a product of two functions.",
+                  "plan": "Apply the product rule $(uv)' = u'v + uv'$ with $u = x$ and $v = e^x$.",
+                  "use": "$y' = 1 \\cdot e^x + x \\cdot e^x = (1 + x)e^x$",
+                  "steps": [
+                    "Differentiate $u' = 1$ and $v' = e^x$.",
+                    "At $x = 1$: $(1 + 1)e^1 = 2e$."
+                  ],
+                  "answer": "$2e$",
+                  "check": "$e + 1 \\cdot e = 2e$."
+                },
+                {
+                  "q": "Find $h'(1)$ for $h(x) = (2x + 1)^3$.",
+                  "goal": "The question asks for the derivative of a composite function.",
+                  "plan": "Apply the chain rule: differentiate the outer cube, then multiply by $(2x + 1)' = 2$.",
+                  "use": "$h'(x) = 3(2x + 1)^2 \\cdot 2$",
+                  "steps": [
+                    "Simplify: $h'(x) = 6(2x + 1)^2$.",
+                    "At $x = 1$: $6(3)^2 = 6 \\cdot 9 = 54$."
+                  ],
+                  "answer": "$54$",
+                  "check": "Expanding $(2x+1)^3 = 8x^3 + 12x^2 + 6x + 1$ gives $h'(1) = 24 + 24 + 6 = 54$."
+                }
+              ]
+            },
+            {
+              "id": "csca_tangent_mono",
+              "name": "Касательная и монотонность",
+              "en": "Tangent line and monotonicity",
+              "tex": "y - f(a) = f'(a)(x - a) \\;;\\; f'>0 \\text{ increasing},\\; f'<0 \\text{ decreasing}",
+              "image": "csca_24_tangent_mono",
+              "examples": [
+                {
+                  "q": "Find the equation of the tangent line to $y = x^2$ at $x = 3$.",
+                  "goal": "The question asks for the tangent line at $a = 3$.",
+                  "plan": "Compute $f(3) = 9$ and slope $f'(3) = 2(3) = 6$, then plug into $y - f(a) = f'(a)(x - a)$.",
+                  "use": "$y - 9 = 6(x - 3)$",
+                  "steps": [
+                    "Distribute: $y - 9 = 6x - 18$.",
+                    "Add $9$: $y = 6x - 9$."
+                  ],
+                  "answer": "$y = 6x - 9$",
+                  "check": "At $x = 3$, the line gives $6(3) - 9 = 9$, matching the curve."
+                },
+                {
+                  "q": "Find the intervals where $f(x) = x^3 - 3x$ is increasing.",
+                  "goal": "The question asks where $f(x)$ increases.",
+                  "plan": "A differentiable function increases where $f'(x) > 0$.",
+                  "use": "$3x^2 - 3 > 0 \\iff x^2 > 1$",
+                  "steps": [
+                    "Factor: $3(x - 1)(x + 1) > 0$.",
+                    "This holds for $x < -1$ or $x > 1$."
+                  ],
+                  "answer": "$(-\\infty, -1) \\text{ and } (1, +\\infty)$",
+                  "check": "At $x = 2$: $f'(2) = 12 - 3 = 9 > 0$ (increasing). At $x = 0$: $f'(0) = -3 < 0$."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "csca_geometry",
+      "title": "CSCA · Геометрия и алгебра",
+      "en": "Analytic geometry, conics, vectors, complex numbers and solid geometry",
+      "topics": [
+        {
+          "id": "analytic_geometry",
+          "name": "Аналитическая геометрия",
+          "en": "Analytic geometry",
+          "bank": "coord_basics",
+          "formulas": [
+            {
+              "id": "csca_dist_mid",
+              "name": "Расстояние и середина отрезка",
+              "en": "Distance and midpoint",
+              "tex": "d = \\sqrt{(x_2-x_1)^2+(y_2-y_1)^2} \\;;\\; M = \\left(\\frac{x_1+x_2}{2},\\, \\frac{y_1+y_2}{2}\\right)",
+              "image": "csca_25_dist_mid",
+              "examples": [
+                {
+                  "q": "Find the distance between $A(1, 2)$ and $B(7, 10)$.",
+                  "goal": "The question asks for the distance between two points in the plane.",
+                  "plan": "Plug $(x_1, y_1) = (1, 2)$ and $(x_2, y_2) = (7, 10)$ into the distance formula.",
+                  "use": "$d = \\sqrt{(7 - 1)^2 + (10 - 2)^2}$",
+                  "steps": [
+                    "Compute $\\Delta x = 6$ and $\\Delta y = 8$.",
+                    "Find $\\sqrt{36 + 64} = \\sqrt{100} = 10$."
+                  ],
+                  "answer": "$10$",
+                  "check": "$(6, 8, 10)$ is a scaled $(3, 4, 5)$ right triangle."
+                },
+                {
+                  "q": "Find the midpoint of $A(1, 2)$ and $B(7, 10)$.",
+                  "goal": "The question asks for the coordinates of the midpoint $M$.",
+                  "plan": "Average the $x$-coordinates and the $y$-coordinates separately.",
+                  "use": "$M = \\left(\\frac{1 + 7}{2},\\, \\frac{2 + 10}{2}\\right)$",
+                  "steps": [
+                    "$x$-coordinate: $\\frac{8}{2} = 4$.",
+                    "$y$-coordinate: $\\frac{12}{2} = 6$."
+                  ],
+                  "answer": "$(4, 6)$",
+                  "check": "Distance from $A(1,2)$ to $(4,6)$ is $\\sqrt{3^2+4^2} = 5$, half of $10$."
+                }
+              ]
+            },
+            {
+              "id": "csca_slope_line",
+              "name": "Угловой коэффициент и уравнения прямой",
+              "en": "Slope and line forms",
+              "tex": "m = \\frac{y_2-y_1}{x_2-x_1} \\;;\\; y = mx+b \\;;\\; Ax+By+C = 0",
+              "image": "csca_26_slope_line",
+              "examples": [
+                {
+                  "q": "Find the slope of the line passing through $(1, 3)$ and $(5, 11)$.",
+                  "goal": "The question asks for the slope $m$ between two points.",
+                  "plan": "Compute rise over run: $m = \\frac{y_2 - y_1}{x_2 - x_1}$.",
+                  "use": "$m = \\frac{11 - 3}{5 - 1}$",
+                  "steps": [
+                    "Subtract: $11 - 3 = 8$ and $5 - 1 = 4$.",
+                    "Divide: $\\frac{8}{4} = 2$."
+                  ],
+                  "answer": "$2$",
+                  "check": "Moving $4$ right at slope $2$ rises $4 \\cdot 2 = 8$, reaching $3 + 8 = 11$."
+                },
+                {
+                  "q": "Find the slope and $y$-intercept of the line $2x - y + 3 = 0$.",
+                  "goal": "The question asks to convert general form $Ax + By + C = 0$ into $y = mx + b$.",
+                  "plan": "Solve the equation for $y$.",
+                  "use": "$y = 2x + 3$",
+                  "steps": [
+                    "Add $y$ to both sides: $y = 2x + 3$.",
+                    "Read off $m = 2$ and $b = 3$."
+                  ],
+                  "answer": "$m = 2,\\; b = 3$",
+                  "check": "At $x = 0$, $2(0) - 3 + 3 = 0$; at $x = 1$, $y = 5$ and $2(1) - 5 + 3 = 0$."
+                }
+              ]
+            },
+            {
+              "id": "csca_par_perp",
+              "name": "Параллельные и перпендикулярные прямые",
+              "en": "Parallel / perpendicular lines",
+              "tex": "\\text{Parallel: } m_1 = m_2 \\;;\\; \\text{Perpendicular: } m_1 m_2 = -1",
+              "image": "csca_27_par_perp",
+              "examples": [
+                {
+                  "q": "Find the slope of a line parallel to $y = 3x - 4$.",
+                  "goal": "The question asks for the slope of a parallel line.",
+                  "plan": "Parallel lines have equal slopes: $m_2 = m_1$.",
+                  "use": "$m_2 = m_1 = 3$",
+                  "steps": [
+                    "Read the slope $m_1 = 3$.",
+                    "The parallel slope is also $3$."
+                  ],
+                  "answer": "$3$",
+                  "check": "Equal slopes ensure the lines never intersect."
+                },
+                {
+                  "q": "Find the slope of a line perpendicular to $y = 3x - 4$.",
+                  "goal": "The question asks for the slope of a perpendicular line.",
+                  "plan": "Use $m_1 m_2 = -1$ with $m_1 = 3$.",
+                  "use": "$3 \\cdot m_2 = -1$",
+                  "steps": [
+                    "Take the negative reciprocal of $3$.",
+                    "Get $m_2 = -\\frac{1}{3}$."
+                  ],
+                  "answer": "$-\\frac{1}{3}$",
+                  "check": "Product check: $3 \\cdot (-\\frac{1}{3}) = -1$."
+                }
+              ]
+            },
+            {
+              "id": "csca_point_line_dist",
+              "name": "Расстояние от точки до прямой",
+              "en": "Point-to-line distance",
+              "tex": "d = \\frac{|Ax_0 + By_0 + C|}{\\sqrt{A^2 + B^2}}",
+              "image": "csca_28_point_line",
+              "examples": [
+                {
+                  "q": "Find the distance from $(1, 2)$ to the line $3x + 4y - 2 = 0$.",
+                  "goal": "The question asks for the perpendicular distance from a point to a line.",
+                  "plan": "Plug $A = 3, B = 4, C = -2$ and $(x_0, y_0) = (1, 2)$ into the distance formula.",
+                  "use": "$d = \\frac{|3(1) + 4(2) - 2|}{\\sqrt{3^2 + 4^2}}$",
+                  "steps": [
+                    "Numerator: $|3 + 8 - 2| = 9$.",
+                    "Denominator: $\\sqrt{9 + 16} = 5$, so $d = \\frac{9}{5} = 1.8$."
+                  ],
+                  "answer": "$1.8$",
+                  "check": "The $(3, 4, 5)$ norm makes the denominator exact: $9/5 = 1.8$."
+                },
+                {
+                  "q": "Find the distance from $(2, 1)$ to $5x - 12y + 7 = 0$.",
+                  "goal": "The question asks for the point-to-line distance with a negative $B$.",
+                  "plan": "Substitute $A = 5, B = -12, C = 7$ and $(2, 1)$.",
+                  "use": "$d = \\frac{|5(2) - 12(1) + 7|}{\\sqrt{5^2 + (-12)^2}}$",
+                  "steps": [
+                    "Numerator: $|10 - 12 + 7| = 5$.",
+                    "Denominator: $\\sqrt{25 + 144} = 13$, so $d = \\frac{5}{13}$."
+                  ],
+                  "answer": "$\\frac{5}{13}$",
+                  "check": "$(5, 12, 13)$ is a Pythagorean triple."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "conics",
+          "name": "Кривые второго порядка",
+          "en": "Conic sections",
+          "bank": "conics",
+          "formulas": [
+            {
+              "id": "csca_circle",
+              "name": "Уравнение окружности",
+              "en": "Circle",
+              "tex": "(x - a)^2 + (y - b)^2 = r^2",
+              "image": "csca_29_circle",
+              "examples": [
+                {
+                  "q": "Write the equation of the circle with center $(2, -1)$ and radius $5$.",
+                  "goal": "The question asks for the standard equation of a circle.",
+                  "plan": "Substitute $a = 2$, $b = -1$, and $r = 5$ into $(x - a)^2 + (y - b)^2 = r^2$.",
+                  "use": "$(x - 2)^2 + (y - (-1))^2 = 5^2$",
+                  "steps": [
+                    "Simplify $y - (-1) = y + 1$.",
+                    "Square the radius: $5^2 = 25$."
+                  ],
+                  "answer": "$(x - 2)^2 + (y + 1)^2 = 25$",
+                  "check": "Test $(6, 2)$: $(6 - 2)^2 + (2 + 1)^2 = 16 + 9 = 25$."
+                },
+                {
+                  "q": "Find the center and radius of $(x + 3)^2 + (y - 4)^2 = 49$.",
+                  "goal": "The question asks to read the center and radius from a circle equation.",
+                  "plan": "Match $(x - a)^2 + (y - b)^2 = r^2$ carefully with the signs.",
+                  "use": "$a = -3,\\; b = 4,\\; r = \\sqrt{49}$",
+                  "steps": [
+                    "Center is $(-3, 4)$.",
+                    "Radius is $\\sqrt{49} = 7$."
+                  ],
+                  "answer": "Center $(-3, 4),\\; r = 7$",
+                  "check": "At $x = -3$, $(y - 4)^2 = 49$ gives $y = 11$ and $y = -3$, distance $7$ from $4$."
+                }
+              ]
+            },
+            {
+              "id": "csca_ellipse",
+              "name": "Эллипс",
+              "en": "Ellipse",
+              "tex": "\\frac{x^2}{a^2}+\\frac{y^2}{b^2}=1 \\;;\\; c^2=a^2-b^2 \\;;\\; e=\\frac{c}{a}",
+              "image": "csca_30_ellipse",
+              "examples": [
+                {
+                  "q": "Find the foci and eccentricity of the ellipse $\\frac{x^2}{25} + \\frac{y^2}{9} = 1$.",
+                  "goal": "The question asks for the foci $(\\pm c, 0)$ and eccentricity $e$.",
+                  "plan": "Here $a^2 = 25$ and $b^2 = 9$ ($a > b$), so compute $c^2 = a^2 - b^2$.",
+                  "use": "$c^2 = 25 - 9 = 16$",
+                  "steps": [
+                    "Take $a = 5$ and $c = \\sqrt{16} = 4$.",
+                    "Eccentricity $e = \\frac{c}{a} = \\frac{4}{5}$."
+                  ],
+                  "answer": "Foci $(\\pm 4, 0),\\; e = \\frac{4}{5}$",
+                  "check": "Check: $c^2 + b^2 = 16 + 9 = 25 = a^2$, and $0 < \\frac{4}{5} < 1$."
+                },
+                {
+                  "q": "An ellipse has semi-major axis $a = 10$ and eccentricity $e = 0.6$. Find $b$.",
+                  "goal": "The question asks for the semi-minor axis $b$.",
+                  "plan": "First find $c = e \\cdot a$, then use $b^2 = a^2 - c^2$.",
+                  "use": "$c = 0.6 \\cdot 10 = 6$",
+                  "steps": [
+                    "Compute $b^2 = 10^2 - 6^2 = 100 - 36 = 64$.",
+                    "Take the positive root: $b = 8$."
+                  ],
+                  "answer": "$8$",
+                  "check": "$\\frac{c}{a} = \\frac{6}{10} = 0.6$ and $6^2 + 8^2 = 10^2$."
+                }
+              ]
+            },
+            {
+              "id": "csca_hyperbola",
+              "name": "Гипербола",
+              "en": "Hyperbola",
+              "tex": "\\frac{x^2}{a^2}-\\frac{y^2}{b^2}=1 \\;;\\; c^2=a^2+b^2 \\;;\\; e=\\frac{c}{a} \\;;\\; y=\\pm\\frac{b}{a}x",
+              "image": "csca_31_hyperbola",
+              "examples": [
+                {
+                  "q": "Find the eccentricity and asymptotes of $\\frac{x^2}{9} - \\frac{y^2}{16} = 1$.",
+                  "goal": "The question asks for $e$ and the asymptote lines of a hyperbola.",
+                  "plan": "Read $a = 3, b = 4$, then compute $c^2 = a^2 + b^2$.",
+                  "use": "$c^2 = 9 + 16 = 25 \\Rightarrow c = 5$",
+                  "steps": [
+                    "Eccentricity $e = \\frac{c}{a} = \\frac{5}{3}$.",
+                    "Asymptotes: $y = \\pm \\frac{b}{a}x = \\pm \\frac{4}{3}x$."
+                  ],
+                  "answer": "$e = \\frac{5}{3},\\; y = \\pm\\frac{4}{3}x$",
+                  "check": "For a hyperbola, $e = \\frac{5}{3} > 1$ and $3^2 + 4^2 = 5^2$."
+                },
+                {
+                  "q": "A hyperbola $\\frac{x^2}{a^2} - \\frac{y^2}{b^2} = 1$ has $a = 5$ and $c = 13$. Find $b$.",
+                  "goal": "The question asks for $b$ given $a$ and focal distance $c$.",
+                  "plan": "Rearrange $c^2 = a^2 + b^2$ to $b^2 = c^2 - a^2$.",
+                  "use": "$b^2 = 13^2 - 5^2$",
+                  "steps": [
+                    "Compute $169 - 25 = 144$.",
+                    "Take $b = \\sqrt{144} = 12$."
+                  ],
+                  "answer": "$12$",
+                  "check": "$a^2 + b^2 = 25 + 144 = 169 = 13^2$."
+                }
+              ]
+            },
+            {
+              "id": "csca_parabola_conic",
+              "name": "Каноническое уравнение параболы",
+              "en": "Parabola",
+              "tex": "y^2 = 2px \\;;\\; \\text{focus } \\left(\\frac{p}{2}, 0\\right) \\;;\\; \\text{directrix } x = -\\frac{p}{2}",
+              "image": "csca_32_parabola_conic",
+              "examples": [
+                {
+                  "q": "Find the focus and directrix of the parabola $y^2 = 12x$.",
+                  "goal": "The question asks for the focus and directrix from $y^2 = 2px$.",
+                  "plan": "Match $2p = 12$ to get $p = 6$, then compute $\\frac{p}{2}$.",
+                  "use": "$\\frac{p}{2} = \\frac{6}{2} = 3$",
+                  "steps": [
+                    "Focus is at $(\\frac{p}{2}, 0) = (3, 0)$.",
+                    "Directrix is $x = -\\frac{p}{2} = -3$."
+                  ],
+                  "answer": "Focus $(3, 0),\\; x = -3$",
+                  "check": "Point $(3, 6)$ lies on $y^2 = 12x$ ($36 = 36$), and its distance to $(3,0)$ and to $x = -3$ are both $6$."
+                },
+                {
+                  "q": "Write the equation of a parabola with focus $(2, 0)$ and directrix $x = -2$.",
+                  "goal": "The question asks for the canonical equation $y^2 = 2px$.",
+                  "plan": "Since the focus is $(\\frac{p}{2}, 0) = (2, 0)$, we have $\\frac{p}{2} = 2$, so $p = 4$.",
+                  "use": "$y^2 = 2(4)x$",
+                  "steps": [
+                    "Compute $2p = 2 \\cdot 4 = 8$.",
+                    "Write $y^2 = 8x$."
+                  ],
+                  "answer": "$y^2 = 8x$",
+                  "check": "At $x = 2$, $y^2 = 16 \\Rightarrow y = \\pm 4$, distance $4$ from $(2,0)$ and $2 - (-2) = 4$ from $x = -2$."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "vectors",
+          "name": "Векторы",
+          "en": "Vectors",
+          "bank": "vectors",
+          "formulas": [
+            {
+              "id": "csca_vector_ops",
+              "name": "Скалярное произведение и длина вектора",
+              "en": "Vector operations",
+              "tex": "\\mathbf{a}\\cdot\\mathbf{b} = |\\mathbf{a}||\\mathbf{b}|\\cos\\theta = x_1x_2+y_1y_2 \\;;\\; |\\mathbf{a}| = \\sqrt{x^2+y^2}",
+              "image": "csca_33_vectors_dot",
+              "examples": [
+                {
+                  "q": "For $\\mathbf{a} = (3, 4)$ and $\\mathbf{b} = (4, -3)$, find $|\\mathbf{a}|$ and $\\mathbf{a} \\cdot \\mathbf{b}$.",
+                  "goal": "The question asks for the magnitude of $\\mathbf{a}$ and the dot product.",
+                  "plan": "Use $|\\mathbf{a}| = \\sqrt{x^2 + y^2}$ and $\\mathbf{a}\\cdot\\mathbf{b} = x_1 x_2 + y_1 y_2$.",
+                  "use": "$|\\mathbf{a}| = \\sqrt{3^2 + 4^2} \\;;\\; \\mathbf{a}\\cdot\\mathbf{b} = 3(4) + 4(-3)$",
+                  "steps": [
+                    "Magnitude: $\\sqrt{9 + 16} = 5$.",
+                    "Dot product: $12 - 12 = 0$."
+                  ],
+                  "answer": "$|\\mathbf{a}| = 5,\\; \\mathbf{a}\\cdot\\mathbf{b} = 0$",
+                  "check": "Since $\\mathbf{a} \\cdot \\mathbf{b} = 0$, $\\theta = 90^\\circ$."
+                },
+                {
+                  "q": "Find $\\mathbf{a} \\cdot \\mathbf{b}$ if $|\\mathbf{a}| = 6$, $|\\mathbf{b}| = 4$, and $\\theta = 60^\\circ$.",
+                  "goal": "The question asks for the dot product using lengths and the angle between vectors.",
+                  "plan": "Use $\\mathbf{a}\\cdot\\mathbf{b} = |\\mathbf{a}||\\mathbf{b}|\\cos\\theta$.",
+                  "use": "$\\mathbf{a}\\cdot\\mathbf{b} = 6 \\cdot 4 \\cdot \\cos 60^\\circ$",
+                  "steps": [
+                    "Substitute $\\cos 60^\\circ = \\frac{1}{2}$.",
+                    "Multiply: $24 \\cdot \\frac{1}{2} = 12$."
+                  ],
+                  "answer": "$12$",
+                  "check": "Half of the maximum possible product $6 \\cdot 4 = 24$."
+                }
+              ]
+            },
+            {
+              "id": "csca_vector_cond",
+              "name": "Условия параллельности и перпендикулярности",
+              "en": "Vector conditions",
+              "tex": "\\text{Perpendicular: } \\mathbf{a}\\cdot\\mathbf{b} = 0 \\;;\\; \\text{Parallel: } x_1y_2 - x_2y_1 = 0",
+              "image": "csca_34_vectors_cond",
+              "examples": [
+                {
+                  "q": "Find $k$ so that $\\mathbf{a} = (2, 3)$ and $\\mathbf{b} = (k, 4)$ are perpendicular.",
+                  "goal": "The question asks for $k$ making two vectors orthogonal.",
+                  "plan": "Set the dot product equal to zero: $x_1 x_2 + y_1 y_2 = 0$.",
+                  "use": "$2k + 3(4) = 0$",
+                  "steps": [
+                    "Simplify: $2k + 12 = 0$.",
+                    "Solve: $k = -6$."
+                  ],
+                  "answer": "$-6$",
+                  "check": "Dot product: $2(-6) + 3(4) = -12 + 12 = 0$."
+                },
+                {
+                  "q": "Find $k$ so that $\\mathbf{u} = (4, 2)$ and $\\mathbf{v} = (12, k)$ are parallel.",
+                  "goal": "The question asks for $k$ making two vectors collinear.",
+                  "plan": "Use the parallel condition $x_1 y_2 - x_2 y_1 = 0$.",
+                  "use": "$4k - 12(2) = 0$",
+                  "steps": [
+                    "Simplify: $4k = 24$.",
+                    "Divide by $4$: $k = 6$."
+                  ],
+                  "answer": "$6$",
+                  "check": "Check ratio: $(12, 6) = 3 \\cdot (4, 2)$, so they point in the same direction."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "complex_numbers",
+          "name": "Комплексные числа",
+          "en": "Complex numbers",
+          "bank": "complex",
+          "formulas": [
+            {
+              "id": "csca_complex",
+              "name": "Действия с комплексными числами",
+              "en": "Complex numbers",
+              "tex": "i^2=-1 \\;;\\; (a+bi)(c+di)=(ac-bd)+(ad+bc)i \\;;\\; |z|=\\sqrt{a^2+b^2} \\;;\\; z\\bar{z}=|z|^2",
+              "image": "csca_35_complex",
+              "examples": [
+                {
+                  "q": "Multiply $(2 + 3i)(1 - 4i)$.",
+                  "goal": "The question asks for the product of two complex numbers.",
+                  "plan": "Expand using FOIL and replace $i^2 = -1$.",
+                  "use": "$(2\\cdot 1 - 3(-4)) + (2(-4) + 3\\cdot 1)i$",
+                  "steps": [
+                    "Real part: $2 + 12 = 14$.",
+                    "Imaginary part: $-8 + 3 = -5$, giving $14 - 5i$."
+                  ],
+                  "answer": "$14 - 5i$",
+                  "check": "Moduli check: $|2+3i| = \\sqrt{13}$, $|1-4i| = \\sqrt{17}$, $|14-5i| = \\sqrt{196+25} = \\sqrt{221} = \\sqrt{13}\\sqrt{17}$."
+                },
+                {
+                  "q": "Find $|z|$ and $z\\bar{z}$ for $z = 3 - 4i$.",
+                  "goal": "The question asks for the modulus $|z|$ and the product $z\\bar{z}$.",
+                  "plan": "Use $|z| = \\sqrt{a^2 + b^2}$ and $z\\bar{z} = |z|^2$.",
+                  "use": "$|z| = \\sqrt{3^2 + (-4)^2}$",
+                  "steps": [
+                    "Compute $|z| = \\sqrt{9 + 16} = 5$.",
+                    "Then $z\\bar{z} = |z|^2 = 25$."
+                  ],
+                  "answer": "$|z| = 5,\\; z\\bar{z} = 25$",
+                  "check": "Direct product: $(3 - 4i)(3 + 4i) = 9 - 16i^2 = 9 + 16 = 25$."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "solid_geometry",
+          "name": "Стереометрия",
+          "en": "Solid geometry",
+          "bank": "volumes",
+          "formulas": [
+            {
+              "id": "csca_3d_dist",
+              "name": "Расстояние в пространстве",
+              "en": "3D distance",
+              "tex": "d = \\sqrt{\\Delta x^2 + \\Delta y^2 + \\Delta z^2}",
+              "image": "csca_36_3d_dist",
+              "examples": [
+                {
+                  "q": "Find the distance between $A(1, 2, 3)$ and $B(3, 5, 9)$.",
+                  "goal": "The question asks for the 3D distance between two points.",
+                  "plan": "Find $\\Delta x, \\Delta y, \\Delta z$ and substitute into $\\sqrt{\\Delta x^2 + \\Delta y^2 + \\Delta z^2}$.",
+                  "use": "$d = \\sqrt{(3-1)^2 + (5-2)^2 + (9-3)^2}$",
+                  "steps": [
+                    "Differences are $2, 3, 6$.",
+                    "Compute $\\sqrt{4 + 9 + 36} = \\sqrt{49} = 7$."
+                  ],
+                  "answer": "$7$",
+                  "check": "$(2, 3, 6, 7)$ is a Pythagorean quadruple: $4 + 9 + 36 = 49$."
+                },
+                {
+                  "q": "Find the distance from the origin $(0, 0, 0)$ to $(1, 4, 8)$.",
+                  "goal": "The question asks for the distance from the origin in 3D.",
+                  "plan": "Here $\\Delta x = 1, \\Delta y = 4, \\Delta z = 8$.",
+                  "use": "$d = \\sqrt{1^2 + 4^2 + 8^2}$",
+                  "steps": [
+                    "Sum the squares: $1 + 16 + 64 = 81$.",
+                    "Take the square root: $\\sqrt{81} = 9$."
+                  ],
+                  "answer": "$9$",
+                  "check": "$1^2 + 4^2 + 8^2 = 81 = 9^2$."
+                }
+              ]
+            },
+            {
+              "id": "csca_solids_vol",
+              "name": "Призма, цилиндр, пирамида, конус",
+              "en": "Prism, cylinder, pyramid, cone",
+              "tex": "\\text{Prism/cylinder } V=Sh \\;(\\pi r^2h) \\;;\\; \\text{Pyramid } V=\\tfrac{1}{3}Sh \\;;\\; \\text{Cone } V=\\tfrac{1}{3}\\pi r^2h,\\; l=\\sqrt{r^2+h^2}",
+              "image": "csca_37_solids",
+              "examples": [
+                {
+                  "q": "Find the volume of a cylinder with radius $r = 3$ and height $h = 5$.",
+                  "goal": "The question asks for the volume of a right circular cylinder.",
+                  "plan": "Use $V = \\pi r^2 h$.",
+                  "use": "$V = \\pi \\cdot 3^2 \\cdot 5$",
+                  "steps": [
+                    "Square the radius: $3^2 = 9$.",
+                    "Multiply by $5$: $V = 45\\pi$."
+                  ],
+                  "answer": "$45\\pi$",
+                  "check": "Base area $S = 9\\pi$, times height $5$ gives $45\\pi$."
+                },
+                {
+                  "q": "A cone has radius $r = 3$ and height $h = 4$. Find its volume and slant height $l$.",
+                  "goal": "The question asks for both the volume and slant height of a cone.",
+                  "plan": "Use $V = \\frac{1}{3}\\pi r^2 h$ and $l = \\sqrt{r^2 + h^2}$.",
+                  "use": "$V = \\frac{1}{3}\\pi (3^2)(4) \\;;\\; l = \\sqrt{3^2 + 4^2}$",
+                  "steps": [
+                    "Volume: $\\frac{1}{3}\\pi \\cdot 9 \\cdot 4 = 12\\pi$.",
+                    "Slant height: $\\sqrt{9 + 16} = 5$."
+                  ],
+                  "answer": "$V = 12\\pi,\\; l = 5$",
+                  "check": "A cylinder with the same $r, h$ has volume $36\\pi = 3 \\cdot 12\\pi$."
+                }
+              ]
+            },
+            {
+              "id": "csca_sphere_cuboid",
+              "name": "Сфера, шар и прямоугольный параллелепипед",
+              "en": "Sphere and cuboid",
+              "tex": "\\text{Sphere } V=\\tfrac{4}{3}\\pi r^3,\\; S=4\\pi r^2 \\;;\\; \\text{Cuboid diagonal}=\\sqrt{l^2+w^2+h^2}",
+              "image": "csca_38_sphere_cuboid",
+              "examples": [
+                {
+                  "q": "Find the volume and surface area of a sphere with radius $r = 3$.",
+                  "goal": "The question asks for $V$ and $S$ of a sphere.",
+                  "plan": "Substitute $r = 3$ into $V = \\frac{4}{3}\\pi r^3$ and $S = 4\\pi r^2$.",
+                  "use": "$V = \\frac{4}{3}\\pi (3^3) \\;;\\; S = 4\\pi (3^2)$",
+                  "steps": [
+                    "Volume: $\\frac{4}{3}\\pi \\cdot 27 = 36\\pi$.",
+                    "Surface area: $4\\pi \\cdot 9 = 36\\pi$."
+                  ],
+                  "answer": "$V = 36\\pi,\\; S = 36\\pi$",
+                  "check": "At $r = 3$, $\\frac{4}{3}r^3 = 4r^2 = 36$, so both numbers equal $36\\pi$."
+                },
+                {
+                  "q": "Find the space diagonal of a cuboid with dimensions $2 \\times 3 \\times 6$.",
+                  "goal": "The question asks for the main diagonal of a rectangular box.",
+                  "plan": "Use $d = \\sqrt{l^2 + w^2 + h^2}$.",
+                  "use": "$d = \\sqrt{2^2 + 3^2 + 6^2}$",
+                  "steps": [
+                    "Add squares: $4 + 9 + 36 = 49$.",
+                    "Take the root: $\\sqrt{49} = 7$."
+                  ],
+                  "answer": "$7$",
+                  "check": "Base diagonal is $\\sqrt{2^2 + 3^2} = \\sqrt{13}$, and $\\sqrt{13 + 36} = 7$."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "csca_probability",
+      "title": "CSCA · Вероятность и статистика",
+      "en": "Probability, counting, descriptive statistics and normal distribution",
+      "topics": [
+        {
+          "id": "probability",
+          "name": "Вероятность",
+          "en": "Probability",
+          "bank": "probability",
+          "formulas": [
+            {
+              "id": "csca_classical_prob",
+              "name": "Классическая вероятность",
+              "en": "Classical probability",
+              "tex": "P(A)=\\frac{m}{n} \\;;\\; P(A^c)=1-P(A) \\;;\\; P(A\\cup B)=P(A)+P(B)-P(A\\cap B)",
+              "image": "csca_39_prob",
+              "examples": [
+                {
+                  "q": "A fair six-sided die is rolled. Find the probability of rolling an even number, and of NOT rolling a $6$.",
+                  "goal": "The question asks for a classical probability and a complement probability.",
+                  "plan": "Count favorable outcomes out of $n = 6$, and use $P(A^c) = 1 - P(A)$.",
+                  "use": "$P(\\text{even}) = \\frac{3}{6} \\;;\\; P(\\text{not } 6) = 1 - \\frac{1}{6}$",
+                  "steps": [
+                    "Even outcomes are $\\{2, 4, 6\\}$ ($3$ of $6$), so $\\frac{1}{2}$.",
+                    "Complement of rolling $6$ is $1 - \\frac{1}{6} = \\frac{5}{6}$."
+                  ],
+                  "answer": "$\\frac{1}{2}\\text{ and }\\frac{5}{6}$",
+                  "check": "Five outcomes $\\{1,2,3,4,5\\}$ are not $6$, giving $\\frac{5}{6}$."
+                },
+                {
+                  "q": "Given $P(A) = 0.4$, $P(B) = 0.5$, and $P(A \\cap B) = 0.2$, find $P(A \\cup B)$.",
+                  "goal": "The question asks for the union probability of two overlapping events.",
+                  "plan": "Apply $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$.",
+                  "use": "$P(A \\cup B) = 0.4 + 0.5 - 0.2$",
+                  "steps": [
+                    "Add: $0.4 + 0.5 = 0.9$.",
+                    "Subtract overlap: $0.9 - 0.2 = 0.7$."
+                  ],
+                  "answer": "$0.7$",
+                  "check": "Disjoint parts: $(0.4 - 0.2) + (0.5 - 0.2) + 0.2 = 0.2 + 0.3 + 0.2 = 0.7$."
+                }
+              ]
+            },
+            {
+              "id": "csca_counting",
+              "name": "Размещения и сочетания",
+              "en": "Counting",
+              "tex": "P(n,r)=\\frac{n!}{(n-r)!} \\;;\\; C(n,r)=\\frac{n!}{r!(n-r)!}",
+              "image": "csca_40_counting",
+              "examples": [
+                {
+                  "q": "In how many ways can $3$ students from a group of $5$ be arranged in a row?",
+                  "goal": "The question asks for ordered arrangements ($P(n, r)$).",
+                  "plan": "Order matters in a row, so use permutations $P(5, 3)$.",
+                  "use": "$P(5, 3) = \\frac{5!}{(5 - 3)!} = \\frac{5!}{2!}$",
+                  "steps": [
+                    "Cancel $2!$: $5 \\cdot 4 \\cdot 3$.",
+                    "Multiply: $60$."
+                  ],
+                  "answer": "$60$",
+                  "check": "$5$ choices for 1st, $4$ for 2nd, $3$ for 3rd: $5 \\cdot 4 \\cdot 3 = 60$."
+                },
+                {
+                  "q": "In how many ways can a committee of $2$ be chosen from $6$ people?",
+                  "goal": "The question asks for an unordered selection ($C(n, r)$).",
+                  "plan": "Order does not matter on a committee, so use combinations $C(6, 2)$.",
+                  "use": "$C(6, 2) = \\frac{6!}{2!\\,4!}$",
+                  "steps": [
+                    "Simplify: $\\frac{6 \\cdot 5}{2 \\cdot 1}$.",
+                    "Divide: $\\frac{30}{2} = 15$."
+                  ],
+                  "answer": "$15$",
+                  "check": "Notice $P(6, 2) = 30$, and dividing by $2!$ orders gives $15$."
+                }
+              ]
+            },
+            {
+              "id": "csca_cond_prob",
+              "name": "Независимость и условная вероятность",
+              "en": "Independence and conditional probability",
+              "tex": "P(AB)=P(A)P(B) \\text{ if independent } \\;;\\; P(A|B)=\\frac{P(AB)}{P(B)}",
+              "image": "csca_41_tree",
+              "examples": [
+                {
+                  "q": "Events $A$ and $B$ are independent with $P(A) = \\frac{1}{2}$ and $P(B) = \\frac{1}{3}$. Find $P(AB)$.",
+                  "goal": "The question asks for the joint probability of independent events.",
+                  "plan": "For independent events, multiply the probabilities: $P(AB) = P(A)P(B)$.",
+                  "use": "$P(AB) = \\frac{1}{2} \\cdot \\frac{1}{3}$",
+                  "steps": [
+                    "Multiply numerators and denominators.",
+                    "Get $\\frac{1}{6}$."
+                  ],
+                  "answer": "$\\frac{1}{6}$",
+                  "check": "$P(A|B) = \\frac{1/6}{1/3} = \\frac{1}{2} = P(A)$, confirming independence."
+                },
+                {
+                  "q": "If $P(AB) = 0.15$ and $P(B) = 0.6$, find $P(A|B)$.",
+                  "goal": "The question asks for the conditional probability of $A$ given $B$.",
+                  "plan": "Divide the joint probability by $P(B)$: $P(A|B) = \\frac{P(AB)}{P(B)}$.",
+                  "use": "$P(A|B) = \\frac{0.15}{0.6}$",
+                  "steps": [
+                    "Write as fractions: $\\frac{15}{60}$.",
+                    "Reduce: $\\frac{1}{4} = 0.25$."
+                  ],
+                  "answer": "$0.25$",
+                  "check": "$0.25 \\cdot 0.6 = 0.15 = P(AB)$."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "statistics",
+          "name": "Статистика",
+          "en": "Statistics",
+          "bank": "statistics",
+          "formulas": [
+            {
+              "id": "csca_stats_mean_sd",
+              "name": "Среднее, дисперсия и стандартное отклонение",
+              "en": "Mean, variance, standard deviation",
+              "tex": "\\bar{x}=\\frac{\\sum x_i}{n} \\;;\\; s^2=\\frac{\\sum(x_i-\\bar{x})^2}{n} \\;;\\; SD=\\sqrt{s^2}",
+              "image": "csca_42_stats",
+              "examples": [
+                {
+                  "q": "Find the mean of the data set $2, 4, 6, 8$.",
+                  "goal": "The question asks for the arithmetic mean $\\bar{x}$.",
+                  "plan": "Sum all $n = 4$ values and divide by $4$.",
+                  "use": "$\\bar{x} = \\frac{2 + 4 + 6 + 8}{4}$",
+                  "steps": [
+                    "Sum: $2 + 4 + 6 + 8 = 20$.",
+                    "Divide by $4$: $\\frac{20}{4} = 5$."
+                  ],
+                  "answer": "$5$",
+                  "check": "Deviations from $5$ are $-3, -1, +1, +3$, which sum to $0$."
+                },
+                {
+                  "q": "Find the variance $s^2$ and standard deviation $SD$ of $2, 4, 6, 8$.",
+                  "goal": "The question asks for the population variance and standard deviation.",
+                  "plan": "Using $\\bar{x} = 5$, square the deviations $(x_i - 5)^2$, average them, and take the square root.",
+                  "use": "$s^2 = \\frac{(-3)^2 + (-1)^2 + 1^2 + 3^2}{4}$",
+                  "steps": [
+                    "Sum squared deviations: $9 + 1 + 1 + 9 = 20$.",
+                    "Divide by $4$: $s^2 = 5$, so $SD = \\sqrt{5}$."
+                  ],
+                  "answer": "$s^2 = 5,\\; SD = \\sqrt{5}$",
+                  "check": "Using $E[X^2] - \\bar{x}^2$: $\\frac{4+16+36+64}{4} - 25 = 30 - 25 = 5$."
+                }
+              ]
+            },
+            {
+              "id": "csca_normal_dist",
+              "name": "Нормальное распределение",
+              "en": "Normal distribution",
+              "tex": "X\\sim N(\\mu,\\sigma^2) \\;;\\; Z=\\frac{X-\\mu}{\\sigma} \\;;\\; 68\\%,\\, 95\\%,\\, 99.7\\% \\text{ within } 1, 2, 3\\sigma",
+              "image": "csca_43_normal",
+              "examples": [
+                {
+                  "q": "Test scores follow $N(70, 5^2)$. Find the $Z$-score of a student who scored $85$.",
+                  "goal": "The question asks for the standardized $Z$-score.",
+                  "plan": "Substitute $X = 85$, $\\mu = 70$, and $\\sigma = 5$ into $Z = \\frac{X - \\mu}{\\sigma}$.",
+                  "use": "$Z = \\frac{85 - 70}{5}$",
+                  "steps": [
+                    "Subtract: $85 - 70 = 15$.",
+                    "Divide by $\\sigma = 5$: $Z = 3$."
+                  ],
+                  "answer": "$3$",
+                  "check": "$70 + 3(5) = 85$, which is $3$ standard deviations above the mean."
+                },
+                {
+                  "q": "For $X \\sim N(70, 5^2)$, roughly what percent of scores lie between $60$ and $80$?",
+                  "goal": "The question asks for the percentage within a symmetric interval around the mean.",
+                  "plan": "Convert $60$ and $80$ to $Z$-scores to see how many $\\sigma$ they are from $\\mu = 70$.",
+                  "use": "$Z = \\frac{60 - 70}{5} = -2,\\; Z = \\frac{80 - 70}{5} = 2$",
+                  "steps": [
+                    "The interval is $\\mu \\pm 2\\sigma$.",
+                    "By the $68\\text{–}95\\text{–}99.7$ rule, about $95\\%$ lie within $2\\sigma$."
+                  ],
+                  "answer": "$95\\%$",
+                  "check": "$70 - 2(5) = 60$ and $70 + 2(5) = 80$, exact $\\pm 2\\sigma$ bounds."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
