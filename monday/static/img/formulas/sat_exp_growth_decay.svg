@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
+  <rect width="720" height="450" fill="#FFFFFF"/>
+  <defs>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
+  </defs>
+  <line x1="90" y1="380" x2="640" y2="380" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <line x1="90" y1="380" x2="90" y2="50" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="635" y="405" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A" font-style="italic">t</text>
+  <text x="72" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A" font-style="italic">y</text>
+  <!-- Growth curve -->
+  <path d="M90 290 Q 260 280, 380 205 T 580 75" fill="none" stroke="#2B60E5" stroke-width="4" stroke-linecap="round"/>
+  <!-- Decay curve -->
+  <path d="M90 110 Q 210 250, 360 320 T 600 368" fill="none" stroke="#0A1A5C" stroke-width="4" stroke-linecap="round" stroke-dasharray="9 6"/>
+  <circle cx="90" cy="290" r="6" fill="#2B60E5"/>
+  <circle cx="90" cy="110" r="6" fill="#0A1A5C"/>
+  <text x="112" y="295" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#2B60E5">(0, a)</text>
+  <text x="112" y="115" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0A1A5C">(0, a)</text>
+  <text x="485" y="74" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#2B60E5">y = a(1 + r)ᵗ</text>
+  <text x="455" y="348" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">y = a(1 − r)ᵗ</text>
+</svg>

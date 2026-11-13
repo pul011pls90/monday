@@ -1,4 +1,5 @@
 """Monday formula templates: well-formed content, the two tabs, adding to My formulas and practice links."""
+import html
 import os
 
 from monday import formulas as fx
@@ -40,7 +41,8 @@ def test_every_topic_practises_a_real_part_of_the_bank():
 def test_tabs_and_template_page():
     c, _email = new_student("fxtabs")
     body = ok(c, "/formulas").data.decode()
-    assert "От Monday" in body and "SAT · Алгебра" in body and "Новый лист" not in body
+    assert "От Monday" in body and "Формулы SAT" in body and "Новый лист" not in body
+    assert "SAT · Алгебра" in ok(c, "/formulas?tab=monday&exam=SAT").data.decode()
     assert "Новый лист" in ok(c, "/formulas?tab=mine").data.decode()
     body = ok(c, "/formulas/t/sat_geometry?topic=volumes").data.decode()
     assert "Цилиндр" in body and "img/formulas/cylinder.svg" in body and "Добавить всю тему" in body
@@ -161,11 +163,73 @@ def test_ort_practice_links_reach_real_bank_topics():
 def test_own_exam_templates_come_first_and_sheets_stay_apart():
     c, email = new_student("fxort")
     body = ok(c, "/formulas?tab=monday").data.decode()
-    assert body.index("ОРТ · Алгебра") < body.index("SAT · Алгебра")
+    assert body.index("Формулы ОРТ") < body.index("Формулы SAT")
     c.post("/formulas/t/sat_geometry/add", data={"topic": "triangles", "formula": "pythagoras"})
     assert "Добавлено" not in ok(c, "/formulas/t/ort_geometry?topic=triangles").data.decode().split('id="f-pythagoras"')[1].split("</article>")[0]
     c.post("/formulas/t/ort_geometry/add", data={"topic": "triangles", "formula": "pythagoras"})
     with APP.app_context():
         titles = {s.title for s in ReferenceSheet.query.filter_by(user_id=User.query.filter_by(email=email).first().id)}
     assert titles == {"Мои формулы SAT", "Мои формулы ОРТ"}
+
+
+def test_formulas_search_filters_and_trig_signs_svg():
+    c, _email = new_student("fxfilter")
+    body = ok(c, "/formulas?tab=monday").data.decode()
+    assert 'name="q"' in body and 'name="sort"' in body and "Тригонометрия" in body
+    # Filter by exam=SAT and cat=trig
+    sat_trig = ok(c, "/formulas?tab=monday&exam=SAT&cat=trig").data.decode()
+    assert "SAT · Геометрия и тригонометрия" in sat_trig and "ОРТ · Алгебра" not in sat_trig
+    # Search query
+    q_res = ok(c, "/formulas?tab=monday&q=Тригонометрия").data.decode()
+    assert "ОРТ · Тригонометрия" in q_res
+    # Trig quadrant signs diagram renders on ORT Trigonometry template
+    trig_page = ok(c, "/formulas/t/ort_trig?topic=trig_values").data.decode()
+    assert "Знаки тригонометрических функций в четвертях" in trig_page
+    assert "img/formulas/trig_signs.svg" in trig_page
+
+
+def test_csca_43_formulas_and_sat_parity():
+    csca_blocks = [t for t in fx.all_templates() if t["exam"] == "CSCA"]
+    assert [t["id"] for t in csca_blocks] == ["csca_sets", "csca_functions", "csca_geometry", "csca_probability"]
+    every = [f for t in csca_blocks for f in fx.formulas_of(t)]
+    assert len(every) == 43
+    assert len({f["id"] for f in every}) == 43
+    for t in csca_blocks:
+        assert "module" not in t
+    for f in every:
+        assert "module" not in f
+        assert f.get("name") and f.get("en")
+        assert f.get("image") and os.path.exists(os.path.join(IMAGES, f["image"] + ".svg"))
+        assert len(f["examples"]) == 2
+        assert all(e["q"] and e["use"] and e["answer"] and e["goal"] and e["plan"] and e["steps"] and e.get("check") for e in f["examples"])
+        assert all(e[k].replace("\\$", "").count("$") % 2 == 0 for e in f["examples"] for k in ("q", "use", "answer", "goal", "plan", "check"))
+
+    c, _email = new_student("fxcsca")
+    body = ok(c, "/formulas?tab=monday&exam=CSCA").data.decode()
+    assert "CSCA M1" not in body
+    for expected in (
+        "CSCA · Множества и неравенства",
+        "CSCA · Функции",
+        "CSCA · Геометрия и алгебра",
+        "CSCA · Вероятность и статистика",
+        "2 темы · 9 формул",
+        "6 тем · 15 формул",
+        "5 тем · 14 формул",
+        "2 темы · 5 формул",
+    ):
+        assert expected in body
+
+    rendered_count = 0
+    for tpl in csca_blocks:
+        for top in tpl["topics"]:
+            page = html.unescape(ok(c, f"/formulas/t/{tpl['id']}?topic={top['id']}").data.decode())
+            assert top["name"] in page and top["en"] in page
+            assert "Потренировать" in page
+            for f in top["formulas"]:
+                assert f["name"] in page and f["en"] in page
+                assert f"img/formulas/{f['image']}.svg" in page
+                assert page.count("Проверка:") >= 2
+                rendered_count += 1
+    assert rendered_count == 43
+
 
