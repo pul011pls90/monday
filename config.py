@@ -107,6 +107,13 @@ class Config:
     SEED_DEMO = os.environ.get("SEED_DEMO", "1") == "1"
     ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "")
     ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
+    ADMIN_API_TOKEN = os.environ.get("ADMIN_API_TOKEN", "")
+    RESUME_MAX_DAYS = int(os.environ.get("RESUME_MAX_DAYS", "30") or "30")
+    APP_VERSION = (
+        os.environ.get("RENDER_GIT_COMMIT")
+        or os.environ.get("APP_VERSION")
+        or ""
+    ).strip()[:12] or secrets.token_hex(6)
     SESSION_COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "0") == "1"  # 1 behind HTTPS (Render)
     REMEMBER_COOKIE_SECURE = SESSION_COOKIE_SECURE
 

@@ -50,7 +50,7 @@ body:not(.auth-body) {
 
 :root { --rail: 100px; --topbar: 88px; }
 .rail {
-  top: 8px; height: calc(100vh - 16px); margin: 8px 0 8px 12px; padding: 10px 8px; gap: clamp(5px, 0.9vh, 14px);
+  top: 16px; height: calc(100vh - 28px); margin: 16px 0 12px 12px; padding: 10px 8px; gap: clamp(5px, 0.9vh, 14px);
   border: var(--bw, 1px) solid var(--line); border-radius: 22px;
   background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(10px);
   box-shadow: var(--card-shadow);

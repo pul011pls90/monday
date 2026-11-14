@@ -25,12 +25,18 @@
     {% if question.skill and question.skill.subtopic %}<span class="tag tag--line">{{ question.skill.topic }} · {{ question.skill.subtopic }}</span>{% endif %}
     {% if cfg.level == 'ladder' %}<span class="tag tag--soft">{{ _("Ступень %(n)s из 3", n=question.difficulty or 2) }}</span>{% endif %}
     {% if not answer %}<span class="tag tag--line q-clock" data-qclock="{{ att.id }}-{{ idx }}" title="{{ _('Время на этом вопросе') }}">{{ ui.icon('timer', 14) }}<span class="num">0:00</span></span>{% endif %}
-    <span class="spacer"></span>{{ ui.report_button(question.id, 'right') }}
+    <span class="spacer"></span>
+    <a class="btn btn--ghost btn--sm" href="{{ url_for('student.sessions') }}" data-ds-discard data-confirm="{{ _('Начать заново? Текущий прогресс будет сброшен.') }}">{{ _('Начать заново') }}</a>
+    {{ ui.report_button(question.id, 'right') }}
   </div>
 
   <div class="rotate-hint flash flash--info">{{ ui.icon('rotate', 18) }} {{ _("Поверни телефон, чтобы рисунок и ответы были рядом.") }}</div>
 
-  <form method="post" class="stack" style="gap:24px" data-ajax>
+  <form method="post" class="stack" style="gap:24px" data-ajax
+        data-ds-activity data-ds-type="session" data-ds-id="{{ att.id }}"
+        data-ds-title="{{ mode.name }}" data-ds-subtitle="{{ question.skill.name if question.skill else '' }}"
+        data-ds-resume-url="{{ request.full_path }}" data-ds-question-index="{{ idx }}"
+        data-ds-answered="{{ att.answers|length }}" data-ds-total="{{ total }}">
     {{ ui.csrf() }}
     <section class="q-card">
       {{ ui.question_body(item, 'given', selected=answer.given if answer else None, reveal=answer is not none, disabled=answer is not none) }}

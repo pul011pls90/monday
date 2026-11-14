@@ -1,0 +1,133 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Обслуживание сайта") }}{% endblock %}
+{% block context %}{{ _("Администрирование · Обслуживание") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Уведомление об обновлении") }}</h1>
+    <p>{{ _("Предупредите учеников о плановом или активном перерыве, чтобы их прогресс сохранился перед обновлением.") }}</p>
+  </div>
+  <a class="btn btn--secondary" href="{{ url_for('admin.index') }}">{{ _("Назад в админку") }}</a>
+</div>
+
+{% if saved %}
+  <div class="flash flash--success" role="status">{{ _("Состояние обслуживания обновлено.") }}</div>
+{% endif %}
+{% if error %}
+  <div class="flash flash--error" role="alert">{{ error }}</div>
+{% endif %}
+
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;align-items:start">
+  <section class="card" style="padding:20px">
+    <h2 style="margin-top:0;font-size:17px">{{ _("Параметры уведомления") }}</h2>
+    <form method="post" class="stack" style="gap:14px">
+      {{ ui.csrf() }}
+      <div class="field">
+        <label for="maint-state">{{ _("Состояние") }}</label>
+        <select class="input" id="maint-state" name="state">
+          <option value="off" {{ 'selected' if maint.state == 'off' }}>{{ _("Выключено (off)") }}</option>
+          <option value="scheduled" {{ 'selected' if maint.state == 'scheduled' }}>{{ _("Запланировано (scheduled)") }}</option>
+          <option value="active" {{ 'selected' if maint.state == 'active' }}>{{ _("Идёт сейчас (active)") }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="maint-minutes">{{ _("Ожидаемая длительность (мин)") }}</label>
+        <input class="input" id="maint-minutes" name="expected_minutes" type="number" min="1" max="720" value="{{ maint.expected_minutes or 15 }}">
+      </div>
+      <div class="field">
+        <label for="maint-starts">{{ _("Время начала (необязательно, UTC ISO)") }}</label>
+        <input class="input" id="maint-starts" name="starts_at" type="text" placeholder="2026-11-14T20:00:00"
+               value="{{ maint.starts_at.strftime('%Y-%m-%dT%H:%M:%S') if maint.starts_at else '' }}">
+      </div>
+      <div class="field">
+        <label for="maint-msg">{{ _("Свой текст (необязательно)") }}</label>
+        <textarea class="textarea" id="maint-msg" name="message" rows="3" maxlength="500"
+                  placeholder="{{ _('Оставьте пустым для стандартного сообщения') }}">{{ maint.message or '' }}</textarea>
+      </div>
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <button class="btn btn--primary" type="submit" name="action" value="save" style="min-height:44px">{{ _("Сохранить") }}</button>
+        <button class="btn btn--secondary" type="submit" name="action" value="clear" style="min-height:44px">{{ _("Снять уведомление") }}</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card" style="padding:20px">
+    <h2 style="margin-top:0;font-size:17px">{{ _("Предпросмотр баннера") }}</h2>
+    <div id="maint-preview" class="ds-banner ds-banner--info" style="margin:0 0 14px">
+      <div class="ds-banner__body">
+        <span class="ds-banner__dot" aria-hidden="true"></span>
+        <span class="ds-banner__text" id="maint-preview-text">—</span>
+      </div>
+    </div>
+    <p class="small muted">
+      {{ _("Текущий статус:") }} <b id="maint-cur-state">{{ maint.state }}</b>
+      {% if maint.updated_by_name %}· {{ maint.updated_by_name }}{% endif %}
+    </p>
+  </section>
+</div>
+
+<section class="card" style="padding:20px;margin-top:18px">
+  <h2 style="margin-top:0;font-size:17px">{{ _("История изменений") }}</h2>
+  {% if logs %}
+  <div style="overflow-x:auto">
+    <table class="table" style="width:100%">
+      <thead>
+        <tr>
+          <th>{{ _("Время (UTC)") }}</th>
+          <th>{{ _("Состояние") }}</th>
+          <th>{{ _("Минут") }}</th>
+          <th>{{ _("Источник") }}</th>
+          <th>{{ _("Кто") }}</th>
+          <th>{{ _("Сообщение") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td class="num small">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '' }}</td>
+          <td><b>{{ log.state }}</b></td>
+          <td class="num">{{ log.expected_minutes }}</td>
+          <td>{{ log.source }}</td>
+          <td>{{ log.actor or '—' }}</td>
+          <td class="small">{{ log.message or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="muted small">{{ _("Записей пока нет.") }}</p>
+  {% endif %}
+</section>
+
+<script>
+(function(){
+  const stateEl = document.getElementById("maint-state");
+  const minEl = document.getElementById("maint-minutes");
+  const msgEl = document.getElementById("maint-msg");
+  const preview = document.getElementById("maint-preview");
+  const previewText = document.getElementById("maint-preview-text");
+  function update(){
+    const st = stateEl.value;
+    const mins = parseInt(minEl.value || "15", 10) || 15;
+    const custom = msgEl.value.trim();
+    if (st === "off") {
+      preview.style.opacity = "0.5";
+      previewText.textContent = "Баннер скрыт (обслуживание выключено).";
+    } else if (st === "scheduled") {
+      preview.style.opacity = "1";
+      previewText.textContent = custom
+        ? `${custom} (через ${mins} мин). Ответы сохраняются автоматически — вы сможете продолжить после перерыва.`
+        : `Плановое обновление через ${mins} мин. Ответы сохраняются автоматически — вы сможете продолжить после перерыва.`;
+    } else {
+      preview.style.opacity = "1";
+      previewText.textContent = custom
+        ? `${custom} (~${mins} мин). Ваши ответы сохранены на этом устройстве и отправятся автоматически, как только сайт вернётся.`
+        : `Идёт обновление платформы (~${mins} мин). Ваши ответы сохранены на этом устройстве и отправятся автоматически, как только сайт вернётся.`;
+    }
+  }
+  [stateEl, minEl, msgEl].forEach((el) => el && el.addEventListener("input", update));
+  update();
+})();
+</script>
+{% endblock %}

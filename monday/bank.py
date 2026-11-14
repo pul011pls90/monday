@@ -238,6 +238,12 @@ def start():
     if exam == "ORT":  # like the paper test: comparisons (part 1) before the other questions (part 2)
         picked.sort(key=lambda q: 0 if _is_compare(q.material) else 1)
     plan = [q.id for q in picked]
+    try:
+        limit = int(request.form.get("limit") or 0)
+    except ValueError:
+        limit = 0
+    if limit > 0:
+        plan = plan[:limit]
     if not plan:
         from flask import flash
         flash(_("По этим фильтрам вопросов нет. Сними часть фильтров."), "error")

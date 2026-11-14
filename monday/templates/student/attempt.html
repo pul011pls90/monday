@@ -26,6 +26,7 @@
     <span class="row small test-tools__status" style="gap:12px">
       <span class="test-tools__answered" style="font-weight:700"><span class="btn-label">{{ _("Отвечено:") }} </span>{{ ui.icon('check', 14) }}<span data-answered class="num">0 / {{ mod.end - mod.start }}</span></span>
       <span class="save-state muted" data-save-state data-saving="{{ _('Сохраняем…') }}" data-saved="{{ _('Ответы сохранены') }}" data-failed="{{ _('Нет связи. Ответы сохранятся, когда сдашь работу') }}" aria-live="polite"></span>
+      {% if att.mode != 'monday' %}<a class="btn btn--ghost btn--sm" href="{{ back }}" data-ds-discard data-confirm="{{ _('Начать заново? Текущий прогресс будет сброшен.') }}">{{ _('Начать заново') }}</a>{% endif %}
     </span>
   </div>
   <div class="test-tools__center">
@@ -45,6 +46,9 @@
 
   {# when the timer runs out the form is sent as-is: to "next module" in module 1, to "hand in" in the last one #}
   <form method="post" id="test-form" data-test data-nav="{{ layout.nav }}" {% if entry_rules == 'sat' %}data-sat-entry{% endif %}
+        data-ds-activity data-ds-type="{{ 'homework' if att.mode == 'homework' else 'test' }}" data-ds-id="{{ att.id }}"
+        data-ds-title="{{ version.title }}" data-ds-subtitle="{{ label }}"
+        data-ds-resume-url="{{ request.full_path }}" data-ds-total="{{ mod.end - mod.start }}"
         {% if not last_module %}action="{{ url_for('student.attempt_next_module', attempt_id=att.id) }}"{% endif %}
         data-autosave="{{ url_for('student.attempt_save', attempt_id=att.id) }}" data-photo-url="{{ url_for('student.attempt_photo', attempt_id=att.id) }}" data-attempt="{{ att.id }}"{% if att.mode == 'collection' %} data-alive="{{ url_for('student.attempt_alive', attempt_id=att.id) }}"{% endif %}
         data-start="{{ mod.start }}" data-end="{{ mod.end }}"

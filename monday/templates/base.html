@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   {% if THEME_AUTO %}<script>(function(){var d=document.documentElement,m=window.matchMedia&&matchMedia("(prefers-color-scheme: dark)");function f(){if(d.hasAttribute("data-theme-auto"))d.setAttribute("data-theme",m&&m.matches?"dark":"light")}f();m&&m.addEventListener&&m.addEventListener("change",f)})();</script>{% endif %}
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{% block title %}Monday{% endblock %} · Monday</title>
   <meta name="theme-color" content="{{ '#000000' if THEME == 'dark' else '#F7F8FB' }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
@@ -17,8 +18,14 @@
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
   {% block head %}{% endblock %}
 </head>
-<body class="{% block body_class %}{% endblock %}" data-confirm-ok="{{ _('Да') }}" data-confirm-cancel="{{ _('Отмена') }}"
+<body class="{% block body_class %}{% endblock %}"
+      data-user-id="{{ current_user.id if current_user.is_authenticated else '' }}"
+      data-app-version="{{ config.APP_VERSION }}"
+      data-site-status-url="{{ url_for('deploy_safety.api_site_status') }}"
+      data-version-url="{{ url_for('deploy_safety.api_version') }}"
+      data-confirm-ok="{{ _('Да') }}" data-confirm-cancel="{{ _('Отмена') }}"
       data-date-empty="{{ _('Выбрать дату') }}" data-date-today="{{ _('Сегодня') }}" data-date-clear="{{ _('Очистить') }}" data-date-prev="{{ _('Предыдущий месяц') }}" data-date-next="{{ _('Следующий месяц') }}">
+  <div id="ds-banner-host" class="ds-banner-host" hidden></div>
   {% block body %}{% endblock %}
   <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="{{ _('Рисунок') }}">
     <div class="lightbox__card" data-lb-card>
@@ -41,6 +48,7 @@
   <script defer src="{{ url_for('static', filename='vendor/katex/contrib/auto-render.min.js') }}"></script>
   <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
   <script defer src="{{ url_for('static', filename='js/date-picker.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='js/deploy-safety.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

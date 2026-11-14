@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Конструктор уроков") }}{% endblock %}
+{% block context %}{{ _("Администрирование · Курс SAT") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Конструктор уроков курса") }}</h1>
+    <p>{{ _("Редактируйте статьи (KaTeX $...$), YouTube-разборы, Desmos-пресеты и подборку ID задач без деплоя.") }}</p>
+  </div>
+  <a class="btn btn--secondary" href="{{ url_for('admin.index') }}">{{ _("Назад в админку") }}</a>
+</div>
+
+{% if saved %}
+  <div class="flash flash--success" role="status">{{ _("Урок сохранён.") }}</div>
+{% endif %}
+
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;align-items:start">
+  <section class="card" style="padding:20px">
+    <div class="field" style="margin-bottom:14px">
+      <label for="cb-sel">{{ _("Выберите урок") }}</label>
+      <select class="input" id="cb-sel" onchange="window.location='?lesson_id='+this.value">
+        {% for l in lessons %}
+          <option value="{{ l.id }}" {{ 'selected' if cur and l.id == cur.id }}>Юнит {{ l.unit.number }} · {{ l.title_ru }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% if cur %}
+    <form method="post" class="stack" style="gap:12px">
+      {{ ui.csrf() }}
+      <input type="hidden" name="lesson_id" value="{{ cur.id }}">
+      <div class="field">
+        <label for="cb-title">{{ _("Название урока") }}</label>
+        <input class="input" id="cb-title" name="title_ru" value="{{ cur.title_ru }}">
+      </div>
+      <div class="field">
+        <label for="cb-article">{{ _("Статья / теория (KaTeX $...$)") }}</label>
+        <textarea class="textarea" id="cb-article" name="article_md" rows="7">{{ cur.article_md }}</textarea>
+      </div>
+      <div class="field">
+        <label for="cb-yt">{{ _("YouTube URL (необязательно)") }}</label>
+        <input class="input" id="cb-yt" name="youtube_url" value="{{ cur.youtube_url }}" placeholder="https://www.youtube.com/watch?v=...">
+      </div>
+      <div class="field">
+        <label for="cb-desmos">{{ _("Desmos-пресет JSON (необязательно)") }}</label>
+        <input class="input" id="cb-desmos" name="desmos_preset_json" value="{{ cur.desmos_preset_json }}" placeholder='{"expr": "y = 2x + 1"}'>
+      </div>
+      <div class="field">
+        <label for="cb-qids">{{ _("ID задач из Банка вопросов (через запятую)") }}</label>
+        <input class="input" id="cb-qids" name="question_ids" value="{{ cur_qids }}">
+      </div>
+      <button class="btn btn--primary" type="submit" style="min-height:44px">{{ _("Сохранить урок") }}</button>
+    </form>
+    {% endif %}
+  </section>
+
+  <section class="card" style="padding:20px">
+    <h2 style="margin-top:0;font-size:16px">{{ _("Предпросмотр статьи (KaTeX)") }}</h2>
+    <div id="cb-preview" class="stack math" style="gap:8px;line-height:1.55"></div>
+  </section>
+</div>
+
+<script>
+(function(){
+  const ed = document.getElementById("cb-article");
+  const pv = document.getElementById("cb-preview");
+  if (!ed || !pv) return;
+  function render(){
+    pv.innerHTML = (ed.value || "").split("\n\n").filter(Boolean).map((p)=>{
+      const el = document.createElement("p");
+      el.textContent = p;
+      return el.outerHTML;
+    }).join("");
+    if (window.renderMathInElement) {
+      window.renderMathInElement(pv, {
+        delimiters: [{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}],
+        throwOnError: false
+      });
+    }
+  }
+  ed.addEventListener("input", render);
+  window.addEventListener("load", render);
+  render();
+})();
+</script>
+{% endblock %}

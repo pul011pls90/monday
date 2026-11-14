@@ -43,6 +43,10 @@
 <main class="page test-page bank-page calc-shift">
   {{ ui.flashes() }}
   <form id="bank-form" class="q-screen is-paged has-strike" data-bank-play data-elim-scope data-elim-key="q{{ question.id }}"
+        data-ds-activity data-ds-type="bank" data-ds-id="{{ att.id }}"
+        data-ds-title="{{ _('Банк вопросов') }}" data-ds-subtitle="{{ node.topic if node else '' }}"
+        data-ds-resume-url="{{ request.full_path }}" data-ds-question-index="{{ i }}"
+        data-ds-answered="{{ state.attempts if state else 0 }}" data-ds-total="1"
         data-i="{{ i }}" data-question="{{ question.id }}" data-answer-type="{{ question.answer_type }}"
         data-check="{{ url_for('bank.check', attempt_id=att.id) }}" data-reveal="{{ url_for('bank.reveal', attempt_id=att.id) }}"
         data-mark-url="{{ url_for('bank.mark') }}" data-time-url="{{ url_for('bank.time_spent') }}"
@@ -55,6 +59,7 @@
       <span class="q-head__num">{{ i + 1 }}</span>
       <button type="button" class="q-head__btn" data-bank-mark aria-pressed="{{ 'true' if state and state.marked else 'false' }}">{{ ui.icon('bookmark', 16) }}<span>{{ _("Отметить для проверки") }}</span></button>
       <span class="q-head__btn q-head__btn--static" title="{{ _('Сколько раз ты проверял ответ') }}">{{ ui.icon('retry', 16) }}<span>{{ _("Попытки") }}</span><b class="q-head__badge num" data-attempts>{{ state.attempts if state else 0 }}</b></span>
+      <a class="q-head__btn" href="{{ url_for('bank.index', exam=exam) }}" data-ds-discard data-confirm="{{ _('Начать заново? Текущий прогресс будет сброшен.') }}">{{ _('Начать заново') }}</a>
       {% if (question.weight or 1) > 1 %}<span class="tag tag--line tag--xs" style="margin-left:auto;margin-right:10px">{{ question.weight }} {{ question.weight|plural_ru(_("балл"), _("балла"), _("баллов")) }}</span>{% endif %}
     </div>
     <div class="q-card q-card--test q-card--flat">

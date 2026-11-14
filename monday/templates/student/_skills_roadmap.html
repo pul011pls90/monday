@@ -1,0 +1,511 @@
+{# Database-backed SAT Math Roadmap (10 milestones, 3-tier difficulty, score goal, slide-over drawers, Bank/Journal sync). #}
+{% set kind_labels = {
+  'info': _('Памятка'),
+  'topic': _('Тема'),
+  'practice': _('Практика'),
+  'tool': _('Инструмент'),
+  'strategy': _('Стратегия'),
+  'exam': _('Экзамен')
+} %}
+{% set status_labels = {
+  'not_started': _('Не начата'),
+  'in_progress': _('В процессе'),
+  'mastered': _('Освоена'),
+  'needs_review': _('Нужен разбор'),
+  'completed': _('Готово')
+} %}
+
+<section class="rm" data-roadmap data-user="{{ current_user.id }}" data-goal="{{ roadmap.score_goal }}">
+  <div class="rm-top">
+    <div class="rm-top__info">
+      <span class="eyebrow">{{ _("Структурированный план подготовки") }}</span>
+      <h2 class="rm-top__title">{{ roadmap.meta.title_en if CURRENT_LANG == 'en' else roadmap.meta.title_ru }}</h2>
+      <p class="rm-top__sub">{{ _("10 этапов от диагностики до дня экзамена · %(n)s шагов", n=roadmap.total_nodes) }}</p>
+    </div>
+
+    <div class="rm-goal" role="group" aria-label="{{ _('Цель по баллам') }}">
+      <span class="small muted">{{ _("Цель по баллам:") }}</span>
+      <div class="rm-goal__btns">
+        {% for g in ('600', '650', '700', '750+') %}
+          <button type="button" class="rm-goal__btn{{ ' is-on' if roadmap.score_goal == g }}" data-rm-goal-btn="{{ g }}" aria-pressed="{{ 'true' if roadmap.score_goal == g else 'false' }}">{{ g }}</button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="rm-top__prog">
+      <div class="rm-top__prog-row">
+        <span class="small">{{ _("Общий прогресс:") }}</span>
+        <b class="num" data-rm-count>{{ roadmap.done_nodes }} / {{ roadmap.total_nodes }}</b>
+      </div>
+      {% set overall_pct = ((100 * roadmap.done_nodes / roadmap.total_nodes) if roadmap.total_nodes else 0)|round|int %}
+      <div class="rm-bar" aria-hidden="true"><i data-rm-bar style="width: {{ overall_pct }}%"></i></div>
+    </div>
+  </div>
+
+  <nav class="rm-nav" aria-label="{{ _('Этапы роадмапа') }}">
+    {% for m in roadmap.milestones %}
+      <a class="rm-pill" href="#rm-{{ m.key }}">
+        <span class="rm-pill__num num">{{ m.step }}</span>
+        <span>{{ m.title }}</span>
+      </a>
+    {% endfor %}
+  </nav>
+
+  <div class="rm-list">
+    {% for m in roadmap.milestones %}
+      <section class="rm-card{{ ' is-recommended' if m.is_recommended_start }}" id="rm-{{ m.key }}" data-rm-milestone="{{ m.key }}" aria-labelledby="rm-h-{{ m.key }}">
+        <header class="rm-card__head">
+          <div class="rm-card__title-row">
+            <span class="rm-step num">{{ m.step }}</span>
+            <div>
+              <h3 id="rm-h-{{ m.key }}" class="rm-card__title">{{ m.title }}</h3>
+              {% if m.description %}<p class="rm-card__desc">{{ m.description }}</p>{% endif %}
+            </div>
+          </div>
+          <div class="rm-card__badges">
+            <button type="button" class="btn btn--secondary btn--sm rm-btn" data-rm-chapter-open="{{ m.key }}">{{ _("О главе") }}</button>
+            {% if m.is_recommended_start %}
+              <span class="tag rm-tag-start">{{ _("Рекомендуем начать здесь") }}</span>
+            {% endif %}
+            <span class="tag tag--line num" data-rm-ms-prog>{{ m.done_count }} / {{ m.total_count }}</span>
+            {% if m.official_question_share %}
+              <span class="tag tag--soft">{{ _("%(q)s из 44 вопросов", q=m.official_question_share) }}</span>
+            {% endif %}
+            {% if m.gate %}
+              <span class="tag tag--line">{{ _("Мини-экзамен раздела: %(q)s вопр. · %(p)s%%", q=m.gate.questions, p=m.gate.pass_percent) }}</span>
+            {% endif %}
+          </div>
+        </header>
+
+        {% if m.is_domain %}
+          <div class="rm-tiers" role="tablist" aria-label="{{ _('Уровень сложности') }}">
+            <button type="button" class="rm-tier is-on" data-rm-tier-tab="all" role="tab" aria-selected="true">{{ _("Все уровни") }}</button>
+            <button type="button" class="rm-tier{{ ' is-rec' if 'foundation' in roadmap.recommended_tiers }}" data-rm-tier-tab="foundation" role="tab" aria-selected="false">{{ _("База") }}</button>
+            <button type="button" class="rm-tier{{ ' is-rec' if 'medium' in roadmap.recommended_tiers }}" data-rm-tier-tab="medium" role="tab" aria-selected="false">{{ _("Средний") }}</button>
+            <button type="button" class="rm-tier{{ ' is-rec' if 'advanced' in roadmap.recommended_tiers }}" data-rm-tier-tab="advanced" role="tab" aria-selected="false">{{ _("Продвинутый") }}</button>
+          </div>
+        {% endif %}
+
+        {% if m.weak_journal %}
+          <div class="rm-journal-box">
+            <b class="small">{{ _("Топ-3 темы с ошибками в Журнале:") }}</b>
+            <div class="rm-journal-chips">
+              {% for w in m.weak_journal %}
+                <a class="rm-jchip" href="{{ url_for('student.journal') }}">
+                  <span>{{ w.name }}</span>
+                  <span class="rm-err-badge">{{ _("Ошибок: %(n)s", n=w.errors) }}</span>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="rm-cols">
+          {% for col_groups in (m.left_groups, m.right_groups) %}
+            <div class="rm-col">
+              {% for g in col_groups %}
+                <div class="rm-group">
+                  <div class="rm-group__title">{{ g.title }}</div>
+                  <ul class="rm-nodes">
+                    {% for n in g.nodes %}
+                      <li class="rm-node rm-node--{{ n.kind }}{{ ' is-done' if n.is_done }}{{ ' is-rec-tier' if n.tier in roadmap.recommended_tiers }}"
+                          data-rm-node="{{ n.key }}" data-rm-tier="{{ n.tier }}" data-rm-status="{{ n.status }}">
+                        <button type="button" class="rm-check" data-rm-toggle="{{ n.key }}"
+                                aria-pressed="{{ 'true' if n.is_done else 'false' }}"
+                                aria-label="{{ _('Отметить «%(t)s»', t=n.title) }}">
+                          {{ ui.icon('check', 16) }}
+                        </button>
+                        <button type="button" class="rm-node__open" data-rm-open="{{ n.key }}">
+                          <span class="rm-node__top">
+                            <span class="rm-node__title">{{ n.title }}</span>
+                            <span class="rm-kind">{{ kind_labels.get(n.kind, n.kind) }}</span>
+                            {% if n.kind == 'exam' %}
+                              <span class="rm-kind">{{ _("Мини-экзамен (10 вопр. · 80%%)") }}</span>
+                            {% elif n.tier == 'challenge' %}
+                              <span class="rm-kind rm-kind--chal">700+</span>
+                            {% endif %}
+                          </span>
+                          <span class="rm-node__meta">
+                            <span class="rm-state rm-state--{{ n.status }}">{{ status_labels.get(n.status, n.status) }}</span>
+                            {% if n.errors %}
+                              <span class="rm-err-badge">{{ _("Ошибок: %(n)s", n=n.errors) }}</span>
+                            {% endif %}
+                            {% if n.q_avail %}
+                              <span class="muted small num">{{ n.q_avail }} {{ n.q_avail|plural_ru(_("задача"), _("задачи"), _("задач")) }}</span>
+                            {% endif %}
+                          </span>
+                        </button>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+  </div>
+</section>
+
+{# Slide-over drawer for every roadmap node (zero dead ends) #}
+<div class="rm-drawer" id="rm-drawer" role="dialog" aria-modal="true" aria-labelledby="rm-d-title" hidden>
+  <div class="rm-drawer__backdrop" data-rm-drawer-close></div>
+  <aside class="rm-drawer__panel">
+    <header class="rm-drawer__head">
+      <div>
+        <span class="rm-kind" id="rm-d-kind"></span>
+        <h2 class="rm-drawer__title" id="rm-d-title"></h2>
+      </div>
+      <button type="button" class="icon-btn rm-drawer__close" data-rm-drawer-close aria-label="{{ _('Закрыть') }}">{{ ui.icon('x', 20) }}</button>
+    </header>
+    <div class="rm-drawer__body" id="rm-d-body"></div>
+  </aside>
+</div>
+
+<script type="application/json" id="rm-chapters-data">
+{
+  {% for m in roadmap.milestones %}
+    {{ m.key|tojson }}: {{ {
+      "step": m.step,
+      "key": m.key,
+      "title": m.title,
+      "guide": m.guide,
+      "share": m.official_question_share,
+      "gate": m.gate
+    }|tojson }},
+  {% endfor %}
+  "_end": null
+}
+</script>
+<script type="application/json" id="rm-checklist-state">{{ roadmap.checklist_state|tojson }}</script>
+<script type="application/json" id="rm-nodes-data">
+{
+  {% for m in roadmap.milestones %}
+    {% for col_groups in (m.left_groups, m.right_groups) %}
+      {% for g in col_groups %}
+        {% for n in g.nodes %}
+          {{ n.key|tojson }}: {{ n|tojson }},
+        {% endfor %}
+      {% endfor %}
+    {% endfor %}
+  {% endfor %}
+  "_end": null
+}
+</script>
+
+<script>
+(function(){
+  const root = document.querySelector("[data-roadmap]");
+  if (!root) return;
+  const csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || "";
+  const nodesData = JSON.parse(document.getElementById("rm-nodes-data").textContent || "{}");
+  const chaptersData = JSON.parse(document.getElementById("rm-chapters-data").textContent || "{}");
+  const checklistState = JSON.parse(document.getElementById("rm-checklist-state").textContent || "{}");
+  const drawer = document.getElementById("rm-drawer");
+  const dKind = document.getElementById("rm-d-kind");
+  const dTitle = document.getElementById("rm-d-title");
+  const dBody = document.getElementById("rm-d-body");
+  let activeTier = "all";
+
+  function esc(s) {
+    return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  function renderMath(el) {
+    if (window.renderMathInElement && el) {
+      try {
+        window.renderMathInElement(el, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      } catch (_e) {}
+    }
+  }
+
+  function syncCounts() {
+    const allNodes = root.querySelectorAll("[data-rm-node]");
+    let totalDone = 0;
+    allNodes.forEach((n) => { if (n.classList.contains("is-done")) totalDone += 1; });
+    const countEl = root.querySelector("[data-rm-count]");
+    const barEl = root.querySelector("[data-rm-bar]");
+    if (countEl) countEl.textContent = `${totalDone} / ${allNodes.length}`;
+    if (barEl) barEl.style.width = allNodes.length ? `${Math.round((100 * totalDone) / allNodes.length)}%` : "0%";
+  }
+
+  async function toggleNodeDone(key, forceDone) {
+    const row = root.querySelector(`[data-rm-node="${key}"]`);
+    const cur = row ? row.classList.contains("is-done") : false;
+    const next = typeof forceDone === "boolean" ? forceDone : !cur;
+    const res = await fetch(`/api/roadmap/node/${encodeURIComponent(key)}/complete`, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+      body: JSON.stringify({ done: next })
+    });
+    if (res.ok && row) {
+      row.classList.toggle("is-done", next);
+      const btn = row.querySelector("[data-rm-toggle]");
+      if (btn) btn.setAttribute("aria-pressed", next ? "true" : "false");
+      if (nodesData[key]) nodesData[key].is_done = next;
+      syncCounts();
+    }
+  }
+
+  // Difficulty tier tabs inside domain cards
+  root.addEventListener("click", (e) => {
+    const tab = e.target.closest("[data-rm-tier-tab]");
+    if (tab) {
+      const card = tab.closest("[data-rm-milestone]");
+      const tier = tab.dataset.rmTierTab;
+      activeTier = tier;
+      card.querySelectorAll("[data-rm-tier-tab]").forEach((t) => {
+        const on = t === tab;
+        t.classList.toggle("is-on", on);
+        t.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      card.querySelectorAll("[data-rm-node]").forEach((n) => {
+        n.hidden = tier !== "all" && n.dataset.rmTier !== tier;
+      });
+      return;
+    }
+
+    const chk = e.target.closest("[data-rm-toggle]");
+    if (chk) {
+      toggleNodeDone(chk.dataset.rmToggle);
+      return;
+    }
+
+    const goalBtn = e.target.closest("[data-rm-goal-btn]");
+    if (goalBtn) {
+      const goal = goalBtn.dataset.rmGoalBtn;
+      fetch("/api/roadmap/goal", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+        body: JSON.stringify({ goal })
+      }).then((r) => r.json()).then((d) => {
+        if (!d.ok) return;
+        root.dataset.goal = goal;
+        root.querySelectorAll("[data-rm-goal-btn]").forEach((b) => {
+          const on = b.dataset.rmGoalBtn === goal;
+          b.classList.toggle("is-on", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+        const recs = d.recommended_tiers || [];
+        root.querySelectorAll("[data-rm-tier-tab]").forEach((t) => {
+          t.classList.toggle("is-rec", recs.includes(t.dataset.rmTierTab));
+        });
+        root.querySelectorAll("[data-rm-node]").forEach((n) => {
+          n.classList.toggle("is-rec-tier", recs.includes(n.dataset.rmTier));
+        });
+      });
+      return;
+    }
+
+    const opener = e.target.closest("[data-rm-open]");
+    if (opener) {
+      openDrawer(opener.dataset.rmOpen);
+      return;
+    }
+
+    const chapOpener = e.target.closest("[data-rm-chapter-open]");
+    if (chapOpener) {
+      openChapterDrawer(chapOpener.dataset.rmChapterOpen);
+    }
+  });
+
+  function closeDrawer() {
+    drawer.classList.remove("is-open");
+    setTimeout(() => { drawer.hidden = true; }, 180);
+  }
+
+  drawer.addEventListener("click", (e) => {
+    if (e.target.closest("[data-rm-drawer-close]")) closeDrawer();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !drawer.hidden) closeDrawer();
+  });
+
+  function openDrawer(key) {
+    const n = nodesData[key];
+    if (!n) return;
+    dKind.textContent = n.kind === "topic" ? "Тема" : (n.kind === "exam" ? "Мини-экзамен" : "Памятка");
+    dTitle.textContent = n.title;
+
+    let html = "";
+    if (n.kind === "topic") {
+      // 1. Formula & Example
+      html += `<section class="rm-dsec"><h3>1. Формула и пример</h3>`;
+      if (n.formula) {
+        html += `<div class="rm-fbox"><div class="rm-fbox__name">${esc(n.formula.name)}</div><div class="rm-fbox__expr math">${esc(n.formula.expr)}</div>`;
+        if (n.formula.example_q) {
+          html += `<div class="rm-fbox__ex"><b>Пример:</b> <span class="math">${esc(n.formula.example_q)}</span>`;
+          if (n.formula.example_sol) html += `<div class="muted small math">${esc(n.formula.example_sol)}</div>`;
+          html += `</div>`;
+        }
+        html += `</div>`;
+      } else {
+        html += `<p class="muted small">Откройте справочник формул для повторения ключевых правил по теме.</p>`;
+      }
+      if (n.url) {
+        html += `<a class="btn btn--secondary btn--sm rm-btn" href="${esc(n.url)}">Открыть все формулы раздела</a>`;
+      }
+      html += `</section>`;
+
+      // 2. Focused 5-question Question Bank drill
+      const diffVal = activeTier === "foundation" ? "1" : (activeTier === "medium" ? "2" : (activeTier === "advanced" ? "3" : ""));
+      html += `<section class="rm-dsec"><h3>2. Тренировка по теме (5 задач)</h3>`;
+      if (n.bank_k) {
+        html += `
+          <form method="post" action="/bank/start" class="stack" style="gap:10px">
+            <input type="hidden" name="csrf_token" value="${esc(csrf)}">
+            <input type="hidden" name="exam" value="SAT">
+            <input type="hidden" name="only" value="${esc(n.bank_k)}">
+            <input type="hidden" name="limit" value="5">
+            ${diffVal ? `<input type="hidden" name="d" value="${diffVal}">` : ""}
+            <button type="submit" class="btn btn--primary rm-btn">Начать тренировку (5 задач)</button>
+          </form>
+        `;
+      } else {
+        html += `<a class="btn btn--primary rm-btn" href="/bank?exam=SAT">Открыть Банк вопросов SAT</a>`;
+      }
+      html += `</section>`;
+
+      // 3. Unresolved Journal Errors
+      html += `<section class="rm-dsec"><h3>3. Ошибки в Журнале</h3>`;
+      if (n.errors > 0) {
+        html += `<div class="row" style="gap:10px;align-items:center;flex-wrap:wrap"><span class="rm-err-badge">Ошибок: ${n.errors}</span><a class="btn btn--secondary btn--sm rm-btn" href="/journal">Разобрать ошибки</a></div>`;
+      } else {
+        html += `<p class="muted small">Неразобранных ошибок по этой теме нет.</p>`;
+      }
+      html += `</section>`;
+    } else if (n.kind === "info" || n.kind === "tool" || n.kind === "strategy") {
+      const lines = (n.summary_ru || "").split("\n").filter(Boolean).map((l) => `<p class="math">${esc(l)}</p>`).join("");
+      html += `<section class="rm-dsec">${lines || "<p>Изучите материалы этого шага.</p>"}</section>`;
+      if (n.widget && n.widget.type === "tabs") {
+        const tabs = n.widget.tabs || [];
+        html += `<section class="rm-dsec"><h3>Интерактивный разбор</h3><div class="rm-wtabs" role="tablist">`;
+        tabs.forEach((t, idx) => {
+          html += `<button type="button" class="rm-tier${idx === 0 ? " is-on" : ""}" data-rm-wtab="${esc(t.id)}" role="tab" aria-selected="${idx === 0 ? "true" : "false"}">${esc(t.label)}</button>`;
+        });
+        html += `</div>`;
+        tabs.forEach((t, idx) => {
+          html += `<div class="rm-wpanel math" data-rm-wpanel="${esc(t.id)}"${idx === 0 ? "" : " hidden"}>${esc(t.body)}</div>`;
+        });
+        html += `</section>`;
+      } else if (n.widget && n.widget.type === "quiz") {
+        html += `<section class="rm-dsec"><h3>Попробуй приём</h3><p class="math">${esc(n.widget.prompt)}</p><div class="rm-wopts">`;
+        (n.widget.options || []).forEach((opt) => {
+          html += `<button type="button" class="btn btn--secondary btn--sm rm-btn rm-wopt" data-rm-wopt="${esc(opt)}">${esc(opt)}</button>`;
+        });
+        html += `</div><div class="rm-wfb math" data-rm-wfb hidden></div></section>`;
+      } else if (n.widget && n.widget.type === "checklist") {
+        html += `<section class="rm-dsec"><h3>Интерактивный чек-лист</h3><div class="stack" style="gap:8px">`;
+        (n.widget.items || []).forEach((it) => {
+          const on = !!checklistState[it.id];
+          html += `<label class="rm-wcheck"><input type="checkbox" data-rm-wcheck="${esc(it.id)}"${on ? " checked" : ""}><span>${esc(it.label)}</span></label>`;
+        });
+        html += `</div></section>`;
+      }
+      html += `<div class="rm-dsec"><button type="button" class="btn btn--primary rm-btn" data-rm-ack="${esc(n.key)}">${n.is_done ? "Выполнено ✓" : "Понятно ✓"}</button></div>`;
+    } else {
+      html += `<section class="rm-dsec"><p class="muted">Готовы приступить к этапу «${esc(n.title)}»?</p>`;
+      if (n.url) {
+        html += `<a class="btn btn--primary rm-btn" href="${esc(n.url)}">Открыть</a>`;
+      }
+      html += `</section>`;
+    }
+
+    dBody.innerHTML = html;
+    renderMath(dBody);
+
+    // Wire interactive micro-widgets inside drawer
+    dBody.querySelectorAll("[data-rm-wtab]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const tid = btn.dataset.rmWtab;
+        dBody.querySelectorAll("[data-rm-wtab]").forEach((b) => {
+          const on = b === btn;
+          b.classList.toggle("is-on", on);
+          b.setAttribute("aria-selected", on ? "true" : "false");
+        });
+        dBody.querySelectorAll("[data-rm-wpanel]").forEach((p) => {
+          p.hidden = p.dataset.rmWpanel !== tid;
+        });
+        renderMath(dBody);
+      });
+    });
+
+    if (n.widget && n.widget.type === "quiz") {
+      const fb = dBody.querySelector("[data-rm-wfb]");
+      dBody.querySelectorAll("[data-rm-wopt]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const chosen = btn.dataset.rmWopt;
+          const ok = chosen === n.widget.answer;
+          fb.hidden = false;
+          fb.className = "rm-wfb math " + (ok ? "is-ok" : "is-bad");
+          fb.innerHTML = (ok ? "<b>Верно!</b> " : "<b>Попробуй ещё раз.</b> ") + esc(n.widget.explain || "");
+          renderMath(fb);
+          if (ok) toggleNodeDone(n.key, true);
+        });
+      });
+    }
+
+    dBody.querySelectorAll("[data-rm-wcheck]").forEach((inp) => {
+      inp.addEventListener("change", () => {
+        const id = inp.dataset.rmWcheck;
+        const checked = inp.checked;
+        if (checked) checklistState[id] = true;
+        else delete checklistState[id];
+        fetch("/api/roadmap/checklist", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+          body: JSON.stringify({ id, checked })
+        });
+      });
+    });
+
+    const ack = dBody.querySelector("[data-rm-ack]");
+    if (ack) {
+      ack.addEventListener("click", async () => {
+        await toggleNodeDone(n.key, true);
+        ack.textContent = "Выполнено ✓";
+        closeDrawer();
+      });
+    }
+
+    drawer.hidden = false;
+    requestAnimationFrame(() => drawer.classList.add("is-open"));
+  }
+
+  function openChapterDrawer(mkey) {
+    const ch = chaptersData[mkey];
+    if (!ch) return;
+    dKind.textContent = `Глава ${ch.step}`;
+    dTitle.textContent = ch.title;
+    let html = `<section class="rm-dsec">`;
+    if (ch.share) {
+      html += `<span class="tag tag--soft" style="align-self:flex-start">${esc(ch.share)} из 44 вопросов SAT</span>`;
+    }
+    const lines = (ch.guide || "").split("\n").filter(Boolean).map((l) => `<p class="math">${esc(l)}</p>`).join("");
+    html += lines + `</section>`;
+    html += `<div class="rm-dsec"><button type="button" class="btn btn--primary rm-btn" data-rm-goto-chap="${esc(mkey)}">Перейти к темам</button></div>`;
+    dBody.innerHTML = html;
+    renderMath(dBody);
+    const goBtn = dBody.querySelector("[data-rm-goto-chap]");
+    if (goBtn) {
+      goBtn.addEventListener("click", () => {
+        closeDrawer();
+        const target = document.getElementById("rm-" + mkey);
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+    drawer.hidden = false;
+    requestAnimationFrame(() => drawer.classList.add("is-open"));
+  }
+})();
+</script>

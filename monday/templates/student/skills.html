@@ -1,87 +1,124 @@
 {% extends "layout.html" %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/skills-path.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/skills-metro.css') }}">{% endblock %}
-{% block scripts %}{% if show == 'map' and topics %}<script defer src="{{ url_for('static', filename='js/skills-metro.js') }}"></script>{% endif %}{% endblock %}
-{% block title %}{{ _("Карта навыков") }}{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/skills-path.css') }}">{% endblock %}
+{% block title %}{{ _("Маршрут") }}{% endblock %}
 {% block topbar_extra %}
 <form class="search search--sm" method="get" action="{{ url_for('student.skills') }}" role="search" style="width:300px;max-width:40vw">
   {{ ui.icon('search', 18) }}
-  <label class="sr-only" for="skill-q">{{ _("Поиск по навыкам") }}</label>
+  <label class="sr-only" for="skill-q">{{ _("Поиск по маршруту") }}</label>
   <input id="skill-q" type="search" name="q" value="{{ q }}" placeholder="{{ _('Найти навык или тему') }}">
   <input type="hidden" name="exam" value="{{ view }}">
 </form>
 {% endblock %}
 {% block page_class %}page--city{% endblock %}
 {% block content %}
-{# Header: title on the left; on the right the exam (small dropdown) and how to look at it (map / list). #}
 <div class="page-head skh">
   <div class="page-head__text">
-    <h1>{{ _("Карта навыков") }}</h1>
+    <h1>{{ _("Маршрут") }}</h1>
   </div>
-  <div class="skh-tools">
-    <details class="skh-exam">
-      <summary aria-label="{{ _('Сменить экзамен') }}"><span>{{ exam|exam_label if exam else _("Все экзамены") }}</span>{{ ui.icon('chevron-down', 16) }}</summary>
-      <div class="skh-exam__menu" role="menu">
-        {% set codes = ([own] if own in EXAMS else []) + (EXAMS.keys()|reject('equalto', own)|list) %}
-        {% for code in codes %}
-          <a role="menuitem" class="{{ 'is-on' if view == code }}" href="{{ url_for('student.skills', exam=code, q=q or None) }}">
-            <b>{{ EXAMS[code].label }}</b>{% if code == own %}<small>{{ _("твой экзамен") }}</small>{% endif %}
-            {% if view == code %}{{ ui.icon('check', 18) }}{% endif %}
-          </a>
-        {% endfor %}
-        <hr>
-        <a role="menuitem" class="{{ 'is-on' if view == 'all' }}" href="{{ url_for('student.skills', exam='all', q=q or None) }}"><b>{{ _("Все навыки") }}</b><small>{{ _("всех экзаменов") }}</small>{% if view == 'all' %}{{ ui.icon('check', 18) }}{% endif %}</a>
-      </div>
-    </details>
-    <div class="mt-switch" role="group" aria-label="{{ _('Вид') }}">
-      <a class="{{ 'is-on' if show == 'map' }}" href="{{ url_for('student.skills', exam=view, q=q or None, show='map') }}"{% if show == 'map' %} aria-current="page"{% endif %}>{{ ui.icon('list', 16) }} {{ _("Таблица") }}</a>
-      <a class="{{ 'is-on' if show == 'list' }}" href="{{ url_for('student.skills', exam=view, q=q or None, show='list') }}"{% if show == 'list' %} aria-current="page"{% endif %}>{{ ui.icon('skills', 16) }} {{ _("Карта") }}</a>
-    </div>
-  </div>
+  <nav class="skh-pills" aria-label="{{ _('Сменить экзамен') }}">
+    {% set codes = ([own] if own in EXAMS else []) + (EXAMS.keys()|reject('equalto', own)|list) %}
+    {% for code in codes %}
+      <a class="skh-pill{{ ' is-on' if view == code }}" href="{{ url_for('student.skills', exam=code, q=q or None) }}"{{ ' aria-current="page"' if view == code }}>
+        <span>{{ EXAMS[code].label }}</span>
+      </a>
+    {% endfor %}
+    <a class="skh-pill{{ ' is-on' if view == 'all' }}" href="{{ url_for('student.skills', exam='all', q=q or None) }}"{{ ' aria-current="page"' if view == 'all' }}>
+      <span>{{ _("Все") }}</span>
+    </a>
+  </nav>
 </div>
 
-{% if topics %}
-{% if show == 'map' %}
-{# Metro map: topics are numbered interchanges, subtopics are stretches of line, skills are stations.
-   The line is drawn by skills-metro.js from the JSON below; every station is a real button. #}
-{% set ns = namespace(cur=None, topic=None, n=0, sub=None) %}
-{% for t in metro.topics %}{% for s in t.subtopics %}{% for k in s.skills %}{% if k.id == metro.current %}{% set ns.cur = k %}{% set ns.topic = t %}{% set ns.n = loop.index0 %}{% set ns.sub = s %}{% endif %}{% endfor %}{% endfor %}{% endfor %}
-<section class="mt" data-metro>
-  <div class="mt-next">
-    {% if ns.cur %}
-      <span class="mt-next__eyebrow">{{ _("Текущая тема") }}</span>
-      <b class="mt-next__topic">{{ ns.topic.name }}</b>
-      <span class="mt-next__route">
-        <span>{{ _("Линия") }} «<b>{{ ns.sub.name }}</b>»</span>
-        <span class="mt-next__arrow" aria-hidden="true">→</span>
-        <span>{{ _("Следующий шаг") }}: <b class="mt-next__step-name">{{ ns.cur.name }}</b></span>
-      </span>
-      <button class="mt-next__go" type="submit" form="mt-start" name="skill_id" value="{{ ns.cur.id }}">{{ _("Продолжить") }} {{ ui.icon('arrow-right', 18) }}</button>
-    {% else %}
-      <span class="mt-next__eyebrow">{{ _("Маршрут пройден") }}</span>
-      <b class="mt-next__topic">{{ _("Все навыки освоены. Повторяй любые.") }}</b>
-    {% endif %}
-  </div>
-  <div class="mt-stage" data-metro-stage role="group" aria-label="{{ _('Карта навыков') }}"></div>
-  <div class="mt-legend" aria-hidden="true">
-    <span><i class="mt-k mt-k--done"></i>{{ _("Освоена") }}</span>
-    <span><i class="mt-k mt-k--prog"></i>{{ _("В процессе") }}</span>
-    <span><i class="mt-k mt-k--new"></i>{{ _("Новая") }}</span>
-    <span><i class="mt-k mt-k--here"></i>{{ _("Ты здесь") }}</span>
-  </div>
-</section>
-<form id="mt-start" method="post" action="{{ url_for('student.start_session', mode='franklin') }}" hidden>
-  {{ ui.csrf() }}<input type="hidden" name="exam" value="{{ view }}">
-</form>
-<script type="application/json" id="metro-data">{{ metro|tojson }}</script>
-<script type="application/json" id="metro-i18n">{{ {
-  "here": _("Ты здесь"), "start": _("Старт"), "repeat": _("Повторить"), "mastered": _("освоена"), "new": _("новая"),
-  "acc": _("точность"), "noq": _("нет вопросов"), "questions": _("вопросов"), "close": _("Закрыть"),
-  "skills": _("навыков"), "topic": _("Тема"), "from": _("Начнём с"), "go": _("Начать тему"), "countries": url_for('static', filename='data/countries.json')
-}|tojson }}</script>
+{% if course %}
+  {% if course.units %}
+    {% include "student/_course_overview.html" %}
+  {% else %}
+    <div class="empty"><h3>{{ _("Ничего не найдено") }}</h3><p>{{ _("Попробуй другое слово или открой все навыки.") }}</p></div>
+  {% endif %}
+{% elif topics %}
+  <section class="rm">
+    <div class="rm-top">
+      <div class="rm-top__info">
+        <span class="eyebrow">{{ exam|exam_label if exam else _("Все экзамены") }}</span>
+        <h2 class="rm-top__title">{{ _("Навыки и темы") }}</h2>
+        <p class="rm-top__sub">{{ _("Освоено %(m)s из %(t)s", m=summary.mastered, t=summary.total) }}</p>
+      </div>
+      {% set pct = ((100 * summary.mastered / summary.total) if summary.total else 0)|round|int %}
+      <div class="rm-top__prog">
+        <div class="rm-top__prog-row">
+          <span class="small">{{ _("Общий прогресс:") }}</span>
+          <b class="num">{{ summary.mastered }} / {{ summary.total }}</b>
+        </div>
+        <div class="rm-bar" aria-hidden="true"><i style="width: {{ pct }}%"></i></div>
+      </div>
+    </div>
+
+    <div class="kc-units">
+      {% for t in topics %}
+        <section class="kc-unit" id="topic-{{ t.node.id }}" aria-labelledby="topic-h-{{ t.node.id }}">
+          <header class="kc-unit__head">
+            <div class="kc-unit__left">
+              <span class="kc-num num">{{ loop.index }}</span>
+              <div>
+                <h3 id="topic-h-{{ t.node.id }}" class="kc-unit__title">{{ t.name }}</h3>
+                {% if t.node.id == highlight %}<p class="kc-unit__desc"><b>{{ _("Слабое место") }}</b></p>{% endif %}
+              </div>
+            </div>
+            <div class="kc-unit__prog">
+              <span class="small num">{{ _("Освоено") }} {{ t.mastered }} / {{ t.counted }}</span>
+              {% set tpct = ((100 * t.mastered / t.counted) if t.counted else 0)|round|int %}
+              <div class="rm-bar" aria-hidden="true"><i style="width: {{ tpct }}%"></i></div>
+            </div>
+          </header>
+
+          <div class="kc-subgroups">
+            {% for sub in t.subtopics %}
+              {% set visible_items = sub['items']|rejectattr('state', 'equalto', 'outside')|list %}
+              {% if visible_items %}
+              <div class="rm-group">
+                <div class="rm-group__title">{{ sub.node.name }}</div>
+                <ul class="kc-lessons">
+                  {% for it in visible_items %}
+                  {% set lvl = 'mastered' if it.state == 'mastered' else ('familiar' if it.state == 'progress' else 'not_started') %}
+                  <li>
+                    <div class="kc-lesson kc-lesson--{{ lvl }}">
+                      <div class="kc-lesson__top">
+                        <span class="kc-badge kc-badge--{{ lvl }}" aria-hidden="true">
+                          {% if lvl == 'mastered' %}{{ ui.icon('check', 16) }}
+                          {% elif lvl == 'familiar' %}◐
+                          {% else %}○{% endif %}
+                        </span>
+                        <span class="kc-lesson__title">{{ it.skill.name }}</span>
+                      </div>
+                      <div class="kc-lesson__meta">
+                        {% if it.n %}
+                        <form method="post" action="{{ url_for('student.start_session', mode='franklin') }}">
+                          {{ ui.csrf() }}
+                          <input type="hidden" name="skill_id" value="{{ it.skill.id }}">
+                          <input type="hidden" name="exam" value="{{ view }}">
+                          <button type="submit" class="kc-lesson__kind kc-kind--practice kc-lesson__go">{{ _("Тренировать") }} · {{ it.n }}</button>
+                        </form>
+                        {% else %}
+                        <span class="kc-lesson__kind kc-kind--article">{{ _("Теория") }}</span>
+                        {% endif %}
+                        <span class="kc-lesson__lvl kc-lvl--{{ lvl }}">
+                          {% if it.state == 'mastered' %}{{ _("Освоено") }}
+                          {% elif it.state == 'progress' %}{{ _("В процессе") }}
+                          {% else %}{{ _("Не начато") }}{% endif %}
+                        </span>
+                      </div>
+                    </div>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </section>
+      {% endfor %}
+    </div>
+  </section>
 {% else %}
-{% include "student/_skills_path.html" %}
-{% endif %}
-{% else %}
-<div class="empty"><h3>{{ _("Ничего не найдено") }}</h3><p>{{ _("Попробуй другое слово или открой все навыки.") }}</p></div>
+  <div class="empty"><h3>{{ _("Ничего не найдено") }}</h3><p>{{ _("Попробуй другое слово или открой все навыки.") }}</p></div>
 {% endif %}
 {% endblock %}

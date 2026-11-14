@@ -16,6 +16,7 @@
   </div>
   {% endif %}
   <div class="row session-bar__right" style="gap:8px">
+    <span class="ds-save-pill" data-ds-save-pill data-saved-text="{{ _('Сохранено') }}" data-saving-text="{{ _('Сохраняется…') }}" data-offline-text="{{ _('Нет связи — ответы сохранены на этом устройстве') }}" aria-live="polite">{{ _('Сохранено') }}</span>
     {% if counter %}<span class="small session-bar__counter" style="font-weight:700">{{ counter }}</span>{% endif %}
     {% if formulas_button %}<button type="button" class="icon-btn" data-drawer-open="ref" aria-label="{{ _('Формулы') }}">{{ ui.icon('journal') }}</button>{% endif %}
     {% if deadline %}<span class="timer timer--soft" data-deadline="{{ deadline }}" aria-live="off">--:--</span>{% endif %}

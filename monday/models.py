@@ -660,6 +660,240 @@ class Report(db.Model):
     node = db.relationship("ContentNode")
 
 
+class ActivityDraft(db.Model):
+    """Unified in-progress/completed/abandoned state per (user, type)."""
+
+    __tablename__ = "activity_draft"
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "activity_type", name="uq_activity_draft_user_type"),
+        db.Index("ix_activity_draft_user_status", "user_id", "status", "updated_at"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    activity_type = db.Column(db.String(24), nullable=False)  # test | bank | session | homework | practice
+    activity_id = db.Column(db.String(120), nullable=False, default="")
+    title = db.Column(db.String(200), nullable=False, default="")
+    subtitle = db.Column(db.String(200), nullable=False, default="")
+    resume_url = db.Column(db.String(500), nullable=False, default="")
+    answered = db.Column(db.Integer, nullable=False, default=0)
+    total = db.Column(db.Integer, nullable=False, default=0)
+    state_json = db.Column(db.Text, nullable=False, default="{}")
+    status = db.Column(db.String(20), nullable=False, default="in_progress")  # in_progress | completed | abandoned
+    version = db.Column(db.Integer, nullable=False, default=1)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    user = db.relationship("User", backref=db.backref("activity_drafts", lazy="dynamic", cascade="all, delete-orphan"))
+
+    def state_dict(self) -> dict:
+        import json
+        try:
+            data = json.loads(self.state_json or "{}")
+            return data if isinstance(data, dict) else {}
+        except Exception:
+            return {}
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "type": self.activity_type,
+            "activity_id": self.activity_id,
+            "title": self.title,
+            "subtitle": self.subtitle,
+            "resume_url": self.resume_url,
+            "answered": self.answered,
+            "total": self.total,
+            "state": self.state_dict(),
+            "status": self.status,
+            "version": self.version,
+            "updated_at": (self.updated_at.isoformat() + "Z") if self.updated_at else None,
+        }
+
+
+class ClientOp(db.Model):
+    """Idempotency log for client-generated operation UUIDs."""
+
+    __tablename__ = "client_op"
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "op_id", name="uq_client_op_user_op"),
+        db.Index("ix_client_op_created", "created_at"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    op_id = db.Column(db.String(80), nullable=False)
+    activity_type = db.Column(db.String(24), nullable=False, default="")
+    response_json = db.Column(db.Text, nullable=False, default="{}")
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
+class MaintenanceState(db.Model):
+    """Singleton maintenance notice state stored in DB so it survives restarts."""
+
+    __tablename__ = "maintenance_state"
+
+    id = db.Column(db.Integer, primary_key=True)
+    state = db.Column(db.String(20), nullable=False, default="off")  # off | scheduled | active
+    message = db.Column(db.String(500), nullable=False, default="")
+    expected_minutes = db.Column(db.Integer, nullable=False, default=15)
+    starts_at = db.Column(db.DateTime, nullable=True)
+    updated_by_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True)
+    updated_by_name = db.Column(db.String(120), nullable=False, default="")
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def to_dict(self) -> dict:
+        return {
+            "state": self.state or "off",
+            "message": self.message or "",
+            "expected_minutes": int(self.expected_minutes or 15),
+            "starts_at": (self.starts_at.isoformat() + "Z") if self.starts_at else None,
+            "updated_by": self.updated_by_name or "",
+            "updated_at": (self.updated_at.isoformat() + "Z") if self.updated_at else None,
+        }
+
+
+class MaintenanceLog(db.Model):
+    """Audit log of maintenance state changes."""
+
+    __tablename__ = "maintenance_log"
+
+    id = db.Column(db.Integer, primary_key=True)
+    state = db.Column(db.String(20), nullable=False)
+    message = db.Column(db.String(500), nullable=False, default="")
+    expected_minutes = db.Column(db.Integer, nullable=False, default=15)
+    starts_at = db.Column(db.DateTime, nullable=True)
+    actor = db.Column(db.String(120), nullable=False, default="")
+    source = db.Column(db.String(40), nullable=False, default="admin")  # admin | cli
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
+class RoadmapMilestone(db.Model):
+    """Database-backed roadmap milestone (content seeded idempotently)."""
+
+    __tablename__ = "roadmap_milestone"
+    __table_args__ = (db.UniqueConstraint("exam", "key", name="uq_roadmap_milestone_exam_key"),)
+
+    id = db.Column(db.Integer, primary_key=True)
+    exam = db.Column(db.String(20), nullable=False, default="SAT")
+    key = db.Column(db.String(64), nullable=False)
+    step = db.Column(db.Integer, nullable=False, default=1)
+    title_ru = db.Column(db.String(200), nullable=False)
+    title_en = db.Column(db.String(200), nullable=False)
+    description_ru = db.Column(db.String(500), nullable=False, default="")
+    official_question_share = db.Column(db.String(40), nullable=False, default="")
+    gate_json = db.Column(db.Text, nullable=False, default="")
+    guide_ru = db.Column(db.Text, nullable=False, default="")
+    guide_en = db.Column(db.Text, nullable=False, default="")
+    guide_draft_ru = db.Column(db.Text, nullable=False, default="")
+    guide_status = db.Column(db.String(20), nullable=False, default="published")
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
+class RoadmapNode(db.Model):
+    """Database-backed roadmap node inside a milestone."""
+
+    __tablename__ = "roadmap_node"
+
+    id = db.Column(db.Integer, primary_key=True)
+    milestone_id = db.Column(db.Integer, db.ForeignKey("roadmap_milestone.id", ondelete="CASCADE"), nullable=False)
+    side = db.Column(db.String(10), nullable=False, default="left")  # left | right
+    group_ru = db.Column(db.String(200), nullable=False, default="")
+    group_en = db.Column(db.String(200), nullable=False, default="")
+    position = db.Column(db.Integer, nullable=False, default=0)
+    key = db.Column(db.String(80), nullable=False, unique=True)
+    title_ru = db.Column(db.String(200), nullable=False)
+    title_en = db.Column(db.String(200), nullable=False)
+    kind = db.Column(db.String(32), nullable=False, default="info")
+    tier = db.Column(db.String(24), nullable=False, default="foundation")  # foundation | medium | advanced | challenge
+    status_hint = db.Column(db.String(32), nullable=False, default="")
+    link_hint_json = db.Column(db.Text, nullable=False, default="{}")
+    soft_prereqs_json = db.Column(db.Text, nullable=False, default="[]")
+    summary_ru = db.Column(db.Text, nullable=False, default="")
+    body_ru = db.Column(db.Text, nullable=False, default="")
+    body_en = db.Column(db.Text, nullable=False, default="")
+    body_draft_ru = db.Column(db.Text, nullable=False, default="")
+    body_status = db.Column(db.String(20), nullable=False, default="published")
+    widget_json = db.Column(db.Text, nullable=False, default="")
+    skill_ids_json = db.Column(db.Text, nullable=False, default="[]")
+    formula_tpl = db.Column(db.String(64), nullable=False, default="")
+    formula_topic_id = db.Column(db.String(64), nullable=False, default="")
+
+    milestone = db.relationship("RoadmapMilestone", backref=db.backref("nodes", lazy="dynamic", cascade="all, delete-orphan"))
+
+
+class RoadmapProgress(db.Model):
+    """Per-user completion/mastery state for roadmap nodes."""
+
+    __tablename__ = "roadmap_progress"
+    __table_args__ = (db.UniqueConstraint("user_id", "node_key", name="uq_roadmap_prog_user_node"),)
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    node_key = db.Column(db.String(80), nullable=False)
+    status = db.Column(db.String(24), nullable=False, default="completed")
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
+class CourseUnit(db.Model):
+    """Khan-style 14-unit course structure (DB-backed, idempotently seeded)."""
+
+    __tablename__ = "course_unit"
+    __table_args__ = (db.UniqueConstraint("exam", "slug", name="uq_course_unit_exam_slug"),)
+
+    id = db.Column(db.Integer, primary_key=True)
+    exam = db.Column(db.String(20), nullable=False, default="SAT")
+    number = db.Column(db.Integer, nullable=False)
+    slug = db.Column(db.String(80), nullable=False)
+    title_ru = db.Column(db.String(200), nullable=False)
+    tier = db.Column(db.String(24), nullable=False, default="foundation")  # intro|foundation|medium|advanced|challenge
+    domain = db.Column(db.String(32), nullable=False, default="")
+    description_ru = db.Column(db.String(500), nullable=False, default="")
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
+class CourseLesson(db.Model):
+    """Interactive lesson / practice set / unit quiz inside a CourseUnit."""
+
+    __tablename__ = "course_lesson"
+    __table_args__ = (db.UniqueConstraint("unit_id", "slug", name="uq_course_lesson_unit_slug"),)
+
+    id = db.Column(db.Integer, primary_key=True)
+    unit_id = db.Column(db.Integer, db.ForeignKey("course_unit.id", ondelete="CASCADE"), nullable=False)
+    slug = db.Column(db.String(80), nullable=False)
+    position = db.Column(db.Integer, nullable=False, default=1)
+    title_ru = db.Column(db.String(200), nullable=False)
+    kind = db.Column(db.String(24), nullable=False, default="practice")  # article | practice | quiz
+    article_md = db.Column(db.Text, nullable=False, default="")
+    hints_json = db.Column(db.Text, nullable=False, default="[]")
+    desmos_preset_json = db.Column(db.Text, nullable=False, default="")
+    youtube_url = db.Column(db.String(400), nullable=False, default="")
+    formula_tpl = db.Column(db.String(64), nullable=False, default="")
+    formula_topic_id = db.Column(db.String(64), nullable=False, default="")
+    question_ids_json = db.Column(db.Text, nullable=False, default="[]")
+    inline_quiz_json = db.Column(db.Text, nullable=False, default="[]")
+    skill_ids_json = db.Column(db.Text, nullable=False, default="[]")
+    difficulty = db.Column(db.Integer, nullable=False, default=1)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    unit = db.relationship("CourseUnit", backref=db.backref("lessons", lazy="dynamic", cascade="all, delete-orphan"))
+
+
+class CourseMastery(db.Model):
+    """4-tier Khan-style mastery per user and lesson (not_started|familiar|proficient|mastered)."""
+
+    __tablename__ = "course_mastery"
+    __table_args__ = (db.UniqueConstraint("user_id", "lesson_key", name="uq_course_mastery_user_lesson"),)
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    lesson_key = db.Column(db.String(160), nullable=False)
+    level = db.Column(db.String(24), nullable=False, default="not_started")
+    best_score = db.Column(db.Integer, nullable=False, default=0)
+    total_q = db.Column(db.Integer, nullable=False, default=0)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
 # Safety net for PostgreSQL, which (unlike SQLite) rejects a string longer than its column:
 # anything typed into a limited field (an answer, a school name…) is cut to fit instead of failing the request.
 from sqlalchemy import String as _String, event as _event, inspect as _inspect  # noqa: E402

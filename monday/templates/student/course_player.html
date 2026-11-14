@@ -1,0 +1,491 @@
+{% extends "layout.html" %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/skills-path.css') }}">
+{% endblock %}
+{% block title %}{{ lesson.title_ru }} · {{ unit.title_ru }}{% endblock %}
+{% block context %}{{ exam }} · {{ unit.title_ru }}{% endblock %}
+{% block content %}
+<div class="cp-wrap" data-cp
+     data-exam="{{ exam }}"
+     data-unit="{{ unit.slug }}"
+     data-lesson="{{ lesson.slug }}"
+     data-kind="{{ lesson.kind }}"
+     data-next-url="{{ next_url or '' }}">
+
+  <div class="cp-topbar">
+    <a class="btn btn--secondary btn--sm cp-btn" href="{{ url_for('student.skills', exam=exam) }}">{{ ui.icon('arrow-left', 16) }} {{ _("Назад") }}</a>
+    <button type="button" class="btn btn--secondary btn--sm cp-btn" data-cp-side-toggle aria-expanded="true">{{ ui.icon('list', 16) }} {{ _("Уроки юнита") }}</button>
+    {% if exam == 'CSCA' %}
+      <span class="kc-lesson__kind cp-nocalc">{{ _("Без калькулятора") }}</span>
+    {% else %}
+      <button type="button" class="btn btn--secondary btn--sm cp-btn" data-cp-desmos-toggle aria-expanded="false">{{ ui.icon('calculator', 16) }} Desmos</button>
+    {% endif %}
+    <div class="cp-topbar__right">
+      <span class="kc-lesson__lvl kc-lvl--{{ cur_level }}" id="cp-mastery-pill">{{ cur_level_label }}</span>
+      {% if next_url %}
+        <a class="btn btn--primary btn--sm cp-btn" href="{{ next_url }}">{{ _("Следующий урок") }} →</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="cp-rows">
+    <div class="cp-row-top" id="cp-row-top">
+      <aside class="cp-side" id="cp-sidebar" aria-label="{{ _('Уроки юнита') }}">
+        <div class="cp-side__head">
+          <span class="eyebrow">{{ _("Юнит %(n)s", n=unit.number) }}</span>
+          <b>{{ unit.title_ru }}</b>
+        </div>
+        <ul class="cp-side__list">
+          {% for sl in sidebar_lessons %}
+          <li>
+            <a class="cp-side__item{{ ' is-current' if sl.is_current }}" href="{{ sl.url }}">
+              <span class="kc-badge kc-badge--{{ sl.level }}" aria-hidden="true">
+                {% if sl.level == 'mastered' %}✓{% elif sl.level == 'proficient' %}●{% elif sl.level == 'familiar' %}◐{% else %}○{% endif %}
+              </span>
+              <span>{{ sl.title }}</span>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </aside>
+
+      <div class="cp-main">
+        {# Optional YouTube Video Slot #}
+        {% if youtube_embed %}
+        <details class="cp-box">
+          <summary class="cp-box__sum">{{ ui.icon('video', 16) }} {{ _("Видео-разбор темы") }}</summary>
+          <div class="cp-video">
+            <iframe src="{{ youtube_embed }}" title="{{ lesson.title_ru }}" allowfullscreen loading="lazy"></iframe>
+          </div>
+        </details>
+        {% endif %}
+
+        {# Lesson / Article View #}
+        <article class="cp-card">
+          <h1 class="cp-title">{{ lesson.title_ru }}</h1>
+          <div class="cp-article math" id="cp-article-body">
+            {{ article_html }}
+          </div>
+
+          {# Inline Formula Bar #}
+          {% if formulas_list %}
+          <details class="cp-box cp-formulas">
+            <summary class="cp-box__sum">{{ ui.icon('formulas', 16) }} {{ _("Формулы темы") }} ({{ formulas_list|length }})</summary>
+            <div class="cp-formulas__list">
+              {% for fm in formulas_list %}
+              <div class="cp-fitem">
+                <b>{{ fm.name }}</b>
+                <div class="math">{{ (fm.tex or fm.expr)|math_wrap }}</div>
+                {% if fm.note %}<div class="small muted math">{{ fm.note }}</div>{% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </details>
+          {% endif %}
+
+          {% if lesson.kind == 'article' and not questions %}
+          <div class="cp-actions">
+            <button type="button" class="btn btn--primary cp-btn" id="cp-mark-read">{{ _("Отметить прочитанным ✓") }}</button>
+            {% if next_url %}<a class="btn btn--secondary cp-btn" href="{{ next_url }}">{{ _("Следующий урок") }} →</a>{% endif %}
+          </div>
+          {% endif %}
+        </article>
+      </div>
+    </div>
+
+    {% if questions or exam != 'CSCA' %}
+    <div class="cp-row-practice" id="cp-row-practice">
+      {# Collapsible Desmos Calculator (disabled for CSCA; resizes only with question block) #}
+      {% if exam != 'CSCA' %}
+      <section class="cp-box cp-desmos" id="cp-desmos-box" hidden>
+        <div class="cp-desmos__head">
+          <b>{{ _("Калькулятор Desmos") }}</b>
+          <span class="small muted cp-desmos__hint">{{ _("Потяни за край") }}</span>
+          <button type="button" class="btn btn--ghost btn--sm cp-btn" data-cp-desmos-toggle>{{ _("Свернуть") }}</button>
+        </div>
+        <div id="cp-desmos-mount" class="cp-desmos__mount"
+             data-src="https://www.desmos.com/api/{{ config.DESMOS_API_VERSION }}/calculator.js?apiKey={{ config.DESMOS_API_KEY }}"></div>
+        <div class="cp-desmos__resize-w" data-cp-desmos-resize-w role="separator" aria-orientation="vertical" tabindex="0" aria-label="{{ _('Ширина калькулятора') }}"><span></span></div>
+        <div class="cp-desmos__resize-h" data-cp-desmos-resize-h role="separator" aria-orientation="horizontal" tabindex="0" aria-label="{{ _('Высота калькулятора') }}"><span></span></div>
+      </section>
+      {% endif %}
+
+      {# In-Place Practice / Unit Quiz Mode (one question at a time) #}
+      {% if questions %}
+      <div class="cp-quiz-col">
+        <section class="cp-card cp-quiz" id="cp-quiz">
+          <div class="cp-quiz__head">
+            <b id="cp-q-counter">{{ _("Вопрос 1 из %(t)s", t=questions|length) }}</b>
+            <span class="small muted" id="cp-q-score">{{ _("Верно: 0") }}</span>
+          </div>
+
+          <div id="cp-q-stage"></div>
+
+          <div class="cp-quiz__controls">
+            <button type="button" class="btn btn--secondary btn--sm cp-btn" id="cp-hint-btn">{{ ui.icon('bulb', 16) }} {{ _("Подсказка") }}</button>
+            {% if exam != 'CSCA' %}
+            <button type="button" class="btn btn--secondary btn--sm cp-btn" data-cp-desmos-toggle aria-expanded="false">{{ ui.icon('calculator', 16) }} Desmos</button>
+            {% endif %}
+            <button type="button" class="btn btn--primary cp-btn" id="cp-check-btn">{{ _("Проверить") }}</button>
+            <button type="button" class="btn btn--primary cp-btn" id="cp-next-q-btn" hidden>{{ _("Следующий вопрос") }} →</button>
+          </div>
+
+          <div id="cp-hints-box" class="cp-hints" hidden></div>
+          <div id="cp-feedback" class="cp-fb" hidden></div>
+        </section>
+
+        <section class="cp-card cp-summary" id="cp-summary" hidden>
+          <h2 id="cp-sum-title"></h2>
+          <p id="cp-sum-lvl"></p>
+          <div class="cp-actions">
+            <button type="button" class="btn btn--secondary cp-btn" id="cp-retry-btn">{{ _("Пройти ещё раз") }}</button>
+            {% if next_url %}<a class="btn btn--primary cp-btn" href="{{ next_url }}">{{ _("Следующий урок") }} →</a>{% endif %}
+          </div>
+        </section>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script type="application/json" id="cp-questions-json">{{ questions|tojson }}</script>
+<script type="application/json" id="cp-desmos-preset">{{ desmos_preset|tojson }}</script>
+
+<script>
+(function(){
+  const wrap = document.querySelector("[data-cp]");
+  if (!wrap) return;
+  const csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || "";
+  const examCode = wrap.dataset.exam || "SAT";
+  const unitSlug = wrap.dataset.unit;
+  const lessonSlug = wrap.dataset.lesson;
+  const questions = JSON.parse(document.getElementById("cp-questions-json").textContent || "[]");
+  const preset = JSON.parse(document.getElementById("cp-desmos-preset").textContent || "null");
+
+  function esc(s) {
+    return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+  function renderMd(raw) {
+    const parts = String(raw || "").split(/(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$)/g);
+    return parts.map((part, idx) => {
+      if (idx % 2 === 1) return esc(part);
+      let s = esc(part);
+      s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+      s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      s = s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>");
+      s = s.replace(/\n/g, "<br>");
+      return s;
+    }).join("");
+  }
+  function renderMaterial(q) {
+    let out = "";
+    if (q.image_url) {
+      out += `<figure class="q-figure"><div class="q-figure__frame"><img src="${esc(q.image_url)}" alt="Рисунок к задаче" data-lightbox></div></figure>`;
+    }
+    (q.material || []).forEach((b) => {
+      if (b.type === "heading") out += `<h3 class="q-mat-heading math">${renderMd(b.text)}</h3>`;
+      else if (b.type === "passage") out += `<div class="q-passage">${b.title ? `<div class="q-passage__title math">${renderMd(b.title)}</div>` : ""}<div class="q-passage__text math">${renderMd(b.text)}</div></div>`;
+      else if (b.type === "columns") out += `<div class="q-columns"><div class="q-columns__col"><div class="q-columns__title">${esc(b.left_title || "Колонка А")}</div><div class="q-columns__body math">${renderMd(b.left)}</div></div><div class="q-columns__col"><div class="q-columns__title">${esc(b.right_title || "Колонка Б")}</div><div class="q-columns__body math">${renderMd(b.right)}</div></div></div>`;
+    });
+    return out ? `<div class="cp-qmat">${out}</div>` : "";
+  }
+  function mathRender(el) {
+    if (window.renderMathInElement && el) {
+      try {
+        window.renderMathInElement(el, {
+          delimiters: [{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}],
+          throwOnError: false
+        });
+      } catch (_e) {}
+    }
+  }
+
+  // Sidebar collapse (top row only)
+  const side = document.getElementById("cp-sidebar");
+  const rowTop = document.getElementById("cp-row-top");
+  const rowPractice = document.getElementById("cp-row-practice");
+  const desmosBox = document.getElementById("cp-desmos-box");
+  const desmosMount = document.getElementById("cp-desmos-mount");
+  function syncLeftCol() {
+    if (rowTop) rowTop.classList.toggle("is-side-hidden", side.hidden);
+    if (rowPractice) rowPractice.classList.toggle("has-desmos", Boolean(desmosBox && !desmosBox.hidden));
+  }
+  document.querySelectorAll("[data-cp-side-toggle]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      side.hidden = !side.hidden;
+      syncLeftCol();
+      btn.setAttribute("aria-expanded", side.hidden ? "false" : "true");
+    });
+  });
+
+  // Desmos toggle + lazy load + preset
+  let desmosCalc = null;
+  function initDesmos() {
+    if (desmosCalc || !window.Desmos) return;
+    desmosCalc = window.Desmos.GraphingCalculator(desmosMount, { keypad: true, expressions: true, settingsMenu: false, border: false });
+    if (preset && preset.expr) {
+      desmosCalc.setExpression({ id: "preset1", latex: preset.expr });
+    }
+  }
+  if (desmosBox && desmosMount) {
+    const readNum = (k, d) => { try { const v = Number(localStorage.getItem(k)); return Number.isFinite(v) && v > 0 ? v : d; } catch (_) { return d; } };
+    const saveNum = (k, v) => { try { localStorage.setItem(k, String(v)); } catch (_) {} };
+    const setW = (w) => {
+      const clamped = Math.max(300, Math.min(Math.round(window.innerWidth * 0.65), Math.round(w)));
+      document.documentElement.style.setProperty("--cp-desmos-w", clamped + "px");
+      if (desmosCalc && desmosCalc.resize) desmosCalc.resize();
+      return clamped;
+    };
+    const setH = (h) => {
+      const clamped = Math.max(260, Math.min(Math.round(window.innerHeight * 0.78), Math.round(h)));
+      desmosMount.style.height = clamped + "px";
+      if (desmosCalc && desmosCalc.resize) desmosCalc.resize();
+      return clamped;
+    };
+    let curW = setW(readNum("monday-cp-desmos-w", 360));
+    let curH = setH(readNum("monday-cp-desmos-h", 340));
+
+    const rw = document.querySelector("[data-cp-desmos-resize-w]");
+    if (rw) {
+      rw.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        rw.setPointerCapture(e.pointerId);
+        const startX = e.clientX, startW = desmosBox.getBoundingClientRect().width;
+        const move = (ev) => { curW = setW(startW + (ev.clientX - startX)); };
+        const up = () => {
+          rw.removeEventListener("pointermove", move);
+          rw.removeEventListener("pointerup", up);
+          rw.removeEventListener("pointercancel", up);
+          saveNum("monday-cp-desmos-w", curW);
+        };
+        rw.addEventListener("pointermove", move);
+        rw.addEventListener("pointerup", up);
+        rw.addEventListener("pointercancel", up);
+      });
+      rw.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        e.preventDefault();
+        curW = setW(curW + (e.key === "ArrowRight" ? 40 : -40));
+        saveNum("monday-cp-desmos-w", curW);
+      });
+    }
+
+    const rh = document.querySelector("[data-cp-desmos-resize-h]");
+    if (rh) {
+      rh.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        rh.setPointerCapture(e.pointerId);
+        const startY = e.clientY, startH = desmosMount.getBoundingClientRect().height;
+        const move = (ev) => { curH = setH(startH + (ev.clientY - startY)); };
+        const up = () => {
+          rh.removeEventListener("pointermove", move);
+          rh.removeEventListener("pointerup", up);
+          rh.removeEventListener("pointercancel", up);
+          saveNum("monday-cp-desmos-h", curH);
+        };
+        rh.addEventListener("pointermove", move);
+        rh.addEventListener("pointerup", up);
+        rh.addEventListener("pointercancel", up);
+      });
+      rh.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+        e.preventDefault();
+        curH = setH(curH + (e.key === "ArrowDown" ? 40 : -40));
+        saveNum("monday-cp-desmos-h", curH);
+      });
+    }
+
+    document.querySelectorAll("[data-cp-desmos-toggle]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        desmosBox.hidden = !desmosBox.hidden;
+        syncLeftCol();
+        document.querySelectorAll("[data-cp-desmos-toggle]").forEach((b) => {
+          b.setAttribute("aria-expanded", desmosBox.hidden ? "false" : "true");
+        });
+        if (!desmosBox.hidden) {
+          if (window.Desmos) {
+            initDesmos();
+            if (desmosCalc && desmosCalc.resize) desmosCalc.resize();
+          } else if (!document.querySelector('script[data-desmos-sdk]')) {
+            const s = document.createElement("script");
+            s.src = desmosMount.dataset.src;
+            s.dataset.desmosSdk = "1";
+            s.onload = initDesmos;
+            document.head.appendChild(s);
+          }
+        }
+      });
+    });
+  }
+
+  // Article mark-read
+  const readBtn = document.getElementById("cp-mark-read");
+  if (readBtn) {
+    readBtn.addEventListener("click", async () => {
+      const r = await fetch("/api/course/complete", {
+        method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+        body: JSON.stringify({ exam: examCode, unit_slug: unitSlug, lesson_slug: lessonSlug, score: 1, total: 1 })
+      });
+      const d = await r.json();
+      if (d.ok) {
+        document.getElementById("cp-mastery-pill").textContent = d.level_label;
+        readBtn.textContent = "Изучено ✓";
+      }
+    });
+  }
+
+  // Interactive Question Player
+  if (!questions.length) return;
+  let qIdx = 0;
+  let correctCount = 0;
+  let hintIdx = 0;
+  let selectedOpt = "";
+  const stage = document.getElementById("cp-q-stage");
+  const counterEl = document.getElementById("cp-q-counter");
+  const scoreEl = document.getElementById("cp-q-score");
+  const checkBtn = document.getElementById("cp-check-btn");
+  const nextBtn = document.getElementById("cp-next-q-btn");
+  const hintBtn = document.getElementById("cp-hint-btn");
+  const hintsBox = document.getElementById("cp-hints-box");
+  const fbBox = document.getElementById("cp-feedback");
+  const quizSec = document.getElementById("cp-quiz");
+  const sumSec = document.getElementById("cp-summary");
+
+  function renderQ() {
+    const q = questions[qIdx];
+    hintIdx = 0;
+    selectedOpt = "";
+    counterEl.textContent = `Вопрос ${qIdx + 1} из ${questions.length}`;
+    scoreEl.textContent = `Верно: ${correctCount}`;
+    hintsBox.hidden = true;
+    hintsBox.innerHTML = "";
+    fbBox.hidden = true;
+    fbBox.innerHTML = "";
+    checkBtn.hidden = false;
+    nextBtn.hidden = true;
+
+    let html = renderMaterial(q) + `<div class="cp-qprompt math">${renderMd(q.prompt)}</div>`;
+    if (q.type === "choice" && q.options && q.options.length) {
+      html += `<div class="cp-opts">`;
+      q.options.forEach((opt, i) => {
+        const letter = "ABCD"[i] || String(i + 1);
+        html += `
+          <div class="cp-opt-row">
+            <button type="button" class="cp-opt" data-cp-opt="${esc(opt)}">
+              <span class="cp-opt__let">${letter}</span>
+              <span class="cp-opt__txt math">${renderMd(opt)}</span>
+            </button>
+            <button type="button" class="cp-elim" data-cp-elim aria-pressed="false" title="Исключить вариант" aria-label="Исключить вариант ${letter}">✕</button>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    } else {
+      html += `
+        <div class="cp-gridin">
+          <label class="small" for="cp-num-inp">Введите ответ (число или дробь, например 3/4 или 0.75):</label>
+          <input id="cp-num-inp" class="input" type="text" inputmode="decimal" autocomplete="off" placeholder="Ответ">
+        </div>
+      `;
+    }
+    stage.innerHTML = html;
+    mathRender(stage);
+
+    stage.querySelectorAll("[data-cp-opt]").forEach((b) => {
+      b.addEventListener("click", () => {
+        selectedOpt = b.dataset.cpOpt;
+        stage.querySelectorAll("[data-cp-opt]").forEach((x) => x.classList.toggle("is-selected", x === b));
+      });
+    });
+    stage.querySelectorAll("[data-cp-elim]").forEach((eb) => {
+      eb.addEventListener("click", () => {
+        const row = eb.closest(".cp-opt-row");
+        const on = !row.classList.contains("is-elim");
+        row.classList.toggle("is-elim", on);
+        eb.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+    });
+  }
+
+  hintBtn.addEventListener("click", () => {
+    const q = questions[qIdx];
+    const hs = q.hints || [];
+    if (hintIdx < hs.length) {
+      hintsBox.hidden = false;
+      const p = document.createElement("p");
+      p.className = "math small";
+      p.innerHTML = `<strong>Подсказка ${hintIdx + 1}:</strong> ` + renderMd(hs[hintIdx]);
+      hintsBox.appendChild(p);
+      mathRender(p);
+      hintIdx += 1;
+    } else if (q.explain) {
+      hintsBox.hidden = false;
+      if (!hintsBox.querySelector("[data-full-sol]")) {
+        const p = document.createElement("p");
+        p.dataset.fullSol = "1";
+        p.className = "math small";
+        p.innerHTML = "<strong>Пошаговое решение:</strong> " + renderMd(q.explain);
+        hintsBox.appendChild(p);
+        mathRender(p);
+      }
+    }
+  });
+
+  checkBtn.addEventListener("click", async () => {
+    const q = questions[qIdx];
+    const inp = document.getElementById("cp-num-inp");
+    const given = inp ? inp.value.trim() : selectedOpt;
+    if (!given) return;
+
+    const r = await fetch("/api/course/check", {
+      method: "POST", credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+      body: JSON.stringify({ exam: examCode, unit_slug: unitSlug, lesson_slug: lessonSlug, question_id: q.id, given })
+    });
+    const d = await r.json();
+    if (!d.ok) return;
+
+    if (d.is_correct) correctCount += 1;
+    scoreEl.textContent = `Верно: ${correctCount}`;
+    fbBox.hidden = false;
+    fbBox.className = "cp-fb math " + (d.is_correct ? "is-ok" : "is-bad");
+    fbBox.innerHTML = (d.is_correct ? "<strong>Верно!</strong> " : `<strong>Неверно.</strong> Верный ответ: <strong>${renderMd(d.correct_answer)}</strong>. `) + renderMd(d.explain || "");
+    mathRender(fbBox);
+    checkBtn.hidden = true;
+    nextBtn.hidden = false;
+    nextBtn.textContent = qIdx + 1 < questions.length ? "Следующий вопрос →" : "Завершить и подвести итог →";
+  });
+
+  nextBtn.addEventListener("click", async () => {
+    if (qIdx + 1 < questions.length) {
+      qIdx += 1;
+      renderQ();
+      return;
+    }
+    const r = await fetch("/api/course/complete", {
+      method: "POST", credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+      body: JSON.stringify({ exam: examCode, unit_slug: unitSlug, lesson_slug: lessonSlug, score: correctCount, total: questions.length })
+    });
+    const d = await r.json();
+    quizSec.hidden = true;
+    sumSec.hidden = false;
+    document.getElementById("cp-sum-title").textContent = `${correctCount} / ${questions.length} правильно`;
+    document.getElementById("cp-sum-lvl").textContent = `Уровень мастерства: ${d.level_label || "Знаком"}`;
+    document.getElementById("cp-mastery-pill").textContent = d.level_label || "Знаком";
+  });
+
+  document.getElementById("cp-retry-btn").addEventListener("click", () => {
+    qIdx = 0;
+    correctCount = 0;
+    sumSec.hidden = true;
+    quizSec.hidden = false;
+    renderQ();
+  });
+
+  renderQ();
+})();
+</script>
+{% endblock %}

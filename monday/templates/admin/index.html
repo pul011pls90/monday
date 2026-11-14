@@ -8,6 +8,11 @@
 <div class="page-head">
   <div class="page-head__text"><h1>{{ _("Администрирование") }}</h1>
     <p>{{ _("Люди, заявки учителей, модерация вопросов и здоровье контента.") }}</p></div>
+  <div class="row" style="gap:8px;flex-wrap:wrap">
+    <a class="btn btn--secondary" href="{{ url_for('course.admin_course') }}">{{ _("Конструктор курса") }}</a>
+    <a class="btn btn--secondary" href="{{ url_for('roadmap.admin_roadmap') }}">{{ _("Роадмап") }}</a>
+    <a class="btn btn--secondary" href="{{ url_for('deploy_safety.admin_maintenance') }}">{{ _("Обслуживание сайта") }}</a>
+  </div>
 </div>
 
 {# ------------------------------------------------------------ four numbers, each opens its list #}

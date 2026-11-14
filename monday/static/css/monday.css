@@ -805,3 +805,88 @@ form[data-sat-entry] .answer-input .field__hint { display: none; }   /* SAT test
 .entry-h { font-size: 15px; margin: 4px 0 6px; }
 .entry-table--left td:last-child { text-align: left; font-size: 13px; line-height: 1.45; }
 .entry-table--left td:first-child { font-size: 14px; font-weight: 700; }
+
+/* ------------------------------------------------------------ deploy safety: banners, save pill, resume card */
+.ds-banner-host { position: sticky; top: 0; z-index: 90; padding: 8px 14px 0; background: transparent; pointer-events: none; }
+.ds-banner {
+  pointer-events: auto;
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: var(--bw, 1px) solid var(--line);
+  border-left: 4px solid var(--accent);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, .08);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.ds-banner--warn { border-left-color: var(--accent); background: var(--accent-soft); }
+.ds-banner--ok { border-left-color: var(--ok, #16a34a); }
+.ds-banner__body { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+.ds-banner__dot { width: 8px; height: 8px; border-radius: 999px; background: var(--accent); flex-shrink: 0; }
+.ds-banner--ok .ds-banner__dot { background: var(--ok, #16a34a); }
+.ds-banner__text { min-width: 0; overflow-wrap: anywhere; }
+.ds-banner.is-collapsed .ds-banner__text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ds-banner__actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.ds-banner__btn { min-height: 44px; padding: 0 14px; display: inline-flex; align-items: center; justify-content: center; }
+
+.ds-save-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: var(--bw, 1px) solid var(--line);
+  background: var(--surface);
+  white-space: nowrap;
+}
+.ds-save-pill[data-state="offline"] { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-soft); }
+.ds-save-pill[data-state="saving"] { color: var(--text); }
+
+.ds-resume {
+  margin-bottom: 18px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: var(--bw, 1px) solid var(--line);
+  border-left: 4px solid var(--accent);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ds-resume__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.ds-resume__title { margin: 0; font-size: 16px; font-weight: 700; color: var(--text); }
+.ds-resume__list { display: flex; flex-direction: column; gap: 8px; }
+.ds-resume__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: var(--bw, 1px) solid var(--line);
+  background: var(--bg);
+  flex-wrap: wrap;
+}
+.ds-resume__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.ds-resume__name { font-weight: 700; color: var(--text); font-size: 14px; }
+.ds-resume__sub { font-size: 13px; color: var(--text-2); }
+.ds-resume__btns { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ds-resume__btn { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; }
+.ds-oob-note { margin-bottom: 14px; }
+
+@media (max-width: 640px) {
+  .ds-banner { flex-direction: column; align-items: stretch; }
+  .ds-banner__actions { justify-content: flex-end; }
+  .ds-resume__item { flex-direction: column; align-items: stretch; }
+  .ds-resume__btns { justify-content: flex-start; }
+}

@@ -72,6 +72,12 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     from . import content_i18n
     app.register_blueprint(content_i18n.bp)
     app.add_template_filter(content_i18n.localize, 'loc')
+    from . import deploy_safety
+    app.register_blueprint(deploy_safety.bp)
+    from . import roadmap
+    app.register_blueprint(roadmap.bp)
+    from . import course
+    app.register_blueprint(course.bp)
 
     def branch_groups(entries):
         """Formula-sheet entries grouped by section, ignoring case and extra spaces; first spelling wins."""
@@ -138,6 +144,7 @@ def create_app(config_object=Config, *, seed_if_empty=True):
             return app
         db.create_all()
         _check_schema()
+        deploy_safety.ensure_deploy_safety_tables()
         _lock_supabase_api()
         from .storage import ensure_bucket
         ensure_bucket()
@@ -333,7 +340,7 @@ def _register_template_helpers(app):
 
 
 def _register_errors(app):
-    from flask import render_template
+    from flask import jsonify, make_response, render_template, request
 
     @app.errorhandler(403)
     def forbidden(e):
@@ -346,6 +353,25 @@ def _register_errors(app):
     @app.errorhandler(413)
     def too_large(e):
         return render_template("errors/error.html", code=413, message=_("Файл слишком большой (максимум 8 МБ).")), 413
+
+    @app.errorhandler(503)
+    def service_unavailable(e):
+        from .deploy_safety import get_maintenance_state
+        maint = get_maintenance_state()
+        retry_sec = str(max(60, int((maint.expected_minutes or 15) * 60)))
+        if request.path.startswith("/api/") or request.is_json or (
+            request.accept_mimetypes.best == "application/json"
+            and not request.accept_mimetypes.accept_html
+        ):
+            resp = make_response(jsonify({
+                "ok": False,
+                "error": "maintenance",
+                "maintenance": maint.to_dict(),
+            }), 503)
+        else:
+            resp = make_response(render_template("errors/503.html", maint=maint), 503)
+        resp.headers["Retry-After"] = retry_sec
+        return resp
 
 
 def _register_cli(app):

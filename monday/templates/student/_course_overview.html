@@ -1,0 +1,60 @@
+{# Clean 14-unit Khan Academy-style Digital SAT Course Overview #}
+<section class="kc" data-course>
+  {% if course.continue_card %}
+  <div class="kc-hero">
+    <div class="kc-hero__meta">
+      <span class="eyebrow">{{ _("Юнит %(n)s · %(u)s", n=course.continue_card.unit_number, u=course.continue_card.unit_title) }}</span>
+      <h2 class="kc-hero__title">{{ _("Продолжить: %(t)s", t=course.continue_card.lesson_title) }}</h2>
+      {% set cpct = ((100 * course.mastered_lessons / course.total_lessons) if course.total_lessons else 0)|round|int %}
+      <div class="kc-hero__prog">
+        <div class="rm-bar kc-hero__bar" role="progressbar" aria-valuenow="{{ cpct }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ _('Освоено уроков: %(m)s из %(tot)s', m=course.mastered_lessons, tot=course.total_lessons) }}"><i style="width: {{ cpct }}%"></i></div>
+        <span class="small muted num">{{ course.mastered_lessons }} / {{ course.total_lessons }} ({{ cpct }}%)</span>
+      </div>
+    </div>
+    <a class="btn btn--primary kc-hero__go" href="{{ course.continue_card.url }}">{{ _("Продолжить") }} {{ ui.icon('arrow-right', 18) }}</a>
+  </div>
+  {% endif %}
+
+  <div class="kc-units">
+    {% for u in course.units %}
+    <section class="kc-unit" id="unit-{{ u.number }}" aria-labelledby="u-h-{{ u.number }}">
+      <header class="kc-unit__head">
+        <div class="kc-unit__left">
+          <span class="kc-num num">{{ u.number }}</span>
+          <div>
+            <h3 id="u-h-{{ u.number }}" class="kc-unit__title">{{ u.title }}</h3>
+            {% if u.description %}<p class="kc-unit__desc">{{ u.description }}</p>{% endif %}
+          </div>
+        </div>
+        <div class="kc-unit__prog">
+          <span class="small num">{{ _("Освоено") }} {{ u.mastered_count }} / {{ u.total_count }}</span>
+          {% set upct = ((100 * u.mastered_count / u.total_count) if u.total_count else 0)|round|int %}
+          <div class="rm-bar" aria-hidden="true"><i style="width: {{ upct }}%"></i></div>
+        </div>
+      </header>
+
+      <ul class="kc-lessons">
+        {% for l in u.lessons %}
+        <li>
+          <a class="kc-lesson kc-lesson--{{ l.level }}" href="{{ l.url }}">
+            <div class="kc-lesson__top">
+              <span class="kc-badge kc-badge--{{ l.level }}" aria-hidden="true">
+                {% if l.level == 'mastered' %}{{ ui.icon('check', 16) }}
+                {% elif l.level == 'proficient' %}●
+                {% elif l.level == 'familiar' %}◐
+                {% else %}○{% endif %}
+              </span>
+              <span class="kc-lesson__title">{{ l.title }}</span>
+            </div>
+            <div class="kc-lesson__meta">
+              <span class="kc-lesson__kind kc-kind--{{ l.kind }}">{{ _("Тест") if l.kind == 'quiz' else (_("Статья") if l.kind == 'article' else _("Практика")) }}</span>
+              <span class="kc-lesson__lvl kc-lvl--{{ l.level }}">{{ l.level_label }}</span>
+            </div>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endfor %}
+  </div>
+</section>

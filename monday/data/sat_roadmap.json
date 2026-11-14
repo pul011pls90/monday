@@ -1,0 +1,1024 @@
+{
+  "roadmap": {
+    "slug": "sat",
+    "exam": "SAT",
+    "title_ru": "Роадмап SAT Math",
+    "title_en": "SAT Math Roadmap",
+    "notes": "status_hint is a guess from the visible app topic names: likely_existing, likely_missing or unknown. The audit must verify every hint against the real app before anything is built. Official question counts per domain (13-15, 13-15, 5-7, 5-7 of 44 questions in two 35-minute modules) come from secondary summaries of the College Board specification."
+  },
+  "milestones": [
+    {
+      "key": "start",
+      "title_ru": "Старт",
+      "title_en": "Start here",
+      "description_ru": "Начните здесь: проверьте, что вы уже знаете, и поставьте цель.",
+      "left_groups": [
+        {
+          "group_ru": "Что нужно знать заранее",
+          "group_en": "Prerequisites",
+          "nodes": [
+            {
+              "key": "prereq_fractions_percent",
+              "title_ru": "Дроби и проценты",
+              "title_en": "Fractions and percents",
+              "kind": "info"
+            },
+            {
+              "key": "prereq_basic_algebra",
+              "title_ru": "Базовая алгебра",
+              "title_en": "Basic algebra",
+              "kind": "info"
+            }
+          ]
+        }
+      ],
+      "right_groups": [
+        {
+          "group_ru": "С чего начать",
+          "group_en": "Where to start",
+          "nodes": [
+            {
+              "key": "diagnostic",
+              "title_ru": "Диагностический тест",
+              "title_en": "Diagnostic test",
+              "kind": "practice",
+              "link_hint": {
+                "compilation": "SAT"
+              }
+            },
+            {
+              "key": "score_goal",
+              "title_ru": "Цель по баллам",
+              "title_en": "Score goal",
+              "kind": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "how_sat_works",
+      "title_ru": "Как устроен SAT",
+      "title_en": "How the SAT works",
+      "description_ru": "Разберитесь, как устроен тест, прежде чем решать задачи — так спокойнее.",
+      "left_groups": [
+        {
+          "group_ru": "Формат теста",
+          "group_en": "Test format",
+          "nodes": [
+            {
+              "key": "format_scoring",
+              "title_ru": "Формат и оценивание",
+              "title_en": "Format and scoring",
+              "kind": "info"
+            },
+            {
+              "key": "adaptive_modules",
+              "title_ru": "Адаптивные модули",
+              "title_en": "Adaptive modules",
+              "kind": "info"
+            },
+            {
+              "key": "bluebook",
+              "title_ru": "Приложение Bluebook",
+              "title_en": "The Bluebook app",
+              "kind": "info"
+            }
+          ]
+        }
+      ],
+      "right_groups": [
+        {
+          "group_ru": "Что нужно знать",
+          "group_en": "Good to know",
+          "nodes": [
+            {
+              "key": "reference_sheet",
+              "title_ru": "Справочный лист",
+              "title_en": "Reference sheet",
+              "kind": "info"
+            },
+            {
+              "key": "answer_types",
+              "title_ru": "Выбор ответа и ввод ответа",
+              "title_en": "Multiple choice and student-produced response",
+              "kind": "info"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "tools",
+      "title_ru": "Инструменты и приёмы",
+      "title_en": "Tools and shortcuts",
+      "description_ru": "Короткие приёмы, которые экономят время на каждом вопросе.",
+      "left_groups": [
+        {
+          "group_ru": "Приёмы",
+          "group_en": "Techniques",
+          "nodes": [
+            {
+              "key": "desmos",
+              "title_ru": "Desmos",
+              "title_en": "Desmos graphing calculator",
+              "kind": "tool"
+            },
+            {
+              "key": "no_calc",
+              "title_ru": "Решение без калькулятора",
+              "title_en": "Solving without a calculator",
+              "kind": "tool"
+            },
+            {
+              "key": "plug_answers",
+              "title_ru": "Подстановка ответов",
+              "title_en": "Plugging in answer choices",
+              "kind": "tool"
+            },
+            {
+              "key": "pick_numbers",
+              "title_ru": "Подстановка чисел",
+              "title_en": "Picking numbers",
+              "kind": "tool"
+            },
+            {
+              "key": "elimination",
+              "title_ru": "Метод исключения",
+              "title_en": "Elimination",
+              "kind": "tool"
+            }
+          ]
+        }
+      ],
+      "right_groups": [
+        {
+          "group_ru": "Время и стратегия",
+          "group_en": "Time and strategy",
+          "nodes": [
+            {
+              "key": "pacing",
+              "title_ru": "Темп: около 95 секунд на вопрос",
+              "title_en": "Pacing: about 95 seconds per question",
+              "kind": "strategy"
+            },
+            {
+              "key": "flagging",
+              "title_ru": "Пропуск и пометка вопросов",
+              "title_en": "Skipping and flagging questions",
+              "kind": "strategy"
+            },
+            {
+              "key": "mini_drills",
+              "title_ru": "Мини-тренировки",
+              "title_en": "Mini-drills",
+              "kind": "practice"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "algebra",
+      "title_ru": "Алгебра",
+      "title_en": "Algebra",
+      "description_ru": "Один из двух самых больших разделов — начните с него.",
+      "left_groups": [
+        {
+          "group_ru": "Темы",
+          "group_en": "Topics",
+          "nodes": [
+            {
+              "key": "alg_linear_eq1",
+              "title_ru": "Линейные уравнения с одной переменной",
+              "title_en": "Linear equations in one variable",
+              "kind": "topic",
+              "status_hint": "likely_missing",
+              "soft_prerequisites": [
+                "prereq_basic_algebra"
+              ]
+            },
+            {
+              "key": "alg_line",
+              "title_ru": "Уравнение прямой",
+              "title_en": "Equation of a line",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Уравнение прямой"
+              },
+              "soft_prerequisites": [
+                "alg_linear_eq1"
+              ]
+            },
+            {
+              "key": "alg_parallel_perp",
+              "title_ru": "Параллельные и перпендикулярные прямые",
+              "title_en": "Parallel and perpendicular lines",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Параллельные и перпендикулярные прямые"
+              },
+              "soft_prerequisites": [
+                "alg_line"
+              ]
+            },
+            {
+              "key": "alg_distance_midpoint",
+              "title_ru": "Расстояние и середина отрезка",
+              "title_en": "Distance and midpoint",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Расстояние и середина отрезка"
+              },
+              "soft_prerequisites": [
+                "alg_line"
+              ]
+            },
+            {
+              "key": "alg_systems",
+              "title_ru": "Системы уравнений",
+              "title_en": "Systems of equations",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Системы уравнений"
+              },
+              "soft_prerequisites": [
+                "alg_line"
+              ]
+            },
+            {
+              "key": "alg_ineq",
+              "title_ru": "Линейные неравенства",
+              "title_en": "Linear inequalities",
+              "kind": "topic",
+              "status_hint": "likely_missing",
+              "soft_prerequisites": [
+                "alg_linear_eq1"
+              ]
+            },
+            {
+              "key": "alg_linear_models",
+              "title_ru": "Линейные функции в задачах",
+              "title_en": "Linear functions in context",
+              "kind": "topic",
+              "status_hint": "likely_missing",
+              "soft_prerequisites": [
+                "alg_line"
+              ]
+            },
+            {
+              "key": "alg_modulus",
+              "title_ru": "Модуль",
+              "title_en": "Absolute value",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Модуль"
+              },
+              "soft_prerequisites": [
+                "alg_linear_eq1"
+              ]
+            }
+          ]
+        }
+      ],
+      "right_groups": [
+        {
+          "group_ru": "Практика",
+          "group_en": "Practice",
+          "nodes": [
+            {
+              "key": "alg_formulas",
+              "title_ru": "Формулы раздела",
+              "title_en": "Section formulas",
+              "kind": "practice",
+              "link_hint": {
+                "formulas_collection": "SAT · Алгебра"
+              }
+            },
+            {
+              "key": "alg_bank",
+              "title_ru": "Вопросы раздела",
+              "title_en": "Section questions",
+              "kind": "practice",
+              "link_hint": {
+                "bank_tags": [
+                  "SAT",
+                  "Algebra"
+                ]
+              }
+            },
+            {
+              "key": "alg_exam",
+              "title_ru": "Мини-экзамен раздела",
+              "title_en": "Section mini-exam",
+              "kind": "exam",
+              "link_hint": {
+                "bank_tags": [
+                  "SAT",
+                  "Algebra"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "gate": {
+        "type": "mini_exam",
+        "questions": 10,
+        "pass_percent": 80
+      },
+      "official_question_share": "13-15"
+    },
+    {
+      "key": "advanced",
+      "title_ru": "Продвинутая математика",
+      "title_en": "Advanced Math",
+      "description_ru": "Второй из двух самых больших разделов: квадратные, степенные и показательные функции.",
+      "left_groups": [
+        {
+          "group_ru": "Темы",
+          "group_en": "Topics",
+          "nodes": [
+            {
+              "key": "adv_equiv",
+              "title_ru": "Равносильные выражения",
+              "title_en": "Equivalent expressions",
+              "kind": "topic",
+              "status_hint": "likely_missing",
+              "soft_prerequisites": [
+                "alg_linear_eq1"
+              ]
+            },
+            {
+              "key": "adv_factoring",
+              "title_ru": "Разложение на множители",
+              "title_en": "Factoring",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Разложение на множители"
+              },
+              "soft_prerequisites": [
+                "adv_equiv"
+              ]
+            },
+            {
+              "key": "adv_quadratic",
+              "title_ru": "Квадратные уравнения",
+              "title_en": "Quadratic equations",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Квадратные уравнения"
+              },
+              "soft_prerequisites": [
+                "adv_factoring"
+              ]
+            },
+            {
+              "key": "adv_discriminant",
+              "title_ru": "Дискриминант и число решений",
+              "title_en": "Discriminant and number of solutions",
+              "kind": "topic",
+              "status_hint": "likely_missing",
+              "soft_prerequisites": [
+                "adv_quadratic"
+              ]
+            },
+            {
+              "key": "adv_parabola",
+              "title_ru": "Парабола",
+              "title_en": "Parabola",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Парабола"
+              },
+              "soft_prerequisites": [
+                "adv_quadratic"
+              ]
+            },
+            {
+              "key": "adv_vertex_form",
+              "title_ru": "Вершинная форма и выделение полного квадрата",
+              "title_en": "Vertex form and completing the square",
+              "kind": "topic",
+              "status_hint": "likely_missing",
+              "soft_prerequisites": [
+                "adv_parabola"
+              ]
+            },
+            {
+              "key": "adv_powers_roots",
+              "title_ru": "Степени и корни",
+              "title_en": "Powers and roots",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Степени и корни"
+              },
+              "soft_prerequisites": [
+                "adv_equiv"
+              ]
+            },
+            {
+              "key": "adv_exponential",
+              "title_ru": "Рост и убывание",
+              "title_en": "Exponential growth and decay",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Рост и убывание"
+              },
+              "soft_prerequisites": [
+                "adv_powers_roots"
+              ]
+            },
+            {
+              "key": "adv_polynomials",
+              "title_ru": "Многочлены",
+              "title_en": "Polynomials: zeros and the factor theorem",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Многочлены"
+              },
+              "soft_prerequisites": [
+                "adv_factoring"
+              ]
+            },
+            {
+              "key": "adv_rational_radical",
+              "title_ru": "Рациональные и иррациональные уравнения",
+              "title_en": "Rational and radical equations",
+              "kind": "topic",
+              "status_hint": "likely_missing",
+              "soft_prerequisites": [
+                "adv_equiv",
+                "adv_quadratic"
+              ]
+            },
+            {
+              "key": "adv_nonlinear_systems",
+              "title_ru": "Нелинейные системы",
+              "title_en": "Nonlinear systems",
+              "kind": "topic",
+              "status_hint": "likely_missing",
+              "soft_prerequisites": [
+                "adv_quadratic",
+                "alg_systems"
+              ]
+            },
+            {
+              "key": "adv_functions",
+              "title_ru": "Функции: запись и преобразования",
+              "title_en": "Function notation and transformations",
+              "kind": "topic",
+              "status_hint": "likely_missing",
+              "soft_prerequisites": [
+                "adv_parabola"
+              ]
+            }
+          ]
+        }
+      ],
+      "right_groups": [
+        {
+          "group_ru": "Практика",
+          "group_en": "Practice",
+          "nodes": [
+            {
+              "key": "adv_formulas",
+              "title_ru": "Формулы раздела",
+              "title_en": "Section formulas",
+              "kind": "practice",
+              "link_hint": {
+                "formulas_collection": "SAT · Продвинутая математика"
+              }
+            },
+            {
+              "key": "adv_bank",
+              "title_ru": "Вопросы раздела",
+              "title_en": "Section questions",
+              "kind": "practice",
+              "link_hint": {
+                "bank_tags": [
+                  "SAT",
+                  "Advanced Math"
+                ]
+              }
+            },
+            {
+              "key": "adv_exam",
+              "title_ru": "Мини-экзамен раздела",
+              "title_en": "Section mini-exam",
+              "kind": "exam",
+              "link_hint": {
+                "bank_tags": [
+                  "SAT",
+                  "Advanced Math"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "gate": {
+        "type": "mini_exam",
+        "questions": 10,
+        "pass_percent": 80
+      },
+      "official_question_share": "13-15"
+    },
+    {
+      "key": "psda",
+      "title_ru": "Задачи и анализ данных",
+      "title_en": "Problem-Solving and Data Analysis",
+      "description_ru": "Данные, проценты и вероятность — меньше вопросов, но быстрые баллы.",
+      "left_groups": [
+        {
+          "group_ru": "Темы",
+          "group_en": "Topics",
+          "nodes": [
+            {
+              "key": "psda_ratios",
+              "title_ru": "Отношения и скорости",
+              "title_en": "Ratios and rates",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Отношения и скорости"
+              }
+            },
+            {
+              "key": "psda_units",
+              "title_ru": "Единицы измерения",
+              "title_en": "Unit conversion",
+              "kind": "topic",
+              "status_hint": "likely_missing",
+              "soft_prerequisites": [
+                "psda_ratios"
+              ]
+            },
+            {
+              "key": "psda_percent",
+              "title_ru": "Проценты",
+              "title_en": "Percentages",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Проценты"
+              },
+              "soft_prerequisites": [
+                "psda_ratios"
+              ]
+            },
+            {
+              "key": "psda_stats",
+              "title_ru": "Статистика",
+              "title_en": "Mean, median and spread",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Статистика"
+              }
+            },
+            {
+              "key": "psda_scatter",
+              "title_ru": "Диаграммы рассеяния и линия тренда",
+              "title_en": "Scatterplots and lines of best fit",
+              "kind": "topic",
+              "status_hint": "likely_missing",
+              "soft_prerequisites": [
+                "psda_stats",
+                "alg_line"
+              ]
+            },
+            {
+              "key": "psda_probability",
+              "title_ru": "Вероятность",
+              "title_en": "Probability",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Вероятность"
+              },
+              "soft_prerequisites": [
+                "psda_percent"
+              ]
+            },
+            {
+              "key": "psda_two_way",
+              "title_ru": "Двусторонние таблицы и условная вероятность",
+              "title_en": "Two-way tables and conditional probability",
+              "kind": "topic",
+              "status_hint": "likely_missing",
+              "soft_prerequisites": [
+                "psda_probability"
+              ]
+            },
+            {
+              "key": "psda_sampling",
+              "title_ru": "Выборка и погрешность",
+              "title_en": "Sampling and margin of error",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Выборка и погрешность"
+              },
+              "soft_prerequisites": [
+                "psda_stats"
+              ]
+            },
+            {
+              "key": "psda_claims",
+              "title_ru": "Оценка статистических утверждений",
+              "title_en": "Evaluating statistical claims",
+              "kind": "topic",
+              "status_hint": "likely_missing",
+              "soft_prerequisites": [
+                "psda_sampling"
+              ]
+            }
+          ]
+        }
+      ],
+      "right_groups": [
+        {
+          "group_ru": "Практика",
+          "group_en": "Practice",
+          "nodes": [
+            {
+              "key": "psda_formulas",
+              "title_ru": "Формулы раздела",
+              "title_en": "Section formulas",
+              "kind": "practice",
+              "link_hint": {
+                "formulas_collection": "SAT · Задачи и анализ данных"
+              }
+            },
+            {
+              "key": "psda_bank",
+              "title_ru": "Вопросы раздела",
+              "title_en": "Section questions",
+              "kind": "practice",
+              "link_hint": {
+                "bank_tags": [
+                  "SAT",
+                  "Problem-Solving and Data Analysis"
+                ]
+              }
+            },
+            {
+              "key": "psda_exam",
+              "title_ru": "Мини-экзамен раздела",
+              "title_en": "Section mini-exam",
+              "kind": "exam",
+              "link_hint": {
+                "bank_tags": [
+                  "SAT",
+                  "Problem-Solving and Data Analysis"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "gate": {
+        "type": "mini_exam",
+        "questions": 10,
+        "pass_percent": 80
+      },
+      "official_question_share": "5-7"
+    },
+    {
+      "key": "geometry",
+      "title_ru": "Геометрия и тригонометрия",
+      "title_en": "Geometry and Trigonometry",
+      "description_ru": "Фигуры, окружности и немного тригонометрии.",
+      "left_groups": [
+        {
+          "group_ru": "Темы",
+          "group_en": "Topics",
+          "nodes": [
+            {
+              "key": "geo_area_volume",
+              "title_ru": "Площадь и объём",
+              "title_en": "Area and volume",
+              "kind": "topic",
+              "status_hint": "unknown"
+            },
+            {
+              "key": "geo_angles",
+              "title_ru": "Углы и прямые",
+              "title_en": "Angles and lines",
+              "kind": "topic",
+              "status_hint": "unknown"
+            },
+            {
+              "key": "geo_triangles",
+              "title_ru": "Треугольники",
+              "title_en": "Triangles",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Треугольники"
+              },
+              "soft_prerequisites": [
+                "geo_angles"
+              ]
+            },
+            {
+              "key": "geo_similar",
+              "title_ru": "Подобие и равенство треугольников",
+              "title_en": "Similar and congruent triangles",
+              "kind": "topic",
+              "status_hint": "unknown",
+              "soft_prerequisites": [
+                "geo_triangles"
+              ]
+            },
+            {
+              "key": "geo_special_right",
+              "title_ru": "Особые прямоугольные треугольники",
+              "title_en": "Special right triangles",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Особые прямоугольные треугольники"
+              },
+              "soft_prerequisites": [
+                "geo_triangles"
+              ]
+            },
+            {
+              "key": "geo_right_trig",
+              "title_ru": "Тригонометрия прямоугольного треугольника",
+              "title_en": "Right-triangle trigonometry",
+              "kind": "topic",
+              "status_hint": "unknown",
+              "soft_prerequisites": [
+                "geo_special_right"
+              ]
+            },
+            {
+              "key": "geo_radians",
+              "title_ru": "Радианы и единичная окружность",
+              "title_en": "Radians and the unit circle",
+              "kind": "topic",
+              "status_hint": "unknown",
+              "soft_prerequisites": [
+                "geo_right_trig"
+              ]
+            },
+            {
+              "key": "geo_circle",
+              "title_ru": "Круг и окружность",
+              "title_en": "Circles",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Круг и окружность"
+              },
+              "soft_prerequisites": [
+                "geo_angles"
+              ]
+            },
+            {
+              "key": "geo_arc_sector",
+              "title_ru": "Дуга и сектор",
+              "title_en": "Arc and sector",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Дуга и сектор"
+              },
+              "soft_prerequisites": [
+                "geo_circle"
+              ]
+            },
+            {
+              "key": "geo_circle_eq",
+              "title_ru": "Уравнение окружности",
+              "title_en": "Equation of a circle",
+              "kind": "topic",
+              "status_hint": "likely_existing",
+              "link_hint": {
+                "formulas_topic": "Уравнение окружности"
+              },
+              "soft_prerequisites": [
+                "geo_circle",
+                "alg_distance_midpoint"
+              ]
+            }
+          ]
+        }
+      ],
+      "right_groups": [
+        {
+          "group_ru": "Практика",
+          "group_en": "Practice",
+          "nodes": [
+            {
+              "key": "geo_formulas",
+              "title_ru": "Формулы раздела",
+              "title_en": "Section formulas",
+              "kind": "practice",
+              "link_hint": {
+                "formulas_collection": "SAT · Геометрия и тригонометрия"
+              }
+            },
+            {
+              "key": "geo_bank",
+              "title_ru": "Вопросы раздела",
+              "title_en": "Section questions",
+              "kind": "practice",
+              "link_hint": {
+                "bank_tags": [
+                  "SAT",
+                  "Geometry and Trigonometry"
+                ]
+              }
+            },
+            {
+              "key": "geo_exam",
+              "title_ru": "Мини-экзамен раздела",
+              "title_en": "Section mini-exam",
+              "kind": "exam",
+              "link_hint": {
+                "bank_tags": [
+                  "SAT",
+                  "Geometry and Trigonometry"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "gate": {
+        "type": "mini_exam",
+        "questions": 10,
+        "pass_percent": 80
+      },
+      "official_question_share": "5-7"
+    },
+    {
+      "key": "mixed",
+      "title_ru": "Смешанная практика",
+      "title_en": "Mixed practice",
+      "description_ru": "Соберите всё вместе: решайте полные модули на время.",
+      "left_groups": [
+        {
+          "group_ru": "Симуляции",
+          "group_en": "Simulations",
+          "nodes": [
+            {
+              "key": "mixed_module1",
+              "title_ru": "Модуль 1: 22 вопроса, 35 минут",
+              "title_en": "Module 1: 22 questions, 35 minutes",
+              "kind": "practice",
+              "link_hint": {
+                "compilation": "SAT module"
+              }
+            },
+            {
+              "key": "mixed_module2",
+              "title_ru": "Модуль 2: 22 вопроса, 35 минут",
+              "title_en": "Module 2: 22 questions, 35 minutes",
+              "kind": "practice",
+              "link_hint": {
+                "compilation": "SAT module"
+              }
+            },
+            {
+              "key": "mixed_full",
+              "title_ru": "Полный тест",
+              "title_en": "Full test",
+              "kind": "practice",
+              "link_hint": {
+                "compilation": "SAT"
+              }
+            }
+          ]
+        }
+      ],
+      "right_groups": [
+        {
+          "group_ru": "Тренировка",
+          "group_en": "Training",
+          "nodes": [
+            {
+              "key": "mixed_compilations",
+              "title_ru": "Сборники SAT",
+              "title_en": "SAT compilations",
+              "kind": "practice",
+              "link_hint": {
+                "compilation": "SAT"
+              }
+            },
+            {
+              "key": "mixed_timed",
+              "title_ru": "Тренировка на время",
+              "title_en": "Timed practice",
+              "kind": "practice"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "review",
+      "title_ru": "Разбор ошибок и пересдача",
+      "title_en": "Review and retake",
+      "description_ru": "Превратите ошибки в баллы: разберите, повторите, пересдайте сильнее.",
+      "left_groups": [
+        {
+          "group_ru": "Анализ",
+          "group_en": "Analysis",
+          "nodes": [
+            {
+              "key": "review_error_log",
+              "title_ru": "Журнал ошибок",
+              "title_en": "Error log",
+              "kind": "info"
+            },
+            {
+              "key": "review_weak",
+              "title_ru": "Повторение слабых тем",
+              "title_en": "Reviewing weak topics",
+              "kind": "info"
+            },
+            {
+              "key": "review_retake",
+              "title_ru": "План пересдачи",
+              "title_en": "Retake plan",
+              "kind": "info"
+            }
+          ]
+        }
+      ],
+      "right_groups": [
+        {
+          "group_ru": "Повторение",
+          "group_en": "Review",
+          "nodes": [
+            {
+              "key": "review_needs",
+              "title_ru": "Станции для повторения",
+              "title_en": "Stations to review",
+              "kind": "practice"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "test_day",
+      "title_ru": "День теста",
+      "title_en": "Test day",
+      "description_ru": "Последний шаг: чек-лист и спокойный день теста.",
+      "left_groups": [
+        {
+          "group_ru": "Подготовка",
+          "group_en": "Preparation",
+          "nodes": [
+            {
+              "key": "testday_checklist",
+              "title_ru": "Чек-лист дня теста",
+              "title_en": "Test-day checklist",
+              "kind": "info"
+            },
+            {
+              "key": "testday_device",
+              "title_ru": "Проверка устройства и приложения",
+              "title_en": "Device and app check",
+              "kind": "info"
+            }
+          ]
+        }
+      ],
+      "right_groups": [
+        {
+          "group_ru": "Финал",
+          "group_en": "Final",
+          "nodes": [
+            {
+              "key": "testday_final",
+              "title_ru": "Финальный мини-тест",
+              "title_en": "Final mini-test",
+              "kind": "practice",
+              "link_hint": {
+                "compilation": "SAT"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
