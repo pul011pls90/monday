@@ -51,6 +51,7 @@
         ('student.journal', 'journal', _('Журнал'), ['student.journal']),
         ('student.formulas', 'formulas', _('Формулы'), ['student.formulas', 'student.formula_template']),
       ] %}
+      {% if not SHOW_JOURNAL %}{% set items = items|rejectattr(0, 'equalto', 'student.journal')|list %}{% endif %}
       {% set primary = ['student.monday', 'student.home', 'student.sessions', 'bank.index', 'student.homework'] %}
     {% endif %}
     {% for endpoint, ic, label, active in items %}{% set on = (nav_active == endpoint) if nav_active is defined else (ep in active) %}

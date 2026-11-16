@@ -88,9 +88,9 @@
     </form>
     {% endif %}
 
-    <form method="post" class="row" style="justify-content:space-between" data-ajax>
+    <form method="post" class="row" style="justify-content:{{ 'space-between' if SHOW_JOURNAL else 'flex-end' }}" data-ajax>
       {{ ui.csrf() }}
-      <a class="btn btn--secondary" href="{{ url_for('student.journal') }}">{{ _("Открыть журнал") }}</a>
+      {% if SHOW_JOURNAL %}<a class="btn btn--secondary" href="{{ url_for('student.journal') }}">{{ _("Открыть журнал") }}</a>{% endif %}
       <button class="btn btn--primary btn--lg" type="submit" name="action" value="next">
         {{ _("Следующий вопрос") if idx + 1 < total else _("Завершить сессию") }} {{ ui.icon('arrow-right', 18) }}
       </button>

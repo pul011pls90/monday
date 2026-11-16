@@ -40,7 +40,7 @@
 {# what to do next: one row of action tiles; repeating the mistakes is the filled one when there are any #}
 <section class="sd-next-actions" aria-labelledby="sd-next-h">
   <div class="sd-next-actions__head"><h2 id="sd-next-h" class="eyebrow">{{ _("Что дальше") }}</h2>
-    <a href="{{ url_for('student.journal') }}">{{ ui.icon('journal', 16) }}{{ _("Журнал ошибок") }}</a></div>
+    {% if SHOW_JOURNAL %}<a href="{{ url_for('student.journal') }}">{{ ui.icon('journal', 16) }}{{ _("Журнал ошибок") }}</a>{% endif %}</div>
   <div class="sd-actions">
     {% if wrong %}
     <form method="post" action="{{ url_for('student.session_retry', attempt_id=att.id) }}">{{ ui.csrf() }}

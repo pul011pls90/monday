@@ -156,6 +156,7 @@
     </div>
     <span class="hc-tile__go">{{ _("Начать тест") if not monday_countdown else _("Подробнее") }} {{ ui.icon('arrow-right', 16) }}</span>
   </a>
+  {% if SHOW_JOURNAL %}
   <a class="card hc hc-tile" href="{{ url_for('student.journal') }}">
     <div class="hc__head"><span class="hc__ic">{{ ui.icon('journal', 20) }}</span><h2>{{ _("Журнал ошибок") }}</h2></div>
     <p class="hc__line">{{ _("Здесь твои ошибки. Разбери их, чтобы не повторять.") }}</p>
@@ -165,6 +166,7 @@
     </div>
     <span class="hc-tile__go">{{ _("Разобрать ошибки") }} {{ ui.icon('arrow-right', 16) }}</span>
   </a>
+  {% endif %}
 </div>
 {% endblock %}
 

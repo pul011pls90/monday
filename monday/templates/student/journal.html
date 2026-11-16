@@ -7,7 +7,7 @@
   <p class="text-2">{{ _("Разбери ошибки из прошлых работ, чтобы не повторять их.") }}</p>
 </header>
 
-{% set colors = {'careless': '#F59E0B', 'gap': '#EF4444', 'misread': '#8B5CF6', 'time': '#2563EB', None: 'var(--surface-3)'} %}
+{% set colors = {'careless': 'var(--warn)', 'gap': 'var(--bad)', 'misread': 'var(--mode-purple)', 'time': 'var(--accent)', None: 'var(--muted)'} %}
 {% set reason_tips = {
   'careless': _('Проверяй знаки, единицы измерения и последний шаг перед ответом.'),
   'gap': _('Повтори формулы и теорию по этой теме перед следующей практикой.'),
@@ -20,13 +20,13 @@
     <div class="jr-hero__head">
       <div class="stack-xs" style="gap:2px">
         <h2 id="why-h" class="jr-hero__title">{{ _("Где теряешь баллы") }}</h2>
-        <span class="small muted">{{ _("За последние 7 дней") }}</span>
+        <span class="small muted num">{{ _("Всего за всё время: %(n)s", n=open_count + resolved_count) }}</span>
       </div>
-      <span class="jr-hero__total num">{{ week_total }} {{ week_total|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }}</span>
+      <span class="tag tag--bad jr-hero__total num">{{ week_total }} {{ _("за 7 дней") }}</span>
     </div>
 
     {% if week_total %}
-      {% set ns = namespace(top_key='none', top_val=-1) %}
+      {% set ns = namespace(top_key='none', top_val=-1, nonzero=[], zero=[]) %}
       {% for k in ['careless', 'gap', 'misread', 'time', None] %}
         {% set v = breakdown.get(k, 0) %}
         {% if v > ns.top_val %}
@@ -34,8 +34,19 @@
           {% set ns.top_key = k if k is not none else 'none' %}
         {% endif %}
       {% endfor %}
+      {% for k, label in MISTAKE_REASONS.items() %}
+        {% set cnt = breakdown.get(k, 0) %}
+        {% if cnt > 0 %}
+          {% set _x = ns.nonzero.append((k, label, cnt)) %}
+        {% else %}
+          {% set _x = ns.zero.append((k, label, 0)) %}
+        {% endif %}
+      {% endfor %}
+      {% if breakdown.get(None) %}
+        {% set _x = ns.nonzero.append(('none', _("Причина не указана"), breakdown[None])) %}
+      {% endif %}
 
-      <div class="jr-hero__bar" role="group" aria-label="{{ _('Распределение причин ошибок') }}">
+      <div class="jr-hero__bar" role="group" aria-label="{{ _('Распределение причин ошибок за 7 дней') }}">
         {% for k in ['careless', 'gap', 'misread', 'time', None] %}
           {% if breakdown.get(k) %}
             {% set rkey = k if k is not none else 'none' %}
@@ -47,49 +58,47 @@
                     data-count="{{ breakdown[k] }}"
                     data-tip="{{ reason_tips[rkey] }}"
                     style="flex:{{ breakdown[k] }};background:{{ colors[k] }}"
-                    title="{{ MISTAKE_REASONS.get(k, _('Причина не указана')) }}: {{ breakdown[k] }} ({{ pct }}%)"
-                    aria-label="{{ MISTAKE_REASONS.get(k, _('Причина не указана')) }}: {{ breakdown[k] }} ({{ pct }}%)"></button>
+                    title="{{ MISTAKE_REASONS.get(k, _('Причина не указана')) }}: {{ breakdown[k] }}"
+                    aria-label="{{ MISTAKE_REASONS.get(k, _('Причина не указана')) }}: {{ breakdown[k] }}"></button>
           {% endif %}
         {% endfor %}
       </div>
 
+      {% if ns.nonzero %}
       <div class="jr-reason-chips">
-        {% for k, label in MISTAKE_REASONS.items() %}
-          {% set cnt = breakdown.get(k, 0) %}
-          {% set pct = ((100 * cnt / week_total) | round | int) if week_total else 0 %}
+        {% for rkey, label, cnt in ns.nonzero %}
+          {% set ckey = none if rkey == 'none' else rkey %}
           <button type="button"
-                  class="jr-reason-chip{{ ' is-active' if k == ns.top_key }}{{ ' is-zero' if not cnt }}"
-                  data-reason="{{ k }}"
-                  data-pct="{{ pct }}"
+                  class="jr-reason-chip{{ ' is-active' if rkey == ns.top_key }}"
+                  data-reason="{{ rkey }}"
                   data-count="{{ cnt }}"
-                  data-tip="{{ reason_tips[k] }}"
-                  aria-pressed="{{ 'true' if k == ns.top_key else 'false' }}">
-            <span class="dot" style="border-radius:4px;background:{{ colors[k] }}"></span>
+                  data-tip="{{ reason_tips[rkey] }}"
+                  aria-pressed="{{ 'true' if rkey == ns.top_key else 'false' }}">
+            <span class="dot" style="background:{{ colors[ckey] }}"></span>
             <span class="jr-reason-chip__label">{{ label }}</span>
             <span class="jr-reason-chip__stat num"><b>{{ cnt }}</b></span>
           </button>
         {% endfor %}
-        {% if breakdown.get(None) %}
-          {% set cnt_none = breakdown[None] %}
-          {% set pct_none = ((100 * cnt_none / week_total) | round | int) %}
-          <button type="button"
-                  class="jr-reason-chip{{ ' is-active' if ns.top_key == 'none' }}"
-                  data-reason="none"
-                  data-pct="{{ pct_none }}"
-                  data-count="{{ cnt_none }}"
-                  data-tip="{{ reason_tips['none'] }}"
-                  aria-pressed="{{ 'true' if ns.top_key == 'none' else 'false' }}">
-            <span class="dot" style="border-radius:4px;background:var(--surface-3)"></span>
-            <span class="jr-reason-chip__label">{{ _("Причина не указана") }}</span>
-            <span class="jr-reason-chip__stat num"><b>{{ cnt_none }}</b></span>
-          </button>
-        {% endif %}
       </div>
+      {% endif %}
 
-      <div class="jr-hero__insight" data-jr-insight>
-        {{ ui.icon('bolt', 15) }}
-        <span data-jr-insight-text>{{ reason_tips[ns.top_key] }}</span>
+      {% if ns.zero %}
+      <div class="jr-reason-zeros" aria-label="{{ _('Категории без ошибок за 7 дней') }}">
+        <span class="small muted">{{ _("Без ошибок:") }}</span>
+        {% for rkey, label, _cnt in ns.zero %}
+          <button type="button"
+                  class="jr-reason-zero"
+                  data-reason="{{ rkey }}"
+                  data-count="0"
+                  data-tip="{{ reason_tips[rkey] }}"
+                  aria-pressed="false">
+            <span class="dot" style="background:{{ colors[rkey] }}"></span>
+            <span>{{ label }}</span>
+            <b class="num">0</b>
+          </button>
+        {% endfor %}
       </div>
+      {% endif %}
     {% else %}
       <div class="jr-hero__empty">
         <p class="text-2" style="margin:0">{{ _("За последние 7 дней ошибок нет — отличный темп.") }}</p>
@@ -100,8 +109,8 @@
   <div class="jr-hero__action" aria-labelledby="darwin-h">
     <div class="jr-hero__action-top">
       <div class="row" style="gap:8px;align-items:center">
-        <span class="jr-hero__orange-dot" aria-hidden="true"></span>
-        <span class="jr-hero__orange-label">{{ MODES.darwin.name }}</span>
+        {{ ui.mode_dot("darwin") }}
+        <span class="jr-hero__action-label">{{ MODES.darwin.name }}</span>
       </div>
       <span class="small muted num">{{ _("Разобрано") }} <b>{{ resolved_count }}</b> / {{ open_count + resolved_count }}</span>
     </div>
@@ -127,19 +136,26 @@
       </p>
     </div>
 
+    {% if week_total %}
+    <div class="jr-hero__insight" data-jr-insight>
+      {{ ui.icon('bolt', 15) }}
+      <span data-jr-insight-text>{{ reason_tips[ns.top_key] }}</span>
+    </div>
+    {% endif %}
+
     <div class="jr-hero__bottom">
       <div class="jr-hero__pills">
         <div class="jr-hero__pill num">
-          {{ ui.icon('clock', 15) }}
+          {{ ui.icon('clock', 14) }}
           <span>~{{ fix_minutes }} {{ _("мин") }}</span>
         </div>
         <div class="jr-hero__pill num">
-          {{ ui.icon('bolt', 15) }}
+          {{ ui.icon('bolt', 14) }}
           <span>{{ fix_count }} {{ fix_count|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }}</span>
         </div>
       </div>
 
-      <form method="post" action="{{ url_for('student.start_session', mode='darwin') }}">{{ ui.csrf() }}
+      <form method="post" action="{{ url_for('student.start_session', mode='darwin') }}" data-jr-start-form>{{ ui.csrf() }}
         <input type="hidden" name="count" value="{{ fix_count }}">
         <button class="btn btn--primary btn--block jr-hero__cta" type="submit">
           <svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>
@@ -155,7 +171,7 @@
   const hero = document.querySelector('[data-jr-hero]');
   if (!hero) return;
   const segs = [...hero.querySelectorAll('.jr-hero__seg')];
-  const chips = [...hero.querySelectorAll('.jr-reason-chip')];
+  const chips = [...hero.querySelectorAll('.jr-reason-chip, .jr-reason-zero')];
   const insightEl = hero.querySelector('[data-jr-insight-text]');
   const selectReason = (key) => {
     segs.forEach(s => s.classList.toggle('is-active', s.dataset.reason === key));
@@ -168,15 +184,26 @@
   };
   segs.forEach(s => s.addEventListener('click', () => selectReason(s.dataset.reason)));
   chips.forEach(c => c.addEventListener('click', () => selectReason(c.dataset.reason)));
+
+  const startForm = hero.querySelector('[data-jr-start-form]');
+  if (startForm) {
+    startForm.addEventListener('submit', () => {
+      const btn = startForm.querySelector('button[type="submit"]');
+      if (btn) btn.disabled = true;
+    });
+  }
 })();
 </script>
 
 <section class="section">
-  <div class="section__head">
-    <h2 class="jr-main-heading">{{ _("Записи") }}</h2>
+  <div class="jr-toolbar">
+    <div class="jr-toolbar__left">
+      <h2 class="jr-main-heading">{{ _("Записи") }}</h2>
+      <span class="small muted num">{{ _("Показано за %(d)s дней", d=days_shown) }}</span>
+    </div>
     <div class="chips">
-      <a class="chip{{ ' is-active' if show == 'open' }}" href="{{ url_for('student.journal', show='open') }}">{{ _("Открытые") }} <span class="chip__count">{{ open_count }}</span></a>
-      <a class="chip{{ ' is-active' if show == 'resolved' }}" href="{{ url_for('student.journal', show='resolved') }}">{{ _("Разобранные") }} <span class="chip__count">{{ resolved_count }}</span></a>
+      <a class="chip{{ ' is-active' if show == 'open' }}" href="{{ url_for('student.journal', show='open', days=days_shown) }}">{{ _("Открытые") }} <span class="chip__count">{{ open_count }}</span></a>
+      <a class="chip{{ ' is-active' if show == 'resolved' }}" href="{{ url_for('student.journal', show='resolved', days=days_shown) }}">{{ _("Разобранные") }} <span class="chip__count">{{ resolved_count }}</span></a>
     </div>
   </div>
   {% if days %}
@@ -187,17 +214,29 @@
   {% for day in days %}
     {% set delta = (today_d - day.date).days %}
     {% if delta <= 7 %}
-      {% set _ = recent_days.append(day) %}
+      {% set _x = recent_days.append(day) %}
     {% elif delta <= 14 %}
-      {% set _ = week_days.append(day) %}
+      {% set _x = week_days.append(day) %}
     {% else %}
-      {% set _ = month_days.append(day) %}
+      {% set _x = month_days.append(day) %}
     {% endif %}
   {% endfor %}
 
   {% macro render_day_card(day) -%}
     {% set delta = (today_d - day.date).days %}
     {% set age_tier = 'today' if delta == 0 else ('yesterday' if delta == 1 else ('this-week' if delta <= 7 else ('last-week' if delta <= 14 else 'older'))) %}
+    {% set gns = namespace(items=[], map={}) %}
+    {% for g in day.groups %}
+      {% set key = g.kind ~ '::' ~ g.title %}
+      {% if key in gns.map %}
+        {% set idx = gns.map[key] %}
+        {% set prev = gns.items[idx] %}
+        {% set _x = gns.items.__setitem__(idx, {'kind': prev.kind, 'title': prev.title, 'works': prev.works + 1, 'mistakes': prev.mistakes + g.rows|length, 'attempt': prev.attempt}) %}
+      {% else %}
+        {% set _x = gns.map.update({key: gns.items|length}) %}
+        {% set _x = gns.items.append({'kind': g.kind, 'title': g.title, 'works': 1, 'mistakes': g.rows|length, 'attempt': g.attempt}) %}
+      {% endif %}
+    {% endfor %}
     <article class="card jr-card jr-card--{{ age_tier }}">
       <div class="jr-card__header">
         <div class="jr-card__day-badge jr-day--{{ age_tier }}">
@@ -208,34 +247,33 @@
 
       <div class="jr-card__stats">
         <div class="jr-card__count">
-          <b>{{ day.total }}</b>
+          <b class="num">{{ day.total }}</b>
           <span>{{ day.total|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }}</span>
         </div>
-        <div class="small muted">{{ day.groups|length }} {{ day.groups|length|plural_ru(_("работа"), _("работы"), _("работ")) }}</div>
+        <div class="small muted num">{{ day.groups|length }} {{ day.groups|length|plural_ru(_("работа"), _("работы"), _("работ")) }}</div>
       </div>
 
       <div class="jr-card__topics">
         {% for name, n in day.topics[:3] %}
-          <span class="tag tag--soft tag--xs" title="{{ name }}"><span class="tag__text">{{ name }}</span>{% if n > 1 %} <b>×{{ n }}</b>{% endif %}</span>
+          <span class="tag tag--soft tag--xs" title="{{ name }}"><span class="tag__text">{{ name }}</span>{% if n > 1 %} <b class="num">×{{ n }}</b>{% endif %}</span>
         {% endfor %}
         {% if day.topics|length > 3 %}
-          <span class="tag tag--line tag--xs muted">+{{ day.topics|length - 3 }}</span>
+          <span class="tag tag--line tag--xs muted num">+{{ day.topics|length - 3 }}</span>
         {% endif %}
       </div>
 
       <div class="jr-card__works">
-        {% for g in day.groups %}
-          {% set att = g.attempt %}
-          <a class="jr-card__work-row" href="{{ url_for('student.journal_review', attempt_id=att.id) }}" title="{{ g.title }}">
+        {% for g in gns.items %}
+          <a class="jr-card__work-row" href="{{ url_for('student.journal_review', attempt_id=g.attempt.id) }}" title="{{ g.kind }}: {{ g.title }}">
             <span class="jr-card__work-kind">{{ g.kind }}</span>
-            <span class="jr-card__work-title">{{ g.title }}</span>
-            <span class="jr-card__work-count">{{ g.rows|length }}</span>
+            <span class="jr-card__work-title">{{ g.title }}{% if g.works > 1 %} <span class="muted num">×{{ g.works }}</span>{% endif %}</span>
+            <span class="jr-card__work-count num">{{ g.mistakes }}</span>
           </a>
         {% endfor %}
       </div>
 
       {% if day.groups %}
-        <a class="btn btn--primary btn--block btn--sm jr-card__btn" href="{{ url_for('student.journal_review', attempt_id=day.groups[0].attempt.id) }}">
+        <a class="btn btn--secondary btn--block btn--sm jr-card__btn" href="{{ url_for('student.journal_review', attempt_id=day.groups[0].attempt.id) }}">
           {{ ui.icon('play', 14) }}{{ _("Разобрать") }} ({{ day.total }})
         </a>
       {% endif %}
@@ -250,7 +288,7 @@
           <span class="dot--section dot--section-recent"></span>
           <span>{{ _("Недавние записи") }}</span>
         </h3>
-        <span class="jr-section__sub hw-sub-pill">{{ _("За последние 7 дней") }} <i class="hw-sub-pill__sep" aria-hidden="true">·</i> <b>{{ recent_days|length }} {{ recent_days|length|plural_ru(_("день"), _("дня"), _("дней")) }}</b></span>
+        <span class="small muted num">{{ recent_days|length }} {{ recent_days|length|plural_ru(_("день"), _("дня"), _("дней")) }}</span>
       </div>
       <div class="grid grid-4 jr-grid">
         {% for day in recent_days %}{{ render_day_card(day) }}{% endfor %}
@@ -265,7 +303,7 @@
           <span class="dot--section dot--section-week"></span>
           <span>{{ _("1–2 недели назад") }}</span>
         </h3>
-        <span class="jr-section__sub hw-sub-pill">{{ _("Предыдущая неделя") }} <i class="hw-sub-pill__sep" aria-hidden="true">·</i> <b>{{ week_days|length }} {{ week_days|length|plural_ru(_("день"), _("дня"), _("дней")) }}</b></span>
+        <span class="small muted num">{{ week_days|length }} {{ week_days|length|plural_ru(_("день"), _("дня"), _("дней")) }}</span>
       </div>
       <div class="grid grid-4 jr-grid">
         {% for day in week_days %}{{ render_day_card(day) }}{% endfor %}
@@ -280,7 +318,7 @@
           <span class="dot--section dot--section-month"></span>
           <span>{{ _("Месяц назад и ранее") }}</span>
         </h3>
-        <span class="jr-section__sub hw-sub-pill">{{ _("Более 2 недель назад") }} <i class="hw-sub-pill__sep" aria-hidden="true">·</i> <b>{{ month_days|length }} {{ month_days|length|plural_ru(_("день"), _("дня"), _("дней")) }}</b></span>
+        <span class="small muted num">{{ month_days|length }} {{ month_days|length|plural_ru(_("день"), _("дня"), _("дней")) }}</span>
       </div>
       <div class="grid grid-4 jr-grid">
         {% for day in month_days %}{{ render_day_card(day) }}{% endfor %}

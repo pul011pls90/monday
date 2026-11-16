@@ -86,7 +86,7 @@
           </div>
         {% endif %}
 
-        {% if m.weak_journal %}
+        {% if SHOW_JOURNAL and m.weak_journal %}
           <div class="rm-journal-box">
             <b class="small">{{ _("Топ-3 темы с ошибками в Журнале:") }}</b>
             <div class="rm-journal-chips">
@@ -375,6 +375,7 @@
       }
       html += `</section>`;
 
+      {% if SHOW_JOURNAL %}
       // 3. Unresolved Journal Errors
       html += `<section class="rm-dsec"><h3>3. Ошибки в Журнале</h3>`;
       if (n.errors > 0) {
@@ -383,6 +384,7 @@
         html += `<p class="muted small">Неразобранных ошибок по этой теме нет.</p>`;
       }
       html += `</section>`;
+      {% endif %}
     } else if (n.kind === "info" || n.kind === "tool" || n.kind === "strategy") {
       const lines = (n.summary_ru || "").split("\n").filter(Boolean).map((l) => `<p class="math">${esc(l)}</p>`).join("");
       html += `<section class="rm-dsec">${lines || "<p>Изучите материалы этого шага.</p>"}</section>`;

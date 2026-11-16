@@ -246,6 +246,7 @@ def _register_template_helpers(app):
             "THEME": theme if theme in ("light", "dark") else "light",
             "THEME_AUTO": theme == "system",
             "PREFS": prefs,
+            "SHOW_JOURNAL": bool(app.config.get("SHOW_JOURNAL", False)),
             "LANGUAGES": app.config["LANGUAGES"],
             "CURRENT_LANG": select_locale(),
             "EXAMS": EXAMS,

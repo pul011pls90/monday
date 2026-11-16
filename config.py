@@ -102,6 +102,7 @@ class Config:
     IMPORT_PACKS = os.environ.get("IMPORT_PACKS", "1") == "1"
     DATA_FIXES = os.environ.get("DATA_FIXES", "1") == "1"  # one-time fixes in monday/cleanup.py
     PUBLISH_PACKS = os.environ.get("PUBLISH_PACKS", "1") == "1"
+    SHOW_JOURNAL = False
 
     # Production: no demo accounts in an empty database; the first admin comes from these two variables.
     SEED_DEMO = os.environ.get("SEED_DEMO", "1") == "1"

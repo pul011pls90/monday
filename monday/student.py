@@ -1136,6 +1136,8 @@ def homework_start(assignment_id):
 @bp.route("/journal")
 @student_required
 def journal():
+    if not current_app.config.get("SHOW_JOURNAL", False):
+        abort(404)
     show = request.args.get("show", "open")
     base = (AttemptAnswer.query.join(Attempt).outerjoin(Question, AttemptAnswer.question_id == Question.id)
             .filter(Attempt.user_id == current_user.id, AttemptAnswer.is_correct.is_(False),
@@ -1225,6 +1227,8 @@ def _journal_mistakes(att):
 @student_required
 def journal_review(attempt_id):
     """One test's mistakes, one at a time: answer vs correct, explanation, reason, «Понял, дальше»."""
+    if not current_app.config.get("SHOW_JOURNAL", False):
+        abort(404)
     att = _own_attempt(attempt_id)
     if not att.finished_at:
         abort(404)
@@ -1265,6 +1269,8 @@ def journal_review(attempt_id):
 @student_required
 def journal_blank_reason(attempt_id):
     """«Всем пропущенным → Не хватило времени» in one click (only where no reason was chosen yet)."""
+    if not current_app.config.get("SHOW_JOURNAL", False):
+        abort(404)
     att = _own_attempt(attempt_id)
     n = 0
     for r in _journal_mistakes(att):
@@ -1280,6 +1286,8 @@ def journal_blank_reason(attempt_id):
 @student_required
 def journal_practice(attempt_id):
     """A bank session on the skills where this test's mistakes were."""
+    if not current_app.config.get("SHOW_JOURNAL", False):
+        abort(404)
     import random
     att = _own_attempt(attempt_id)
     skills = {r["answer"].skill_id for r in _journal_mistakes(att) if r["answer"].skill_id}
@@ -1300,6 +1308,8 @@ def journal_practice(attempt_id):
 @bp.route("/journal/<int:answer_id>", methods=["POST"])
 @student_required
 def journal_update(answer_id):
+    if not current_app.config.get("SHOW_JOURNAL", False):
+        abort(404)
     ans = db.session.get(AttemptAnswer, answer_id)
     if not ans or ans.attempt.user_id != current_user.id or ans.is_correct:
         abort(404)

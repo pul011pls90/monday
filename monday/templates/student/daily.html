@@ -55,9 +55,9 @@
     <div class="daily-end__icon" aria-hidden="true">{{ ui.icon('check', 28) }}</div>
     <h2 id="end-h">{{ _("Вопросы дня решены") }}</h2>
     <p class="text-2"><span data-daily-score>{{ daily['items']|selectattr('answer')|map(attribute='answer')|selectattr('is_correct')|list|length }}</span> {{ _("из") }} {{ n }} {{ _("верно") }} · {{ _("серия") }} <b data-daily-streak>{{ daily.streak }}</b></p>
-    <p class="small muted">{{ _("Ошибки уже в Журнале. Вернуться к ним можно в сессии «Дарвин».") }}</p>
+    {% if SHOW_JOURNAL %}<p class="small muted">{{ _("Ошибки уже в Журнале. Вернуться к ним можно в сессии «Дарвин».") }}</p>{% endif %}
     <div class="row" style="gap:10px;justify-content:center">
-      <a class="btn btn--secondary" href="{{ url_for('student.journal') }}">{{ _("Открыть журнал") }}</a>
+      {% if SHOW_JOURNAL %}<a class="btn btn--secondary" href="{{ url_for('student.journal') }}">{{ _("Открыть журнал") }}</a>{% endif %}
       <a class="btn btn--primary" href="{{ url_for('student.home') }}">{{ _("На главную") }}</a>
     </div>
   </section>
