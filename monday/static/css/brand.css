@@ -2357,6 +2357,242 @@ body.has-rv-foot .page { padding-bottom: 110px; }
    Investigation Card Enhancement (Modern & Clear)
    ------------------------------------------------------------ */
 
+.jr-shell {
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: var(--bw, 1px) solid var(--line);
+  border-radius: 22px;
+  box-shadow: 0 8px 28px rgba(2, 11, 41, .05);
+  padding: clamp(16px, 2.4vw, 26px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.jr-head {
+  margin-bottom: 0;
+}
+.jr-head h1 {
+  margin: 0;
+}
+.jr-head p {
+  margin: 4px 0 0;
+}
+.jr-hero__cta {
+  min-height: 44px;
+  font-weight: 700;
+  border-radius: 999px !important;
+}
+.jr-hero__cta .ic,
+.jr-hero__cta .ic path {
+  fill: currentColor;
+}
+.jr-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(290px, 0.9fr);
+  gap: 0;
+  padding: 0 !important;
+  border-radius: 20px !important;
+  overflow: hidden;
+}
+.jr-hero__main {
+  padding: 24px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.jr-hero__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.jr-hero__title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.jr-hero__total {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #DC2626;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+[data-theme="dark"] .jr-hero__total {
+  background: rgba(248, 113, 113, 0.16);
+  color: #F87171;
+}
+.jr-hero__bar {
+  display: flex;
+  height: 18px;
+  border-radius: 9px;
+  overflow: hidden;
+  gap: 3px;
+  background: var(--surface-2);
+}
+.jr-hero__seg {
+  border: 0;
+  padding: 0;
+  min-width: 8px;
+  cursor: pointer;
+  opacity: 0.72;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.jr-hero__seg:hover,
+.jr-hero__seg.is-active {
+  opacity: 1;
+}
+.jr-reason-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+  gap: 8px;
+}
+.jr-reason-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border-radius: 12px;
+  border: var(--bw, 1px) solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.jr-reason-chip:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+.jr-reason-chip.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.jr-reason-chip.is-zero {
+  opacity: 0.62;
+}
+.jr-reason-chip__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.jr-reason-chip__stat {
+  flex: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+.jr-reason-chip__stat small {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.jr-hero__insight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  border: var(--bw, 1px) solid var(--line);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-2);
+}
+.jr-hero__insight .ic {
+  color: var(--accent);
+  flex: none;
+}
+.jr-hero__action {
+  padding: 24px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: linear-gradient(155deg, rgba(245, 158, 11, 0.09) 0%, rgba(234, 88, 12, 0.03) 100%);
+  border-left: var(--bw, 1px) solid var(--line);
+}
+.jr-hero__orange-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #F59E0B;
+  flex: none;
+}
+.jr-hero__orange-label {
+  color: #D97706;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+[data-theme="dark"] .jr-hero__orange-label {
+  color: #FBBF24;
+}
+.jr-hero__bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.jr-hero__pills {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.jr-hero__pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: var(--bw, 1px) solid var(--line);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+.jr-hero__pill .ic {
+  color: #D97706;
+  flex: none;
+}
+.jr-hero__action-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.jr-hero__action-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+@media (max-width: 960px) {
+  .jr-hero {
+    grid-template-columns: 1fr;
+  }
+  .jr-hero__action {
+    border-left: 0;
+    border-top: var(--bw, 1px) solid var(--line);
+  }
+}
+
 .jr-investigation-card {
   border-radius: 20px !important;
   padding: 22px 24px !important;

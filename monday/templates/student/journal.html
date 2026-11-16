@@ -1,73 +1,175 @@
 {% extends "layout.html" %}
 {% block title %}{{ _("Журнал ошибок") }}{% endblock %}
 {% block content %}
-<header class="page-head__text">
+<div class="jr-shell">
+<header class="page-head__text jr-head">
   <h1>{{ _("Журнал ошибок") }}</h1>
-  <p class="text-2">{{ _("Ошибки из твоих последних работ. Разбери каждую, чтобы не повторить её.") }}</p>
+  <p class="text-2">{{ _("Разбери ошибки из прошлых работ, чтобы не повторять их.") }}</p>
 </header>
 
-<div class="grid grid-2">
-  <section class="card" aria-labelledby="why-h">
-    <div class="card__head"><div class="stack-xs" style="gap:2px">
-        <h2 id="why-h" style="font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0">{{ _("Где теряешь баллы") }}</h2>
-        <span class="small muted" style="font-size:12px;font-weight:500">{{ _("Причины ошибок") }}</span>
-      </div><span class="small" style="color:var(--accent);font-weight:600">{{ week_total }} {{ week_total|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }} {{ _("за неделю") }}</span></div>
-    {% set colors = {'careless': '#2B60E5', 'gap': '#153893', 'misread': '#7FA3F3', 'time': '#BBCFF4', None: 'var(--surface-3)'} %}
-    {% if week_total %}
-      <div class="split-bar" role="img" aria-label="{% for k, label in MISTAKE_REASONS.items() %}{{ label }} {{ breakdown.get(k, 0) }}; {% endfor %}">
-        {% for k in ['careless', 'gap', 'misread', 'time', None] %}{% if breakdown.get(k) %}<span style="flex:{{ breakdown[k] }};background:{{ colors[k] }}"></span>{% endif %}{% endfor %}
+{% set colors = {'careless': '#F59E0B', 'gap': '#EF4444', 'misread': '#8B5CF6', 'time': '#2563EB', None: 'var(--surface-3)'} %}
+{% set reason_tips = {
+  'careless': _('Проверяй знаки, единицы измерения и последний шаг перед ответом.'),
+  'gap': _('Повтори формулы и теорию по этой теме перед следующей практикой.'),
+  'misread': _('Дочитывай вопрос до конца: часто спрашивают не x, а 2x или x − y.'),
+  'time': _('Не сиди на одной задаче дольше 90 секунд — пропускай и возвращайся в конце.'),
+  'none': _('Отмечай причину ошибки после теста, чтобы видеть, где теряешь больше всего баллов.')
+} %}
+<section class="card jr-hero" aria-labelledby="why-h" data-jr-hero>
+  <div class="jr-hero__main">
+    <div class="jr-hero__head">
+      <div class="stack-xs" style="gap:2px">
+        <h2 id="why-h" class="jr-hero__title">{{ _("Где теряешь баллы") }}</h2>
+        <span class="small muted">{{ _("За последние 7 дней") }}</span>
       </div>
-      <div class="jr-reasons-legend">
-        {% for k, label in MISTAKE_REASONS.items() %}
-          <div class="jr-reason-row"><span class="dot" style="border-radius:3px;background:{{ colors[k] }}"></span><span class="jr-reason-row__label">{{ label }}</span><b class="num">{{ breakdown.get(k, 0) }}</b></div>
-        {% endfor %}
-        {% if breakdown.get(None) %}<div class="jr-reason-row muted"><span class="dot" style="border-radius:3px;background:var(--surface-3)"></span><span class="jr-reason-row__label">{{ _("Причина не указана") }}</span><b class="num">{{ breakdown[None] }}</b></div>{% endif %}
-      </div>
-    {% else %}
-      <p class="text-2">{{ _("За последние 7 дней ошибок нет.") }}</p>
-    {% endif %}
-  </section>
-
-  <section class="card jr-investigation-card" aria-labelledby="darwin-h">
-    <div class="row row--between" style="align-items:center">
-      <div class="row" style="gap:8px;font-weight:700;font-size:13px;align-items:center">
-        {{ ui.mode_dot("darwin") }}<span>{{ MODES.darwin.name }} · ~{{ fix_minutes }} {{ _("мин") }}</span>
-      </div>
-      <span class="tag tag--line tag--xs" style="font-weight:700">{{ _("Работа над ошибками") }}</span>
+      <span class="jr-hero__total num">{{ week_total }} {{ week_total|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }}</span>
     </div>
 
-    <div class="stack-xs" style="gap:6px">
-      <h2 id="darwin-h" style="font-size:24px;font-weight:800;letter-spacing:-0.02em;margin:0">
-        {{ _("Разбери %(n)s открытых записей", n=open_count) }}
+    {% if week_total %}
+      {% set ns = namespace(top_key='none', top_val=-1) %}
+      {% for k in ['careless', 'gap', 'misread', 'time', None] %}
+        {% set v = breakdown.get(k, 0) %}
+        {% if v > ns.top_val %}
+          {% set ns.top_val = v %}
+          {% set ns.top_key = k if k is not none else 'none' %}
+        {% endif %}
+      {% endfor %}
+
+      <div class="jr-hero__bar" role="group" aria-label="{{ _('Распределение причин ошибок') }}">
+        {% for k in ['careless', 'gap', 'misread', 'time', None] %}
+          {% if breakdown.get(k) %}
+            {% set rkey = k if k is not none else 'none' %}
+            {% set pct = ((100 * breakdown[k] / week_total) | round | int) %}
+            <button type="button"
+                    class="jr-hero__seg{{ ' is-active' if rkey == ns.top_key }}"
+                    data-reason="{{ rkey }}"
+                    data-pct="{{ pct }}"
+                    data-count="{{ breakdown[k] }}"
+                    data-tip="{{ reason_tips[rkey] }}"
+                    style="flex:{{ breakdown[k] }};background:{{ colors[k] }}"
+                    title="{{ MISTAKE_REASONS.get(k, _('Причина не указана')) }}: {{ breakdown[k] }} ({{ pct }}%)"
+                    aria-label="{{ MISTAKE_REASONS.get(k, _('Причина не указана')) }}: {{ breakdown[k] }} ({{ pct }}%)"></button>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="jr-reason-chips">
+        {% for k, label in MISTAKE_REASONS.items() %}
+          {% set cnt = breakdown.get(k, 0) %}
+          {% set pct = ((100 * cnt / week_total) | round | int) if week_total else 0 %}
+          <button type="button"
+                  class="jr-reason-chip{{ ' is-active' if k == ns.top_key }}{{ ' is-zero' if not cnt }}"
+                  data-reason="{{ k }}"
+                  data-pct="{{ pct }}"
+                  data-count="{{ cnt }}"
+                  data-tip="{{ reason_tips[k] }}"
+                  aria-pressed="{{ 'true' if k == ns.top_key else 'false' }}">
+            <span class="dot" style="border-radius:4px;background:{{ colors[k] }}"></span>
+            <span class="jr-reason-chip__label">{{ label }}</span>
+            <span class="jr-reason-chip__stat num"><b>{{ cnt }}</b></span>
+          </button>
+        {% endfor %}
+        {% if breakdown.get(None) %}
+          {% set cnt_none = breakdown[None] %}
+          {% set pct_none = ((100 * cnt_none / week_total) | round | int) %}
+          <button type="button"
+                  class="jr-reason-chip{{ ' is-active' if ns.top_key == 'none' }}"
+                  data-reason="none"
+                  data-pct="{{ pct_none }}"
+                  data-count="{{ cnt_none }}"
+                  data-tip="{{ reason_tips['none'] }}"
+                  aria-pressed="{{ 'true' if ns.top_key == 'none' else 'false' }}">
+            <span class="dot" style="border-radius:4px;background:var(--surface-3)"></span>
+            <span class="jr-reason-chip__label">{{ _("Причина не указана") }}</span>
+            <span class="jr-reason-chip__stat num"><b>{{ cnt_none }}</b></span>
+          </button>
+        {% endif %}
+      </div>
+
+      <div class="jr-hero__insight" data-jr-insight>
+        {{ ui.icon('bolt', 15) }}
+        <span data-jr-insight-text>{{ reason_tips[ns.top_key] }}</span>
+      </div>
+    {% else %}
+      <div class="jr-hero__empty">
+        <p class="text-2" style="margin:0">{{ _("За последние 7 дней ошибок нет — отличный темп.") }}</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="jr-hero__action" aria-labelledby="darwin-h">
+    <div class="jr-hero__action-top">
+      <div class="row" style="gap:8px;align-items:center">
+        <span class="jr-hero__orange-dot" aria-hidden="true"></span>
+        <span class="jr-hero__orange-label">{{ MODES.darwin.name }}</span>
+      </div>
+      <span class="small muted num">{{ _("Разобрано") }} <b>{{ resolved_count }}</b> / {{ open_count + resolved_count }}</span>
+    </div>
+
+    <div class="stack-xs" style="gap:4px">
+      <h2 id="darwin-h" class="jr-hero__action-title">
+        {% if open_count > fix_count %}
+          {{ _("Следующие %(n)s ошибок", n=fix_count) }}
+        {% elif open_count > 0 %}
+          {{ _("Все %(n)s открытых ошибок", n=open_count) }}
+        {% else %}
+          {{ _("Открытых ошибок нет") }}
+        {% endif %}
       </h2>
-      <p class="text-2 small" style="margin:0;line-height:1.45">
-        {{ _("%(n)s задач по темам твоих ошибок, по одной на каждую неразобранную.", n=fix_count) }}
+      <p class="text-2 small" style="margin:0;line-height:1.4">
+        {% if open_count > fix_count %}
+          {{ _("В журнале %(tot)s открытых — разберём %(n)s последних по темам.", tot=open_count, n=fix_count) }}
+        {% elif open_count > 0 %}
+          {{ _("По одной задаче на каждую открытую ошибку.") }}
+        {% else %}
+          {{ _("Можно повторить %(n)s задач по темам прошлых ошибок.", n=fix_count) }}
+        {% endif %}
       </p>
     </div>
 
-    <div class="jr-investigation-features">
-      <div class="jr-inv-pill">
-        {{ ui.icon('bolt', 14) }}
-        <span>{{ _("Темы твоих ошибок") }}</span>
+    <div class="jr-hero__bottom">
+      <div class="jr-hero__pills">
+        <div class="jr-hero__pill num">
+          {{ ui.icon('clock', 15) }}
+          <span>~{{ fix_minutes }} {{ _("мин") }}</span>
+        </div>
+        <div class="jr-hero__pill num">
+          {{ ui.icon('bolt', 15) }}
+          <span>{{ fix_count }} {{ fix_count|plural_ru(_("ошибка"), _("ошибки"), _("ошибок")) }}</span>
+        </div>
       </div>
-      <div class="jr-inv-pill">
-        {{ ui.icon('check', 14) }}
-        <span>{{ _("Закрытие пробелов") }}</span>
-      </div>
-      <div class="jr-inv-pill">
-        {{ ui.icon('clock', 14) }}
-        <span>~{{ fix_minutes }} {{ _("мин") }}</span>
-      </div>
-    </div>
 
-    <form method="post" action="{{ url_for('student.start_session', mode='darwin') }}" style="margin-top:auto">{{ ui.csrf() }}
-      <input type="hidden" name="count" value="{{ fix_count }}">
-      <button class="btn btn--primary btn--block btn--sm" style="min-height:42px;font-weight:700" type="submit">
-        {{ ui.icon('play', 16) }} {{ _("Начать работу над ошибками") }}
-      </button>
-    </form>
-  </section>
-</div>
+      <form method="post" action="{{ url_for('student.start_session', mode='darwin') }}">{{ ui.csrf() }}
+        <input type="hidden" name="count" value="{{ fix_count }}">
+        <button class="btn btn--primary btn--block jr-hero__cta" type="submit">
+          <svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>
+          {{ _("Начать работу над ошибками") }}
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+(() => {
+  const hero = document.querySelector('[data-jr-hero]');
+  if (!hero) return;
+  const segs = [...hero.querySelectorAll('.jr-hero__seg')];
+  const chips = [...hero.querySelectorAll('.jr-reason-chip')];
+  const insightEl = hero.querySelector('[data-jr-insight-text]');
+  const selectReason = (key) => {
+    segs.forEach(s => s.classList.toggle('is-active', s.dataset.reason === key));
+    chips.forEach(c => {
+      const active = c.dataset.reason === key;
+      c.classList.toggle('is-active', active);
+      c.setAttribute('aria-pressed', active ? 'true' : 'false');
+      if (active && insightEl && c.dataset.tip) insightEl.textContent = c.dataset.tip;
+    });
+  };
+  segs.forEach(s => s.addEventListener('click', () => selectReason(s.dataset.reason)));
+  chips.forEach(c => c.addEventListener('click', () => selectReason(c.dataset.reason)));
+})();
+</script>
 
 <section class="section">
   <div class="section__head">
@@ -191,4 +293,5 @@
   <div class="empty"><h3>{{ _("Пусто") }}</h3><p>{{ _("Открытых ошибок нет. Отличная неделя.") if show == 'open' else _("Здесь будут разобранные ошибки.") }}</p></div>
   {% endif %}
 </section>
+</div>
 {% endblock %}

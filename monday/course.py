@@ -362,7 +362,7 @@ def player(exam: str, unit_slug: str, lesson_slug: str):
                     "explain": snap.get("explanation") or "",
                 })
 
-    formulas_list = _load_topic_formulas(lesson.formula_tpl, lesson.formula_topic_id)
+    formulas_list = [] if lesson.kind == "quiz" else _load_topic_formulas(lesson.formula_tpl, lesson.formula_topic_id)
     try:
         desmos_preset = json.loads(lesson.desmos_preset_json) if lesson.desmos_preset_json else None
     except Exception:

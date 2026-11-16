@@ -726,11 +726,18 @@
         const url = rec.resume_url || "/";
         const sep = url.includes("?") ? "&" : "?";
         const resumeHref = `${url}${sep}resume=1`;
+        const title = (rec.title || "Незавершённое задание").trim();
+        let sub = (rec.subtitle || "").trim();
+        if (sub === title) {
+          sub = "";
+        } else if (sub.startsWith(title + " · ")) {
+          sub = sub.slice(title.length + 3).trim();
+        }
         return `
           <div class="ds-resume__item" data-ds-resume-item>
             <div class="ds-resume__meta">
-              <span class="ds-resume__name">${escapeHtml(rec.title || "Незавершённое задание")}</span>
-              <span class="ds-resume__sub">${escapeHtml(rec.subtitle ? `${rec.subtitle} · ` : "")}Прогресс: ${escapeHtml(progress)}</span>
+              <span class="ds-resume__name">${escapeHtml(title)}</span>
+              <span class="ds-resume__sub">${escapeHtml(sub ? `${sub} · ` : "")}Прогресс: ${escapeHtml(progress)}</span>
             </div>
             <div class="ds-resume__btns">
               <a class="btn btn--primary btn--sm ds-resume__btn" href="${escapeHtml(resumeHref)}">Продолжить</a>
@@ -743,7 +750,7 @@
       host.hidden = false;
       host.innerHTML = `
         <div class="ds-resume__head">
-          <h2 class="ds-resume__title">С возвращением! Продолжим с того места, где вы остановились?</h2>
+          <h2 class="ds-resume__title">Продолжим с того места, где остановились?</h2>
           <button type="button" class="btn btn--ghost btn--sm ds-resume__btn" data-ds-resume-later>Позже</button>
         </div>
         <div class="ds-resume__list">${itemsHtml}</div>

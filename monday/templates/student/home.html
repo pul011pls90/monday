@@ -14,6 +14,7 @@
 {% endfor %}
 
 {# ------------------------------------------------------------ «Сегодня»: the day's plan as one checklist, one button for the next step #}
+<h1 class="home-hello">{{ _("Привет, %(name)s", name=current_user.first_name) }}</h1>
 <section id="ds-resume-card" class="ds-resume" hidden aria-label="{{ _('Продолжить работу') }}"></section>
 {% set plan = [] %}
 {% if daily['items'] %}{% set dn = daily['items']|length %}{% set dleft = dn - daily.done %}
@@ -35,7 +36,6 @@
 {% set nxt = plan|rejectattr('done')|first %}
 
 {# ------------------------------------------------------------ three cards: countdown · target score · today's plan #}
-<h1 class="home-hello">{{ _("Привет, %(name)s", name=current_user.first_name) }}</h1>
 {% set goal = p.goal_score or 0 %}{% set now_p = summary.predicted %}
 <div class="hc-row">
 

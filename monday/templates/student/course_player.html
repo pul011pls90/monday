@@ -30,7 +30,7 @@
 
   <div class="cp-rows">
     <div class="cp-row-top" id="cp-row-top">
-      <aside class="cp-side" id="cp-sidebar" aria-label="{{ _('Уроки юнита') }}">
+      <aside class="cp-side cp-fadeable" id="cp-sidebar" aria-label="{{ _('Уроки юнита') }}">
         <div class="cp-side__head">
           <span class="eyebrow">{{ _("Юнит %(n)s", n=unit.number) }}</span>
           <b>{{ unit.title_ru }}</b>
@@ -50,11 +50,12 @@
       </aside>
 
       <div class="cp-main">
+        {% if lesson.kind != 'quiz' or not questions %}
         {# Optional YouTube Video Slot #}
         {% if youtube_embed %}
         <details class="cp-box">
           <summary class="cp-box__sum">{{ ui.icon('video', 16) }} {{ _("Видео-разбор темы") }}</summary>
-          <div class="cp-video">
+          <div class="cp-video cp-fadeable">
             <iframe src="{{ youtube_embed }}" title="{{ lesson.title_ru }}" allowfullscreen loading="lazy"></iframe>
           </div>
         </details>
@@ -67,11 +68,11 @@
             {{ article_html }}
           </div>
 
-          {# Inline Formula Bar #}
-          {% if formulas_list %}
+          {# Inline Formula Bar (hidden on Unit Quizzes) #}
+          {% if formulas_list and lesson.kind != 'quiz' %}
           <details class="cp-box cp-formulas">
             <summary class="cp-box__sum">{{ ui.icon('formulas', 16) }} {{ _("Формулы темы") }} ({{ formulas_list|length }})</summary>
-            <div class="cp-formulas__list">
+            <div class="cp-formulas__list cp-fadeable">
               {% for fm in formulas_list %}
               <div class="cp-fitem">
                 <b>{{ fm.name }}</b>
@@ -90,6 +91,7 @@
           </div>
           {% endif %}
         </article>
+        {% endif %}
       </div>
     </div>
 
@@ -97,7 +99,7 @@
     <div class="cp-row-practice" id="cp-row-practice">
       {# Collapsible Desmos Calculator (disabled for CSCA; resizes only with question block) #}
       {% if exam != 'CSCA' %}
-      <section class="cp-box cp-desmos" id="cp-desmos-box" hidden>
+      <section class="cp-box cp-desmos cp-fadeable" id="cp-desmos-box" hidden>
         <div class="cp-desmos__head">
           <b>{{ _("Калькулятор Desmos") }}</b>
           <span class="small muted cp-desmos__hint">{{ _("Потяни за край") }}</span>
@@ -113,10 +115,21 @@
       {# In-Place Practice / Unit Quiz Mode (one question at a time) #}
       {% if questions %}
       <div class="cp-quiz-col">
-        <section class="cp-card cp-quiz" id="cp-quiz">
+        <section class="cp-card cp-quiz cp-fadeable" id="cp-quiz">
           <div class="cp-quiz__head">
+            {% if lesson.kind == 'quiz' %}
+            <div class="cp-quiz__title-wrap">
+              <h1 class="cp-quiz__title">{{ lesson.title_ru }}</h1>
+              {% if article_html %}<div class="cp-quiz__sub small muted math">{{ article_html }}</div>{% endif %}
+            </div>
+            <div class="cp-quiz__stats">
+              <b id="cp-q-counter">{{ _("Вопрос 1 из %(t)s", t=questions|length) }}</b>
+              <span class="small muted" id="cp-q-score">{{ _("Верно: 0") }}</span>
+            </div>
+            {% else %}
             <b id="cp-q-counter">{{ _("Вопрос 1 из %(t)s", t=questions|length) }}</b>
             <span class="small muted" id="cp-q-score">{{ _("Верно: 0") }}</span>
+            {% endif %}
           </div>
 
           <div id="cp-q-stage"></div>
@@ -130,11 +143,11 @@
             <button type="button" class="btn btn--primary cp-btn" id="cp-next-q-btn" hidden>{{ _("Следующий вопрос") }} →</button>
           </div>
 
-          <div id="cp-hints-box" class="cp-hints" hidden></div>
-          <div id="cp-feedback" class="cp-fb" hidden></div>
+          <div id="cp-hints-box" class="cp-hints cp-fadeable" hidden></div>
+          <div id="cp-feedback" class="cp-fb cp-fadeable" hidden></div>
         </section>
 
-        <section class="cp-card cp-summary" id="cp-summary" hidden>
+        <section class="cp-card cp-summary cp-fadeable" id="cp-summary" hidden>
           <h2 id="cp-sum-title"></h2>
           <p id="cp-sum-lvl"></p>
           <div class="cp-actions">
@@ -201,21 +214,93 @@
     }
   }
 
-  // Sidebar collapse (top row only)
+  // Subtle fade-in / fade-out helpers for Course Player blocks (respects prefers-reduced-motion)
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const fadeTimers = new WeakMap();
+  function playFadeIn(el) {
+    if (!el || reduceMotion) return;
+    el.classList.remove("cp-fade-in");
+    void el.offsetWidth;
+    el.classList.add("cp-fade-in");
+  }
+  function setBlockVisible(el, show, afterHide) {
+    if (!el) return;
+    if (fadeTimers.has(el)) {
+      clearTimeout(fadeTimers.get(el));
+      fadeTimers.delete(el);
+    }
+    if (reduceMotion) {
+      el.classList.remove("cp-fading-out", "cp-fade-in");
+      el.hidden = !show;
+      if (!show && afterHide) afterHide();
+      return;
+    }
+    if (show) {
+      el.classList.add("cp-fading-out");
+      el.hidden = false;
+      void el.offsetWidth;
+      el.classList.remove("cp-fading-out");
+      playFadeIn(el);
+    } else if (!el.hidden) {
+      el.classList.remove("cp-fade-in");
+      el.classList.add("cp-fading-out");
+      const tid = setTimeout(() => {
+        fadeTimers.delete(el);
+        el.hidden = true;
+        el.classList.remove("cp-fading-out");
+        if (afterHide) afterHide();
+      }, 190);
+      fadeTimers.set(el, tid);
+    }
+  }
+
+  // Smooth fade-in on open & fade-out on close for <details class="cp-box"> (e.g. Формулы темы)
+  document.querySelectorAll("details.cp-box").forEach((det) => {
+    const sum = det.querySelector(":scope > summary");
+    const body = det.querySelector(".cp-fadeable");
+    if (!sum || !body) return;
+    det.addEventListener("toggle", () => {
+      if (det.open) playFadeIn(body);
+    });
+    sum.addEventListener("click", (e) => {
+      if (!det.open || reduceMotion) return;
+      e.preventDefault();
+      body.classList.remove("cp-fade-in");
+      body.classList.add("cp-fading-out");
+      setTimeout(() => {
+        det.open = false;
+        body.classList.remove("cp-fading-out");
+      }, 190);
+    });
+  });
+
+  // Sidebar collapse (top row only, with smooth reflow on main column)
   const side = document.getElementById("cp-sidebar");
   const rowTop = document.getElementById("cp-row-top");
+  const mainCol = document.querySelector(".cp-main");
   const rowPractice = document.getElementById("cp-row-practice");
+  const quizCol = document.querySelector(".cp-quiz-col");
   const desmosBox = document.getElementById("cp-desmos-box");
   const desmosMount = document.getElementById("cp-desmos-mount");
-  function syncLeftCol() {
-    if (rowTop) rowTop.classList.toggle("is-side-hidden", side.hidden);
+  function syncLeftCol(forceSideHidden) {
+    const sideHidden = typeof forceSideHidden === "boolean" ? forceSideHidden : Boolean(side && side.hidden);
+    if (rowTop) rowTop.classList.toggle("is-side-hidden", sideHidden);
     if (rowPractice) rowPractice.classList.toggle("has-desmos", Boolean(desmosBox && !desmosBox.hidden));
   }
   document.querySelectorAll("[data-cp-side-toggle]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      side.hidden = !side.hidden;
-      syncLeftCol();
-      btn.setAttribute("aria-expanded", side.hidden ? "false" : "true");
+      const willShow = side.hidden || side.classList.contains("cp-fading-out");
+      btn.setAttribute("aria-expanded", willShow ? "true" : "false");
+      if (willShow) {
+        setBlockVisible(side, true);
+        syncLeftCol(false);
+        playFadeIn(mainCol);
+      } else {
+        setBlockVisible(side, false, () => {
+          syncLeftCol(true);
+          playFadeIn(mainCol);
+        });
+      }
     });
   });
 
@@ -298,12 +383,14 @@
 
     document.querySelectorAll("[data-cp-desmos-toggle]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        desmosBox.hidden = !desmosBox.hidden;
-        syncLeftCol();
+        const willShow = desmosBox.hidden || desmosBox.classList.contains("cp-fading-out");
         document.querySelectorAll("[data-cp-desmos-toggle]").forEach((b) => {
-          b.setAttribute("aria-expanded", desmosBox.hidden ? "false" : "true");
+          b.setAttribute("aria-expanded", willShow ? "true" : "false");
         });
-        if (!desmosBox.hidden) {
+        if (willShow) {
+          setBlockVisible(desmosBox, true);
+          syncLeftCol();
+          playFadeIn(quizCol);
           if (window.Desmos) {
             initDesmos();
             if (desmosCalc && desmosCalc.resize) desmosCalc.resize();
@@ -314,6 +401,11 @@
             s.onload = initDesmos;
             document.head.appendChild(s);
           }
+        } else {
+          setBlockVisible(desmosBox, false, () => {
+            syncLeftCol();
+            playFadeIn(quizCol);
+          });
         }
       });
     });
@@ -392,6 +484,7 @@
     }
     stage.innerHTML = html;
     mathRender(stage);
+    playFadeIn(stage);
 
     stage.querySelectorAll("[data-cp-opt]").forEach((b) => {
       b.addEventListener("click", () => {
@@ -413,15 +506,16 @@
     const q = questions[qIdx];
     const hs = q.hints || [];
     if (hintIdx < hs.length) {
-      hintsBox.hidden = false;
+      if (hintsBox.hidden) setBlockVisible(hintsBox, true);
       const p = document.createElement("p");
       p.className = "math small";
       p.innerHTML = `<strong>Подсказка ${hintIdx + 1}:</strong> ` + renderMd(hs[hintIdx]);
       hintsBox.appendChild(p);
       mathRender(p);
+      playFadeIn(p);
       hintIdx += 1;
     } else if (q.explain) {
-      hintsBox.hidden = false;
+      if (hintsBox.hidden) setBlockVisible(hintsBox, true);
       if (!hintsBox.querySelector("[data-full-sol]")) {
         const p = document.createElement("p");
         p.dataset.fullSol = "1";
@@ -429,6 +523,7 @@
         p.innerHTML = "<strong>Пошаговое решение:</strong> " + renderMd(q.explain);
         hintsBox.appendChild(p);
         mathRender(p);
+        playFadeIn(p);
       }
     }
   });
@@ -449,9 +544,9 @@
 
     if (d.is_correct) correctCount += 1;
     scoreEl.textContent = `Верно: ${correctCount}`;
-    fbBox.hidden = false;
-    fbBox.className = "cp-fb math " + (d.is_correct ? "is-ok" : "is-bad");
+    fbBox.className = "cp-fb cp-fadeable math " + (d.is_correct ? "is-ok" : "is-bad");
     fbBox.innerHTML = (d.is_correct ? "<strong>Верно!</strong> " : `<strong>Неверно.</strong> Верный ответ: <strong>${renderMd(d.correct_answer)}</strong>. `) + renderMd(d.explain || "");
+    setBlockVisible(fbBox, true);
     mathRender(fbBox);
     checkBtn.hidden = true;
     nextBtn.hidden = false;
