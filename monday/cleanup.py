@@ -232,6 +232,96 @@ def remove_demo_students():
             db.session.delete(u)
 
 
+def remove_extra_teachers():
+    """Keep admin(s) and one teacher account (aibek@monday.kg) for login; remove other seeded teachers
+    while reassigning their authored questions/works/nodes to admin so the question bank stays intact."""
+    from .models import (
+        ActivityDraft,
+        Attendance,
+        BankState,
+        ClientOp,
+        ContentNode,
+        CourseMastery,
+        DailyAnswer,
+        DailyPick,
+        MaintenanceState,
+        Question,
+        ReferenceSheet,
+        Report,
+        RoadmapProgress,
+        Visit,
+    )
+
+    keep_teacher = User.query.filter_by(email="aibek@monday.kg", role="teacher").first()
+    if not keep_teacher:
+        keep_teacher = User.query.filter_by(role="teacher", is_approved=True).order_by(User.id).first()
+
+    extra_teachers = [
+        u for u in User.query.filter_by(role="teacher").all()
+        if not keep_teacher or u.id != keep_teacher.id
+    ]
+    if not extra_teachers:
+        return
+
+    fallback_owner = User.query.filter_by(role="admin").order_by(User.id).first() or keep_teacher
+    extra_ids = [u.id for u in extra_teachers]
+
+    if fallback_owner:
+        Question.query.filter(Question.author_id.in_(extra_ids)).update(
+            {"author_id": fallback_owner.id}, synchronize_session=False
+        )
+        Question.query.filter(Question.reviewed_by_id.in_(extra_ids)).update(
+            {"reviewed_by_id": fallback_owner.id}, synchronize_session=False
+        )
+        Work.query.filter(Work.author_id.in_(extra_ids)).update(
+            {"author_id": fallback_owner.id}, synchronize_session=False
+        )
+        ContentNode.query.filter(ContentNode.owner_id.in_(extra_ids)).update(
+            {"owner_id": None}, synchronize_session=False
+        )
+        DailyPick.query.filter(DailyPick.teacher_id.in_(extra_ids)).update(
+            {"teacher_id": fallback_owner.id}, synchronize_session=False
+        )
+    Report.query.filter(Report.handled_by_id.in_(extra_ids)).update(
+        {"handled_by_id": None}, synchronize_session=False
+    )
+    MaintenanceState.query.filter(MaintenanceState.updated_by_id.in_(extra_ids)).update(
+        {"updated_by_id": None}, synchronize_session=False
+    )
+
+    rec_ids = [r.id for r in StudentRecord.query.filter(StudentRecord.teacher_id.in_(extra_ids)).all()]
+    if rec_ids:
+        Attendance.query.filter(Attendance.record_id.in_(rec_ids)).delete(synchronize_session=False)
+        for assign in Assignment.query.filter(Assignment.record_id.in_(rec_ids)).all():
+            for att in Attempt.query.filter_by(assignment_id=assign.id).all():
+                db.session.delete(att)
+            db.session.delete(assign)
+        StudentRecord.query.filter(StudentRecord.id.in_(rec_ids)).delete(synchronize_session=False)
+
+    for assign in Assignment.query.filter(Assignment.teacher_id.in_(extra_ids)).all():
+        for att in Attempt.query.filter_by(assignment_id=assign.id).all():
+            db.session.delete(att)
+        db.session.delete(assign)
+
+    for att in Attempt.query.filter(Attempt.user_id.in_(extra_ids)).all():
+        db.session.delete(att)
+    for sheet in ReferenceSheet.query.filter(ReferenceSheet.user_id.in_(extra_ids)).all():
+        db.session.delete(sheet)
+    for v in Visit.query.filter(Visit.user_id.in_(extra_ids)).all():
+        db.session.delete(v)
+
+    BankState.query.filter(BankState.user_id.in_(extra_ids)).delete(synchronize_session=False)
+    DailyAnswer.query.filter(DailyAnswer.user_id.in_(extra_ids)).delete(synchronize_session=False)
+    Report.query.filter(Report.author_id.in_(extra_ids)).delete(synchronize_session=False)
+    ActivityDraft.query.filter(ActivityDraft.user_id.in_(extra_ids)).delete(synchronize_session=False)
+    ClientOp.query.filter(ClientOp.user_id.in_(extra_ids)).delete(synchronize_session=False)
+    RoadmapProgress.query.filter(RoadmapProgress.user_id.in_(extra_ids)).delete(synchronize_session=False)
+    CourseMastery.query.filter(CourseMastery.user_id.in_(extra_ids)).delete(synchronize_session=False)
+
+    for u in extra_teachers:
+        db.session.delete(u)
+
+
 def run_fixes():
     if not current_app.config.get("DATA_FIXES", True):
         return
@@ -246,3 +336,4 @@ def run_fixes():
     _once("csca-fitting-questions", csca_only_fitting_questions)
     _once("ort-monday-word-mix-retagged-2", retag_ort_monday_word_mix)
     _once("demo-students-removed-1", remove_demo_students)
+    _once("demo-extra-teachers-removed-1", remove_extra_teachers)
