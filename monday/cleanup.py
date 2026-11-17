@@ -154,6 +154,84 @@ def retag_ort_monday_word_mix():
         AttemptAnswer.query.filter(AttemptAnswer.question_id == q.id).update({"skill_id": q.skill_id})
 
 
+DEMO_UNLINKED_RECORDS = ("Алина Касымова", "Эмир Бакиров", "Сезим Жумабаева", "Арсен Мамытов")
+
+
+def remove_demo_students():
+    """Remove all templated seed students (student@monday.kg, student1..N@monday.kg) and demo roster rows.
+
+    Real student accounts are never touched.
+    """
+    import re
+    from .models import (
+        ActivityDraft,
+        Attendance,
+        BankState,
+        ClientOp,
+        CourseMastery,
+        DailyAnswer,
+        ReferenceSheet,
+        Report,
+        RoadmapProgress,
+        Visit,
+    )
+
+    demo_re = re.compile(r"^student\d*@monday\.kg$", re.I)
+    demo_users = [
+        u for u in User.query.filter_by(role="student").all()
+        if demo_re.match((u.email or "").strip())
+    ]
+    demo_ids = [u.id for u in demo_users]
+
+    # Collect StudentRecords linked to demo users OR unlinked demo roster rows owned by seeded teacher
+    rec_query = StudentRecord.query
+    demo_teacher = User.query.filter_by(email="aibek@monday.kg", role="teacher").first()
+    records = []
+    if demo_ids:
+        records.extend(rec_query.filter(StudentRecord.student_user_id.in_(demo_ids)).all())
+    if demo_teacher:
+        records.extend(
+            rec_query.filter(
+                StudentRecord.teacher_id == demo_teacher.id,
+                StudentRecord.student_user_id.is_(None),
+                StudentRecord.name.in_(DEMO_UNLINKED_RECORDS),
+            ).all()
+        )
+    seen_rec_ids = set()
+    unique_records = []
+    for r in records:
+        if r.id not in seen_rec_ids:
+            seen_rec_ids.add(r.id)
+            unique_records.append(r)
+
+    if seen_rec_ids:
+        Attendance.query.filter(Attendance.record_id.in_(seen_rec_ids)).delete(synchronize_session=False)
+        for assign in Assignment.query.filter(Assignment.record_id.in_(seen_rec_ids)).all():
+            for att in Attempt.query.filter_by(assignment_id=assign.id).all():
+                db.session.delete(att)
+            db.session.delete(assign)
+        for r in unique_records:
+            db.session.delete(r)
+
+    if demo_ids:
+        for att in Attempt.query.filter(Attempt.user_id.in_(demo_ids)).all():
+            db.session.delete(att)
+        for sheet in ReferenceSheet.query.filter(ReferenceSheet.user_id.in_(demo_ids)).all():
+            db.session.delete(sheet)
+        for v in Visit.query.filter(Visit.user_id.in_(demo_ids)).all():
+            db.session.delete(v)
+        BankState.query.filter(BankState.user_id.in_(demo_ids)).delete(synchronize_session=False)
+        DailyAnswer.query.filter(DailyAnswer.user_id.in_(demo_ids)).delete(synchronize_session=False)
+        Report.query.filter(Report.author_id.in_(demo_ids)).delete(synchronize_session=False)
+        Report.query.filter(Report.handled_by_id.in_(demo_ids)).update({"handled_by_id": None}, synchronize_session=False)
+        ActivityDraft.query.filter(ActivityDraft.user_id.in_(demo_ids)).delete(synchronize_session=False)
+        ClientOp.query.filter(ClientOp.user_id.in_(demo_ids)).delete(synchronize_session=False)
+        RoadmapProgress.query.filter(RoadmapProgress.user_id.in_(demo_ids)).delete(synchronize_session=False)
+        CourseMastery.query.filter(CourseMastery.user_id.in_(demo_ids)).delete(synchronize_session=False)
+        for u in demo_users:
+            db.session.delete(u)
+
+
 def run_fixes():
     if not current_app.config.get("DATA_FIXES", True):
         return
@@ -167,3 +245,4 @@ def run_fixes():
     _once("ort-monday-easy-to-hard", order_ort_monday_variants)
     _once("csca-fitting-questions", csca_only_fitting_questions)
     _once("ort-monday-word-mix-retagged-2", retag_ort_monday_word_mix)
+    _once("demo-students-removed-1", remove_demo_students)
