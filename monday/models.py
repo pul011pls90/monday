@@ -60,6 +60,7 @@ class User(UserMixin, db.Model):
     avatar_path = db.Column(db.String(255))  # profile picture, file name inside instance/uploads
     is_blocked = db.Column(db.Boolean, nullable=False, default=False)  # admin can block an account
     is_methodist = db.Column(db.Boolean, nullable=False, default=False)  # teacher who reviews assistants' questions
+    auth_provider = db.Column(db.String(16), nullable=False, default="password")  # password | google
     last_seen_at = db.Column(db.DateTime)  # updated at most every few minutes
     total_visits = db.Column(db.Integer, nullable=False, default=0)  # cached by daily analytics job
     average_visit_duration = db.Column(db.Integer, nullable=False, default=0)  # average seconds per visit

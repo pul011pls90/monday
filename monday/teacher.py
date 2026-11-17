@@ -241,6 +241,115 @@ def assignment_due(assignment_id):
 @bp.route("/students")
 @teacher_required
 def students():
+    if current_user.is_admin:
+        from collections import Counter
+        from sqlalchemy.orm import joinedload
+        from .models import PageView, Visit
+
+        role_filter = (request.args.get("role") or "all").strip().lower()
+        auth_filter = (request.args.get("auth") or "all").strip().lower()
+        sort = request.args.get("sort", "role")
+        q = request.args.get("q", "").strip()
+        q_low = q.casefold()
+
+        all_users = User.query.options(joinedload(User.profile)).all()
+        role_counts = Counter(u.role for u in all_users)
+        user_ids = [u.id for u in all_users]
+
+        # Latest Visit + PageView per user
+        latest_visit = {}
+        latest_page = {}
+        if user_ids:
+            for v in (
+                Visit.query.filter(Visit.user_id.in_(user_ids))
+                .order_by(Visit.ended_at.desc())
+                .all()
+            ):
+                if v.user_id not in latest_visit:
+                    latest_visit[v.user_id] = v
+            v_ids = [v.id for v in latest_visit.values()]
+            if v_ids:
+                for pv in (
+                    PageView.query.filter(PageView.visit_id.in_(v_ids))
+                    .order_by(PageView.created_at.desc())
+                    .all()
+                ):
+                    if pv.visit_id not in latest_page:
+                        latest_page[pv.visit_id] = pv.path
+
+        # Map any StudentRecord belonging to current_user for quick link
+        my_rec_by_uid = {
+            r.student_user_id: r.id
+            for r in _my_records().filter(StudentRecord.student_user_id.isnot(None)).all()
+        }
+
+        now = utcnow()
+        online_cutoff = now - timedelta(minutes=5)
+        role_order = {"student": 0, "teacher": 1, "admin": 2, "assistant": 3}
+
+        def _default_page(u):
+            if u.role == "student":
+                return "/home" if (u.profile and u.profile.onboarded) else "/onboarding"
+            if u.role == "assistant":
+                return "/assistant/"
+            if u.role == "teacher" and not u.is_approved:
+                return "/pending"
+            return "/teacher/"
+
+        user_rows = []
+        for u in all_users:
+            if role_filter != "all" and u.role != role_filter:
+                continue
+            auth_mode = (u.auth_provider or "password").lower()
+            if auth_filter != "all" and auth_mode != auth_filter:
+                continue
+            lv = latest_visit.get(u.id)
+            seen_page = latest_page.get(lv.id) if lv else _default_page(u)
+            last_active = max(
+                [d for d in (u.last_seen_at, lv.ended_at if lv else None, u.created_at) if d] or [now]
+            )
+            is_online = bool(
+                (lv and lv.ended_at and lv.ended_at >= online_cutoff)
+                or (u.last_seen_at and u.last_seen_at >= online_cutoff)
+            )
+            if q_low:
+                hay = f"{u.name} {u.email} {seen_page} {u.profile.exam if u.profile and u.profile.exam else ''}".casefold()
+                if q_low not in hay:
+                    continue
+            user_rows.append({
+                "u": u,
+                "auth_mode": auth_mode,
+                "seen_page": seen_page,
+                "is_tracked_page": bool(lv and lv.id in latest_page),
+                "last_active": last_active,
+                "is_online": is_online,
+                "record_id": my_rec_by_uid.get(u.id),
+                "role_rank": role_order.get(u.role, 9),
+            })
+
+        sort_keys = {
+            "role": lambda x: (x["role_rank"], -x["last_active"].timestamp()),
+            "name": lambda x: x["u"].name.casefold(),
+            "auth": lambda x: (0 if x["auth_mode"] == "google" else 1, x["role_rank"], x["u"].name.casefold()),
+            "page": lambda x: (x["seen_page"], x["role_rank"]),
+            "seen": lambda x: -x["last_active"].timestamp(),
+        }
+        user_rows.sort(key=sort_keys.get(sort, sort_keys["role"]))
+
+        return render_template(
+            "teacher/students.html",
+            admin_users_mode=True,
+            user_rows=user_rows,
+            role_filter=role_filter,
+            auth_filter=auth_filter,
+            role_counts=role_counts,
+            total_users=len(all_users),
+            sort=sort,
+            q=q,
+            rows=[],
+            editing=None,
+        )
+
     sort = request.args.get("sort", "time")
     q = request.args.get("q", "").strip().lower()
     records = _my_records().all()
@@ -254,7 +363,7 @@ def students():
         "progress": lambda x: -x["progress"],
     }
     rows.sort(key=keys.get(sort, keys["time"]))
-    return render_template("teacher/students.html", rows=rows, sort=sort, q=q, editing=None)
+    return render_template("teacher/students.html", admin_users_mode=False, rows=rows, sort=sort, q=q, editing=None)
 
 
 def _fill_record(r, form):

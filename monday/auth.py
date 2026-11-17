@@ -74,6 +74,9 @@ def login():
         if user.is_blocked:
             flash(_("Аккаунт заблокирован. Напиши администратору."), "error")
             return render_template("auth/welcome.html", tab="login", form=request.form), 403
+        if user.auth_provider != "password":
+            user.auth_provider = "password"
+            db.session.commit()
         login_user(user, remember=bool(request.form.get("remember")))
         pending_code = session.pop("invite_code", None)
         if pending_code and user.role == "student":
@@ -157,11 +160,15 @@ def google_callback():
     if not user:
         lang = request.cookies.get("lang")
         user = User(name=(info.get("name") or email.split("@")[0]).strip()[:120], email=email, role="student",
-                    is_approved=True, language=lang if lang in Config.LANGUAGES else "ru",
+                    is_approved=True, auth_provider="google",
+                    language=lang if lang in Config.LANGUAGES else "ru",
                     theme=request.cookies.get("theme") if request.cookies.get("theme") in ("light", "dark") else "light")
         user.set_password(secrets.token_urlsafe(32))   # nobody knows it; a teacher or admin can give a temporary one
         user.profile = StudentProfile()
         db.session.add(user)
+        db.session.commit()
+    elif user.auth_provider != "google":
+        user.auth_provider = "google"
         db.session.commit()
     login_user(user, remember=True)
     code = session.pop("invite_code", None)

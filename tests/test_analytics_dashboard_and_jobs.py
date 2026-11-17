@@ -178,7 +178,7 @@ def test_analytics_permissions_and_ui_rendering():
     # Optimized Teacher/Admin left rail keeps only the 6 core items (Сегодня, Ученики, Работы, Проверка, Банк, Настройки)
     # while secondary/admin links live in account menu & /teacher/account settings
     rail_chunk = adm_html.split('<nav class="rail"')[1].split("</nav>")[0]
-    for core_label in ("Сегодня", "Ученики", "Работы", "Проверка", "Банк", "Настройки"):
+    for core_label in ("Сегодня", "Пользователи", "Работы", "Проверка", "Банк", "Настройки"):
         assert core_label in rail_chunk
     for secondary_label in ("Карта", "Вопросы", "Исправления", "Модерация", "Аналитика"):
         assert secondary_label not in rail_chunk
@@ -188,6 +188,18 @@ def test_analytics_permissions_and_ui_rendering():
     acc_html = r_acc.data.decode("utf-8")
     assert "Инструменты и разделы" in acc_html
     assert "/admin/analytics/" in acc_html
+
+    # /teacher/students as Admin renders "Пользователи" sorted by role with auth method and seen page
+    r_users = adm.get("/teacher/students")
+    assert r_users.status_code == 200
+    u_html = r_users.data.decode("utf-8")
+    assert "Пользователи" in u_html
+    assert "Способ входа" in u_html
+    assert "Какую страницу видит" in u_html
+    assert "Алия Кайратова" in u_html and "Айбек Мугалим" in u_html and "Admin User" in u_html
+    tbody = u_html.split("<tbody>")[1].split("</tbody>")[0]
+    assert tbody.index("Алия Кайратова") < tbody.index("Айбек Мугалим") < tbody.index("Admin User")
+    assert adm.get("/teacher/students?role=teacher").status_code == 200
 
     r_dash = adm.get("/admin/analytics/")
     assert r_dash.status_code == 200

@@ -1,6 +1,127 @@
 {% extends "layout.html" %}
-{% block title %}{{ _("Ученики") }}{% endblock %}
+{% block title %}{{ _("Пользователи") if admin_users_mode else _("Ученики") }}{% endblock %}
 {% block content %}
+
+{% if admin_users_mode %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Пользователи") }}</h1>
+    <p>{{ _("Все активные пользователи платформы: сортировка по ролям, способу входа и странице, которую они видят.") }}</p>
+  </div>
+  <div class="row" style="gap:8px;flex-wrap:wrap">
+    <a class="btn btn--secondary" href="{{ url_for('analytics.dashboard') }}">{{ ui.icon('chart', 16) }}{{ _("Аналитика визитов") }}</a>
+    <a class="btn btn--primary" href="#add">{{ ui.icon('plus', 18) }}{{ _("Добавить ученика") }}</a>
+  </div>
+</div>
+
+{% set role_tabs = [
+  ('all', _('Все'), total_users),
+  ('student', _('Ученики'), role_counts.get('student', 0)),
+  ('teacher', _('Учителя'), role_counts.get('teacher', 0)),
+  ('admin', _('Админы'), role_counts.get('admin', 0)),
+  ('assistant', _('Ассистенты'), role_counts.get('assistant', 0)),
+] %}
+<nav class="admin-tabs" aria-label="{{ _('Фильтр по ролям') }}">
+  {% for key, label, cnt in role_tabs %}
+    <a href="{{ url_for('teacher.students', role=key, auth=auth_filter, sort=sort, q=q) }}" class="{{ 'is-active' if role_filter == key }}">
+      {{ label }}<span class="admin-tabs__n num">{{ cnt }}</span>
+    </a>
+  {% endfor %}
+</nav>
+
+<form method="get" class="people-bar" role="search">
+  <input type="hidden" name="role" value="{{ role_filter }}">
+  <input type="hidden" name="sort" value="{{ sort }}">
+  <label class="search search--sm" style="flex:1 1 260px">{{ ui.icon('search', 18) }}<span class="sr-only">{{ _("Поиск") }}</span>
+    <input type="search" name="q" value="{{ q }}" placeholder="{{ _('Имя, email или страница…') }}"></label>
+  <select class="select" name="auth" onchange="this.form.submit()" aria-label="{{ _('Способ входа') }}">
+    <option value="all" {{ 'selected' if auth_filter == 'all' }}>{{ _("Любой вход") }}</option>
+    <option value="google" {{ 'selected' if auth_filter == 'google' }}>Google</option>
+    <option value="password" {{ 'selected' if auth_filter == 'password' }}>{{ _("Email и пароль") }}</option>
+  </select>
+  <button class="btn btn--primary btn--sm" type="submit">{{ _("Найти") }}</button>
+  <span class="people-bar__count small muted num">{{ user_rows|length }} {{ _("из") }} {{ total_users }}</span>
+</form>
+
+{% if user_rows %}
+<div class="table-wrap card" style="padding:0;overflow-x:auto">
+  <table class="table">
+    <thead>
+      <tr>
+        <th><a href="{{ url_for('teacher.students', role=role_filter, auth=auth_filter, sort='name', q=q) }}" class="{{ 'is-active' if sort == 'name' }}">{{ _("Пользователь") }}{{ ' ↓' if sort == 'name' }}</a></th>
+        <th><a href="{{ url_for('teacher.students', role=role_filter, auth=auth_filter, sort='role', q=q) }}" class="{{ 'is-active' if sort == 'role' }}">{{ _("Роль") }}{{ ' ↓' if sort == 'role' }}</a></th>
+        <th><a href="{{ url_for('teacher.students', role=role_filter, auth=auth_filter, sort='auth', q=q) }}" class="{{ 'is-active' if sort == 'auth' }}">{{ _("Способ входа") }}{{ ' ↓' if sort == 'auth' }}</a></th>
+        <th><a href="{{ url_for('teacher.students', role=role_filter, auth=auth_filter, sort='page', q=q) }}" class="{{ 'is-active' if sort == 'page' }}">{{ _("Какую страницу видит") }}{{ ' ↓' if sort == 'page' }}</a></th>
+        <th><a href="{{ url_for('teacher.students', role=role_filter, auth=auth_filter, sort='seen', q=q) }}" class="{{ 'is-active' if sort == 'seen' }}">{{ _("Активность") }}{{ ' ↓' if sort == 'seen' }}</a></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set role_labels = {'student': _('Ученик'), 'teacher': _('Учитель'), 'admin': _('Админ'), 'assistant': _('Ассистент')} %}
+      {% set admin_tab_map = {'student': 'students', 'teacher': 'teachers', 'admin': 'admins', 'assistant': 'assistants'} %}
+      {% for item in user_rows %}{% set u = item.u %}
+      <tr class="{{ 'is-blocked' if u.is_blocked }}">
+        <td>
+          <div class="row" style="gap:10px;flex-wrap:nowrap">
+            {{ ui.avatar(u, 'avatar--sm') }}
+            <div class="stack-sm" style="gap:1px;min-width:0">
+              <b class="t-strong" style="white-space:nowrap">
+                {% if item.is_online %}<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:5px" title="{{ _('Онлайн сейчас') }}"></span>{% endif %}
+                {{ u.name }}
+              </b>
+              <span class="small muted">{{ u.email }}</span>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="tag {{ 'tag--accent' if u.role == 'admin' else ('tag--soft' if u.role == 'student' else 'tag--line') }}">
+            {{ role_labels.get(u.role, u.role) }}
+          </span>
+          {% if u.profile and u.profile.exam %}<span class="tag tag--line tag--xs">{{ u.profile.exam }}</span>{% endif %}
+          {% if u.is_blocked %}<span class="tag tag--bad tag--xs">{{ _("блок") }}</span>{% endif %}
+        </td>
+        <td>
+          {% if item.auth_mode == 'google' %}
+            <span class="tag tag--soft">Google</span>
+          {% else %}
+            <span class="tag tag--line">{{ _("Email / пароль") }}</span>
+          {% endif %}
+        </td>
+        <td>
+          <code style="font-size:12.5px;padding:3px 8px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line)">{{ item.seen_page }}</code>
+          {% if not item.is_tracked_page %}<span class="small muted"> ({{ _("старт") }})</span>{% endif %}
+        </td>
+        <td class="small muted">
+          {% if item.is_online %}<span class="state state--checked">{{ _("онлайн") }}</span>{% else %}{{ item.last_active|ago }}{% endif %}
+        </td>
+        <td style="text-align:right;white-space:nowrap">
+          {% if item.record_id %}
+            <a class="btn btn--ghost btn--sm" href="{{ url_for('teacher.student_detail', record_id=item.record_id) }}">{{ _("Прогресс") }}</a>
+          {% endif %}
+          <a class="btn btn--secondary btn--sm" href="{{ url_for('admin.index', tab=admin_tab_map.get(u.role, 'students'), user=u.id) }}">{{ _("Карточка") }}</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty"><h3>{{ _("Пользователей не найдено") }}</h3><p>{{ _("Измените фильтр роли, способа входа или поисковый запрос.") }}</p></div>
+{% endif %}
+
+<details class="card" id="add">
+  <summary style="cursor:pointer;font-weight:700">{{ _("Добавить ученика в таблицу по инвайт-коду") }}</summary>
+  <form method="post" action="{{ url_for('teacher.student_new') }}" style="margin-top:16px">
+    {{ ui.csrf() }}
+    {% with r=None, prefix='n-' %}{% include "teacher/_record_form.html" %}{% endwith %}
+    <div class="row row--between" style="margin-top:12px">
+      <p class="small muted">{{ _("После сохранения появится код MND-XXXX и ссылка — отправьте их ученику в WhatsApp или Telegram.") }}</p>
+      <button class="btn btn--primary" type="submit">{{ _("Добавить") }}</button>
+    </div>
+  </form>
+</details>
+
+{% else %}
 <div class="page-head">
   <div class="page-head__text">
     <h1>{{ _("Ученики") }}</h1>
@@ -58,4 +179,5 @@
     </div>
   </fieldset>
 </form>
+{% endif %}
 {% endblock %}
