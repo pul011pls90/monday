@@ -1,0 +1,303 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Аналитика и визиты") }}{% endblock %}
+{% block context %}{{ _("Администрирование · Аналитика") }}{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bank-tiles.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/analytics.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="an-page"
+     data-analytics-root
+     data-summary-url="{{ url_for('analytics.api_summary') }}"
+     data-visits-url="{{ url_for('analytics.api_visits') }}"
+     data-live-url="{{ url_for('analytics.api_live') }}"
+     data-export-url="{{ url_for('analytics.export_csv') }}"
+     data-user-url-tpl="{{ url_for('analytics.api_user_detail', user_id=0) }}"
+     data-visit-url-tpl="{{ url_for('analytics.api_visit_detail', visit_id='__VID__') }}"
+     data-block-url-tpl="{{ url_for('analytics.api_user_block', user_id=0) }}"
+     data-current-user-id="{{ current_user.id }}">
+
+  {# ------------------------------------------------------------ Page Header + Mode Switcher #}
+  <div class="an-head">
+    <div class="page-head__text">
+      <div class="row" style="gap:10px;align-items:center;margin-bottom:4px">
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('admin.index') }}">{{ ui.icon('arrow-left', 16) }}{{ _("Админка") }}</a>
+      </div>
+      <h1>{{ _("Аналитика визитов") }}</h1>
+      <p>{{ _("Посещаемость, география по GeoIP без хранения сырых IP, активность по часам и профили учеников.") }}</p>
+    </div>
+
+    <div class="an-head__actions">
+      <div class="an-seg" role="tablist" aria-label="{{ _('Режим аналитики') }}">
+        <button type="button" class="an-seg__btn is-active" role="tab" aria-selected="true" data-main-tab="overview">
+          {{ ui.icon('chart', 16) }}<span>{{ _("Обзор и таблица") }}</span>
+        </button>
+        <button type="button" class="an-seg__btn" role="tab" aria-selected="false" data-main-tab="live">
+          <span class="an-live-dot" aria-hidden="true"></span><span>{{ _("Лента визитов") }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {# ------------------------------------------------------------ KPI Panel #}
+  <section class="an-kpis" aria-label="{{ _('Ключевые показатели') }}">
+    <article class="an-kpi">
+      <div class="an-kpi__top">
+        <span class="an-kpi__label">{{ _("Сейчас онлайн") }}</span>
+        <span class="an-kpi__ic an-kpi__ic--online">{{ ui.icon('bolt', 18) }}</span>
+      </div>
+      <b class="an-kpi__val num" data-kpi="online_now">{{ kpis.online_now }}</b>
+      <span class="an-kpi__sub">{{ _("активны за 5 мин") }}</span>
+    </article>
+
+    <article class="an-kpi">
+      <div class="an-kpi__top">
+        <span class="an-kpi__label">{{ _("Сегодня") }}</span>
+        <span class="an-kpi__ic">{{ ui.icon('users', 18) }}</span>
+      </div>
+      <b class="an-kpi__val num" data-kpi="visitors_today">{{ kpis.visitors_today }}</b>
+      <span class="an-kpi__sub"><span class="num" data-kpi="visits_today">{{ kpis.visits_today }}</span> {{ _("визитов") }}</span>
+    </article>
+
+    <article class="an-kpi">
+      <div class="an-kpi__top">
+        <span class="an-kpi__label">{{ _("За 7 дней") }}</span>
+        <span class="an-kpi__ic an-kpi__ic--accent">{{ ui.icon('calendar', 18) }}</span>
+      </div>
+      <b class="an-kpi__val num" data-kpi="visitors_7d">{{ kpis.visitors_7d }}</b>
+      <span class="an-kpi__sub">{{ _("уникальных посетителей") }}</span>
+    </article>
+
+    <article class="an-kpi">
+      <div class="an-kpi__top">
+        <span class="an-kpi__label">{{ _("За 30 дней") }}</span>
+        <span class="an-kpi__ic">{{ ui.icon('globe', 18) }}</span>
+      </div>
+      <b class="an-kpi__val num" data-kpi="visitors_30d">{{ kpis.visitors_30d }}</b>
+      <span class="an-kpi__sub">{{ _("уникальных посетителей") }}</span>
+    </article>
+
+    <article class="an-kpi">
+      <div class="an-kpi__top">
+        <span class="an-kpi__label">{{ _("Регистрации (30д)") }}</span>
+        <span class="an-kpi__ic an-kpi__ic--accent">{{ ui.icon('plus', 18) }}</span>
+      </div>
+      <b class="an-kpi__val num" data-kpi="new_registrations_30d">{{ kpis.new_registrations_30d }}</b>
+      <span class="an-kpi__sub">{{ _("сегодня:") }} <span class="num" data-kpi="new_registrations_today">{{ kpis.new_registrations_today }}</span> · {{ _("7д:") }} <span class="num" data-kpi="new_registrations_7d">{{ kpis.new_registrations_7d }}</span></span>
+    </article>
+
+    <article class="an-kpi">
+      <div class="an-kpi__top">
+        <span class="an-kpi__label">{{ _("Retention (30д)") }}</span>
+        <span class="an-kpi__ic">{{ ui.icon('flame', 18) }}</span>
+      </div>
+      <b class="an-kpi__val num"><span data-kpi="retention_pct">{{ kpis.retention_pct }}</span>%</b>
+      <span class="an-kpi__sub"><span class="num" data-kpi="returning_visitors">{{ kpis.returning_visitors }}</span> {{ _("из") }} <span class="num" data-kpi="total_visitors_30d">{{ kpis.total_visitors_30d }}</span> {{ _("вернулись") }}</span>
+    </article>
+  </section>
+
+  {# ============================================================ VIEW 1: OVERVIEW + DATA GRID #}
+  <div class="stack" style="gap:20px" data-tab-pane="overview">
+    <section class="an-charts" aria-label="{{ _('Графики') }}">
+      <article class="an-card">
+        <div class="an-card__head">
+          <div class="an-card__title">
+            <span class="hc__ic" style="width:40px;height:40px;border-radius:12px">{{ ui.icon('chart', 18) }}</span>
+            <div>
+              <h2>{{ _("Визиты по дням") }}</h2>
+              <span class="small muted" data-chart-range-label>{{ _("За последние 30 дней") }}</span>
+            </div>
+          </div>
+          <div class="an-period-pills" role="group" aria-label="{{ _('Период графика') }}">
+            <button type="button" class="an-period-btn" data-chart-days="7">7д</button>
+            <button type="button" class="an-period-btn" data-chart-days="14">14д</button>
+            <button type="button" class="an-period-btn is-active" data-chart-days="30">30д</button>
+            <button type="button" class="an-period-btn" data-chart-days="90">90д</button>
+          </div>
+        </div>
+        <div class="an-chart-wrap">
+          <canvas id="an-daily-chart" aria-label="{{ _('Линейный график визитов по дням') }}"></canvas>
+        </div>
+      </article>
+
+      <article class="an-card">
+        <div class="an-card__head">
+          <div class="an-card__title">
+            <span class="hc__ic" style="width:40px;height:40px;border-radius:12px">{{ ui.icon('clock', 18) }}</span>
+            <div>
+              <h2>{{ _("Тепловая карта активности") }}</h2>
+              <span class="small muted">{{ _("День недели × Час (UTC)") }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="an-heatmap" data-heatmap></div>
+        <div class="an-hm-legend">
+          <span>{{ _("Меньше") }}</span>
+          <i style="background:var(--surface-2);border:1px solid var(--line)"></i>
+          <i style="background:color-mix(in srgb, var(--accent) 25%, var(--surface))"></i>
+          <i style="background:color-mix(in srgb, var(--accent) 55%, var(--surface))"></i>
+          <i style="background:color-mix(in srgb, var(--accent) 85%, var(--surface))"></i>
+          <i style="background:var(--accent)"></i>
+          <span>{{ _("Больше") }}</span>
+        </div>
+      </article>
+    </section>
+
+    {# ------------------------------------------------------------ Filter Card + Data Grid #}
+    <section class="an-card" aria-label="{{ _('Таблица визитов') }}">
+      <div class="bk-filter-box__title">{{ ui.icon('filter', 14) }}<span>{{ _("Фильтры") }}</span></div>
+      <form class="an-filters" data-filter-form>
+        <div class="an-filters__top">
+          <div class="an-seg" role="tablist" aria-label="{{ _('Тип посетителя') }}">
+            <button type="button" class="an-seg__btn is-active" data-kind-tab="all">{{ _("Все") }}</button>
+            <button type="button" class="an-seg__btn" data-kind-tab="registered">{{ _("Зарегистрированные") }}</button>
+            <button type="button" class="an-seg__btn" data-kind-tab="anonymous">{{ _("Анонимные") }}</button>
+          </div>
+
+          <label class="search search--sm an-filters__search">
+            {{ ui.icon('search', 18) }}
+            <span class="sr-only">{{ _("Поиск по имени и email") }}</span>
+            <input type="search" name="q" placeholder="{{ _('Поиск: имя, email, город…') }}" data-filter-input>
+          </label>
+
+          <div class="row" style="gap:8px;flex-wrap:wrap">
+            <button type="button" class="btn btn--ghost btn--sm" data-filter-reset>{{ _("Сбросить") }}</button>
+            <a class="btn btn--secondary btn--sm" href="{{ url_for('analytics.export_csv') }}" data-export-link>
+              {{ ui.icon('arrow-down', 16) }}<span>{{ _("Экспорт в CSV") }}</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="an-filters__grid">
+          <div class="an-field">
+            <label for="f-role">{{ _("Роль") }}</label>
+            <select class="select" id="f-role" name="role" data-filter-input>
+              <option value="">{{ _("Все роли") }}</option>
+              <option value="student">{{ _("Ученик") }}</option>
+              <option value="teacher">{{ _("Учитель") }}</option>
+              <option value="assistant">{{ _("Ассистент") }}</option>
+              <option value="admin">{{ _("Админ") }}</option>
+            </select>
+          </div>
+          <div class="an-field">
+            <label for="f-exam">{{ _("Экзамен") }}</label>
+            <select class="select" id="f-exam" name="exam" data-filter-input>
+              <option value="">{{ _("Все экзамены") }}</option>
+              {% for code, e in exams.items() %}
+                <option value="{{ code }}">{{ e.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="an-field">
+            <label for="f-region">{{ _("Регион / Страна") }}</label>
+            <select class="select" id="f-region" name="region" data-filter-input>
+              <option value="">{{ _("Все регионы") }}</option>
+              {% for r in facets.regions %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+              {% for c in facets.countries %}{% if c not in facets.regions %}<option value="{{ c }}">{{ c }}</option>{% endif %}{% endfor %}
+            </select>
+          </div>
+          <div class="an-field">
+            <label for="f-lang">{{ _("Язык") }}</label>
+            <select class="select" id="f-lang" name="language" data-filter-input>
+              <option value="">{{ _("Любой") }}</option>
+              {% for code, label in config.LANGUAGES.items() %}
+                <option value="{{ code }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="an-field">
+            <label for="f-device">{{ _("Устройство") }}</label>
+            <select class="select" id="f-device" name="device" data-filter-input>
+              <option value="">{{ _("Все устройства") }}</option>
+              <option value="desktop">{{ _("Desktop") }}</option>
+              <option value="mobile">{{ _("Mobile") }}</option>
+              <option value="tablet">{{ _("Tablet") }}</option>
+            </select>
+          </div>
+          <div class="an-field">
+            <label for="f-status">{{ _("Статус") }}</label>
+            <select class="select" id="f-status" name="status" data-filter-input>
+              <option value="">{{ _("Любой статус") }}</option>
+              <option value="online">{{ _("Онлайн сейчас") }}</option>
+              <option value="active">{{ _("Активен") }}</option>
+              <option value="blocked">{{ _("Заблокирован") }}</option>
+              <option value="pending">{{ _("Ждёт одобрения") }}</option>
+            </select>
+          </div>
+          <div class="an-field">
+            <label for="f-from">{{ _("С даты") }}</label>
+            <input class="input" type="date" id="f-from" name="date_from" data-filter-input>
+          </div>
+          <div class="an-field">
+            <label for="f-to">{{ _("По дату") }}</label>
+            <input class="input" type="date" id="f-to" name="date_to" data-filter-input>
+          </div>
+        </div>
+      </form>
+
+      <div class="an-table-wrap">
+        <table class="an-table">
+          <thead>
+            <tr>
+              <th>{{ _("Посетитель") }}</th>
+              <th>{{ _("Страна / Регион") }}</th>
+              <th>{{ _("Устройство") }}</th>
+              <th>{{ _("Дата визита") }}</th>
+              <th>{{ _("Длительность") }}</th>
+              <th>{{ _("Страниц") }}</th>
+            </tr>
+          </thead>
+          <tbody data-visits-body>
+            <tr><td colspan="6" class="small muted" style="text-align:center;padding:24px">{{ _("Загрузка визитов…") }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="an-pager">
+        <span class="small muted" data-visits-meta>—</span>
+        <div class="row" style="gap:8px" data-visits-pager></div>
+      </div>
+    </section>
+  </div>
+
+  {# ============================================================ VIEW 2: LIVE FEED #}
+  <section class="an-card" data-tab-pane="live" hidden aria-label="{{ _('Лента визитов в реальном времени') }}">
+    <div class="an-card__head">
+      <div class="an-card__title">
+        <span class="an-live-dot" aria-hidden="true"></span>
+        <div>
+          <h2>{{ _("Лента визитов (Live Feed)") }}</h2>
+          <span class="small muted" data-live-status>{{ _("Автообновление каждые 5 секунд") }}</span>
+        </div>
+      </div>
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div class="an-seg">
+          <button type="button" class="an-seg__btn is-active" data-live-kind="all">{{ _("Все") }}</button>
+          <button type="button" class="an-seg__btn" data-live-kind="registered">{{ _("Зарегистрированные") }}</button>
+          <button type="button" class="an-seg__btn" data-live-kind="anonymous">{{ _("Анонимные") }}</button>
+        </div>
+        <button type="button" class="btn btn--secondary btn--sm" data-live-refresh>{{ ui.icon('rotate', 15) }}<span>{{ _("Обновить") }}</span></button>
+      </div>
+    </div>
+
+    <div class="an-feed" data-live-list>
+      <p class="small muted">{{ _("Загрузка ленты…") }}</p>
+    </div>
+  </section>
+
+  {# ============================================================ SLIDE-OUT DRAWER #}
+  <aside class="drawer drawer--panel" data-an-drawer hidden aria-label="{{ _('Карточка посетителя') }}">
+    <div class="drawer__head">
+      <h2 data-drawer-title>{{ _("Карточка") }}</h2>
+      <button type="button" class="icon-btn icon-btn--sm" data-drawer-close aria-label="{{ _('Закрыть') }}">{{ ui.icon('x', 16) }}</button>
+    </div>
+    <div class="drawer__body" data-drawer-body></div>
+  </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script defer src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+{% endblock %}

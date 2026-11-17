@@ -5,28 +5,29 @@
 {% block body %}
 {# the dotted sky: one fixed background behind every student page. Pages with a backdrop of their own empty this block;
    tests and question screens extend base.html, so they never get it. #}
-{% block sky %}{% if current_user.role == 'student' %}
+{% block sky %}{% if current_user.role == 'student' or current_user.is_teacher %}
 <div class="page-sky" data-hero data-hero-bg aria-hidden="true"><canvas class="hero__canvas" data-hero-dots></canvas></div>
 <script defer src="{{ url_for('static', filename='js/hero.js') }}"></script>
 {% endif %}{% endblock %}
 <div class="app">
   <nav class="rail" aria-label="{{ _('Основное меню') }}">
+    {% set teacher_extra = [] %}
     {% if current_user.is_teacher %}
       <a class="rail__logo" href="{{ url_for('teacher.dashboard') }}" aria-label="Monday">M</a>
       {% set items = [
         ('teacher.dashboard', 'home', _('Сегодня'), ['teacher.dashboard']),
         ('teacher.students', 'users', _('Ученики'), ['teacher.students', 'teacher.student_detail']),
         ('teacher.works', 'works', _('Работы'), ['teacher.works', 'teacher.work_edit', 'teacher.work_new', 'teacher.assign']),
-        ('teacher.tree', 'skills', _('Карта'), ['teacher.tree']),
         ('teacher.review', 'inbox', _('Проверка'), ['teacher.review', 'teacher.review_detail', 'teacher.written_review']),
         ('teacher.bank', 'collections', _('Банк'), ['teacher.bank']),
+      ] %}
+      {% set teacher_extra = [
+        ('teacher.tree', 'skills', _('Карта'), ['teacher.tree']),
         ('teacher.questions', 'questions', _('Вопросы'), ['teacher.questions', 'teacher.question_new', 'teacher.question_edit', 'assistant.home', 'assistant.import_preview', 'assistant.import_save', 'assistant.mine']),
         ('reports.inbox', 'flag', _('Исправления'), ['reports.inbox']),
       ] %}
-      {% set tail = [('teacher.account', 'settings', _('Настройки'), ['teacher.account'])] %}
-      {% if current_user.can_review %}{% set items = items + [('review.queue', 'check', _('Модерация'), ['review.queue'])] %}{% endif %}
-      {% if current_user.is_admin %}{% set items = items + [('admin.index', 'shield', _('Админ'), ['admin.index'])] %}{% endif %}
-      {% set items = items + tail %}
+      {% if current_user.can_review %}{% set teacher_extra = teacher_extra + [('review.queue', 'check', _('Модерация'), ['review.queue'])] %}{% endif %}
+      {% if current_user.is_admin %}{% set teacher_extra = teacher_extra + [('admin.index', 'shield', _('Админ'), ['admin.index']), ('analytics.dashboard', 'chart', _('Аналитика'), ['analytics.dashboard'])] %}{% endif %}
       {% set primary = ['teacher.dashboard', 'teacher.students', 'teacher.works', 'teacher.review', 'teacher.bank'] %}
     {% elif current_user.is_assistant %}
       <a class="rail__logo" href="{{ url_for('assistant.home') }}" aria-label="Monday">M</a>
@@ -60,7 +61,16 @@
       </a>
     {% endfor %}
     <div class="spacer"></div>
-    {% if current_user.role == 'student' %}
+    {% if current_user.is_teacher %}
+      <div class="rail__foot">
+        {% set t_acc_on = ep == 'teacher.account' or (teacher_extra|selectattr(3)|map('last')|list and false) %}
+        {% set ns_acc = namespace(on=(ep == 'teacher.account')) %}
+        {% for _e, _ic, _lb, _act in teacher_extra %}{% if ep in _act %}{% set ns_acc.on = true %}{% endif %}{% endfor %}
+        <a class="rail__item{{ ' is-active' if ns_acc.on }}" href="{{ url_for('teacher.account') }}" title="{{ _('Настройки') }}" aria-label="{{ _('Настройки') }}"{{ ' aria-current=page' if ns_acc.on }}>
+          {{ ui.icon('settings', 22) }}<span class="rail__label">{{ _('Настройки') }}</span>
+        </a>
+      </div>
+    {% elif current_user.role == 'student' %}
       <div class="rail__foot">
         <a class="rail__item{{ ' is-active' if ep == 'student.support' }}" href="{{ url_for('student.support') }}" title="{{ _('Поддержка') }}" aria-label="{{ _('Поддержка') }}"{{ ' aria-current=page' if ep == 'student.support' }}>
           {{ ui.icon('chat', 22) }}<span class="rail__label">{{ _('Поддержка') }}</span>
@@ -74,7 +84,9 @@
 
   {# Phones: the bottom bar keeps five main sections; the rest live in this side menu (☰ in the top bar). #}
   {% set extras = items|rejectattr(0, 'in', primary)|list %}
-  {% if current_user.role == 'student' %}
+  {% if current_user.is_teacher %}
+    {% set extras = extras + teacher_extra + [('teacher.account', 'settings', _('Настройки'), ['teacher.account'])] %}
+  {% elif current_user.role == 'student' %}
     {% set extras = extras + [
       ('student.support', 'chat', _('Поддержка'), ['student.support']),
       ('student.profile', 'settings', _('Настройки'), ['student.profile']),
@@ -124,6 +136,16 @@
           <summary aria-label="{{ _('Аккаунт') }}" title="{{ current_user.name }}">{{ ui.avatar(current_user, text=current_user.initials[:1]) }}</summary>
           <div class="acct-menu__pop" role="menu">
             <div class="acct-menu__who">{{ ui.avatar(current_user) }}<div><b>{{ current_user.name }}</b><span>{{ current_user.email }}</span></div></div>
+            {% if current_user.is_teacher and teacher_extra %}
+              <div class="acct-menu__links">
+                {% for endpoint, ic, label, active in teacher_extra %}
+                  <a class="acct-menu__link{{ ' is-active' if ep in active }}" href="{{ url_for(endpoint) }}" role="menuitem">
+                    {{ ui.icon(ic, 16) }}<span>{{ label }}</span>
+                    {% if endpoint == 'reports.inbox' %}{% set nr = open_reports() %}{% if nr %}<span class="acct-menu__badge num">{{ nr }}</span>{% endif %}{% endif %}
+                  </a>
+                {% endfor %}
+              </div>
+            {% endif %}
             <form method="post" action="{{ url_for('auth.logout') }}">{{ ui.csrf() }}<button class="btn btn--secondary acct-menu__out" type="submit" role="menuitem">{{ ui.icon('logout', 18) }}{{ _("Выйти") }}</button></form>
           </div>
         </details>

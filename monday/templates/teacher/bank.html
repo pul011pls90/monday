@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/bank-tiles.css') }}">{% endblock %}
 {% block title %}{{ _("Банк вопросов") }}{% endblock %}
 {% block content %}
 <div class="page-head pk-page">

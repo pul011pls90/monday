@@ -63,7 +63,29 @@ body:not(.auth-body) {
 .rail__foot { display: flex; flex-direction: column; align-items: center; gap: clamp(5px, 0.9vh, 14px); padding-top: 2px; flex: none; }
 [data-theme="dark"] .rail { border-color: rgba(255, 255, 255, .14); }
 .rail__item.is-active,
-[data-theme="dark"] .rail__item.is-active { background: var(--accent-soft); color: var(--accent); }
+[data-theme="dark"] .rail__item.is-active { background: var(--accent-soft); color: var(--accent); border-radius: 14px; }
+.rail__item.is-active .ic,
+.rail__item.is-active .rail__label,
+.rail__item.is-active svg { color: var(--accent); }
+
+/* Dropdown links inside top-right account menu (secondary teacher/admin tools) */
+.acct-menu__links { display: flex; flex-direction: column; gap: 2px; padding: 6px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.acct-menu__link { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; color: var(--text-2); text-decoration: none; font: 600 13.5px/1.2 var(--font); }
+.acct-menu__link:hover { background: var(--surface-2); color: var(--text); text-decoration: none; }
+.acct-menu__link.is-active { background: var(--accent-soft); color: var(--accent); }
+.acct-menu__badge { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--warn-soft); color: var(--warn); font-size: 11.5px; font-weight: 800; display: inline-grid; place-items: center; }
+
+/* Teacher settings tools grid + unified Student-style frosted 22px cards */
+.t-tools-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.t-tool-link { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); text-decoration: none; transition: border-color .15s, transform .15s, background .15s; }
+.t-tool-link:hover { border-color: var(--accent); background: var(--surface); transform: translateY(-1px); text-decoration: none; }
+.t-tool-link__ic { width: 38px; height: 38px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; flex: none; }
+.t-tool-link > span:nth-child(2) { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.t-tool-link b { font-size: 14px; font-weight: 700; }
+.t-tool-link small { font-size: 12px; color: var(--muted); }
+@media (max-width: 640px) { .t-tools-grid { grid-template-columns: minmax(0, 1fr); } }
+.page-sky ~ .app .card { border-radius: 22px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(8px); }
+.page-sky ~ .app .t-today { border-radius: 22px; padding: 18px 22px; }
 .rail__logo {
   width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center;
   --logo-ink: linear-gradient(90deg, #7FA3F3, #4275E9, #2B60E5, #2456D9, #153893, #020B29);   /* the wordmark's letters, left to right */
@@ -500,11 +522,12 @@ details[open] > summary .bank-topic__chev { transform: rotate(180deg); }
 
 /* ---------------------------------------------------------------- admin */
 .admin-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-.admin-stat { flex-direction: row; align-items: center; gap: 16px; text-decoration: none; color: inherit; transition: transform .15s, border-color .15s; }
+.admin-stat { flex-direction: row; align-items: center; gap: 16px; text-decoration: none; color: inherit; transition: transform .15s, border-color .15s; border-radius: 22px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(8px); }
 .admin-stat:hover { transform: translateY(-2px); border-color: var(--line-strong); text-decoration: none; }
-.admin-stat__ic { width: 48px; height: 48px; border-radius: 14px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; flex: none; }
+.admin-stat__ic { width: 48px; height: 48px; border-radius: 14px; background: #0A0A0A; color: #FFFFFF; display: grid; place-items: center; flex: none; }
+[data-theme="dark"] .admin-stat__ic { background: #FFFFFF; color: #0A0A0A; }
 .admin-stat > span:last-child { display: flex; flex-direction: column; }
-.admin-stat b { font-size: 30px; line-height: 1.1; letter-spacing: -.02em; }
+.admin-stat b { font: 800 30px/1.1 var(--font-display); letter-spacing: -.02em; }
 .admin-stat > span:last-child > span { font-size: 13px; color: var(--muted); }
 .admin-stat.is-hot .admin-stat__ic { background: var(--warn-soft); color: var(--warn); }
 .admin-tabs { display: flex; gap: 4px; padding: 4px; border: var(--bw, 1px) solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--surface) 85%, transparent); overflow-x: auto; position: sticky; top: 8px; z-index: 6; backdrop-filter: blur(8px); }
@@ -791,8 +814,9 @@ details[open] > summary .bank-topic__chev { transform: rotate(180deg); }
 .page:has(.pk-layout), .page:has(.pk-page) { max-width: 1480px; }
 .pk-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
 .pk-field { min-width: 0; }
-.pk-order { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; }
-.pk { display: flex; flex-direction: column; gap: 12px; }
+.pk-order { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; border-radius: 22px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(8px); }
+.pk-filter-box { display: flex; flex-direction: column; gap: 12px; border-radius: 22px; padding: 14px 16px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(8px); }
+.pk { display: flex; flex-direction: column; gap: 14px; }
 .pk-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .pk-bar__search { flex: 1 1 240px; }
 .pk-bar .select { min-height: 44px; }
@@ -801,7 +825,7 @@ details[open] > summary .bank-topic__chev { transform: rotate(180deg); }
 .pk-chips__label { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-right: 2px; }
 .bank-chip--sm span { min-height: 30px; padding: 0 11px; font-size: 13px; }
 .pk-body { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 14px; align-items: start; }
-.pk-tree { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; border: var(--bw, 1px) solid var(--line); border-radius: 14px; padding: 8px; background: var(--surface); display: flex; flex-direction: column; gap: 1px; }
+.pk-tree { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; border: var(--bw, 1px) solid var(--line); border-radius: 22px; padding: 10px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(8px); display: flex; flex-direction: column; gap: 1px; }
 .pk-tree__item { display: flex; justify-content: space-between; gap: 6px; width: 100%; text-align: left; padding: 6px 8px; border: 0; border-radius: 8px; background: transparent; font: 600 13px var(--font); color: var(--text); cursor: pointer; }
 .pk-tree__item:hover { background: var(--surface-2); }
 .pk-tree__item.is-active { background: var(--btn-bg); color: var(--btn-text); }
@@ -821,7 +845,7 @@ details[open] > summary .bank-topic__chev { transform: rotate(180deg); }
 .pk-plan summary { list-style: none; }
 .pk-plan summary::-webkit-details-marker { display: none; }
 .pk-plan__pop { position: absolute; top: calc(100% + 6px); left: 0; z-index: 15; width: 380px; padding: 14px; border: var(--bw, 1px) solid var(--line-strong); border-radius: 14px; background: var(--surface); box-shadow: 0 20px 50px rgba(2, 11, 41, .2); display: flex; flex-direction: column; gap: 10px; }
-.pk-list { display: flex; flex-direction: column; border: var(--bw, 1px) solid var(--line); border-radius: 16px; background: var(--surface); transition: opacity .15s; }
+.pk-list { display: flex; flex-direction: column; border: var(--bw, 1px) solid var(--line); border-radius: 22px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(8px); transition: opacity .15s; }
 .pk-list.is-loading { opacity: .5; }
 .pk-list__head { display: flex; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--line); }
 .pk-list .pager { padding: 12px; }
@@ -1758,23 +1782,49 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 
 .csca-layout {
   display: flex !important;
-  flex-direction: row !important;
-  gap: 24px !important;
-  align-items: flex-start !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+  align-items: stretch !important;
   width: 100% !important;
 }
 
-/* Left Sidebar: Photo + ID + 48-circle palette */
-.csca-sidebar {
-  flex: 0 0 250px !important;
-  width: 250px !important;
+/* Top Block: Question Display & Options Grid */
+.csca-main {
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: none !important;
+  min-width: 0 !important;
   background: var(--surface) !important;
   border: var(--bw, 1px) solid var(--line-strong) !important;
-  border-radius: 16px !important;
-  padding: 16px !important;
+  border-radius: 18px !important;
+  padding: 28px 32px !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
-  position: sticky !important;
-  top: 76px !important;
+  box-sizing: border-box !important;
+}
+
+.csca-main .q-screen {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  margin-bottom: 0 !important;
+  min-height: 260px !important;
+}
+
+.csca-main .q-screen[hidden] {
+  display: none !important;
+}
+
+/* Bottom Block: Student Photo/Info + 48-circle Palette */
+.csca-sidebar {
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: none !important;
+  background: var(--surface) !important;
+  border: var(--bw, 1px) solid var(--line-strong) !important;
+  border-radius: 18px !important;
+  padding: 20px 28px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  position: static !important;
   display: flex !important;
   flex-direction: column !important;
   gap: 16px !important;
@@ -1783,9 +1833,9 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 
 .csca-student-card {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   align-items: center;
-  padding-bottom: 12px;
+  padding-bottom: 14px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -1822,21 +1872,21 @@ body.has-rv-foot .page { padding-bottom: 110px; }
 /* 8 columns of circular buttons for the 48 questions */
 .csca-grid {
   display: grid !important;
-  grid-template-columns: repeat(8, 22px) !important;
+  grid-template-columns: repeat(8, 32px) !important;
   justify-content: space-between !important;
-  row-gap: 8px !important;
+  row-gap: 12px !important;
   padding: 0 !important;
 }
 
 .csca-grid button {
-  width: 22px !important;
-  height: 22px !important;
-  min-width: 22px !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
   padding: 0 !important;
   border-radius: 50% !important;
   border: 1.5px solid var(--line-strong) !important;
   background: var(--surface) !important;
-  font-size: 10.5px !important;
+  font-size: 12.5px !important;
   font-weight: 700 !important;
   color: var(--muted) !important;
   cursor: pointer !important;
@@ -2081,13 +2131,22 @@ body.has-rv-foot .page { padding-bottom: 110px; }
   color: #2563EB !important;
 }
 
-@media (max-width: 840px) {
-  .csca-layout {
-    flex-direction: column !important;
+@media (max-width: 760px) {
+  .csca-main {
+    padding: 20px 18px !important;
   }
   .csca-sidebar {
-    width: 100% !important;
-    position: static !important;
+    padding: 16px 16px !important;
+  }
+  .csca-grid {
+    grid-template-columns: repeat(8, 28px) !important;
+    row-gap: 8px !important;
+  }
+  .csca-grid button {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    font-size: 11px !important;
   }
   .csca-options-grid {
     grid-template-columns: 1fr !important;
@@ -3928,14 +3987,8 @@ button.ts__row:focus-visible { outline: 2px solid var(--pulse); outline-offset: 
 }
 /* answer sheets: heading left-aligned in the text colour (the part is already named by the tabs above the questions) */
 .ort-sheet h2 { text-align: left; color: var(--text); }
-/* CSCA: the answer palette is wider and as tall as the question block; the 48 numbers spread to fill it */
-.test-body:has(.test-page--csca) { --frame-pad: 16px; }
-@media (min-width: 901px) {
-  .csca-layout { align-items: stretch !important; }
-  .csca-sidebar { flex-basis: 340px !important; width: 340px !important; padding: 24px !important; gap: 24px !important; align-self: stretch !important; }
-  .csca-grid { flex: 1 1 auto; grid-template-columns: repeat(8, 32px) !important; align-content: space-between !important; row-gap: 12px !important; }
-  .csca-grid button { width: 32px !important; height: 32px !important; min-width: 32px !important; font-size: 12.5px !important; }
-}
+/* CSCA: Question block on top, answer palette on bottom; both stretch to full width */
+.test-body:has(.test-page--csca) { --frame: 1240px; --frame-pad: 16px; }
 .session-bar__left { flex-wrap: nowrap !important; }
 /* a single question inside a card starts at the card's padding, not centred in it */
 .q-card .q-layout--single { margin-inline: 0; }

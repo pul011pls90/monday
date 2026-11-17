@@ -439,12 +439,27 @@
   const prevReal = form.querySelector("[data-prev]");
   const finalReal = form.querySelector("[data-final]");
 
+  const scrollToQuestion = () => {
+    // Pin question block at the top so navigating between questions never sends the user down
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
+
   // Bind all CSCA top Next / Back buttons
   document.querySelectorAll("[data-next-btn]").forEach(b => {
-    b.addEventListener("click", () => nextReal && nextReal.click());
+    b.addEventListener("click", () => {
+      if (nextReal) {
+        nextReal.click();
+        scrollToQuestion();
+      }
+    });
   });
   document.querySelectorAll("[data-prev-btn]").forEach(b => {
-    b.addEventListener("click", () => prevReal && prevReal.click());
+    b.addEventListener("click", () => {
+      if (prevReal) {
+        prevReal.click();
+        scrollToQuestion();
+      }
+    });
   });
   document.querySelectorAll("[data-csca-submit]").forEach(b => {
     b.addEventListener("click", () => {
@@ -453,6 +468,16 @@
       }
     });
   });
+
+  // When clicking any question circle in the bottom palette, keep view pinned to question block
+  const grid = isCsca.querySelector("[data-grid]");
+  if (grid) {
+    grid.addEventListener("click", (e) => {
+      if (e.target.closest("button")) {
+        requestAnimationFrame(scrollToQuestion);
+      }
+    });
+  }
 
   // Sync Timer to CSCA timer displays
   const timerPill = document.querySelector("[data-timer]");
@@ -467,12 +492,19 @@
 
   // F4 and F5 keyboard shortcuts (as shown in the CSCA prompt)
   window.addEventListener("keydown", (e) => {
+    if (e.target.matches("input, textarea") || e.target.closest(".calc-pane")) return;
     if (e.key === "F4") {
       e.preventDefault();
-      prevReal && prevReal.click();
+      if (prevReal) {
+        prevReal.click();
+        scrollToQuestion();
+      }
     } else if (e.key === "F5") {
       e.preventDefault();
-      nextReal && nextReal.click();
+      if (nextReal) {
+        nextReal.click();
+        scrollToQuestion();
+      }
     }
   });
 })();

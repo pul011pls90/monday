@@ -51,7 +51,7 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     login_manager.login_view = "auth.login"
     login_manager.login_message = None
 
-    from .models import User
+    from .models import PageView, User, Visit
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -69,6 +69,8 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     from . import reports
     app.register_blueprint(reports.bp)
     app.register_blueprint(admin.bp)
+    from . import analytics_admin
+    app.register_blueprint(analytics_admin.bp)
     from . import content_i18n
     app.register_blueprint(content_i18n.bp)
     app.add_template_filter(content_i18n.localize, 'loc')
@@ -105,6 +107,8 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     _register_template_helpers(app)
     _register_errors(app)
     _register_cli(app)
+    from .analytics_tracking import register_analytics_middleware
+    register_analytics_middleware(app)
 
     @app.before_request
     def _track_user():
@@ -145,6 +149,8 @@ def create_app(config_object=Config, *, seed_if_empty=True):
         db.create_all()
         _check_schema()
         deploy_safety.ensure_deploy_safety_tables()
+        from .analytics_schema import ensure_analytics_schema
+        ensure_analytics_schema()
         _lock_supabase_api()
         from .storage import ensure_bucket
         ensure_bucket()
@@ -163,6 +169,8 @@ def create_app(config_object=Config, *, seed_if_empty=True):
         if app.config.get("SEED_DEMO", True):
             from .seed import refresh_demo_mondays
             refresh_demo_mondays()  # demo Monday tests + demo students' results follow the calendar
+        from .analytics_jobs import start_daily_maintenance_if_due
+        start_daily_maintenance_if_due(app)
 
     return app
 
@@ -401,10 +409,25 @@ def _register_cli(app):
             q, w = import_pack(pid, publish=not draft)
             click.echo(f"{pid}: " + (f"{q} questions, {w} collections" if q else "already imported"))
 
+    @app.cli.command("migrate-analytics")
+    def migrate_analytics_cmd():
+        """Create visit/page_view tables and add cached visit columns to User."""
+        from .analytics_schema import ensure_analytics_schema
+        ensure_analytics_schema()
+        click.echo("Analytics schema up to date.")
+
+    @app.cli.command("analytics-daily-job")
+    @click.option("--days", default=90, show_default=True, help="Delete PageView records older than N days.")
+    def analytics_daily_job_cmd(days):
+        """Purge PageViews older than 90 days and refresh cached User visit counters."""
+        from .analytics_jobs import run_daily_analytics_maintenance
+        res = run_daily_analytics_maintenance(retention_days=days)
+        click.echo(f"Deleted page_views={res['deleted_page_views']}, updated_users={res['updated_users']}")
+
 
 def _bootstrap_admin(app):
     """Production: an empty database gets one admin (ADMIN_EMAIL / ADMIN_PASSWORD) instead of the demo data."""
-    from .models import User
+    from .models import PageView, User, Visit
     email, password = app.config.get("ADMIN_EMAIL"), app.config.get("ADMIN_PASSWORD")
     if not email or not password:
         app.logger.warning("Empty database and no ADMIN_EMAIL/ADMIN_PASSWORD: no admin created.")

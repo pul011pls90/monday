@@ -16,6 +16,7 @@ changes scores that students already have.
 import json
 import secrets
 import string
+import uuid
 from datetime import date, datetime, timedelta, timezone
 
 from flask_login import UserMixin
@@ -60,9 +61,12 @@ class User(UserMixin, db.Model):
     is_blocked = db.Column(db.Boolean, nullable=False, default=False)  # admin can block an account
     is_methodist = db.Column(db.Boolean, nullable=False, default=False)  # teacher who reviews assistants' questions
     last_seen_at = db.Column(db.DateTime)  # updated at most every few minutes
+    total_visits = db.Column(db.Integer, nullable=False, default=0)  # cached by daily analytics job
+    average_visit_duration = db.Column(db.Integer, nullable=False, default=0)  # average seconds per visit
     created_at = db.Column(db.DateTime, default=utcnow)
 
     profile = db.relationship("StudentProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    visits = db.relationship("Visit", back_populates="user", lazy="dynamic", passive_deletes=True)
 
     def pref(self, key, default=None):
         return (self.prefs or {}).get(key, default)
@@ -892,6 +896,69 @@ class CourseMastery(db.Model):
     best_score = db.Column(db.Integer, nullable=False, default=0)
     total_q = db.Column(db.Integer, nullable=False, default=0)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
+# --------------------------------------------------------------------------- analytics
+
+
+class Visit(db.Model):
+    """One browsing session (30-minute inactivity window) for registered or anonymous visitors.
+
+    Raw IP addresses are never stored: only a salted SHA-256 hash (`ip_hash`) and
+    coarse GeoIP location (`country`, `city`) resolved at visit creation time.
+    """
+
+    __tablename__ = "visit"
+    __table_args__ = (
+        db.Index("ix_visit_cookie_ended", "session_cookie_id", "ended_at"),
+        db.Index("ix_visit_user_started", "user_id", "started_at"),
+    )
+
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    session_cookie_id = db.Column(db.String(64), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
+    ip_hash = db.Column(db.String(64), nullable=True, index=True)
+    country = db.Column(db.String(80), nullable=True, index=True)
+    city = db.Column(db.String(120), nullable=True)
+    device_type = db.Column(db.String(16), nullable=False, default="desktop", index=True)  # desktop | mobile | tablet
+    os = db.Column(db.String(64), nullable=True)
+    browser = db.Column(db.String(64), nullable=True)
+    referer = db.Column(db.String(512), nullable=True)
+    language = db.Column(db.String(16), nullable=True)
+    started_at = db.Column(db.DateTime, nullable=False, default=utcnow, index=True)
+    ended_at = db.Column(db.DateTime, nullable=False, default=utcnow, index=True)
+    page_count = db.Column(db.Integer, nullable=False, default=0)
+
+    user = db.relationship("User", back_populates="visits")
+    page_views = db.relationship(
+        "PageView",
+        back_populates="visit",
+        cascade="all, delete-orphan",
+        order_by="PageView.created_at.asc()",
+    )
+
+    @property
+    def duration_seconds(self) -> int:
+        if not self.started_at or not self.ended_at:
+            return 0
+        return max(0, int((self.ended_at - self.started_at).total_seconds()))
+
+
+class PageView(db.Model):
+    """Single page hit within a Visit; records older than 90 days are purged daily."""
+
+    __tablename__ = "page_view"
+    __table_args__ = (
+        db.Index("ix_page_view_visit_created", "visit_id", "created_at"),
+    )
+
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    visit_id = db.Column(db.String(36), db.ForeignKey("visit.id", ondelete="CASCADE"), nullable=False, index=True)
+    path = db.Column(db.String(512), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow, index=True)
+    time_spent_seconds = db.Column(db.Integer, nullable=False, default=0)
+
+    visit = db.relationship("Visit", back_populates="page_views")
 
 
 # Safety net for PostgreSQL, which (unlike SQLite) rejects a string longer than its column:

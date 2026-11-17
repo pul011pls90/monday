@@ -179,23 +179,7 @@
   {% elif layout.format == 'csca' %}
     {# ============================================================ CSCA Official Academy Layout #}
     <div class="csca-layout">
-      <!-- Left Column: Student card + 48-circle Question Matrix -->
-      <aside class="csca-sidebar">
-        <div class="csca-student-card">
-          <div class="csca-student-avatar">
-            <span>Your</span>
-            <span>Photo</span>
-          </div>
-          <div class="csca-student-info">
-            <b>{{ current_user.name or 'Candidate' }}</b>
-            <div>ID: {{ '%06d' % current_user.id }}</div>
-            <div>Nationality: Int'l</div>
-          </div>
-        </div>
-        <div class="csca-grid" data-grid></div>
-      </aside>
-
-      <!-- Right Column: Question Display & 2x2 Options Grid -->
+      <!-- Question Display & 2x2 Options Grid (Top Block) -->
       <div class="csca-main">
         {% for idx in range(mod.start, mod.end) %}{% set item = version.items[idx]|loc %}
           <section class="q-screen" data-q="{{ idx }}" id="question-{{ idx + 1 }}" data-elim-scope data-elim-key="att{{ att.id }}-{{ idx }}">
@@ -257,10 +241,26 @@
         <section class="q-review" data-review hidden>
           <h2>{{ _("Review your answers") }}</h2>
           <p class="small submit-hint" data-submit-hint hidden></p>
-          <p class="text-2">{{ _("Click any question number on the left or below to return to that question.") }}</p>
+          <p class="text-2">{{ _("Click any question number below to return to that question.") }}</p>
           <div class="q-grid q-grid--big" data-grid-review></div>
         </section>
       </div>
+
+      <!-- Candidate card + 48-circle Question Matrix (Bottom Block) -->
+      <aside class="csca-sidebar csca-palette">
+        <div class="csca-student-card">
+          <div class="csca-student-avatar">
+            <span>Your</span>
+            <span>Photo</span>
+          </div>
+          <div class="csca-student-info">
+            <b>{{ current_user.name or 'Candidate' }}</b>
+            <div>ID: {{ '%06d' % current_user.id }}</div>
+            <div>Nationality: Int'l</div>
+          </div>
+        </div>
+        <div class="csca-grid" data-grid></div>
+      </aside>
     </div>
 
     <!-- Hidden native elements for test.js compatibility -->

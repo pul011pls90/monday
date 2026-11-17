@@ -87,18 +87,36 @@
 {% macro hw_card(a, state) -%}
 {%- set v = a.work.current_version -%}{%- set n = v.question_count -%}
 {%- set last = a.attempts|selectattr('finished_at')|list|last -%}
+{%- set k = kind_of(a, state) -%}
+{%- set prog_done = last.score if (last and last.total) else (mission[a.id].answered if a.id in mission else 0) -%}
+{%- set prog_total = last.total if (last and last.total) else n -%}
+{%- set topics = a.work|work_bullets -%}
+{%- set desc = a.work.description or a.message or (('«' ~ a.teacher_comment ~ '»') if a.teacher_comment else (topics|join(', ') if topics else '')) -%}
 <article class="card work-card hw-card">
-  <div class="row row--between">
+  <div class="hw-card__top">
     {{ ui.exam_tag(a.work.exam) }}
-    <span class="hwrow__state is-done">{{ HOMEWORK_STATES[state] }}</span>
+    <div class="hw-card__badges">
+      <span class="hwrow__state is-{{ k }}">{{ _("Просрочено") if k == 'late' else HOMEWORK_STATES[state] }}</span>
+      <span class="hw-card__progress">{{ prog_done }}/{{ prog_total }}</span>
+    </div>
   </div>
-  <h3 class="work-card__title">{{ title_of(a) }}</h3>
-  <div class="author">{{ ui.avatar(a.teacher, 'avatar--sm') }}{{ a.teacher.name }}</div>
-  {% if a.teacher_comment %}<p class="work-card__desc">«{{ a.teacher_comment }}»</p>{% endif %}
+  <div class="hw-card__body">
+    <h3 class="work-card__title">{{ title_of(a) }}</h3>
+    <div class="author">{{ ui.avatar(a.teacher, 'avatar--sm') }}{{ a.teacher.name }}</div>
+    {% if desc %}<p class="work-card__desc">{{ desc }}</p>{% endif %}
+  </div>
   <div class="work-card__meta">
-    <span class="meta-item">{{ ui.icon('calendar', 16) }}{% if a.id in finished_on %}{{ _("сдано") }} {{ finished_on[a.id]|d("d MMMM") }}{% else %}—{% endif %}</span>
-    {% if last and last.total %}<span class="meta-item">{{ ui.icon('check', 16) }}{{ last.score }} {{ _("из") }} {{ last.total }}</span>
-    {% else %}<span class="meta-item">{{ ui.icon('list', 16) }}{{ n }} {{ n|plural_ru(_("задача"), _("задачи"), _("задач")) }}</span>{% endif %}
+    {% if k == 'done' %}
+    <span class="meta-item hw-card__date">
+      <svg class="hw-card__checks" viewBox="0 0 18 14" width="16" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M1.5 7.5L5 11L12 3"/>
+        <path d="M7.5 9.5L9.5 11L16.5 3"/>
+      </svg>
+      {% if a.id in finished_on %}{{ finished_on[a.id]|d("dd/MM/yy") }}{% else %}—{% endif %}
+    </span>
+    {% else %}
+    <span class="meta-item hw-card__date">{{ ui.icon('calendar', 16) }}{% if a.due_at %}{{ _("до") }} {{ a.due_at|d("dd/MM/yy") }}{% else %}{{ _("без срока") }}{% endif %}</span>
+    {% endif %}
   </div>
   <a class="btn btn--primary btn--block" href="{{ url_for('student.homework_detail', assignment_id=a.id) }}">{{ _("Открыть") }}</a>
 </article>

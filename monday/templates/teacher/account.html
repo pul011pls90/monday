@@ -4,11 +4,55 @@
 {% block content %}
 {% with subtitle=_('администратор') if current_user.is_admin else _('учитель') %}{% include "partials/profile_head.html" %}{% endwith %}
 <div class="grid grid-4">
-  <div class="card card--tight"><div class="stat-value">{{ stats.students }}</div><div class="stat-label">{{ _("учеников в таблице") }}</div></div>
-  <div class="card card--tight"><div class="stat-value">{{ stats.linked }}</div><div class="stat-label">{{ _("подключили аккаунт") }}</div></div>
-  <div class="card card--tight"><div class="stat-value">{{ stats.questions }}</div><div class="stat-label">{{ _("вопросов в банке") }}</div></div>
-  <div class="card card--tight"><div class="stat-value">{{ stats.works }}</div><div class="stat-label">{{ _("опубликованных работ") }}</div></div>
+  <div class="card card--tight"><div class="stat-value num">{{ stats.students }}</div><div class="stat-label">{{ _("учеников в таблице") }}</div></div>
+  <div class="card card--tight"><div class="stat-value num">{{ stats.linked }}</div><div class="stat-label">{{ _("подключили аккаунт") }}</div></div>
+  <div class="card card--tight"><div class="stat-value num">{{ stats.questions }}</div><div class="stat-label">{{ _("вопросов в банке") }}</div></div>
+  <div class="card card--tight"><div class="stat-value num">{{ stats.works }}</div><div class="stat-label">{{ _("опубликованных работ") }}</div></div>
 </div>
+
+<section class="card t-tools-card" aria-labelledby="t-tools-h">
+  <div class="hc__head">
+    <span class="hc__ic" style="width:40px;height:40px;border-radius:12px">{{ ui.icon('skills', 18) }}</span>
+    <h2 id="t-tools-h">{{ _("Инструменты и разделы") }}</h2>
+  </div>
+  <div class="t-tools-grid">
+    <a class="t-tool-link" href="{{ url_for('teacher.tree') }}">
+      <span class="t-tool-link__ic">{{ ui.icon('skills', 18) }}</span>
+      <span><b>{{ _("Карта тем") }}</b><small>{{ _("Дерево навыков и тем") }}</small></span>
+      {{ ui.icon('arrow-right', 16) }}
+    </a>
+    <a class="t-tool-link" href="{{ url_for('teacher.questions') }}">
+      <span class="t-tool-link__ic">{{ ui.icon('questions', 18) }}</span>
+      <span><b>{{ _("Мои вопросы") }}</b><small>{{ _("Созданные и загруженные задачи") }}</small></span>
+      {{ ui.icon('arrow-right', 16) }}
+    </a>
+    <a class="t-tool-link" href="{{ url_for('reports.inbox') }}">
+      <span class="t-tool-link__ic">{{ ui.icon('flag', 18) }}</span>
+      <span><b>{{ _("Исправления") }}</b><small>{{ _("Сообщения об ошибках от учеников") }}</small></span>
+      {% set nr = open_reports() %}{% if nr %}<span class="tag tag--warn tag--xs num">{{ nr }}</span>{% endif %}
+      {{ ui.icon('arrow-right', 16) }}
+    </a>
+    {% if current_user.can_review %}
+    <a class="t-tool-link" href="{{ url_for('review.queue') }}">
+      <span class="t-tool-link__ic">{{ ui.icon('check', 18) }}</span>
+      <span><b>{{ _("Модерация") }}</b><small>{{ _("Проверка вопросов ассистентов") }}</small></span>
+      {{ ui.icon('arrow-right', 16) }}
+    </a>
+    {% endif %}
+    {% if current_user.is_admin %}
+    <a class="t-tool-link" href="{{ url_for('admin.index') }}">
+      <span class="t-tool-link__ic">{{ ui.icon('shield', 18) }}</span>
+      <span><b>{{ _("Администрирование") }}</b><small>{{ _("Пользователи, заявки и модерация") }}</small></span>
+      {{ ui.icon('arrow-right', 16) }}
+    </a>
+    <a class="t-tool-link" href="{{ url_for('analytics.dashboard') }}">
+      <span class="t-tool-link__ic">{{ ui.icon('chart', 18) }}</span>
+      <span><b>{{ _("Аналитика визитов") }}</b><small>{{ _("Трафик, Retention, GeoIP и профили") }}</small></span>
+      {{ ui.icon('arrow-right', 16) }}
+    </a>
+    {% endif %}
+  </div>
+</section>
 <form method="post" class="card">
   {{ ui.csrf() }}<input type="hidden" name="action" value="profile">
   <h2>{{ _("Настройки") }}</h2>

@@ -9,30 +9,35 @@
 ] %}
 <div class="pk" data-picker data-url="{{ url_for('picker.results') }}" data-random="{{ url_for('picker.pick_random') }}" data-plan="{{ url_for('picker.plan') }}"
      data-mode="{{ mode }}" data-exam="{{ exam }}" {% if exam_field %}data-exam-field="{{ exam_field }}"{% endif %}>
-  <div class="pk-bar">
-    {% if not exam_field %}
-      <label class="sr-only" for="pk-exam">{{ _("Экзамен") }}</label>
-      <select class="select" id="pk-exam" data-pk-exam style="width:auto">{% for code, e in EXAMS.items() %}<option value="{{ code }}" {{ 'selected' if code == exam }}>{{ e.label }}</option>{% endfor %}</select>
-    {% endif %}
-    <label class="search search--sm pk-bar__search">{{ ui.icon('search', 18) }}<span class="sr-only">{{ _("Поиск") }}</span>
-      <input type="search" data-pk-q placeholder="{{ _('Поиск по тексту вопроса') }}" autocomplete="off"></label>
-    <label class="sr-only" for="pk-sort">{{ _("Сортировка") }}</label>
-    <select class="select" id="pk-sort" data-pk-sort style="width:auto">
-      <option value="tree">{{ _("По карте тем") }}</option><option value="new">{{ _("Сначала новые") }}</option>
-      <option value="hard">{{ _("Сначала трудные") }}</option><option value="used">{{ _("Самые используемые") }}</option></select>
-    <button type="button" class="btn btn--ghost btn--sm" data-pk-reset hidden>{{ ui.icon('reset', 16) }}{{ _("Сбросить") }}</button>
-  </div>
-  {# filters: one row of small dropdowns, so the questions start on the first screen #}
-  <div class="pk-drops">
-    {% for key, ic, title, opts in chip_labels %}
-      <details class="pk-drop pk-filter--{{ key }}">
-        <summary>{{ ui.icon(ic, 16) }}<span>{{ title }}</span>{{ ui.icon('chevron-down', 16) }}</summary>
-        <div class="pk-drop__menu">
-          {% for val, label in opts %}<label class="bank-chip"><input type="checkbox" data-pk-f="{{ key }}" value="{{ val }}"><span>{{ label }}</span></label>{% endfor %}
-        </div>
-      </details>
-    {% endfor %}
-  </div>
+  <section class="card bk-filter-box pk-filter-box" aria-label="{{ _('Фильтры') }}">
+    <div class="bk-filter-box__head">
+      <span class="bk-filter-box__title">{{ ui.icon('filter', 14) }}<span>{{ _("Фильтры") }}</span></span>
+    </div>
+    <div class="pk-bar">
+      {% if not exam_field %}
+        <label class="sr-only" for="pk-exam">{{ _("Экзамен") }}</label>
+        <select class="select" id="pk-exam" data-pk-exam style="width:auto">{% for code, e in EXAMS.items() %}<option value="{{ code }}" {{ 'selected' if code == exam }}>{{ e.label }}</option>{% endfor %}</select>
+      {% endif %}
+      <label class="search search--sm pk-bar__search">{{ ui.icon('search', 18) }}<span class="sr-only">{{ _("Поиск") }}</span>
+        <input type="search" data-pk-q placeholder="{{ _('Поиск по тексту вопроса') }}" autocomplete="off"></label>
+      <label class="sr-only" for="pk-sort">{{ _("Сортировка") }}</label>
+      <select class="select" id="pk-sort" data-pk-sort style="width:auto">
+        <option value="tree">{{ _("По карте тем") }}</option><option value="new">{{ _("Сначала новые") }}</option>
+        <option value="hard">{{ _("Сначала трудные") }}</option><option value="used">{{ _("Самые используемые") }}</option></select>
+      <button type="button" class="btn btn--ghost btn--sm" data-pk-reset hidden>{{ ui.icon('reset', 16) }}{{ _("Сбросить") }}</button>
+    </div>
+    {# filters: one row of small dropdowns, so the questions start on the first screen #}
+    <div class="pk-drops">
+      {% for key, ic, title, opts in chip_labels %}
+        <details class="pk-drop pk-filter--{{ key }}">
+          <summary>{{ ui.icon(ic, 16) }}<span>{{ title }}</span>{{ ui.icon('chevron-down', 16) }}</summary>
+          <div class="pk-drop__menu">
+            {% for val, label in opts %}<label class="bank-chip"><input type="checkbox" data-pk-f="{{ key }}" value="{{ val }}"><span>{{ label }}</span></label>{% endfor %}
+          </div>
+        </details>
+      {% endfor %}
+    </div>
+  </section>
   <div class="pk-body">
     <nav class="pk-tree" data-pk-tree aria-label="{{ _('Темы') }}"><p class="small muted" style="padding:10px">{{ _("Загружаем…") }}</p></nav>
     <div class="pk-main">
