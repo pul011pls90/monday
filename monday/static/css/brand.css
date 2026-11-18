@@ -113,11 +113,11 @@ body:not(.auth-body) {
 }
 .page-sky ~ .app .page-head,
 .page-sky ~ .app .an-head {
-  padding: 18px 24px;
-  border-radius: 20px;
-  background: var(--surface);
-  border: var(--bw, 1px) solid var(--line);
-  box-shadow: var(--shadow);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 .page-sky ~ .app .empty {
   border-radius: 20px;
@@ -130,7 +130,7 @@ body:not(.auth-body) {
   margin: 0;
 }
 .page-sky ~ .app .t-today { border-radius: 20px; padding: 18px 22px; }
-.t-hero-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 24px; border-radius: 20px; background: var(--surface); border: var(--bw, 1px) solid var(--line); }
+.t-hero-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 0; border-radius: 0; background: transparent; border: 0; box-shadow: none; }
 .t-hero-bar__title { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .t-hero-bar__title h1 { margin: 0; font: 800 28px/1.15 var(--font-display); letter-spacing: -.02em; }
 .t-hero-bar__title p { margin: 0; font-size: 14px; color: var(--muted); }
