@@ -180,8 +180,9 @@
           {% endif %}
         </span>
         <span class="people__seen small muted" title="{{ _('Последняя активность и входы') }}">
-          {{ last[u.id]|ago }}
           {% set ll = last_login.get(u.id) if last_login is defined else None %}
+          {% set act_dt = ll.created_at if ll else last[u.id] %}
+          <span class="num">{{ act_dt|d("HH:mm · d MMMM") if act_dt else "—" }}</span>
           <span style="display:block;font-size:11.5px">
             {{ _("Входов:") }} <b class="num">{{ u.login_count or 0 }}</b>{% if ll %} · {{ ll.device_type }}{% if ll.browser %} / {{ ll.browser }}{% endif %}{% endif %}
           </span>

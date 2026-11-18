@@ -18,7 +18,8 @@
 
   <dl class="kv small">
     <dt>{{ _("С нами с") }}</dt><dd>{{ u.created_at|d("d MMMM y") }}</dd>
-    <dt>{{ _("Активность") }}</dt><dd>{{ panel.last|ago }}</dd>
+    {% set act_dt = panel.last_login.created_at if panel.last_login else panel.last %}
+    <dt>{{ _("Активность") }}</dt><dd class="num">{{ act_dt|d("HH:mm · d MMMM") if act_dt else "—" }}</dd>
     <dt>{{ _("Всего входов") }}</dt><dd><b class="num">{{ u.login_count or 0 }}</b> · {{ _("вход через") }} {{ "Google" if u.auth_provider == "google" else _("Email / пароль") }}</dd>
     {% if panel.last_login %}{% set ll = panel.last_login %}
       <dt>{{ _("Последний вход") }}</dt><dd>{{ ll.created_at|d("d MMM, HH:mm") }} ({{ ll.created_at|ago }})</dd>
