@@ -22,7 +22,10 @@
   <div class="pk-basket-dock" data-basket-dock>
     <form method="post" action="{{ url_for('teacher.bank_add') }}" class="card pk-order pk-basket-pop" data-basket-form hidden>
       {{ ui.csrf() }}
-      <div class="card__head"><h2 style="font-size:18px">{{ _("Корзина") }} · <span data-order-count>0</span></h2></div>
+      <div class="card__head">
+        <h2 style="font-size:18px;display:flex;align-items:center;gap:6px"><span class="muted" aria-hidden="true" style="font-size:13px;letter-spacing:-2px">⋮⋮</span>{{ _("Корзина") }} · <span data-order-count>0</span></h2>
+        <button type="button" class="icon-btn icon-btn--xs" data-basket-close aria-label="{{ _('Закрыть') }}">×</button>
+      </div>
       <div class="order-totals" data-order-totals data-q="{{ _('вопр.') }}" data-min="{{ _('мин') }}" data-diff="{{ _('лёгких · средних · сложных') }}"></div>
       <ol class="order-list" data-order-list></ol>
       <p class="muted small" data-order-empty>{{ _("Отметь вопросы галочкой, нажми «5 случайных» или «Собрать по плану».") }}</p>

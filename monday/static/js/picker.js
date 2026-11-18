@@ -249,18 +249,89 @@ document.addEventListener("click", (e) => {
   show(nav.dataset.start || 1);
 })();
 
-/* bottom-left floating basket dock */
+/* bottom-right floating, draggable & resizable basket dock */
 (function () {
   const dock = document.querySelector("[data-basket-dock]");
   if (!dock) return;
   const btn = dock.querySelector("[data-basket-toggle]");
   const pop = dock.querySelector("[data-basket-form]");
+  const head = pop && pop.querySelector(".card__head");
+  const closeBtn = dock.querySelector("[data-basket-close]");
   if (!btn || !pop) return;
+
+  const KEY = "monday.basket.pos.v1";
+  const clamp = (x, y) => {
+    const r = dock.getBoundingClientRect();
+    const maxX = Math.max(8, window.innerWidth - r.width - 8);
+    const maxY = Math.max(8, window.innerHeight - r.height - 8);
+    return [Math.min(Math.max(8, x), maxX), Math.min(Math.max(8, y), maxY)];
+  };
+  const applyPos = (x, y) => {
+    const [cx, cy] = clamp(x, y);
+    dock.style.left = `${cx}px`;
+    dock.style.top = `${cy}px`;
+    dock.style.right = "auto";
+    dock.style.bottom = "auto";
+    return [cx, cy];
+  };
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (saved && typeof saved.x === "number" && typeof saved.y === "number") applyPos(saved.x, saved.y);
+  } catch (_) {}
+
+  let justDragged = false;
+  const makeDraggable = (handle) => {
+    if (!handle) return;
+    handle.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 || e.target.closest("[data-basket-close]")) return;
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const rect = dock.getBoundingClientRect();
+      let moved = false;
+      const onMove = (ev) => {
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        if (!moved && Math.hypot(dx, dy) < 5) return;
+        moved = true;
+        justDragged = true;
+        applyPos(rect.left + dx, rect.top + dy);
+      };
+      const onUp = () => {
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        if (moved) {
+          const r = dock.getBoundingClientRect();
+          try { localStorage.setItem(KEY, JSON.stringify({ x: Math.round(r.left), y: Math.round(r.top) })); } catch (_) {}
+          setTimeout(() => { justDragged = false; }, 60);
+        }
+      };
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+    });
+  };
+  makeDraggable(btn);
+  makeDraggable(head);
+
   const setOpen = (open) => {
     pop.hidden = !open;
     btn.setAttribute("aria-expanded", String(open));
+    if (open && dock.style.left) {
+      const r = dock.getBoundingClientRect();
+      applyPos(r.left, r.top);
+    }
   };
-  btn.addEventListener("click", (e) => { e.stopPropagation(); setOpen(pop.hidden); });
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (justDragged) return;
+    setOpen(pop.hidden);
+  });
+  if (closeBtn) closeBtn.addEventListener("click", () => setOpen(false));
+  window.addEventListener("resize", () => {
+    if (dock.style.left) {
+      const r = dock.getBoundingClientRect();
+      applyPos(r.left, r.top);
+    }
+  });
   document.addEventListener("click", (e) => { if (!pop.hidden && !dock.contains(e.target)) setOpen(false); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !pop.hidden) setOpen(false); });
 })();
