@@ -92,11 +92,13 @@ body:not(.auth-body) {
 .page-sky ~ .app .admin-tabs,
 .page-sky ~ .app .people-bar,
 .page-sky ~ .app fieldset {
-  position: relative;
-  padding-top: 46px;
   border-radius: 20px;
   background: var(--surface);
   border-color: var(--line);
+}
+.page-sky ~ .app fieldset {
+  position: relative;
+  padding-top: 46px;
 }
 .page-sky ~ .app fieldset > legend {
   position: absolute;
