@@ -112,8 +112,8 @@
   {% endif %}
 </section>
 
-<details class="card" id="add">
-  <summary style="cursor:pointer;font-weight:700">{{ _("Добавить ученика в таблицу по инвайт-коду") }}</summary>
+<details class="card t-add-card" id="add">
+  <summary class="t-add-card__sum"><span>{{ _("Добавить ученика в таблицу по инвайт-коду") }}</span></summary>
   <form method="post" action="{{ url_for('teacher.student_new') }}" style="margin-top:16px">
     {{ ui.csrf() }}
     {% with r=None, prefix='n-' %}{% include "teacher/_record_form.html" %}{% endwith %}
