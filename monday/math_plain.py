@@ -116,6 +116,7 @@ def _replace_fracs_and_roots(expr: str) -> str:
 
 def _convert_math_chunk_to_plain(chunk: str) -> str:
     s = _replace_fracs_and_roots(chunk)
+    s = s.replace("{,}", ",")
     for pat, repl in _SYMBOLS_TO_PLAIN:
         s = re.sub(pat, repl, s)
     s = re.sub(r"\^\{([A-Za-z0-9])\}", r"^\1", s)
