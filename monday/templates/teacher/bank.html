@@ -11,46 +11,44 @@
     <a class="btn btn--secondary btn--min" href="{{ url_for('teacher.questions') }}"><span>{{ _("Мои вопросы") }}</span></a>
     <a class="btn btn--secondary btn--min" href="{{ url_for('assistant.home') }}">{{ ui.icon('copy', 16) }}<span>{{ _("Вставить тест целиком") }}</span></a>
     <a class="btn btn--primary btn--min" href="{{ url_for('teacher.question_new') }}">{{ ui.icon('plus', 16) }}<span>{{ _("Новый вопрос") }}</span></a>
+    <div class="pk-basket-wrap" data-basket-dock>
+      <button type="button" class="btn btn--secondary btn--min" data-basket-toggle aria-expanded="false">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span>{{ _("Корзина") }} · <span class="num" data-order-count>0</span></span>
+      </button>
+      <form method="post" action="{{ url_for('teacher.bank_add') }}" class="card pk-order pk-basket-pop" data-basket-form hidden>
+        {{ ui.csrf() }}
+        <div class="card__head">
+          <h2 style="font-size:18px">{{ _("Корзина") }} · <span data-order-count>0</span></h2>
+          <button type="button" class="icon-btn icon-btn--xs" data-basket-close aria-label="{{ _('Закрыть') }}">×</button>
+        </div>
+        <div class="order-totals" data-order-totals data-q="{{ _('вопр.') }}" data-min="{{ _('мин') }}" data-diff="{{ _('лёгких · средних · сложных') }}"></div>
+        <ol class="order-list" data-order-list></ol>
+        <p class="muted small" data-order-empty>{{ _("Отметь вопросы галочкой, нажми «5 случайных» или «Собрать по плану».") }}</p>
+        <div class="field">
+          <label for="tb-work">{{ _("Куда добавить") }}</label>
+          <select class="select" id="tb-work" name="work">
+            <optgroup label="{{ _('Вопросы дня (до 3 в день)') }}">
+              <option value="daily-today" {{ 'selected' if request.args.get('daily') == 'today' }}>{{ _("Вопрос дня · сегодня") }}</option>
+              <option value="daily-tomorrow" {{ 'selected' if request.args.get('daily') == 'tomorrow' }}>{{ _("Вопрос дня · завтра") }}</option>
+            </optgroup>
+            <optgroup label="{{ _('Работы') }}">
+              <option value="new" {{ 'selected' if not request.args.get('daily') }}>+ {{ _("Новая домашка") }}</option>
+              {% for w in works %}<option value="{{ w.id }}">{{ w.title or _("без названия") }} · {{ WORK_KINDS[w.kind] }}</option>{% endfor %}
+            </optgroup>
+          </select>
+        </div>
+        <input type="hidden" name="exam" value="{{ exam }}" data-basket-exam><input type="hidden" name="kind" value="homework">
+        <button class="btn btn--primary btn--block" type="submit" data-basket-submit disabled>{{ _("Добавить") }}{{ ui.icon('arrow-right', 18) }}</button>
+        <button type="button" class="btn btn--ghost btn--sm" data-order-clear>{{ _("Очистить корзину") }}</button>
+      </form>
+    </div>
   </div>
 </section>
 
 <div class="pk-layout pk-layout--bank">
   <div class="pk-field">
     {% with mode='bank', exam_field=None %}{% include "teacher/_picker.html" %}{% endwith %}
-  </div>
-
-  <div class="pk-basket-dock" data-basket-dock>
-    <form method="post" action="{{ url_for('teacher.bank_add') }}" class="card pk-order pk-basket-pop" data-basket-form hidden>
-      {{ ui.csrf() }}
-      <div class="card__head">
-        <h2 style="font-size:18px;display:flex;align-items:center;gap:6px"><span class="muted" aria-hidden="true" style="font-size:13px;letter-spacing:-2px">⋮⋮</span>{{ _("Корзина") }} · <span data-order-count>0</span></h2>
-        <button type="button" class="icon-btn icon-btn--xs" data-basket-close aria-label="{{ _('Закрыть') }}">×</button>
-      </div>
-      <div class="order-totals" data-order-totals data-q="{{ _('вопр.') }}" data-min="{{ _('мин') }}" data-diff="{{ _('лёгких · средних · сложных') }}"></div>
-      <ol class="order-list" data-order-list></ol>
-      <p class="muted small" data-order-empty>{{ _("Отметь вопросы галочкой, нажми «5 случайных» или «Собрать по плану».") }}</p>
-      <div class="field">
-        <label for="tb-work">{{ _("Куда добавить") }}</label>
-        <select class="select" id="tb-work" name="work">
-          <optgroup label="{{ _('Вопросы дня (до 3 в день)') }}">
-            <option value="daily-today" {{ 'selected' if request.args.get('daily') == 'today' }}>{{ _("Вопрос дня · сегодня") }}</option>
-            <option value="daily-tomorrow" {{ 'selected' if request.args.get('daily') == 'tomorrow' }}>{{ _("Вопрос дня · завтра") }}</option>
-          </optgroup>
-          <optgroup label="{{ _('Работы') }}">
-            <option value="new" {{ 'selected' if not request.args.get('daily') }}>+ {{ _("Новая домашка") }}</option>
-            {% for w in works %}<option value="{{ w.id }}">{{ w.title or _("без названия") }} · {{ WORK_KINDS[w.kind] }}</option>{% endfor %}
-          </optgroup>
-        </select>
-      </div>
-      <input type="hidden" name="exam" value="{{ exam }}" data-basket-exam><input type="hidden" name="kind" value="homework">
-      <button class="btn btn--primary btn--block" type="submit" data-basket-submit disabled>{{ _("Добавить") }}{{ ui.icon('arrow-right', 18) }}</button>
-      <button type="button" class="btn btn--ghost btn--sm" data-order-clear>{{ _("Очистить корзину") }}</button>
-    </form>
-    <button type="button" class="pk-basket-fab" data-basket-toggle aria-expanded="false" aria-label="{{ _('Корзина') }}">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-      <span>{{ _("Корзина") }}</span>
-      <span class="pk-basket-fab__badge num" data-order-count>0</span>
-    </button>
   </div>
 </div>
 {% endblock %}
