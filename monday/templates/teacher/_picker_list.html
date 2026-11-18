@@ -19,6 +19,7 @@
     <span class="pk-row__stats small" title="{{ _('Верно у учеников · используют работ') }}">
       {% if r %}<span class="t-score t-score--{{ 'green' if r[0] >= 0.8 else ('yellow' if r[0] >= 0.5 else 'red') }} num">{{ (r[0] * 100)|round|int }}%</span>{% else %}<span class="muted">—</span>{% endif %}
       <span class="muted num">×{{ used_total.get(x.id, 0) }}</span>
+      <button type="button" class="icon-btn icon-btn--xs" data-redact-url="{{ url_for('teacher.question_redact', question_id=x.id) }}" title="{{ _('Исправить в окне ученика') }}" aria-label="{{ _('Исправить в окне ученика') }}">{{ ui.icon('edit', 14) }}</button>
     </span>
     <div class="pk-row__preview" data-pk-preview-box hidden></div>
   </div>

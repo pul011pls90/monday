@@ -5,17 +5,16 @@
 {% set week_items = week|map(attribute='items')|sum(start=[]) %}
 {% set week_done = week_items|selectattr('state', 'in', ['submitted', 'checked'])|list|length %}
 
-<div class="page-head">
-  <div class="page-head__text">
+<section class="card t-hero-bar">
+  <div class="t-hero-bar__title">
     <h1>{{ _("Добрый день, %(name)s", name=current_user.first_name) }}</h1>
-    <p>{{ now|d("EEEE, d MMMM") }}</p>
   </div>
-  <div class="row">
-    <a class="btn btn--secondary" href="{{ url_for('teacher.bank') }}">{{ ui.icon('questions', 18) }}{{ _("Банк вопросов") }}</a>
-    <a class="btn btn--secondary" href="{{ url_for('teacher.work_new', kind='homework') }}">{{ ui.icon('plus', 18) }}{{ _("Домашка") }}</a>
-    <a class="btn btn--primary" href="{{ url_for('teacher.assign') }}">{{ ui.icon('send', 18) }}{{ _("Выдать задание") }}</a>
+  <div class="t-hero-actions">
+    <a class="btn btn--secondary btn--min" href="{{ url_for('teacher.bank') }}">{{ ui.icon('questions', 16) }}<span>{{ _("Банк вопросов") }}</span></a>
+    <a class="btn btn--secondary btn--min" href="{{ url_for('teacher.work_new', kind='homework') }}">{{ ui.icon('plus', 16) }}<span>{{ _("Домашка") }}</span></a>
+    <a class="btn btn--primary btn--min" href="{{ url_for('teacher.assign') }}">{{ ui.icon('send', 16) }}<span>{{ _("Выдать задание") }}</span></a>
   </div>
-</div>
+</section>
 
 {# ------------------------------------------------------------ today in one row: the numbers that need a decision #}
 <section class="card t-today" aria-label="{{ _('Сегодня') }}">

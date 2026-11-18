@@ -1,0 +1,97 @@
+{% import "partials/macros.html" as ui with context %}
+<div class="q-redact-grid" data-redact-root>
+  {# Left: Exact Student Question Window #}
+  <section class="q-redact-preview" aria-label="{{ _('Как видит ученик') }}">
+    <div class="row row--between" style="align-items:center">
+      <span class="tag tag--soft tag--xs">{{ _("Вид ученика") }} · #{{ q.id }}</span>
+      <span class="small muted">{{ q.skill.name if q.skill }}</span>
+    </div>
+    <div class="q-screen">
+      <div class="q-card q-card--test q-card--flat" style="padding:18px 20px">
+        <div class="q-layout q-layout--single">
+          <div class="q-text math" data-preview-text>{{ q.text or _("Задача с рисунком") }}</div>
+          {% if q.image_path %}
+            <figure class="q-figure"><img src="{{ url_for('uploaded_file', filename=q.image_path) }}" alt=""></figure>
+          {% endif %}
+          {% if q.answer_type == 'choice' %}
+            <div class="options" style="margin-top:12px">
+              {% for opt in q.options or [] %}
+                <div class="option">
+                  <div class="option__box{{ ' is-correct' if q.correct|string == loop.index0|string }}" data-preview-opt-box="{{ loop.index0 }}">
+                    <span class="option__letter">{{ 'ABCD'[loop.index0] }}</span>
+                    <span class="option__text math" data-preview-opt="{{ loop.index0 }}">{{ opt }}</span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="small muted" style="margin-top:10px">{{ _("Ответ:") }} <b class="math" data-preview-answer>{{ q.correct }}</b></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="explain" style="margin-top:4px" data-preview-explain-wrap {{ 'hidden' if not q.explanation }}>
+      <div class="explain__head">{{ _("Разбор") }}</div>
+      <div class="math small" data-preview-explain>{{ q.explanation or '' }}</div>
+    </div>
+  </section>
+
+  {# Right: Teacher Correction Instruments #}
+  <form method="post" action="{{ url_for('teacher.question_redact', question_id=q.id) }}" class="q-redact-tools" data-redact-form>
+    {{ ui.csrf() }}
+    <div class="field">
+      <label for="rd-text">{{ _("Текст вопроса") }}</label>
+      <textarea class="input" id="rd-text" name="text" rows="4" data-rd-text>{{ q.text or '' }}</textarea>
+    </div>
+
+    {% if q.answer_type == 'choice' %}
+    <div class="field">
+      <label>{{ _("Варианты ответа (отметьте правильный)") }}</label>
+      <div class="stack-sm" style="gap:8px">
+        {% for opt in q.options or ['', '', '', ''] %}
+          <div class="q-redact-opt">
+            <label class="row" style="gap:6px;cursor:pointer">
+              <input type="radio" name="correct" value="{{ loop.index0 }}" {{ 'checked' if q.correct|string == loop.index0|string }} data-rd-correct="{{ loop.index0 }}">
+              <b>{{ 'ABCD'[loop.index0] }}</b>
+            </label>
+            <input class="input" type="text" name="opt_{{ loop.index0 }}" value="{{ opt }}" data-rd-opt="{{ loop.index0 }}">
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="field">
+      <label for="rd-correct">{{ _("Правильный ответ") }}</label>
+      <input class="input" id="rd-correct" name="correct" value="{{ q.correct }}" data-rd-answer>
+    </div>
+    {% endif %}
+
+    <div class="field">
+      <label for="rd-explain">{{ _("Разбор / объяснение") }}</label>
+      <textarea class="input" id="rd-explain" name="explanation" rows="3" data-rd-explain>{{ q.explanation or '' }}</textarea>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="field">
+        <label for="rd-diff">{{ _("Сложность") }}</label>
+        <select class="select" id="rd-diff" name="difficulty">
+          {% for k, label in DIFFICULTIES.items() %}
+            <option value="{{ k }}" {{ 'selected' if (q.difficulty or 2) == k }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="rd-note">{{ _("Комментарий для админа") }}</label>
+        <input class="input" id="rd-note" name="review_note" placeholder="{{ _('Что исправлено…') }}">
+      </div>
+    </div>
+
+    <div class="small" style="color:var(--bad)" data-rd-error hidden></div>
+    <div class="small" style="color:var(--ok)" data-rd-ok hidden></div>
+
+    <div class="row row--between" style="margin-top:4px;gap:10px">
+      <span class="small muted">{{ _("Изменения не видны ученикам, пока админ их не примет.") }}</span>
+      <button class="btn btn--primary btn--min" type="submit" data-rd-submit>{{ ui.icon('send', 16) }}<span>{{ _("Отправить админу") }}</span></button>
+    </div>
+  </form>
+</div>

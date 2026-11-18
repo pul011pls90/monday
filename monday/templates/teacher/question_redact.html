@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Исправление вопроса #%(id)s", id=q.id) }}{% endblock %}
+{% block content %}
+<section class="card t-hero-bar">
+  <div class="t-hero-bar__title">
+    <h1>{{ _("Исправление вопроса #%(id)s", id=q.id) }}</h1>
+    <p>{{ _("Слева — окно ученика, справа — инструменты правки. После отправки правка пойдёт администратору на одобрение.") }}</p>
+  </div>
+  <div class="t-hero-actions">
+    <a class="btn btn--secondary btn--min" href="{{ url_for('teacher.bank') }}">{{ ui.icon('arrow-left', 16) }}<span>{{ _("Назад в банк") }}</span></a>
+  </div>
+</section>
+
+<div class="card">
+  {% include "teacher/_question_redact_body.html" %}
+</div>
+{% endblock %}
+{% block scripts %}<script defer src="{{ url_for('static', filename='js/question-redact.js') }}"></script>{% endblock %}

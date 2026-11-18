@@ -2,17 +2,17 @@
 {% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/bank-tiles.css') }}">{% endblock %}
 {% block title %}{{ _("Банк вопросов") }}{% endblock %}
 {% block content %}
-<div class="page-head pk-page">
-  <div class="page-head__text">
+<section class="card t-hero-bar pk-page">
+  <div class="t-hero-bar__title">
     <h1>{{ _("Банк вопросов") }}</h1>
     <p>{{ _("Найди вопросы фильтрами и темами, собери их в корзину справа — и отправь в работу или в «Вопросы дня».") }}</p>
   </div>
-  <div class="row">
-    <a class="btn btn--secondary" href="{{ url_for('teacher.questions') }}">{{ _("Мои вопросы") }}</a>
-    <a class="btn btn--secondary" href="{{ url_for('assistant.home') }}">{{ ui.icon('copy', 18) }}{{ _("Вставить тест целиком") }}</a>
-    <a class="btn btn--primary" href="{{ url_for('teacher.question_new') }}">{{ ui.icon('plus', 18) }}{{ _("Новый вопрос") }}</a>
+  <div class="t-hero-actions">
+    <a class="btn btn--secondary btn--min" href="{{ url_for('teacher.questions') }}"><span>{{ _("Мои вопросы") }}</span></a>
+    <a class="btn btn--secondary btn--min" href="{{ url_for('assistant.home') }}">{{ ui.icon('copy', 16) }}<span>{{ _("Вставить тест целиком") }}</span></a>
+    <a class="btn btn--primary btn--min" href="{{ url_for('teacher.question_new') }}">{{ ui.icon('plus', 16) }}<span>{{ _("Новый вопрос") }}</span></a>
   </div>
-</div>
+</section>
 
 <div class="pk-layout">
   <div class="pk-field">
@@ -44,4 +44,7 @@
   </form>
 </div>
 {% endblock %}
-{% block scripts %}<script defer src="{{ url_for('static', filename='js/picker.js') }}"></script>{% endblock %}
+{% block scripts %}
+<script defer src="{{ url_for('static', filename='js/picker.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/question-redact.js') }}"></script>
+{% endblock %}

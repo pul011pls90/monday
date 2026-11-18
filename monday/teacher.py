@@ -1311,6 +1311,77 @@ def question_edit(question_id):
     return _render_question(qn)
 
 
+@bp.route("/questions/<int:question_id>/redact", methods=["GET", "POST"])
+@staff_required
+def question_redact(question_id):
+    """Student-view question redactor: teachers propose corrections that go to admin moderation."""
+    orig = db.session.get(Question, question_id) or abort(404)
+    if request.method == "POST":
+        text = (request.form.get("text") or "").strip()
+        if not text and not orig.image_path:
+            msg = _("Напишите текст вопроса.")
+            if request.headers.get("X-Requested-With") == "fetch":
+                return {"ok": False, "error": msg}, 400
+            flash(msg, "error")
+            return redirect(url_for("teacher.question_redact", question_id=orig.id))
+
+        pending = Question(
+            author_id=current_user.id,
+            replaces_id=orig.id,
+            status="pending",
+            source=orig.source,
+            rubric=copy.deepcopy(orig.rubric),
+            video_url=orig.video_url,
+        )
+        for field in QUESTION_COPY_FIELDS:
+            setattr(pending, field, copy.deepcopy(getattr(orig, field)))
+
+        pending.text = text
+        pending.explanation = (request.form.get("explanation") or "").strip()
+        diff = request.form.get("difficulty", type=int)
+        if diff in (1, 2, 3):
+            pending.difficulty = diff
+        pending.review_note = (request.form.get("review_note") or "").strip()[:500] or None
+
+        if pending.answer_type == "choice":
+            opts = [request.form.get(f"opt_{i}", "").strip() for i in range(max(4, len(orig.options or [])))]
+            while len(opts) > 4 and not opts[-1]:
+                opts.pop()
+            if sum(1 for o in opts if o) < 2:
+                msg = _("Нужно минимум 2 варианта ответа.")
+                if request.headers.get("X-Requested-With") == "fetch":
+                    return {"ok": False, "error": msg}, 400
+                flash(msg, "error")
+                return redirect(url_for("teacher.question_redact", question_id=orig.id))
+            pending.options = opts
+            corr = request.form.get("correct", "0").strip()
+            if not corr.isdigit() or not (0 <= int(corr) < len(opts)):
+                corr = "0"
+            pending.correct = corr
+        else:
+            corr = (request.form.get("correct") or "").strip()
+            if not corr:
+                msg = _("Укажите правильный ответ.")
+                if request.headers.get("X-Requested-With") == "fetch":
+                    return {"ok": False, "error": msg}, 400
+                flash(msg, "error")
+                return redirect(url_for("teacher.question_redact", question_id=orig.id))
+            pending.correct = corr
+
+        db.session.add(pending)
+        db.session.commit()
+        ok_msg = _("Правка отправлена администратору на проверку. Ученики увидят её после одобрения.")
+        if request.headers.get("X-Requested-With") == "fetch":
+            return {"ok": True, "pending_id": pending.id, "message": ok_msg}
+        flash(ok_msg, "success")
+        return redirect(url_for("teacher.bank"))
+
+    item = orig.snapshot()
+    if request.args.get("modal"):
+        return render_template("teacher/_question_redact_body.html", q=orig, item=item)
+    return render_template("teacher/question_redact.html", q=orig, item=item)
+
+
 @bp.route("/questions/<int:question_id>/delete", methods=["POST"])
 @staff_required
 def question_delete(question_id):
