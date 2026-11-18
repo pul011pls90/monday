@@ -93,6 +93,7 @@
         </td>
         <td class="small muted">
           {% if item.is_online %}<span class="state state--checked">{{ _("онлайн") }}</span>{% else %}{{ item.last_active|ago }}{% endif %}
+          <span style="display:block;font-size:11.5px">{{ _("Входов:") }} <b class="num">{{ u.login_count or 0 }}</b></span>
         </td>
         <td style="text-align:right;white-space:nowrap">
           {% if item.record_id %}

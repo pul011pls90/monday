@@ -61,6 +61,7 @@ class User(UserMixin, db.Model):
     is_blocked = db.Column(db.Boolean, nullable=False, default=False)  # admin can block an account
     is_methodist = db.Column(db.Boolean, nullable=False, default=False)  # teacher who reviews assistants' questions
     auth_provider = db.Column(db.String(16), nullable=False, default="password")  # password | google
+    login_count = db.Column(db.Integer, nullable=False, default=0)  # total successful sign-ins
     last_seen_at = db.Column(db.DateTime)  # updated at most every few minutes
     total_visits = db.Column(db.Integer, nullable=False, default=0)  # cached by daily analytics job
     average_visit_duration = db.Column(db.Integer, nullable=False, default=0)  # average seconds per visit
@@ -960,6 +961,28 @@ class PageView(db.Model):
     time_spent_seconds = db.Column(db.Integer, nullable=False, default=0)
 
     visit = db.relationship("Visit", back_populates="page_views")
+
+
+class LoginEvent(db.Model):
+    """Per-login audit record: auth method, device/OS/browser, GeoIP, and salted IP hash."""
+
+    __tablename__ = "login_event"
+    __table_args__ = (
+        db.Index("ix_login_event_user_created", "user_id", "created_at"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True)
+    auth_provider = db.Column(db.String(16), nullable=False, default="password")
+    device_type = db.Column(db.String(16), nullable=False, default="desktop")
+    os = db.Column(db.String(64), nullable=True)
+    browser = db.Column(db.String(64), nullable=True)
+    ip_hash = db.Column(db.String(64), nullable=True)
+    country = db.Column(db.String(80), nullable=True)
+    city = db.Column(db.String(120), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow, index=True)
+
+    user = db.relationship("User", backref=db.backref("login_events", lazy="dynamic", cascade="all, delete-orphan"))
 
 
 # Safety net for PostgreSQL, which (unlike SQLite) rejects a string longer than its column:

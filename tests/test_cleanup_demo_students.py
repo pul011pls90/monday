@@ -39,10 +39,23 @@ def test_remove_demo_students_keeps_real_students():
         remove_demo_students()
         db.session.commit()
 
-        remaining = User.query.filter_by(role="student").all()
-        assert [u.email for u in remaining] == ["real.student@gmail.com"]
-        assert StudentRecord.query.count() == 1
-        assert StudentRecord.query.first().student_user_id == real_stu.id
+        # student@monday.kg (showcase student) and real students are kept; student1..N are removed
+        remaining = {u.email for u in User.query.filter_by(role="student").all()}
+        assert remaining == {"student@monday.kg", "real.student@gmail.com"}
+        assert StudentRecord.query.filter_by(student_user_id=real_stu.id).count() == 1
+
+        # If student@monday.kg was deleted earlier, ensure_showcase_student restores it cleanly
+        from monday.cleanup import ensure_showcase_student
+        stu_demo = User.query.filter_by(email="student@monday.kg").first()
+        StudentRecord.query.filter_by(student_user_id=stu_demo.id).delete()
+        db.session.delete(stu_demo)
+        db.session.commit()
+        assert User.query.filter_by(email="student@monday.kg").first() is None
+
+        ensure_showcase_student()
+        db.session.commit()
+        restored = User.query.filter_by(email="student@monday.kg").first()
+        assert restored is not None and restored.check_password("student123") and restored.profile is not None
 
 
 def test_remove_extra_teachers_keeps_admin_and_aibek_and_preserves_questions():

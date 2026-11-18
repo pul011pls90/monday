@@ -10,7 +10,7 @@ from sqlalchemy import func
 from .access import admin_required
 from .constants import EXAMS
 from .extensions import db
-from .models import (Attempt, ContentNode, Question, StudentProfile, StudentRecord, User, Work, utcnow)
+from .models import (Attempt, ContentNode, LoginEvent, Question, StudentProfile, StudentRecord, User, Work, utcnow)
 from .services import content_gaps, progress_summary, temporary_password
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -112,7 +112,14 @@ def index():
             for r in StudentRecord.query.filter(StudentRecord.student_user_id.in_(ids)).all() if ids else []:
                 links[r.student_user_id].append(r.teacher.name)
             extra = {i: {"teachers": links.get(i, [])} for i in ids}
+        last_login = {}
+        if ids:
+            for le in (LoginEvent.query.filter(LoginEvent.user_id.in_(ids))
+                       .order_by(LoginEvent.created_at.desc()).all()):
+                if le.user_id not in last_login:
+                    last_login[le.user_id] = le
         ctx.update(users=shown, total=len(users), page=page, pages=pages, extra=extra,
+                   last_login=last_login,
                    last={u.id: max([d for d in (u.last_seen_at, last.get(u.id)) if d] or [None]) for u in shown})
     user_id = request.args.get("user", type=int)
     if user_id:
@@ -140,7 +147,12 @@ def _panel(user_id):
                 .order_by(Attempt.finished_at.desc()).limit(6).all())
     data["attempts"] = attempts
     last_attempt = Attempt.query.filter_by(user_id=u.id).order_by(Attempt.started_at.desc()).first()
-    data["last"] = max([d for d in (u.last_seen_at, last_attempt.started_at if last_attempt else None) if d] or [None])
+    login_events = (LoginEvent.query.filter_by(user_id=u.id)
+                    .order_by(LoginEvent.created_at.desc()).limit(10).all())
+    data["login_events"] = login_events
+    data["last_login"] = login_events[0] if login_events else None
+    data["last"] = max([d for d in (u.last_seen_at, last_attempt.started_at if last_attempt else None,
+                                    login_events[0].created_at if login_events else None) if d] or [None])
     if u.role == "student":
         data["teachers"] = [r.teacher for r in StudentRecord.query.filter_by(student_user_id=u.id).all()]
         exam = u.profile.exam if u.profile else None

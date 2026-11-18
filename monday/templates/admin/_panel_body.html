@@ -19,6 +19,11 @@
   <dl class="kv small">
     <dt>{{ _("С нами с") }}</dt><dd>{{ u.created_at|d("d MMMM y") }}</dd>
     <dt>{{ _("Активность") }}</dt><dd>{{ panel.last|ago }}</dd>
+    <dt>{{ _("Всего входов") }}</dt><dd><b class="num">{{ u.login_count or 0 }}</b> · {{ _("вход через") }} {{ "Google" if u.auth_provider == "google" else _("Email / пароль") }}</dd>
+    {% if panel.last_login %}{% set ll = panel.last_login %}
+      <dt>{{ _("Последний вход") }}</dt><dd>{{ ll.created_at|d("d MMM, HH:mm") }} ({{ ll.created_at|ago }})</dd>
+      <dt>{{ _("Устройство") }}</dt><dd>{{ ll.device_type }}{% if ll.os %} · {{ ll.os }}{% endif %}{% if ll.browser %} · {{ ll.browser }}{% endif %}{% if ll.country %} · {{ ll.country }}{% if ll.city %}, {{ ll.city }}{% endif %}{% endif %}</dd>
+    {% endif %}
     {% if u.role == 'student' and u.profile %}
       <dt>{{ _("Экзамен") }}</dt><dd>{{ u.profile.exam|exam_label if u.profile.exam else '—' }}{% if u.profile.exam_date %} · {{ u.profile.exam_date|d("d MMM y") }}{% endif %}</dd>
       <dt>{{ _("Цель") }}</dt><dd>{{ u.profile.goal_score or '—' }}</dd>
@@ -48,6 +53,17 @@
   <section class="stack-sm"><h3 class="eyebrow">{{ _("Ученики") }}</h3>
     <ul class="person__list">{% for r in panel.records[:12] %}<li><span>{{ r.name }}</span><span class="small muted">{{ r.exam|exam_label if r.exam else '' }}{% if not r.student_user_id %} · {{ _("не подключён") }}{% endif %}</span></li>{% endfor %}
       {% if panel.records|length > 12 %}<li class="small muted">{{ _("и ещё %(n)s", n=panel.records|length - 12) }}</li>{% endif %}</ul>
+  </section>
+  {% endif %}
+
+  {% if panel.login_events %}
+  <section class="stack-sm"><h3 class="eyebrow">{{ _("История входов") }}</h3>
+    <ul class="person__list">{% for le in panel.login_events[:8] %}
+      <li>
+        <span>{{ le.device_type }}{% if le.os %} · {{ le.os }}{% endif %}{% if le.browser %} · {{ le.browser }}{% endif %}{% if le.country %} <span class="muted">({{ le.country }}{% if le.city %}, {{ le.city }}{% endif %})</span>{% endif %}</span>
+        <span class="small muted num">{{ le.created_at|d("d MMM, HH:mm") }}</span>
+      </li>
+    {% endfor %}</ul>
   </section>
   {% endif %}
 

@@ -55,10 +55,10 @@ body:not(.auth-body) {
   background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(10px);
   box-shadow: var(--card-shadow);
 }
-.rail__item { width: 56px; height: 56px; margin-inline: auto; padding: 0 2px; border-radius: 14px; font-size: 9px; letter-spacing: -.02em; line-height: 1.15; justify-content: center; flex: none; }
+.rail__item { width: 62px; height: 56px; margin-inline: auto; padding: 0 4px; border-radius: 14px; font-size: 9.5px; letter-spacing: -.02em; line-height: 1.15; justify-content: center; flex: none; }
 .rail__item .ic { --ic: 19px; }
 .rail__item svg { stroke-width: 1.9; }
-.rail__label { display: inline; max-width: 100%; white-space: nowrap; }
+.rail__label { display: inline; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rail__logo { width: 40px; height: 40px; margin-bottom: clamp(10px, 1.8vh, 20px); flex: none; }
 .rail__foot { display: flex; flex-direction: column; align-items: center; gap: clamp(5px, 0.9vh, 14px); padding-top: 2px; flex: none; }
 [data-theme="dark"] .rail { border-color: rgba(255, 255, 255, .14); }
@@ -530,7 +530,7 @@ details[open] > summary .bank-topic__chev { transform: rotate(180deg); }
 .admin-stat b { font: 800 30px/1.1 var(--font-display); letter-spacing: -.02em; }
 .admin-stat > span:last-child > span { font-size: 13px; color: var(--muted); }
 .admin-stat.is-hot .admin-stat__ic { background: var(--warn-soft); color: var(--warn); }
-.admin-tabs { display: flex; gap: 4px; padding: 4px; border: var(--bw, 1px) solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--surface) 85%, transparent); overflow-x: auto; position: sticky; top: 8px; z-index: 6; backdrop-filter: blur(8px); }
+.admin-tabs { display: flex; gap: 4px; padding: 4px; border: var(--bw, 1px) solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--surface) 88%, transparent); overflow-x: auto; backdrop-filter: blur(8px); }
 .admin-tabs a { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 14px; color: var(--text-2); text-decoration: none; white-space: nowrap; }
 .admin-tabs a:hover { background: var(--surface-2); color: var(--text); }
 .admin-tabs a.is-active { background: var(--btn-bg); color: var(--btn-text); }
@@ -560,7 +560,7 @@ details[open] > summary .bank-topic__chev { transform: rotate(180deg); }
 .mod-card__opts { display: flex; flex-wrap: wrap; gap: 8px; font-size: 14px; }
 .mod-card__opts > span { padding: 6px 12px; border-radius: 10px; border: var(--bw, 1px) solid var(--line-strong); }
 .mod-card__opts > span.is-right { border-color: var(--ok); background: var(--ok-soft); }
-.people-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; position: sticky; top: 72px; z-index: 5; padding: 12px; border: var(--bw, 1px) solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(8px); }
+.people-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 16px; border: var(--bw, 1px) solid var(--line); border-radius: 18px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(8px); }
 .people-bar .search { flex: 1 1 240px; }
 .people-bar .select { width: auto; min-height: 44px; }
 .people-bar__count { margin-left: auto; }

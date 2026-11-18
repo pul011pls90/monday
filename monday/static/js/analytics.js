@@ -461,6 +461,8 @@
         <dt>Регион</dt><dd>${esc([p.country, p.region].filter(Boolean).join(", ") || "—")}</dd>
         <dt>Учитель</dt><dd>${esc((p.teachers || []).join(", ") || "—")}</dd>
         <dt>Визиты</dt><dd class="num">${p.total_visits} · ср. ${esc(fmtDuration(p.average_visit_duration))}</dd>
+        <dt>Входы</dt><dd class="num">${p.login_count || 0} (${p.auth_provider === "google" ? "Google" : "Email / пароль"})</dd>
+        ${p.recent_logins && p.recent_logins.length ? `<dt>Посл. устройство</dt><dd>${esc([p.recent_logins[0].device_type, p.recent_logins[0].os, p.recent_logins[0].browser].filter(Boolean).join(" · "))} · ${esc(fmtDateTime(p.recent_logins[0].created_at))}</dd>` : ""}
       </dl>
 
       <div class="person__nums">

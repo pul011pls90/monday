@@ -51,7 +51,7 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     login_manager.login_view = "auth.login"
     login_manager.login_message = None
 
-    from .models import PageView, User, Visit
+    from .models import LoginEvent, PageView, User, Visit
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -427,7 +427,7 @@ def _register_cli(app):
 
 def _bootstrap_admin(app):
     """Production: an empty database gets one admin (ADMIN_EMAIL / ADMIN_PASSWORD) instead of the demo data."""
-    from .models import PageView, User, Visit
+    from .models import LoginEvent, PageView, User, Visit
     email, password = app.config.get("ADMIN_EMAIL"), app.config.get("ADMIN_PASSWORD")
     if not email or not password:
         app.logger.warning("Empty database and no ADMIN_EMAIL/ADMIN_PASSWORD: no admin created.")

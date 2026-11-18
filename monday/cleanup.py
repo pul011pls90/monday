@@ -176,7 +176,7 @@ def remove_demo_students():
         Visit,
     )
 
-    demo_re = re.compile(r"^student\d*@monday\.kg$", re.I)
+    demo_re = re.compile(r"^student\d+@monday\.kg$", re.I)
     demo_users = [
         u for u in User.query.filter_by(role="student").all()
         if demo_re.match((u.email or "").strip())
@@ -322,6 +322,48 @@ def remove_extra_teachers():
         db.session.delete(u)
 
 
+def ensure_showcase_student():
+    """Ensure the main showcase student account (student@monday.kg / student123) exists for demos/reviews."""
+    from datetime import timedelta
+    from .models import StudentProfile, utcnow
+
+    stu = User.query.filter_by(email="student@monday.kg").first()
+    if stu is None:
+        today = utcnow().date()
+        first_monday = today + timedelta(days=(7 - today.weekday()) % 7)
+        exam_date = first_monday + timedelta(weeks=20, days=4)
+        stu = User(email="student@monday.kg", name="Student", role="student", is_approved=True)
+        stu.set_password("student123")
+        stu.profile = StudentProfile(
+            exam="ORT",
+            exam_date=exam_date,
+            goal_score=190,
+            grade="11",
+            country="Кыргызстан",
+            region="Чуйская область",
+            school="Гимназия №1, Токмок",
+            onboarded=True,
+        )
+        db.session.add(stu)
+        db.session.flush()
+    elif not stu.profile:
+        stu.profile = StudentProfile(exam="ORT", goal_score=190, grade="11", onboarded=True)
+        db.session.flush()
+
+    teacher = User.query.filter_by(email="aibek@monday.kg", role="teacher").first()
+    if teacher and not StudentRecord.query.filter_by(teacher_id=teacher.id, student_user_id=stu.id).first():
+        db.session.add(
+            StudentRecord(
+                teacher_id=teacher.id,
+                name=stu.name or "Student",
+                grade=(stu.profile.grade if stu.profile else None) or "11",
+                exam=(stu.profile.exam if stu.profile else None) or "ORT",
+                goal_score=(stu.profile.goal_score if stu.profile else None) or 190,
+                student_user_id=stu.id,
+            )
+        )
+
+
 def run_fixes():
     if not current_app.config.get("DATA_FIXES", True):
         return
@@ -337,3 +379,4 @@ def run_fixes():
     _once("ort-monday-word-mix-retagged-2", retag_ort_monday_word_mix)
     _once("demo-students-removed-1", remove_demo_students)
     _once("demo-extra-teachers-removed-1", remove_extra_teachers)
+    _once("showcase-student-restored-1", ensure_showcase_student)

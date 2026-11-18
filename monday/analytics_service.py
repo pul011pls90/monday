@@ -9,7 +9,7 @@ from datetime import date, datetime, timedelta
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
-from .models import Attempt, AttemptAnswer, DailyAnswer, PageView, StudentProfile, StudentRecord, User, Visit, db, utcnow
+from .models import Attempt, AttemptAnswer, DailyAnswer, LoginEvent, PageView, StudentProfile, StudentRecord, User, Visit, db, utcnow
 from .services import progress_summary
 
 ONLINE_WINDOW_MINUTES = 5
@@ -535,6 +535,18 @@ def get_user_drawer_detail(user_id: int) -> dict | None:
         if user_visits
         else 0
     )
+    recent_logins = [
+        {
+            "auth_provider": le.auth_provider,
+            "device_type": le.device_type,
+            "os": le.os or "",
+            "browser": le.browser or "",
+            "country": le.country or "",
+            "city": le.city or "",
+            "created_at": le.created_at.isoformat() if le.created_at else "",
+        }
+        for le in LoginEvent.query.filter_by(user_id=u.id).order_by(LoginEvent.created_at.desc()).limit(8).all()
+    ]
 
     return {
         "kind": "user",
@@ -544,6 +556,9 @@ def get_user_drawer_detail(user_id: int) -> dict | None:
             "email": u.email,
             "initials": u.initials,
             "role": u.role,
+            "auth_provider": u.auth_provider or "password",
+            "login_count": u.login_count or 0,
+            "recent_logins": recent_logins,
             "language": u.language,
             "is_blocked": bool(u.is_blocked),
             "is_approved": bool(u.is_approved),

@@ -13,6 +13,7 @@ def _make_app():
         TESTING = True
         WTF_CSRF_ENABLED = False
         SEED_DEMO = False
+        DATA_FIXES = False
         SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(tmp, "full_analytics.db")
         UPLOAD_FOLDER = os.path.join(tmp, "uploads")
         SERVER_NAME = "localhost"
@@ -178,10 +179,25 @@ def test_analytics_permissions_and_ui_rendering():
     # Optimized Teacher/Admin left rail keeps only the 6 core items (Сегодня, Ученики, Работы, Проверка, Банк, Настройки)
     # while secondary/admin links live in account menu & /teacher/account settings
     rail_chunk = adm_html.split('<nav class="rail"')[1].split("</nav>")[0]
-    for core_label in ("Сегодня", "Пользователи", "Работы", "Проверка", "Банк", "Настройки"):
+    for core_label in ("Сегодня", "Люди", "Работы", "Проверка", "Банк", "Настройки"):
         assert core_label in rail_chunk
     for secondary_label in ("Карта", "Вопросы", "Исправления", "Модерация", "Аналитика"):
         assert secondary_label not in rail_chunk
+
+    # Student login records LoginEvent + login_count and shows in /admin/ panel
+    stu_login = app.test_client()
+    r_sl = stu_login.post(
+        "/login",
+        data={"email": "aliya@monday.kg", "password": "pw"},
+        headers={"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile/15E148 Safari/604.1"},
+    )
+    assert r_sl.status_code == 302
+    r_adm_stu = adm.get(f"/admin/?tab=students&user={ids['student_id']}")
+    assert r_adm_stu.status_code == 200
+    adm_stu_html = r_adm_stu.data.decode("utf-8")
+    assert "Всего входов" in adm_stu_html
+    assert "История входов" in adm_stu_html
+    assert "mobile" in adm_stu_html and "iOS" in adm_stu_html and "Safari" in adm_stu_html
 
     r_acc = adm.get("/teacher/account")
     assert r_acc.status_code == 200

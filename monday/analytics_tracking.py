@@ -13,7 +13,7 @@ from urllib.parse import unquote
 from flask import current_app, g, request
 from flask_login import current_user, user_logged_in
 
-from .models import PageView, Visit, db, utcnow
+from .models import LoginEvent, PageView, Visit, db, utcnow
 
 log = logging.getLogger(__name__)
 
@@ -297,29 +297,49 @@ def _get_or_create_cookie_id() -> tuple[str, bool]:
 
 
 def _link_active_visit_on_login(sender, user, **extra) -> None:
-    """When a visitor logs in or registers, link their open 30-min anonymous visit."""
-    if getattr(user, "role", None) == "admin":
-        return
-    cookie_id = _valid_cookie_id(request.cookies.get(VISITOR_COOKIE_NAME)) or getattr(g, "_analytics_cookie_id", None)
-    if not cookie_id:
-        return
+    """Record login_count + LoginEvent for every user, and link active anonymous Visit for non-admins."""
     try:
-        cutoff = utcnow() - timedelta(minutes=VISIT_TIMEOUT_MINUTES)
-        visit = (
-            Visit.query.filter(
-                Visit.session_cookie_id == cookie_id,
-                Visit.ended_at >= cutoff,
-                Visit.user_id.is_(None),
+        raw_ip = get_client_ip()
+        country, city = resolve_geoip(raw_ip)
+        ip_hash = hash_ip(raw_ip)
+        del raw_ip
+        device_type, os_name, browser = parse_user_agent(request.headers.get("User-Agent", ""))
+
+        user.login_count = (user.login_count or 0) + 1
+        db.session.add(
+            LoginEvent(
+                user_id=user.id,
+                auth_provider=(getattr(user, "auth_provider", None) or "password")[:16],
+                device_type=device_type,
+                os=os_name,
+                browser=browser,
+                ip_hash=ip_hash,
+                country=country,
+                city=city,
+                created_at=utcnow(),
             )
-            .order_by(Visit.ended_at.desc())
-            .first()
         )
-        if visit is not None:
-            visit.user_id = user.id
-            db.session.commit()
+
+        if getattr(user, "role", None) != "admin":
+            cookie_id = _valid_cookie_id(request.cookies.get(VISITOR_COOKIE_NAME)) or getattr(g, "_analytics_cookie_id", None)
+            if cookie_id:
+                cutoff = utcnow() - timedelta(minutes=VISIT_TIMEOUT_MINUTES)
+                visit = (
+                    Visit.query.filter(
+                        Visit.session_cookie_id == cookie_id,
+                        Visit.ended_at >= cutoff,
+                        Visit.user_id.is_(None),
+                    )
+                    .order_by(Visit.ended_at.desc())
+                    .first()
+                )
+                if visit is not None:
+                    visit.user_id = user.id
+
+        db.session.commit()
     except Exception as exc:
         db.session.rollback()
-        log.debug("Failed to link visit on login: %s", exc)
+        log.debug("Failed to record login event / link visit: %s", exc)
 
 
 def register_analytics_middleware(app) -> None:
