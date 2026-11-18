@@ -168,7 +168,7 @@
       return;
     }
     const pg = e.target.closest("[data-pk-page]");
-    if (pg) { if (pg.disabled) return; state.page = parseInt(pg.dataset.pkPage, 10); await load(); root.scrollIntoView({ block: "start", behavior: "smooth" }); return; }
+    if (pg) { if (pg.disabled) return; state.page = parseInt(pg.dataset.pkPage, 10); await load(); return; }
     const pv = e.target.closest("[data-pk-preview]");
     if (pv) {
       const box = $("[data-pk-preview-box]", pv.closest(".pk-row"));
