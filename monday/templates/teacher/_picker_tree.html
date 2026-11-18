@@ -14,6 +14,7 @@
     </div>
     <div class="pk-tree__kids">
     {% for g in sec.groups %}
+      <div class="pk-tree__group">
       {% if g.key %}{% set gc = tree_counts.get(g.key, 0) %}
         <label class="pk-tree__row pk-tree__s{{ ' is-zero' if not gc }}"><input type="checkbox" data-pk-key value="{{ g.key }}" {{ 'checked' if g.key in keys }}>
           <span class="pk-tree__name">{{ g.name }}</span><span class="num">{{ gc }}</span></label>
@@ -24,6 +25,7 @@
           <span class="pk-tree__name">{{ sk.name }}{% if sk.own %} <span class="tag tag--soft tag--xs">{{ _("моё") }}</span>{% endif %}</span><span class="num">{{ kc }}</span>
         </label>
       {% endfor %}
+      </div>
     {% endfor %}
     </div>
   </div>
