@@ -31,7 +31,7 @@
     <div class="pk-review-split">
       <div class="pk-review-left">
         {% if it and it.material %}
-          <div class="pk-review-material math">{{ it.material }}</div>
+          <div class="pk-review-material">{{ ui.material(it) }}</div>
         {% endif %}
         <div class="pk-review-q math">{{ (it.text if it else x.text) or _("Задача с рисунком") }}</div>
         {% set img = it.image_path if it else x.image_path %}
