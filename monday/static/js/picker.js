@@ -228,3 +228,19 @@ document.addEventListener("click", (e) => {
   form.addEventListener("invalid", (e) => { const s = e.target.closest("[data-we-step]"); if (s && s.hidden) show(s.dataset.weStep); }, true);
   show(nav.dataset.start || 1);
 })();
+
+/* bottom-left floating basket dock */
+(function () {
+  const dock = document.querySelector("[data-basket-dock]");
+  if (!dock) return;
+  const btn = dock.querySelector("[data-basket-toggle]");
+  const pop = dock.querySelector("[data-basket-form]");
+  if (!btn || !pop) return;
+  const setOpen = (open) => {
+    pop.hidden = !open;
+    btn.setAttribute("aria-expanded", String(open));
+  };
+  btn.addEventListener("click", (e) => { e.stopPropagation(); setOpen(pop.hidden); });
+  document.addEventListener("click", (e) => { if (!pop.hidden && !dock.contains(e.target)) setOpen(false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !pop.hidden) setOpen(false); });
+})();

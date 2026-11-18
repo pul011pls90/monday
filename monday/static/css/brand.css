@@ -1065,6 +1065,13 @@ kbd { font: 700 10px var(--font); padding: 1px 5px; border-radius: 4px; border: 
 @media (max-width: 1350px) { .pk-field .pk-filters .pk-filter--used { grid-column: auto; } }
 @media (max-width: 700px) { .pk-filters .pk-filter--used { grid-column: auto; } }
 .pk-order { top: 88px; max-height: calc(100vh - 104px); }
+.pk-layout--bank { grid-template-columns: minmax(0, 1fr); }
+.pk-basket-dock { position: fixed; left: 96px; bottom: 22px; z-index: 45; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.pk-basket-fab { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--btn-bg); color: var(--btn-text); font: 700 14px var(--font); box-shadow: 0 10px 28px rgba(2, 11, 41, .22); cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.pk-basket-fab:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(2, 11, 41, .28); }
+.pk-basket-fab__badge { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: rgba(255, 255, 255, .22); display: inline-grid; place-items: center; font-size: 12px; font-weight: 800; }
+.pk-basket-pop { width: min(360px, calc(100vw - 32px)); max-height: min(72vh, 560px); overflow-y: auto; box-shadow: 0 20px 60px rgba(2, 11, 41, .25); border: 1px solid var(--line-strong); position: static; }
+@media (max-width: 900px) { .pk-basket-dock { left: 16px; bottom: 76px; } }
 
 /* picker: 1-by-1 student review split card */
 .pk-review-card { display: flex; flex-direction: column; align-items: stretch; gap: 18px; width: 100%; padding: 20px 24px; border-bottom: 0; background: var(--surface); }
