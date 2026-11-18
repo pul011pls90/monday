@@ -1,36 +1,38 @@
 {% extends "layout.html" %}
 {% block title %}{{ _("Опубликованные работы") }}{% endblock %}
 {% block content %}
-<div class="page-head">
-  <div class="page-head__text">
-    <h1>{{ _("Работы") }}</h1>
-    <p>{{ _("Тесты, сборники и домашние задания. Исправленная работа публикуется новой версией — старые результаты учеников не меняются.") }}</p>
+<section class="card works-top-card">
+  <div class="page-head" style="padding:0;border:0;box-shadow:none;background:transparent">
+    <div class="page-head__text">
+      <h1>{{ _("Работы") }}</h1>
+      <p>{{ _("Тесты, сборники и домашние задания. Исправленная работа публикуется новой версией — старые результаты учеников не меняются.") }}</p>
+    </div>
+    <div class="row">
+      <a class="btn btn--secondary" href="{{ url_for('teacher.work_new', kind='collection') }}">{{ ui.icon('plus', 18) }}{{ _("Сборник") }}</a>
+      <a class="btn btn--primary" href="{{ url_for('teacher.work_new', kind='homework') }}">{{ ui.icon('plus', 18) }}{{ _("Домашнее задание") }}</a>
+    </div>
   </div>
-  <div class="row">
-    <a class="btn btn--secondary" href="{{ url_for('teacher.work_new', kind='collection') }}">{{ ui.icon('plus', 18) }}{{ _("Сборник") }}</a>
-    <a class="btn btn--primary" href="{{ url_for('teacher.work_new', kind='homework') }}">{{ ui.icon('plus', 18) }}{{ _("Домашнее задание") }}</a>
-  </div>
-</div>
 
-<div class="row row--between">
-  <div class="chips" role="tablist">
-    {% for key, label in WORK_STATUSES.items() %}
-      <a class="chip{{ ' is-active' if status == key }}" href="{{ url_for('teacher.works', status=key, kind=kind, view=view) }}">{{ label }} <span class="chip__count">{{ counts[key] }}</span></a>
-    {% endfor %}
-  </div>
-  <div class="row">
-    <div class="chips">
-      <a class="chip{{ ' is-active' if not kind }}" href="{{ url_for('teacher.works', status=status, view=view) }}">{{ _("Все типы") }}</a>
-      {% for key, label in WORK_KINDS.items() %}{% if key != 'monday' or current_user.is_admin %}
-        <a class="chip{{ ' is-active' if kind == key }}" href="{{ url_for('teacher.works', status=status, kind=key, view=view) }}">{{ label }}</a>
-      {% endif %}{% endfor %}
+  <div class="row row--between">
+    <div class="chips" role="tablist">
+      {% for key, label in WORK_STATUSES.items() %}
+        <a class="chip{{ ' is-active' if status == key }}" href="{{ url_for('teacher.works', status=key, kind=kind, view=view) }}">{{ label }} <span class="chip__count">{{ counts[key] }}</span></a>
+      {% endfor %}
     </div>
-    <div class="segmented" role="group" aria-label="{{ _('Вид') }}">
-      <a class="{{ 'is-active' if view == 'tree' }}" href="{{ url_for('teacher.works', status=status, kind=kind, view='tree') }}">{{ _("По темам") }}</a>
-      <a class="{{ 'is-active' if view == 'list' }}" href="{{ url_for('teacher.works', status=status, kind=kind, view='list') }}">{{ _("Списком") }}</a>
+    <div class="row">
+      <div class="chips">
+        <a class="chip{{ ' is-active' if not kind }}" href="{{ url_for('teacher.works', status=status, view=view) }}">{{ _("Все типы") }}</a>
+        {% for key, label in WORK_KINDS.items() %}{% if key != 'monday' or current_user.is_admin %}
+          <a class="chip{{ ' is-active' if kind == key }}" href="{{ url_for('teacher.works', status=status, kind=key, view=view) }}">{{ label }}</a>
+        {% endif %}{% endfor %}
+      </div>
+      <div class="segmented" role="group" aria-label="{{ _('Вид') }}">
+        <a class="{{ 'is-active' if view == 'tree' }}" href="{{ url_for('teacher.works', status=status, kind=kind, view='tree') }}">{{ _("По темам") }}</a>
+        <a class="{{ 'is-active' if view == 'list' }}" href="{{ url_for('teacher.works', status=status, kind=kind, view='list') }}">{{ _("Списком") }}</a>
+      </div>
     </div>
   </div>
-</div>
+</section>
 
 {% macro work_row(w, extra=False) -%}
 {% set v = w.current_version %}
@@ -54,11 +56,16 @@
     {% if full_works %}
     <section class="section pub-section">
       <div class="section__head"><h2>{{ _("Полные варианты экзаменов") }}</h2><span class="small muted">{{ full_works|length }}</span></div>
-      <div class="grid grid-3">
+      <div class="grid grid-3 pub-grid">
         {% for exam, ws in full_works|groupby('exam') %}
         <article class="card pub-card">
           <div class="card__head"><h3>{{ exam|exam_label }}</h3><span class="pub-card__meta">{{ ws|length }} {{ ws|length|plural_ru(_("работа"), _("работы"), _("работ")) }}</span></div>
-          <ul class="pub-works">{% for w in ws %}{{ work_row(w) }}{% endfor %}</ul>
+          <ul class="pub-works">{% for w in ws %}{{ work_row(w, extra=(loop.index > 4)) }}{% endfor %}</ul>
+          {% if ws|length > 4 %}
+            <button type="button" class="btn btn--ghost btn--sm pub-card__more" data-pub-more
+                    data-more="{{ _('Показать ещё %(n)s', n=ws|length - 4) }}"
+                    data-less="{{ _('Свернуть') }}">{{ _("Показать ещё %(n)s", n=ws|length - 4) }}</button>
+          {% endif %}
         </article>
         {% endfor %}
       </div>
@@ -68,7 +75,7 @@
     <section class="section pub-section">
       <div class="section__head"><h2>{{ sec.topic.name }}</h2>
         <a class="small" href="{{ url_for('teacher.tree', _anchor='n' ~ sec.topic.id) }}">{{ _("Открыть в карте") }}</a></div>
-      <div class="grid grid-3">
+      <div class="grid grid-3 pub-grid">
         {% for card in sec.cards %}
         <article class="card pub-card">
           <div class="card__head">
@@ -76,11 +83,11 @@
             <span class="pub-card__meta">{{ card.works|length }} {{ card.works|length|plural_ru(_("работа"), _("работы"), _("работ")) }}{% if card.questions %} · {{ card.questions }} {{ _("моих вопр.") }}{% endif %}</span>
           </div>
           {% if card.works %}
-            <ul class="pub-works">{% for w in card.works %}{{ work_row(w, extra=(loop.index > 6)) }}{% endfor %}</ul>
-            {% if card.works|length > 6 %}
+            <ul class="pub-works">{% for w in card.works %}{{ work_row(w, extra=(loop.index > 4)) }}{% endfor %}</ul>
+            {% if card.works|length > 4 %}
               <button type="button" class="btn btn--ghost btn--sm pub-card__more" data-pub-more
-                      data-more="{{ _('Показать ещё %(n)s', n=card.works|length - 6) }}"
-                      data-less="{{ _('Свернуть') }}">{{ _("Показать ещё %(n)s", n=card.works|length - 6) }}</button>
+                      data-more="{{ _('Показать ещё %(n)s', n=card.works|length - 4) }}"
+                      data-less="{{ _('Свернуть') }}">{{ _("Показать ещё %(n)s", n=card.works|length - 4) }}</button>
             {% endif %}
           {% else %}
             <p class="small muted">{{ _("Работ пока нет — из ваших вопросов можно собрать домашнее задание или тест.") }}</p>
@@ -153,6 +160,7 @@ document.addEventListener("click", (e) => {
   if (!card) return;
   const open = btn.dataset.open !== "1";
   btn.dataset.open = open ? "1" : "0";
+  card.classList.toggle("is-expanded", open);
   card.querySelectorAll(".pub-work.is-extra").forEach((li) => { li.hidden = !open; });
   btn.textContent = open ? btn.dataset.less : btn.dataset.more;
 });
