@@ -1081,9 +1081,9 @@ kbd { font: 700 10px var(--font); padding: 1px 5px; border-radius: 4px; border: 
 .pk-review-card.is-picked { background: color-mix(in srgb, var(--accent) 5%, var(--surface)); }
 .pk-review-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; width: 100%; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
 .pk-review-head__meta, .pk-review-head__actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.pk-pick-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; border: 1.5px solid var(--line-strong); background: var(--surface); font-size: 13px; font-weight: 700; cursor: pointer; transition: border-color .15s, background .15s, color .15s; }
-.pk-pick-pill:has(input:checked) { border-color: var(--btn-bg); background: var(--btn-bg); color: var(--btn-text); }
-.pk-pick-pill input { accent-color: currentColor; margin: 0; }
+.pk-pick-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; border: 1.5px solid var(--line-strong); background: var(--surface); font-size: 13px; font-weight: 700; cursor: pointer; user-select: none; transition: border-color .15s, background .15s, color .15s; }
+.pk-pick-pill:has(input:checked) { border-color: var(--btn-bg); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); color: var(--accent-ink); }
+.pk-pick-pill input { accent-color: var(--btn-bg); margin: 0; cursor: pointer; }
 .pk-review-split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 28px; align-items: stretch; width: 100%; }
 @media (max-width: 860px) { .pk-review-split { grid-template-columns: minmax(0, 1fr); } }
 .pk-review-left .explain { margin-top: auto; }
@@ -1107,6 +1107,23 @@ kbd { font: 700 10px var(--font); padding: 1px 5px; border-radius: 4px; border: 
 .pk-jump-btn--d2 .pk-jump-dot, .pk-lg-d2 { background: #E8A400; border-color: #E8A400; }
 .pk-jump-btn--d3 .pk-jump-dot, .pk-lg-d3 { background: var(--bad); border-color: var(--bad); }
 .pk-jump-btn.is-answered .pk-jump-dot { background: rgba(255, 255, 255, .85); }
+
+/* picker: inline editing directly inside review card */
+.pk-inline-edit { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+.pk-inline-diff { min-height: 30px; padding: 2px 10px; font-size: 12px; width: auto; }
+.pk-inline-kbd { margin: 0; }
+.pk-inline-cols { gap: 10px; }
+.pk-inline-col-input, .pk-inline-q, .pk-inline-explain { width: 100%; resize: vertical; font: inherit; line-height: 1.5; }
+.pk-inline-q { font-size: 16px; font-weight: 600; }
+.pk-inline-opt { gap: 10px; padding: 6px 12px; }
+.pk-inline-opt__pick { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; flex: none; margin: 0; }
+.pk-inline-opt__pick input { accent-color: var(--ok); margin: 0; cursor: pointer; }
+.pk-inline-opt__input { flex: 1; min-width: 0; border: 0; background: transparent; font: 600 15px var(--font); color: var(--text); outline: none; padding: 4px 0; }
+.pk-inline-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--line); }
+.pk-inline-note { flex: 1 1 240px; min-height: 36px; }
+.pk-inline-foot__btns { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.pk-inline-status.is-ok { color: var(--ok); font-weight: 700; }
+.pk-inline-status.is-err { color: var(--bad); font-weight: 700; }
 
 /* translated question: link back to the original text */
 .q-lang { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 13px; font-weight: 600;

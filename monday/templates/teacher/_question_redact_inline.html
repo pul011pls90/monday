@@ -1,0 +1,100 @@
+{% import "partials/macros.html" as ui with context %}
+<form class="pk-inline-edit" data-redact-root data-redact-inline-form method="post" action="{{ url_for('teacher.question_redact', question_id=q.id) }}">
+  {{ ui.csrf() }}
+  <div class="pk-review-head">
+    <div class="pk-review-head__meta small">
+      <span class="tag tag--soft tag--xs num">#{{ q.id }}</span>
+      {% if q.skill %}<span class="muted">{{ q.skill.name }}</span>{% endif %}
+      <span class="tag tag--soft tag--xs">{{ _("Режим правки") }}</span>
+      <select class="select select--sm pk-inline-diff" name="difficulty" aria-label="{{ _('Сложность') }}">
+        {% for k, label in DIFFICULTIES.items() %}
+          <option value="{{ k }}" {{ 'selected' if (q.difficulty or 2) == k }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="pk-review-head__actions small">
+      <button type="button" class="btn btn--ghost btn--sm" data-rd-cancel>{{ _("Отмена") }}</button>
+    </div>
+  </div>
+
+  <div class="q-redact__kbd pk-inline-kbd" data-math-kbd aria-label="{{ _('Математические символы') }}">
+    {% for sym, ins, tip in [
+      ('a/b', '1/2', _('Дробь (например 1/2)')),
+      ('√', '√', _('Корень')),
+      ('x²', '^2', _('Квадрат')),
+      ('xⁿ', '^()', _('Степень')),
+      ('π', 'π', 'π'),
+      ('°', '°', _('Градус')),
+      ('≤', '≤', '≤'),
+      ('≥', '≥', '≥'),
+      ('≠', '≠', '≠'),
+      ('≈', '≈', '≈'),
+      ('±', '±', '±'),
+      ('·', '·', _('Умножение')),
+      ('×', '×', '×'),
+      ('÷', '÷', '÷'),
+      ('∞', '∞', '∞'),
+      ('α', 'α', 'α'),
+      ('β', 'β', 'β'),
+      ('θ', 'θ', 'θ'),
+    ] %}
+      <button type="button" class="q-redact__key" data-insert="{{ ins }}" title="{{ tip }}">{{ sym }}</button>
+    {% endfor %}
+  </div>
+
+  <div class="pk-review-split">
+    <div class="pk-review-left">
+      {% if plain.col_left is not none %}
+        <div class="q-columns pk-inline-cols">
+          <div class="q-columns__col">
+            <div class="q-columns__title">{{ plain.col_left_title }}</div>
+            <textarea class="input pk-inline-col-input" name="col_left" rows="2">{{ plain.col_left }}</textarea>
+          </div>
+          <div class="q-columns__col">
+            <div class="q-columns__title">{{ plain.col_right_title }}</div>
+            <textarea class="input pk-inline-col-input" name="col_right" rows="2">{{ plain.col_right }}</textarea>
+          </div>
+        </div>
+      {% endif %}
+      <textarea class="input pk-inline-q" name="text" rows="3" data-rd-text aria-label="{{ _('Текст вопроса') }}" placeholder="{{ _('Текст вопроса...') }}">{{ plain.text }}</textarea>
+      {% if item.image_path %}
+        <div class="pk-review-img"><img src="{{ url_for('uploaded_file', filename=item.image_path) }}" alt=""></div>
+      {% endif %}
+      <div class="explain">
+        <div class="explain__head">{{ _("Разбор") }}</div>
+        <textarea class="input pk-inline-explain" name="explanation" rows="3" data-rd-explain aria-label="{{ _('Разбор') }}" placeholder="{{ _('Объяснение решения...') }}">{{ plain.explanation }}</textarea>
+      </div>
+    </div>
+
+    <div class="pk-review-right">
+      {% if q.answer_type == 'choice' %}
+        <div class="pk-review-opts">
+          {% for opt in plain.options %}
+            {% set is_ok = (plain.correct|string == loop.index0|string) %}
+            <div class="option__box pk-inline-opt{{ ' is-correct' if is_ok }}">
+              <label class="pk-inline-opt__pick" title="{{ _('Отметить как правильный') }}">
+                <input type="radio" name="correct" value="{{ loop.index0 }}" data-rd-correct="{{ loop.index0 }}" {{ 'checked' if is_ok }}>
+                <span class="option__letter">{{ ['A', 'B', 'C', 'D', 'E', 'F'][loop.index0] }}</span>
+              </label>
+              <input class="pk-inline-opt__input" type="text" name="opt_{{ loop.index0 }}" value="{{ opt }}" data-rd-opt="{{ loop.index0 }}" aria-label="{{ _('Вариант') }} {{ ['A', 'B', 'C', 'D', 'E', 'F'][loop.index0] }}">
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="pk-review-answer">
+          <label class="small muted" for="rd-ans-{{ q.id }}">{{ _("Правильный ответ") }}</label>
+          <input class="input" id="rd-ans-{{ q.id }}" type="text" name="correct" value="{{ plain.correct }}" data-rd-answer>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="pk-inline-foot">
+    <input class="input pk-inline-note" type="text" name="review_note" maxlength="500" placeholder="{{ _('Что исправлено (комментарий для админа)...') }}">
+    <span class="small muted pk-inline-status" data-rd-status hidden></span>
+    <div class="pk-inline-foot__btns">
+      <button type="button" class="btn btn--ghost btn--sm" data-rd-cancel>{{ _("Отмена") }}</button>
+      <button type="submit" class="btn btn--primary btn--sm">{{ ui.icon('send', 15) }}<span>{{ _("Отправить админу") }}</span></button>
+    </div>
+  </div>
+</form>

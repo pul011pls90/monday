@@ -1340,6 +1340,14 @@ def question_redact(question_id):
 
         pending.text = plain_to_latex(raw_text, is_option=False)
         pending.explanation = plain_to_latex((request.form.get("explanation") or "").strip(), is_option=False)
+        if pending.material and ("col_left" in request.form or "col_right" in request.form):
+            for block in pending.material:
+                if block.get("type") == "columns":
+                    if "col_left" in request.form:
+                        block["left"] = plain_to_latex((request.form.get("col_left") or "").strip(), is_option=False)
+                    if "col_right" in request.form:
+                        block["right"] = plain_to_latex((request.form.get("col_right") or "").strip(), is_option=False)
+                    break
         diff = request.form.get("difficulty", type=int)
         if diff in (1, 2, 3):
             pending.difficulty = diff
@@ -1382,12 +1390,19 @@ def question_redact(question_id):
         return redirect(url_for("teacher.bank"))
 
     item = orig.snapshot()
+    col_block = next((b for b in (orig.material or []) if b.get("type") == "columns"), None)
     plain = {
         "text": latex_to_plain(orig.text),
         "options": [latex_to_plain(o) for o in (orig.options or ["", "", "", ""])],
         "explanation": latex_to_plain(orig.explanation),
         "correct": orig.correct if orig.answer_type == "choice" else latex_to_plain(orig.correct),
+        "col_left_title": (col_block.get("left_title") or _("Колонка А")) if col_block else None,
+        "col_right_title": (col_block.get("right_title") or _("Колонка Б")) if col_block else None,
+        "col_left": latex_to_plain(col_block.get("left", "")) if col_block else None,
+        "col_right": latex_to_plain(col_block.get("right", "")) if col_block else None,
     }
+    if request.args.get("inline"):
+        return render_template("teacher/_question_redact_inline.html", q=orig, item=item, plain=plain)
     if request.args.get("modal"):
         return render_template("teacher/_question_redact_body.html", q=orig, item=item, plain=plain)
     return render_template("teacher/question_redact.html", q=orig, item=item, plain=plain)

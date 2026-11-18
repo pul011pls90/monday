@@ -132,10 +132,83 @@
         root.querySelectorAll("[data-preview-opt-box]").forEach((box) => {
           box.classList.toggle("is-correct", box.dataset.previewOptBox === chosen);
         });
+        root.querySelectorAll(".pk-inline-opt").forEach((box) => {
+          const r = box.querySelector("[data-rd-correct]");
+          box.classList.toggle("is-correct", Boolean(r && r.checked));
+        });
       });
     });
 
     renderMath(root);
+  };
+
+  const openInline = async (card, url) => {
+    if (card.dataset.inlineBusy === "1") return;
+    card.dataset.inlineBusy = "1";
+    const origHTML = card.innerHTML;
+    try {
+      const res = await fetch(`${url}?inline=1`, { credentials: "same-origin" });
+      if (!res.ok) throw new Error();
+      card.innerHTML = await res.text();
+      card.classList.add("is-editing");
+      wireLivePreview(card);
+      const firstInput = card.querySelector("[data-rd-text]");
+      if (firstInput) firstInput.focus();
+
+      const restore = () => {
+        card.innerHTML = origHTML;
+        card.classList.remove("is-editing");
+        delete card.dataset.inlineBusy;
+        if (window.MondayRenderMath) window.MondayRenderMath(card);
+      };
+
+      card.querySelectorAll("[data-rd-cancel]").forEach((b) => b.addEventListener("click", restore));
+
+      const form = card.querySelector("[data-redact-inline-form]");
+      const statusEl = card.querySelector("[data-rd-status]");
+      if (form) {
+        form.addEventListener("submit", async (ev) => {
+          ev.preventDefault();
+          const btn = form.querySelector("button[type='submit']");
+          if (btn) btn.disabled = true;
+          if (statusEl) { statusEl.hidden = true; statusEl.className = "small pk-inline-status"; }
+          try {
+            const postRes = await fetch(form.action, {
+              method: "POST",
+              credentials: "same-origin",
+              headers: { "X-Requested-With": "fetch" },
+              body: new FormData(form),
+            });
+            const data = await postRes.json();
+            if (!postRes.ok || !data.ok) {
+              if (statusEl) {
+                statusEl.textContent = data.error || "Не удалось отправить правку.";
+                statusEl.classList.add("is-err");
+                statusEl.hidden = false;
+              }
+            } else {
+              if (statusEl) {
+                statusEl.textContent = data.message || "Правка отправлена администратору.";
+                statusEl.classList.add("is-ok");
+                statusEl.hidden = false;
+              }
+              setTimeout(restore, 1100);
+            }
+          } catch (_) {
+            if (statusEl) {
+              statusEl.textContent = "Ошибка сети. Попробуйте ещё раз.";
+              statusEl.classList.add("is-err");
+              statusEl.hidden = false;
+            }
+          } finally {
+            if (btn) btn.disabled = false;
+          }
+        });
+      }
+    } catch (_) {
+      delete card.dataset.inlineBusy;
+      window.location.href = url;
+    }
   };
 
   const ensureModal = () => {
@@ -171,6 +244,11 @@
     if (!trigger) return;
     e.preventDefault();
     const url = trigger.dataset.redactUrl;
+    const card = trigger.closest(".pk-review-card");
+    if (card) {
+      await openInline(card, url);
+      return;
+    }
     const modal = ensureModal();
     const body = modal.querySelector("[data-redact-body]");
     body.innerHTML = '<p class="small muted">Загрузка вопроса…</p>';

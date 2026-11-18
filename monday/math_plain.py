@@ -62,7 +62,17 @@ def _read_braced(s: str, pos: int) -> tuple[str, int] | None:
     return None
 
 
+def _read_arg(s: str, pos: int) -> tuple[str, int] | None:
+    braced = _read_braced(s, pos)
+    if braced:
+        return braced
+    if pos < len(s) and s[pos] not in ("\\", "}", " "):
+        return s[pos], pos + 1
+    return None
+
+
 def _replace_fracs_and_roots(expr: str) -> str:
+    expr = expr.replace(r"\dfrac", r"\frac").replace(r"\tfrac", r"\frac")
     out = []
     i = 0
     while i < len(expr):
@@ -70,12 +80,12 @@ def _replace_fracs_and_roots(expr: str) -> str:
             j = i + 5
             while j < len(expr) and expr[j] == " ":
                 j += 1
-            num = _read_braced(expr, j)
+            num = _read_arg(expr, j)
             if num:
                 num_txt, j2 = num
                 while j2 < len(expr) and expr[j2] == " ":
                     j2 += 1
-                den = _read_braced(expr, j2)
+                den = _read_arg(expr, j2)
                 if den:
                     den_txt, j3 = den
                     num_txt = _replace_fracs_and_roots(num_txt).strip()
@@ -89,7 +99,7 @@ def _replace_fracs_and_roots(expr: str) -> str:
             j = i + 5
             while j < len(expr) and expr[j] == " ":
                 j += 1
-            arg = _read_braced(expr, j)
+            arg = _read_arg(expr, j)
             if arg:
                 inner, j2 = arg
                 inner = _replace_fracs_and_roots(inner).strip()
