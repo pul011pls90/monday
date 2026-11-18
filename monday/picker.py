@@ -22,7 +22,7 @@ bp = Blueprint("picker", __name__, url_prefix="/teacher/picker")
 FILTERS = {"d": ("1", "2", "3"), "t": ("choice", "number"), "m": ("with", "without"),
            "src": ("mine", "others", "monday"), "used": ("yes", "no"), "tag": ("word", "graph", "nocalc", "compare")}
 SORTS = ("tree", "new", "hard", "used")
-PER_PAGE = 20
+PER_PAGE = 1
 MINUTES = {1: 1.5, 2: 2.0, 3: 3.0}  # rough time per question by difficulty
 
 
@@ -135,7 +135,8 @@ def results():
     page = min(page, pages)
     shown = data["matched"][(page - 1) * PER_PAGE: page * PER_PAGE]
     ctx = dict(data, items=shown, total=total, page=page, pages=pages, exam=exam, TAGS=TAGS,
-               rows={x.id: row_data(x) for x in shown})
+               rows={x.id: row_data(x) for x in shown},
+               snapshots={x.id: x.snapshot() for x in shown})
     return jsonify(tree=render_template("teacher/_picker_tree.html", **ctx),
                    list=render_template("teacher/_picker_list.html", **ctx), total=total)
 

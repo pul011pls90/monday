@@ -1,5 +1,8 @@
 {# Exam view tree for the picker: tick any level (several at once), counts follow the filters, empty skills are greyed. #}
-<button type="button" class="pk-tree__item pk-tree__all{{ ' is-active' if not keys }}" data-pk-clear>{{ _("Все темы") }}<span class="num">{{ total_pool if not keys else '' }}</span></button>
+<div class="pk-tree__top">
+  <button type="button" class="pk-tree__item pk-tree__all{{ ' is-active' if not keys }}" data-pk-clear>{{ _("Все темы") }} <span class="num">{{ total_pool if not keys else '' }}</span></button>
+</div>
+<div class="pk-tree__grid">
 {% for sec in view %}{% set sc = tree_counts.get(sec.key, 0) %}
   <div class="pk-tree__topic{{ ' is-open' if sec.groups|map(attribute='skills')|sum(start=[])|selectattr('key', 'in', keys)|list or sec.groups|selectattr('key', 'in', keys)|list }}" data-pk-sec="{{ sec.key }}">
     <div class="pk-tree__head">
@@ -25,3 +28,4 @@
     </div>
   </div>
 {% endfor %}
+</div>

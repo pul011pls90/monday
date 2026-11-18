@@ -1212,7 +1212,8 @@ def test_teacher_today_bank_and_attendance():
     # bank: filter, then add two questions into a new homework
     ok(t, "/teacher/bank?exam=ORT", contains=["Банк вопросов", "Корзина"])
     r = t.get("/teacher/picker/?exam=ORT&d=2&sort=hard")
-    qids = [int(x) for x in re.findall(r'class="pk-check" value="(\d+)"', r.json["list"])][:2]
+    r2 = t.get("/teacher/picker/?exam=ORT&d=2&sort=hard&page=2")
+    qids = [int(x) for x in re.findall(r'class="pk-check" value="(\d+)"', r.json["list"] + r2.json["list"])][:2]
     assert r.json["total"] > 0 and "Все темы" in r.json["tree"]
     rnd = t.get("/teacher/picker/random?exam=ORT&n=5").json["items"]
     assert len(rnd) == 5 and len({i["id"] for i in rnd}) == 5
