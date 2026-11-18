@@ -136,7 +136,8 @@ def results():
     shown = data["matched"][(page - 1) * PER_PAGE: page * PER_PAGE]
     ctx = dict(data, items=shown, total=total, page=page, pages=pages, exam=exam, TAGS=TAGS,
                rows={x.id: row_data(x) for x in shown},
-               snapshots={x.id: x.snapshot() for x in shown})
+               snapshots={x.id: x.snapshot() for x in shown},
+               jump_items=[(x.id, x.difficulty or 2) for x in data["matched"]])
     return jsonify(tree=render_template("teacher/_picker_tree.html", **ctx),
                    list=render_template("teacher/_picker_list.html", **ctx), total=total)
 

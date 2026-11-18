@@ -62,6 +62,7 @@
       }
     }
     $$(".pk-check", root).forEach((cb) => { cb.checked = has(cb.value); cb.closest(".pk-row").classList.toggle("is-picked", cb.checked); });
+    $$(".pk-jump-btn[data-pk-qid]", root).forEach((b) => b.classList.toggle("is-answered", has(b.dataset.pkQid)));
   };
   const add = (it) => { if (has(it.id)) return false; const li = makeItem(it); list.appendChild(li); render(li); return true; };
   const remove = (id) => { const li = $(`li[data-id="${id}"]`, list); if (li) li.remove(); };
@@ -155,8 +156,19 @@
       if (sec.classList.contains("is-open")) openSecs.add(sec.dataset.pkSec); else openSecs.delete(sec.dataset.pkSec);
       return;
     }
+    const jtog = e.target.closest("[data-pk-jump-toggle]");
+    if (jtog) {
+      const pop = $("[data-pk-jump-pop]", root);
+      if (pop) {
+        const open = pop.hidden;
+        pop.hidden = !open;
+        jtog.setAttribute("aria-expanded", String(open));
+        if (open) { const cur = $(".is-current", pop); if (cur) cur.scrollIntoView({ block: "nearest" }); }
+      }
+      return;
+    }
     const pg = e.target.closest("[data-pk-page]");
-    if (pg) { state.page = parseInt(pg.dataset.pkPage, 10); await load(); root.scrollIntoView({ block: "start", behavior: "smooth" }); return; }
+    if (pg) { if (pg.disabled) return; state.page = parseInt(pg.dataset.pkPage, 10); await load(); root.scrollIntoView({ block: "start", behavior: "smooth" }); return; }
     const pv = e.target.closest("[data-pk-preview]");
     if (pv) {
       const box = $("[data-pk-preview-box]", pv.closest(".pk-row"));
@@ -205,9 +217,17 @@
   load();
 })();
 
-/* filter dropdowns: one open at a time, a click elsewhere closes them */
+/* filter dropdowns & jump popover: click elsewhere closes them */
 document.addEventListener("click", (e) => {
   document.querySelectorAll(".pk-drop[open]").forEach((d) => { if (!d.contains(e.target)) d.open = false; });
+  document.querySelectorAll("[data-pk-jump-pop]:not([hidden])").forEach((pop) => {
+    const mid = pop.closest(".test-foot__mid");
+    if (mid && !mid.contains(e.target)) {
+      pop.hidden = true;
+      const t = mid.querySelector("[data-pk-jump-toggle]");
+      if (t) t.setAttribute("aria-expanded", "false");
+    }
+  });
 });
 
 /* work editor: two steps (description → questions) on one form */

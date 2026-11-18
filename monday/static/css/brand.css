@@ -1096,6 +1096,17 @@ kbd { font: 700 10px var(--font); padding: 1px 5px; border-radius: 4px; border: 
 .pk-review-answer { display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 14px; border: 1.5px solid var(--ok); background: var(--ok-soft); }
 .pk-review-answer strong { font-size: 18px; color: var(--text); }
 
+/* picker: SAT-style jump grid footer with difficulty dots */
+.pk-jump-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 20px; border-top: 1px solid var(--line); }
+.pk-jump-pop { width: min(560px, 92vw); z-index: 30; }
+.pk-jump-grid { grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); max-height: 280px; overflow-y: auto; padding: 4px; }
+.pk-jump-btn { position: relative; }
+.pk-jump-dot { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 14px; height: 3px; border-radius: 999px; }
+.pk-jump-btn--d1 .pk-jump-dot, .pk-lg-d1 { background: var(--ok); border-color: var(--ok); }
+.pk-jump-btn--d2 .pk-jump-dot, .pk-lg-d2 { background: #E8A400; border-color: #E8A400; }
+.pk-jump-btn--d3 .pk-jump-dot, .pk-lg-d3 { background: var(--bad); border-color: var(--bad); }
+.pk-jump-btn.is-answered .pk-jump-dot { background: rgba(255, 255, 255, .85); }
+
 /* translated question: link back to the original text */
 .q-lang { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 13px; font-weight: 600;
   color: var(--text-2); text-decoration: none; }
