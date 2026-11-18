@@ -32,24 +32,20 @@
   </div>
 </div>
 
-{% macro work_row(w) -%}
+{% macro work_row(w, extra=False) -%}
 {% set v = w.current_version %}
-<li class="pub-work">
-  <a class="pub-work__title" href="{{ url_for('teacher.work_edit', work_id=w.id) }}">{{ w.title }}</a>
-  <div class="row" style="gap:4px;flex-wrap:nowrap">
+<li class="pub-work{{ ' is-extra' if extra }}"{% if extra %} hidden{% endif %}>
+  <a class="pub-work__title" href="{{ url_for('teacher.work_edit', work_id=w.id) }}" title="{{ w.title }}">{{ w.title }}</a>
+  <span class="pub-work__meta small muted num">
+    {{ v.question_count if v else (w.draft_question_ids or [])|length }} {{ _("вопр.") }} · {{ stats[w.id].assigned }}/{{ stats[w.id].attempts }}
+    {% if w.status == 'published' and w.has_unpublished_changes %}<span class="state state--pending">{{ _("правки") }}</span>{% endif %}
+  </span>
+  <span class="pub-work__acts">
     {% if w.status == 'published' and w.kind != 'monday' %}
-      <a class="icon-btn icon-btn--sm" href="{{ url_for('teacher.assign', work_id=w.id) }}" title="{{ _('Выдать ученикам') }}" aria-label="{{ _('Выдать ученикам') }}">{{ ui.icon('send', 14) }}</a>
+      <a class="icon-btn icon-btn--xs" href="{{ url_for('teacher.assign', work_id=w.id) }}" title="{{ _('Выдать ученикам') }}" aria-label="{{ _('Выдать ученикам') }}">{{ ui.icon('send', 13) }}</a>
     {% endif %}
-    <a class="icon-btn icon-btn--sm" href="{{ url_for('teacher.work_edit', work_id=w.id) }}" title="{{ _('Редактировать') }}" aria-label="{{ _('Редактировать') }}">{{ ui.icon('edit', 14) }}</a>
-  </div>
-  <div class="pub-work__info">
-    <span class="tag tag--line tag--xs">{{ WORK_KINDS[w.kind] }}</span>
-    {{ ui.exam_tag(w.exam) }}
-    <span>{{ 'v' ~ v.number if v else _('черновик') }}</span>
-    <span>{{ v.question_count if v else (w.draft_question_ids or [])|length }} {{ _("вопр.") }}</span>
-    <span>{{ _("выдано %(a)s, пройдено %(b)s", a=stats[w.id].assigned, b=stats[w.id].attempts) }}</span>
-    {% if w.status == 'published' and w.has_unpublished_changes %}<span class="state state--pending">{{ _("есть правки") }}</span>{% endif %}
-  </div>
+    <a class="icon-btn icon-btn--xs" href="{{ url_for('teacher.work_edit', work_id=w.id) }}" title="{{ _('Редактировать') }}" aria-label="{{ _('Редактировать') }}">{{ ui.icon('edit', 13) }}</a>
+  </span>
 </li>
 {%- endmacro %}
 
@@ -80,7 +76,12 @@
             <span class="pub-card__meta">{{ card.works|length }} {{ card.works|length|plural_ru(_("работа"), _("работы"), _("работ")) }}{% if card.questions %} · {{ card.questions }} {{ _("моих вопр.") }}{% endif %}</span>
           </div>
           {% if card.works %}
-            <ul class="pub-works">{% for w in card.works %}{{ work_row(w) }}{% endfor %}</ul>
+            <ul class="pub-works">{% for w in card.works %}{{ work_row(w, extra=(loop.index > 6)) }}{% endfor %}</ul>
+            {% if card.works|length > 6 %}
+              <button type="button" class="btn btn--ghost btn--sm pub-card__more" data-pub-more
+                      data-more="{{ _('Показать ещё %(n)s', n=card.works|length - 6) }}"
+                      data-less="{{ _('Свернуть') }}">{{ _("Показать ещё %(n)s", n=card.works|length - 6) }}</button>
+            {% endif %}
           {% else %}
             <p class="small muted">{{ _("Работ пока нет — из ваших вопросов можно собрать домашнее задание или тест.") }}</p>
           {% endif %}
@@ -144,4 +145,16 @@
 {% else %}
 <div class="empty"><h3>{{ _("Здесь пусто") }}</h3><p>{{ _("Создайте сборник или домашнее задание.") }}</p></div>
 {% endif %}
+<script>
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-pub-more]");
+  if (!btn) return;
+  const card = btn.closest(".pub-card");
+  if (!card) return;
+  const open = btn.dataset.open !== "1";
+  btn.dataset.open = open ? "1" : "0";
+  card.querySelectorAll(".pub-work.is-extra").forEach((li) => { li.hidden = !open; });
+  btn.textContent = open ? btn.dataset.less : btn.dataset.more;
+});
+</script>
 {% endblock %}
