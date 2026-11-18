@@ -1315,10 +1315,12 @@ def question_edit(question_id):
 @staff_required
 def question_redact(question_id):
     """Student-view question redactor: teachers propose corrections that go to admin moderation."""
+    from .math_plain import latex_to_plain, plain_to_latex
+
     orig = db.session.get(Question, question_id) or abort(404)
     if request.method == "POST":
-        text = (request.form.get("text") or "").strip()
-        if not text and not orig.image_path:
+        raw_text = (request.form.get("text") or "").strip()
+        if not raw_text and not orig.image_path:
             msg = _("Напишите текст вопроса.")
             if request.headers.get("X-Requested-With") == "fetch":
                 return {"ok": False, "error": msg}, 400
@@ -1336,15 +1338,18 @@ def question_redact(question_id):
         for field in QUESTION_COPY_FIELDS:
             setattr(pending, field, copy.deepcopy(getattr(orig, field)))
 
-        pending.text = text
-        pending.explanation = (request.form.get("explanation") or "").strip()
+        pending.text = plain_to_latex(raw_text, is_option=False)
+        pending.explanation = plain_to_latex((request.form.get("explanation") or "").strip(), is_option=False)
         diff = request.form.get("difficulty", type=int)
         if diff in (1, 2, 3):
             pending.difficulty = diff
         pending.review_note = (request.form.get("review_note") or "").strip()[:500] or None
 
         if pending.answer_type == "choice":
-            opts = [request.form.get(f"opt_{i}", "").strip() for i in range(max(4, len(orig.options or [])))]
+            opts = [
+                plain_to_latex(request.form.get(f"opt_{i}", "").strip(), is_option=True)
+                for i in range(max(4, len(orig.options or [])))
+            ]
             while len(opts) > 4 and not opts[-1]:
                 opts.pop()
             if sum(1 for o in opts if o) < 2:
@@ -1359,7 +1364,7 @@ def question_redact(question_id):
                 corr = "0"
             pending.correct = corr
         else:
-            corr = (request.form.get("correct") or "").strip()
+            corr = plain_to_latex((request.form.get("correct") or "").strip(), is_option=True)
             if not corr:
                 msg = _("Укажите правильный ответ.")
                 if request.headers.get("X-Requested-With") == "fetch":
@@ -1377,9 +1382,15 @@ def question_redact(question_id):
         return redirect(url_for("teacher.bank"))
 
     item = orig.snapshot()
+    plain = {
+        "text": latex_to_plain(orig.text),
+        "options": [latex_to_plain(o) for o in (orig.options or ["", "", "", ""])],
+        "explanation": latex_to_plain(orig.explanation),
+        "correct": orig.correct if orig.answer_type == "choice" else latex_to_plain(orig.correct),
+    }
     if request.args.get("modal"):
-        return render_template("teacher/_question_redact_body.html", q=orig, item=item)
-    return render_template("teacher/question_redact.html", q=orig, item=item)
+        return render_template("teacher/_question_redact_body.html", q=orig, item=item, plain=plain)
+    return render_template("teacher/question_redact.html", q=orig, item=item, plain=plain)
 
 
 @bp.route("/questions/<int:question_id>/delete", methods=["POST"])

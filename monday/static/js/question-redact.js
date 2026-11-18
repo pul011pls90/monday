@@ -1,6 +1,59 @@
-/* Monday — Student-View Question Redactor Modal + Live Preview */
+/* Monday — Student-View Question Redactor Modal + Simple Math Preview + Symbol Keyboard */
 (function () {
   "use strict";
+
+  const SYM_TO_LATEX = {
+    "≤": "\\le ",
+    "≥": "\\ge ",
+    "≠": "\\neq ",
+    "≈": "\\approx ",
+    "±": "\\pm ",
+    "·": "\\cdot ",
+    "×": "\\times ",
+    "÷": "\\div ",
+    "∞": "\\infty ",
+    "π": "\\pi ",
+    "α": "\\alpha ",
+    "β": "\\beta ",
+    "γ": "\\gamma ",
+    "θ": "\\theta ",
+    "°": "^{\\circ}",
+  };
+
+  const convertExprToLatex = (expr) => {
+    let s = String(expr || "").trim();
+    s = s.replace(/\(([^()]+)\)\s*\/\s*\(([^()]+)\)/g, (_, a, b) => `\\frac{${a.trim()}}{${b.trim()}}`);
+    s = s.replace(/\(([^()]+)\)\s*\/\s*([A-Za-z0-9]+)/g, (_, a, b) => `\\frac{${a.trim()}}{${b.trim()}}`);
+    s = s.replace(/([A-Za-z0-9]+)\s*\/\s*\(([^()]+)\)/g, (_, a, b) => `\\frac{${a.trim()}}{${b.trim()}}`);
+    s = s.replace(/([A-Za-z0-9]+)\s*\/\s*([A-Za-z0-9]+)/g, (_, a, b) => `\\frac{${a}}{${b}}`);
+    s = s.replace(/√\s*\(([^()]+)\)/g, (_, a) => `\\sqrt{${a.trim()}}`);
+    s = s.replace(/√\s*([A-Za-z0-9]+)/g, (_, a) => `\\sqrt{${a}}`);
+    s = s.replace(/\^\(([^()]+)\)/g, (_, a) => `^{${a.trim()}}`);
+    s = s.replace(/\^([A-Za-z0-9]+)/g, (_, a) => `^{${a}}`);
+    s = s.replace(/_\(([^()]+)\)/g, (_, a) => `_{${a.trim()}}`);
+    s = s.replace(/_([A-Za-z0-9]+)/g, (_, a) => `_{${a}}`);
+    Object.entries(SYM_TO_LATEX).forEach(([sym, tex]) => {
+      s = s.split(sym).join(tex);
+    });
+    return s.replace(/\s+/g, " ").trim();
+  };
+
+  const MATH_HINT_RE = /(\d+\s*\/\s*\d+|[A-Za-z0-9]\s*\/\s*[A-Za-z0-9]|√|\^|_|[≤≥≠≈±·×÷∞παβγθ°])/;
+  const PROSE_SPAN_RE = /(\(?[A-Za-z0-9√][A-Za-z0-9√^_°παβγθ]*\)?(?:\s*[+\-*/=<>≤≥≠≈±·×÷]\s*\(?[A-Za-z0-9√][A-Za-z0-9√^_°παβγθ]*\)?)+|[A-Za-z0-9]+\/[A-Za-z0-9]+|√\([^()]+\)|√[A-Za-z0-9]+|[A-Za-z0-9]+\^\([^()]+\)|[A-Za-z0-9]+\^[A-Za-z0-9]+|[≤≥≠≈±∞παβγθ°]+)/g;
+
+  const plainToLatex = (raw, isOption) => {
+    const s = String(raw || "").trim();
+    if (!s || s.includes("$")) return s;
+    if (isOption) {
+      return MATH_HINT_RE.test(s) ? `$${convertExprToLatex(s)}$` : s;
+    }
+    return s.replace(PROSE_SPAN_RE, (span) => {
+      const t = span.trim();
+      if (/^\d+$/.test(t)) return span;
+      if (!MATH_HINT_RE.test(t) && !/[+\-*/=]/.test(t)) return span;
+      return `$${convertExprToLatex(t)}$`;
+    });
+  };
 
   const wireLivePreview = (scope) => {
     const root = scope.querySelector("[data-redact-root]");
@@ -11,6 +64,27 @@
     const pExplainWrap = root.querySelector("[data-preview-explain-wrap]");
     const pAns = root.querySelector("[data-preview-answer]");
 
+    let activeField = root.querySelector("[data-rd-text]");
+    root.querySelectorAll("input[type='text'], input:not([type]), textarea").forEach((el) => {
+      el.addEventListener("focus", () => { activeField = el; });
+    });
+
+    // Little symbol keyboard inserts at cursor position
+    root.querySelectorAll("[data-math-kbd] [data-insert]").forEach((btn) => {
+      btn.addEventListener("mousedown", (e) => e.preventDefault());
+      btn.addEventListener("click", () => {
+        const target = activeField || root.querySelector("[data-rd-text]");
+        if (!target) return;
+        const ins = btn.dataset.insert || "";
+        const start = target.selectionStart ?? target.value.length;
+        const end = target.selectionEnd ?? target.value.length;
+        target.value = target.value.slice(0, start) + ins + target.value.slice(end);
+        target.focus();
+        target.setSelectionRange(start + ins.length, start + ins.length);
+        target.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+    });
+
     const renderMath = (el) => {
       if (el && window.MondayRenderMath) window.MondayRenderMath(el);
     };
@@ -18,7 +92,7 @@
     const inText = root.querySelector("[data-rd-text]");
     if (inText && pText) {
       inText.addEventListener("input", () => {
-        pText.textContent = inText.value || "Задача с рисунком";
+        pText.textContent = plainToLatex(inText.value, false) || "Задача с рисунком";
         renderMath(pText);
       });
     }
@@ -28,7 +102,7 @@
       inExplain.addEventListener("input", () => {
         const val = inExplain.value.trim();
         pExplainWrap.hidden = !val;
-        pExplain.textContent = val;
+        pExplain.textContent = plainToLatex(val, false);
         renderMath(pExplain);
       });
     }
@@ -36,7 +110,7 @@
     const inAns = root.querySelector("[data-rd-answer]");
     if (inAns && pAns) {
       inAns.addEventListener("input", () => {
-        pAns.textContent = inAns.value;
+        pAns.textContent = plainToLatex(inAns.value, true);
         renderMath(pAns);
       });
     }
@@ -46,7 +120,7 @@
         const idx = inp.dataset.rdOpt;
         const target = root.querySelector(`[data-preview-opt="${idx}"]`);
         if (target) {
-          target.textContent = inp.value;
+          target.textContent = plainToLatex(inp.value, true);
           renderMath(target);
         }
       });

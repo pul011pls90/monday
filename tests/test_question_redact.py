@@ -101,3 +101,15 @@ def test_teacher_redacts_question_and_admin_approves():
         live_q = db.session.get(Question, qid)
         assert live_q.text == "Решите уравнение: $x + 1 = 4$"
         assert live_q.correct == "2"
+
+
+def test_simple_math_notation_and_symbol_keyboard():
+    from monday.math_plain import latex_to_plain, plain_to_latex
+
+    assert latex_to_plain(r"Вычислите: $\frac{1}{2} + \frac{1}{3}$") == "Вычислите: 1/2 + 1/3"
+    assert latex_to_plain(r"$\frac{5}{3}$") == "5/3"
+    assert latex_to_plain(r"$\sqrt{3} \le \pi$") == "√3 ≤ π"
+
+    assert plain_to_latex("5/3", is_option=True) == r"$\frac{5}{3}$"
+    assert plain_to_latex("√3", is_option=True) == r"$\sqrt{3}$"
+    assert plain_to_latex("Вычислите: 1/2 + 1/3", is_option=False) == r"Вычислите: $\frac{1}{2} + \frac{1}{3}$"

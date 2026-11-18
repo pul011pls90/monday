@@ -36,19 +36,45 @@
     </div>
   </section>
 
-  {# Right: Teacher Correction Instruments #}
+  {# Right: Teacher Correction Instruments (simple notation + math symbol keyboard) #}
   <form method="post" action="{{ url_for('teacher.question_redact', question_id=q.id) }}" class="q-redact-tools" data-redact-form>
     {{ ui.csrf() }}
+    <div class="math-kbd" data-math-kbd aria-label="{{ _('Клавиатура символов') }}">
+      {% for label, ins, tip in [
+        ('a/b', '/', _('Дробь (например 1/2)')),
+        ('√', '√', _('Корень (√3 или √(x+1))')),
+        ('x²', '^2', _('Квадрат')),
+        ('xⁿ', '^', _('Степень')),
+        ('π', 'π', 'π'),
+        ('°', '°', _('Градусы')),
+        ('≤', '≤', '≤'),
+        ('≥', '≥', '≥'),
+        ('≠', '≠', '≠'),
+        ('≈', '≈', '≈'),
+        ('±', '±', '±'),
+        ('·', '·', _('Умножение')),
+        ('×', '×', '×'),
+        ('÷', '÷', '÷'),
+        ('∞', '∞', '∞'),
+        ('α', 'α', 'α'),
+        ('β', 'β', 'β'),
+        ('θ', 'θ', 'θ'),
+      ] %}
+        <button type="button" class="math-kbd__btn" data-insert="{{ ins }}" title="{{ tip }}">{{ label }}</button>
+      {% endfor %}
+    </div>
+
     <div class="field">
       <label for="rd-text">{{ _("Текст вопроса") }}</label>
-      <textarea class="input" id="rd-text" name="text" rows="4" data-rd-text>{{ q.text or '' }}</textarea>
+      <textarea class="input" id="rd-text" name="text" rows="3" data-rd-text>{{ plain.text if plain is defined else (q.text or '') }}</textarea>
     </div>
 
     {% if q.answer_type == 'choice' %}
     <div class="field">
       <label>{{ _("Варианты ответа (отметьте правильный)") }}</label>
       <div class="stack-sm" style="gap:8px">
-        {% for opt in q.options or ['', '', '', ''] %}
+        {% set opts_src = plain.options if plain is defined else (q.options or ['', '', '', '']) %}
+        {% for opt in opts_src %}
           <div class="q-redact-opt">
             <label class="row" style="gap:6px;cursor:pointer">
               <input type="radio" name="correct" value="{{ loop.index0 }}" {{ 'checked' if q.correct|string == loop.index0|string }} data-rd-correct="{{ loop.index0 }}">
@@ -62,13 +88,13 @@
     {% else %}
     <div class="field">
       <label for="rd-correct">{{ _("Правильный ответ") }}</label>
-      <input class="input" id="rd-correct" name="correct" value="{{ q.correct }}" data-rd-answer>
+      <input class="input" id="rd-correct" name="correct" value="{{ plain.correct if plain is defined else q.correct }}" data-rd-answer>
     </div>
     {% endif %}
 
     <div class="field">
       <label for="rd-explain">{{ _("Разбор / объяснение") }}</label>
-      <textarea class="input" id="rd-explain" name="explanation" rows="3" data-rd-explain>{{ q.explanation or '' }}</textarea>
+      <textarea class="input" id="rd-explain" name="explanation" rows="3" data-rd-explain>{{ plain.explanation if plain is defined else (q.explanation or '') }}</textarea>
     </div>
 
     <div class="grid grid-2">
@@ -90,7 +116,7 @@
     <div class="small" style="color:var(--ok)" data-rd-ok hidden></div>
 
     <div class="row row--between" style="margin-top:4px;gap:10px">
-      <span class="small muted">{{ _("Изменения не видны ученикам, пока админ их не примет.") }}</span>
+      <span class="small muted">{{ _("Пишите обычные числа и дроби (например 1/2, √3). Изменения уйдут админу на проверку.") }}</span>
       <button class="btn btn--primary btn--min" type="submit" data-rd-submit>{{ ui.icon('send', 16) }}<span>{{ _("Отправить админу") }}</span></button>
     </div>
   </form>
