@@ -88,7 +88,7 @@
             {% set nid = card.sub.id if card.sub else sec.topic.id %}
             <a class="btn btn--secondary btn--sm" href="{{ url_for('teacher.work_new', kind='homework', node=nid) }}">{{ ui.icon('plus', 14) }}{{ _("ДЗ") }}</a>
             <a class="btn btn--secondary btn--sm" href="{{ url_for('teacher.work_new', kind='collection', node=nid) }}">{{ ui.icon('plus', 14) }}{{ _("Тест") }}</a>
-            {% if card.sub %}<a class="btn btn--ghost btn--sm" href="{{ url_for('teacher.questions', node=card.sub.id) }}">{{ _("Вопросы") }}</a>{% endif %}
+            {% if card.sub %}<a class="btn btn--secondary btn--sm" style="margin-left:auto" href="{{ url_for('teacher.questions', node=card.sub.id) }}">{{ _("Вопросы") }}</a>{% endif %}
           </div>
         </article>
         {% endfor %}

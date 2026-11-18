@@ -132,7 +132,12 @@ body:not(.auth-body) {
   margin: 0;
 }
 .page-sky ~ .app .t-today { border-radius: 20px; padding: 18px 22px; }
-.t-hero-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 0; border-radius: 0; background: transparent; border: 0; box-shadow: none; }
+.page-sky ~ .app .t-hero-bar,
+.t-hero-bar { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 0; border-radius: 0; background: transparent; border: 0; box-shadow: none; }
+.pub-card .card__head { align-items: baseline; gap: 12px; }
+.pub-card__meta { white-space: nowrap; flex: none; }
+.pub-card__foot { align-items: center; }
+.pub-card__foot .btn { min-height: 34px; padding: 0 12px; border-radius: 10px; font-size: 13px; font-weight: 600; }
 .t-hero-bar__title { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .t-hero-bar__title h1 { margin: 0; font: 800 28px/1.15 var(--font-display); letter-spacing: -.02em; }
 .t-hero-bar__title p { margin: 0; font-size: 14px; color: var(--muted); }
