@@ -30,7 +30,7 @@
     {% endfor %}
   </nav>
 
-  <form method="get" class="people-bar" role="search" style="padding:10px 12px">
+  <form method="get" class="people-bar" role="search">
     <input type="hidden" name="role" value="{{ role_filter }}">
     <input type="hidden" name="sort" value="{{ sort }}">
     <label class="search search--sm" style="flex:1 1 260px">{{ ui.icon('search', 18) }}<span class="sr-only">{{ _("Поиск") }}</span>

@@ -90,11 +90,16 @@ body:not(.auth-body) {
 .page-sky ~ .app .table-wrap,
 .page-sky ~ .app .people,
 .page-sky ~ .app .admin-tabs,
-.page-sky ~ .app .people-bar,
 .page-sky ~ .app fieldset {
   border-radius: 20px;
   background: var(--surface);
   border-color: var(--line);
+}
+.page-sky ~ .app .people-bar {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
 }
 .page-sky ~ .app fieldset {
   position: relative;
