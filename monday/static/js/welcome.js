@@ -14,9 +14,7 @@
 
   const stage = document.querySelector(".auth__stage");
   const canvas = document.querySelector("[data-dots]");
-  const spiralEl = document.querySelector("[data-spiral]");
-  const source = document.querySelector("template[data-spiral-items]");
-  if (!stage || !canvas || !spiralEl || !source) return;
+  if (!stage || !canvas) return;
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const ctx = canvas.getContext("2d");
@@ -38,33 +36,9 @@
   const TWIST = 0.0034;                              // radians of orbit per unit of depth
   const ORBIT = 0.16;                                // whole system rotation, rad/s
 
-  const templates = Array.from(source.content.children);
+  const templates = [];
   const items = [];
-  const COUNT = Math.max(36, templates.length);
-  for (let i = 0; i < COUNT; i++) {
-    const src = templates[i % templates.length];
-    const el = document.createElement("div");
-    const kinds = (src.dataset.k || "f").split(" ");
-    el.className = `sp-item sp-${kinds[0]} ${kinds.slice(1).join(" ")}`;
-    el.innerHTML = src.innerHTML;
-    spiralEl.appendChild(el);
-    const arm = i % ARMS;
-    items.push({
-      el, kind: kinds[0],
-      z: Z_FAR + ((i * 0.6180339) % 1) * (Z_NEAR - Z_FAR),   // golden-ratio spacing: no clumps
-      phase: arm * (TAU / ARMS) + (Math.random() - 0.5) * 0.5,
-      radius: 200 + Math.random() * 110,
-      spin: (Math.random() < 0.5 ? -1 : 1) * (0.25 + Math.random() * 0.5),
-      tilt: Math.random() * TAU,
-      w: 0, h: 0,
-    });
-  }
-  if (window.renderMathInElement) {
-    window.renderMathInElement(spiralEl, {
-      delimiters: [{ left: "$", right: "$", display: false }], throwOnError: false,
-    });
-  }
-  const measure = () => items.forEach((it) => { it.w = it.el.offsetWidth; it.h = it.el.offsetHeight; });
+  const measure = () => {};
 
   let axisX = 0.16, axisY = -0.06;
   function updateAxis(t) {
@@ -122,9 +96,9 @@
   const S = 12;                 // grid step (denser grid, smaller dots)
   const MAXR = S * 0.3;         // biggest dot radius
   // colours the dots can take: each click switches to the next one (ripple + cursor lens)
-  // gradient stops sampled from the reference image, light → dark
-  const STOPS = [[187, 207, 244], [127, 163, 243], [66, 117, 233], [43, 96, 229], [36, 86, 217], [21, 56, 147], [2, 11, 41]];
-  const GREY = [214, 217, 224];
+  // light-blue gradient stops matching home page animation (ink 43, 96, 229)
+  const STOPS = [[216, 228, 252], [187, 207, 244], [150, 180, 245], [110, 150, 240], [72, 122, 234]];
+  const GREY = [226, 233, 247];
   const grad = (p) => {                       // colour at position p (0 = light, 1 = dark)
     const x = clamp(p, 0, 1) * (STOPS.length - 1);
     const i = Math.min(STOPS.length - 2, Math.floor(x)), f = x - i, a = STOPS[i], b = STOPS[i + 1];
@@ -298,7 +272,7 @@
         else { grey.moveTo(x + rad, y); grey.arc(x, y, rad, 0, TAU); }
       }
     }
-    ctx.fillStyle = "#D6D9E0";
+    ctx.fillStyle = "#E2E9F7";
     ctx.fill(grey);
     for (let k = 0; k < accents.length; k += 5) {
       const hl = accents[k + 3], c = accents[k + 4];
@@ -331,9 +305,6 @@
     };
     updateAxis(t);
     drawDots(t);
-    drawArms(t);
-    spiralEl.style.opacity = (1 - active * 0.35).toFixed(3);
-    drawSpiral(t, dt);
     if (!reduceMotion) requestAnimationFrame(frame);
   }
 
