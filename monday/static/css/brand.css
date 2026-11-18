@@ -132,16 +132,22 @@ body:not(.auth-body) {
   margin: 0;
 }
 .page-sky ~ .app .t-today { border-radius: 20px; padding: 18px 22px; }
+.page-sky ~ .app .card.t-hero-bar,
 .page-sky ~ .app .t-hero-bar,
-.t-hero-bar { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 0; border-radius: 0; background: transparent; border: 0; box-shadow: none; }
+.t-hero-bar { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; width: 100%; padding: 0; border-radius: 0; background: transparent; border: 0; box-shadow: none; }
 .pub-card .card__head { align-items: baseline; gap: 12px; }
 .pub-card__meta { white-space: nowrap; flex: none; }
 .pub-card__foot { align-items: center; }
 .pub-card__foot .btn { min-height: 34px; padding: 0 12px; border-radius: 10px; font-size: 13px; font-weight: 600; }
-.t-hero-bar__title { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.t-hero-bar__title { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; text-align: left; gap: 4px; flex: 1 1 320px; min-width: 0; }
 .t-hero-bar__title h1 { margin: 0; font: 800 28px/1.15 var(--font-display); letter-spacing: -.02em; }
 .t-hero-bar__title p { margin: 0; font-size: 14px; color: var(--muted); }
-.t-hero-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.t-hero-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: none; }
+.t-hero-actions--grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; flex: none; }
+.t-hero-actions--grid > .btn,
+.t-hero-actions--grid > .pk-basket-wrap,
+.t-hero-actions--grid > .pk-basket-wrap > .btn { width: 100%; }
+@media (max-width: 680px) { .t-hero-actions--grid { width: 100%; } }
 .btn--min { min-height: 38px; padding: 0 14px; border-radius: 11px; font-size: 13.5px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 7px; line-height: 1; }
 .btn--min.btn--secondary { background: var(--surface); border: 1px solid var(--line-strong); color: var(--text); }
 .btn--min.btn--secondary:hover { background: var(--surface-2); border-color: var(--text-2); }

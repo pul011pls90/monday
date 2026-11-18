@@ -7,7 +7,7 @@
     <h1>{{ _("Банк вопросов") }}</h1>
     <p>{{ _("Найди вопросы фильтрами и темами, собери их в корзину справа — и отправь в работу или в «Вопросы дня».") }}</p>
   </div>
-  <div class="t-hero-actions">
+  <div class="t-hero-actions t-hero-actions--grid">
     <a class="btn btn--secondary btn--min" href="{{ url_for('teacher.questions') }}"><span>{{ _("Мои вопросы") }}</span></a>
     <a class="btn btn--secondary btn--min" href="{{ url_for('assistant.home') }}">{{ ui.icon('copy', 16) }}<span>{{ _("Вставить тест целиком") }}</span></a>
     <a class="btn btn--primary btn--min" href="{{ url_for('teacher.question_new') }}">{{ ui.icon('plus', 16) }}<span>{{ _("Новый вопрос") }}</span></a>
