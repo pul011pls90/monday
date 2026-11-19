@@ -85,11 +85,11 @@
   <div class="fx-example__left">
     <div class="fx-example__q math">{{ ex.q }}</div>
     {% if ex.goal %}<div class="fx-example__text math">{{ ex.goal }}</div>{% endif %}
-    <div class="fx-example__sol-label">{{ _("Решение") }}</div>
+    <div class="fx-example__sol-label">{{ 'Решение' if ex.lang == 'ru' else 'Solution' }}</div>
     {% if ex.steps %}
     <ol class="fx-example__steps math">{% for s in ex.steps %}<li>{{ s }}</li>{% endfor %}</ol>
     {% endif %}
-    <div class="fx-example__answer math"><b>{{ _("Ответ:") }}</b> {{ ex.answer }}</div>
+    <div class="fx-example__answer math"><b>{{ 'Ответ:' if ex.lang == 'ru' else 'Answer:' }}</b> {{ ex.answer }}</div>
   </div>
   {% if ex_photo_url %}
   <div class="fx-example__right">
