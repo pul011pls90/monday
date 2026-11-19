@@ -88,6 +88,29 @@ def fix_right_triangle() -> str:
     return wrap(520, 320, "Right-triangle definitions", body)
 
 
+def fix_special_values() -> str:
+    body = f"""
+  <!-- 30-60-90 triangle (exact 1 : sqrt(3) : 2 proportions, base=115, height=199) -->
+  <polygon points="44,268 159,268 159,69" fill="var(--soft)" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round"/>
+  <polyline points="141,268 141,250 159,250" fill="none" stroke="var(--primary)" stroke-width="2"/>
+  <text class="halo" x="76" y="256" text-anchor="start" font-size="20" font-weight="700" fill="var(--primary)">60°</text>
+  <text class="halo" x="155" y="156" text-anchor="end" font-size="20" font-weight="700" fill="var(--primary)">30°</text>
+  <text class="halo" x="101" y="294" text-anchor="middle" font-size="20" font-weight="700" fill="var(--ink)">1</text>
+  {radical_svg(170, 154, 16, 24, body="3", color="var(--ink)", fs=20)}
+  <text class="halo" x="88" y="158" text-anchor="end" font-size="20" font-weight="700" fill="var(--primary)">2</text>
+
+  <!-- 45-45-90 triangle (exact 1 : 1 : sqrt(2) proportions, base=165, height=165) -->
+  <polygon points="285,268 450,268 450,103" fill="var(--soft)" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round"/>
+  <polyline points="432,268 432,250 450,250" fill="none" stroke="var(--primary)" stroke-width="2"/>
+  <text class="halo" x="326" y="256" text-anchor="start" font-size="20" font-weight="700" fill="var(--primary)">45°</text>
+  <text class="halo" x="445" y="166" text-anchor="end" font-size="20" font-weight="700" fill="var(--primary)">45°</text>
+  <text class="halo" x="367" y="294" text-anchor="middle" font-size="20" font-weight="700" fill="var(--ink)">1</text>
+  <text class="halo" x="466" y="190" text-anchor="start" font-size="20" font-weight="700" fill="var(--ink)">1</text>
+  {radical_svg(326, 162, 16, 24, body="2", color="var(--primary)", fs=20)}
+"""
+    return wrap(520, 320, "Special angle values", body)
+
+
 def main():
     fixes = {
         "reciprocal-quotient.svg": fix_reciprocal_quotient(),
@@ -96,6 +119,7 @@ def main():
         "trig-integrals-log.svg": fix_trig_integrals_log(),
         "trig-limits.svg": fix_trig_limits(),
         "right-triangle.svg": fix_right_triangle(),
+        "special-values.svg": fix_special_values(),
     }
     for fname, svg in fixes.items():
         (TRIG_DIR / fname).write_text(svg, encoding="utf-8")

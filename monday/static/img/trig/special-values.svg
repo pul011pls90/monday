@@ -1,44 +1,75 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <title>Special angle values</title>
-  <desc>Special angle values</desc>
-  <style data-monday-theme="1">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 320" role="img">
+<title>Special angle values</title>
+<desc>Special angle values</desc>
+<style>
   svg {
     --bg: #FFFFFF;
     --soft: #EEF2FF;
+    --soft-red: #FEE2E2;
     --ink: #0B0B0C;
     --muted: #4E5775;
     --axis: #8A93B2;
     --grid: #E3E8FA;
     --primary: #2F4FE0;
     --accent: #E5484D;
+    --halo: #FFFFFF;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) svg {
       --bg: #0F172A;
       --soft: #1E293B;
+      --soft-red: #3B1A24;
       --ink: #F1F5F9;
       --muted: #CBD5E1;
-      --axis: #7F8AA8;
-      --grid: #252B3D;
+      --axis: #64748B;
+      --grid: #1E293B;
       --primary: #7AA2FF;
       --accent: #FB7185;
+      --halo: #0F172A;
     }
   }
   :root[data-theme="dark"] svg {
     --bg: #0F172A;
     --soft: #1E293B;
+    --soft-red: #3B1A24;
     --ink: #F1F5F9;
     --muted: #CBD5E1;
-    --axis: #7F8AA8;
-    --grid: #252B3D;
+    --axis: #64748B;
+    --grid: #1E293B;
     --primary: #7AA2FF;
     --accent: #FB7185;
+    --halo: #0F172A;
   }
-  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .bg { fill: var(--bg); }
+  .halo { paint-order: stroke; stroke: var(--halo); stroke-width: 4px; stroke-linejoin: round; }
+  .lbl { fill: var(--ink); font-size: 22px; font-weight: 700; }
+  .tick { fill: var(--muted); font-size: 22px; font-weight: 600; }
+  .ax { stroke: var(--axis); stroke-width: 1.8; }
+  .grid { stroke: var(--grid); stroke-width: 1; }
+  .prim { stroke: var(--primary); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .acc { stroke: var(--accent); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 </style>
-  <rect width="720" height="450" fill="var(--bg)"/>
-  <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
-  </defs>
-<polygon points="105,330 280,330 280,120" fill="var(--soft)" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round"/><text x="192" y="360" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">1</text><text x="296" y="230" text-anchor="start" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">√3</text><text x="176" y="212" text-anchor="end" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--primary)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">2</text><text x="152" y="316" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--primary)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">60°</text><text x="258" y="172" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--primary)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">30°</text><polygon points="410,330 600,330 600,140" fill="var(--soft)" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round"/><text x="505" y="360" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">1</text><text x="616" y="240" text-anchor="start" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">1</text><text x="490" y="218" text-anchor="end" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--primary)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">√2</text><text x="462" y="316" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--primary)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">45°</text><text x="576" y="188" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--primary)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">45°</text></svg>
+<rect class="bg" width="520" height="320"/>
+
+  <!-- 30-60-90 triangle (exact 1 : sqrt(3) : 2 proportions, base=115, height=199) -->
+  <polygon points="44,268 159,268 159,69" fill="var(--soft)" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round"/>
+  <polyline points="141,268 141,250 159,250" fill="none" stroke="var(--primary)" stroke-width="2"/>
+  <text class="halo" x="76" y="256" text-anchor="start" font-size="20" font-weight="700" fill="var(--primary)">60°</text>
+  <text class="halo" x="155" y="156" text-anchor="end" font-size="20" font-weight="700" fill="var(--primary)">30°</text>
+  <text class="halo" x="101" y="294" text-anchor="middle" font-size="20" font-weight="700" fill="var(--ink)">1</text>
+  <path d="M 170.0 167.9 L 174.0 167.9 L 179.0 178.0 L 186.0 154.0 L 204.0 154.0" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text class="halo" x="191.0" y="173.7" font-size="20" font-weight="700" fill="var(--ink)">3</text>
+  <text class="halo" x="88" y="158" text-anchor="end" font-size="20" font-weight="700" fill="var(--primary)">2</text>
+
+  <!-- 45-45-90 triangle (exact 1 : 1 : sqrt(2) proportions, base=165, height=165) -->
+  <polygon points="285,268 450,268 450,103" fill="var(--soft)" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round"/>
+  <polyline points="432,268 432,250 450,250" fill="none" stroke="var(--primary)" stroke-width="2"/>
+  <text class="halo" x="326" y="256" text-anchor="start" font-size="20" font-weight="700" fill="var(--primary)">45°</text>
+  <text class="halo" x="445" y="166" text-anchor="end" font-size="20" font-weight="700" fill="var(--primary)">45°</text>
+  <text class="halo" x="367" y="294" text-anchor="middle" font-size="20" font-weight="700" fill="var(--ink)">1</text>
+  <text class="halo" x="466" y="190" text-anchor="start" font-size="20" font-weight="700" fill="var(--ink)">1</text>
+  <path d="M 326.0 175.9 L 330.0 175.9 L 335.0 186.0 L 342.0 162.0 L 360.0 162.0" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text class="halo" x="347.0" y="181.7" font-size="20" font-weight="700" fill="var(--primary)">2</text>
+
+</svg>
