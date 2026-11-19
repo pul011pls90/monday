@@ -1,13 +1,15 @@
 {% extends "layout.html" %}
 {% block title %}{{ template.title }}{% endblock %}
 {% block content %}
-<a href="{{ url_for('student.formulas', tab='monday') }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}{{ _("Все шаблоны") }}</a>
-<div class="page-head">
-  <div class="page-head__text{{ ' page-head__text--csca' if template.exam in ('CSCA', 'OGE', 'EGE', 'ENT') }}">
-    <h1>{{ template.title }}</h1>
-    {% if template.en %}<p>{{ template.en }}</p>{% endif %}
+<section class="card" style="gap:8px;padding:18px 22px">
+  <a href="{{ url_for('student.formulas', tab='monday') }}" style="display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:18px;line-height:1;text-decoration:none;align-self:flex-start"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg><span>{{ _("Все шаблоны") }}</span></a>
+  <div class="page-head" style="padding:0;border:0;box-shadow:none;background:transparent">
+    <div class="page-head__text{{ ' page-head__text--csca' if template.exam in ('CSCA', 'OGE', 'EGE', 'ENT') }}">
+      <h1>{{ template.title }}</h1>
+      {% if template.en %}<p>{{ template.en }}</p>{% endif %}
+    </div>
   </div>
-</div>
+</section>
 
 <div class="fx">
   <nav class="fx-topics" aria-label="{{ _('Темы') }}">
@@ -17,7 +19,7 @@
   </nav>
 
   <div class="fx-main">
-    <header class="fx-head{{ ' fx-head--csca' if template.exam in ('CSCA', 'OGE', 'EGE', 'ENT') }}">
+    <header class="fx-head card{{ ' fx-head--csca' if template.exam in ('CSCA', 'OGE', 'EGE', 'ENT') }}" style="padding:16px 20px">
       <div><h2>{{ topic.name }}</h2>{% if topic.en %}<p>{{ topic.en }}</p>{% endif %}</div>
       <div class="fx-head__tools">
         <form method="post" action="{{ url_for('bank.start') }}">{{ ui.csrf() }}<input type="hidden" name="exam" value="{{ template.exam }}"><input type="hidden" name="only" value="{{ bank_key }}">
@@ -35,9 +37,10 @@
         {% else %}<form method="post" action="{{ url_for('student.formula_add', template_id=template.id) }}">{{ ui.csrf() }}<input type="hidden" name="topic" value="{{ topic.id }}"><input type="hidden" name="formula" value="{{ f.id }}">
           <button class="btn btn--secondary btn--sm" type="submit">{{ ui.icon('plus', 16) }}{{ _("В мои формулы") }}</button></form>{% endif %}
       </div>
-      <div class="fx-card__formula">
+      {% set eqs = split_tex(f.tex) %}
+      <div class="fx-card__formula{{ ' fx-card__formula--split' if eqs|length <= 6 and f.image }}">
         <div class="fx-card__tex">
-          {% for eq in split_tex(f.tex) %}
+          {% for eq in eqs %}
           <div class="fx-card__eq math">${{ eq }}$</div>
           {% endfor %}
         </div>
@@ -48,16 +51,13 @@
         </div>
         {% endif %}
       </div>
-      <div class="fx-examples">
+      <div class="fx-examples" style="grid-template-columns:minmax(0,1fr)">
+        {% set _ex_img = url_for('static', filename='img/formulas/' ~ f.image ~ '.svg') if f.image else None %}
+        {% set _ex_lang = 'en' if template.exam == 'SAT' else 'ru' %}
         {% for e in f.examples %}
-        <div class="fx-example">
-          <div class="fx-example__q math">{{ e.q }}</div>
-          <div class="fx-example__text math">{{ e.goal }} {{ e.plan }}</div>
-          <div class="fx-example__use math">{{ e.use }}</div>
-          <ol class="fx-example__steps math">{% for s in e.steps %}<li>{{ s }}</li>{% endfor %}</ol>
-          {% if e.check %}<div class="fx-example__text math"><b>{{ _("Проверка:") }}</b> {{ e.check }}</div>{% endif %}
-          <div class="fx-example__answer math"><b>{{ _("Ответ:") }}</b> {{ e.answer }}</div>
-        </div>
+          {% with ex=e, ex_photo_url=_ex_img, card_id=f.id, card_name=f.name, default_lang=_ex_lang %}
+            {% include "partials/_example_stepper.html" %}
+          {% endwith %}
         {% endfor %}
       </div>
     </article>
