@@ -4760,6 +4760,11 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 @media (max-width: 760px) { .fx-card__formula--split { grid-template-columns: minmax(0, 1fr); } }
 .fx-card__tex { display: flex; flex-direction: column; gap: 8px; min-width: 0; font-size: 20px; overflow-x: auto; }
 .fx-card__eq { min-width: 0; }
+.fx-card__eq-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.fx-formula-tag { display: inline-flex; align-items: center; padding: 4px 11px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: .01em; }
+.fx-formula-tag--arc { background: color-mix(in srgb, #E5484D 14%, transparent); color: #C93A3A; border: 1px solid color-mix(in srgb, #E5484D 32%, transparent); }
+[data-theme="dark"] .fx-formula-tag--arc { color: #FB7185; }
+.fx-formula-tag--area { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent-ink); border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent); }
 .fx-card__figure { position: relative; display: flex; justify-content: center; align-items: center; padding: 14px 16px; border-radius: 12px; background: #FFFFFF; border: var(--bw, 1px) solid var(--line); cursor: zoom-in; }
 .fx-card__figures--pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
 .fx-trig-table-wrap { width: 100%; overflow-x: auto; border-radius: 12px; border: var(--bw, 1px) solid var(--line); background: var(--surface); }
