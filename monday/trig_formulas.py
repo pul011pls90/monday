@@ -323,6 +323,7 @@ def build_trig_block(static_folder):
                 if c["branch"] == name:
                     card = dict(c)
                     card["photo_url"] = _photo_url(static_folder, c["id"])
+                    card["ex_photo_url"] = _photo_url(static_folder, f"ex/{c['id']}")
                     card["tex_lines"] = [_math_tex(f) for f in c["formulas"]]
                     card["ex_view"] = _EXAMPLES.get(c["id"]) or {
                         "q": c["example"]["problem"],
