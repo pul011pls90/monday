@@ -58,6 +58,7 @@ TEMPLATE_CATEGORIES = {
     "ent_planimetry": ("geometry", "trig"),
     "ent_stereometry": ("geometry",),
     "ent_literacy": ("numbers", "probability"),
+    "trig_formulas": ("trig",),
 }
 
 
