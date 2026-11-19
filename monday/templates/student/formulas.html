@@ -70,6 +70,20 @@
     </div>
   </a>
   {% endfor %}
+  {% set tb = trig_block() %}
+  <a class="card fx-exam-card" href="{{ url_for('trig_block.trig_sections') }}">
+    <div class="row row--between">
+      <span class="tag tag--accent tag--xs">TRIG</span>
+    </div>
+    <h3 class="fx-exam-card__title">All Trigonometry</h3>
+    <p class="fx-exam-card__desc">{{ _("От углов и единичной окружности до тождеств, уравнений, теорем треугольника, пределов, производных и интегралов.") }}</p>
+    <div class="fx-exam-card__foot">
+      <div class="work-card__meta">
+        <span class="meta-item">{{ ui.icon('list', 16) }}<span>{{ tb.levels_count }} {{ tb.levels_count|plural_ru(_("раздел"), _("раздела"), _("разделов")) }} · {{ tb.branches_count }} {{ tb.branches_count|plural_ru(_("тема"), _("темы"), _("тем")) }} · {{ tb.cards_count }} {{ tb.cards_count|plural_ru(_("формула"), _("формулы"), _("формул")) }}</span></span>
+      </div>
+      <span class="btn btn--primary btn--block">{{ _("Открыть") }}</span>
+    </div>
+  </a>
 </div>
 {% elif templates %}
 {% if exam_filter %}
@@ -106,7 +120,6 @@
 </div>
 {% endif %}
 </div>
-{% include "_trigonometry_block.html" %}
 {% else %}
 <form method="post" class="card formula-new">
   {{ ui.csrf() }}<input type="hidden" name="action" value="create">

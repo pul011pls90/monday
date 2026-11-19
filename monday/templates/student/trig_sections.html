@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+{% block title %}All Trigonometry{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Формулы") }} · All Trigonometry</h1>
+    <p>{{ _("Выберите раздел тригонометрии — от базовых определений до производных и интегралов.") }}</p>
+  </div>
+</div>
+
+<div class="row row--between" style="margin-bottom:14px;flex-wrap:wrap;gap:10px">
+  <div class="row" style="gap:12px;align-items:center">
+    <a class="btn btn--secondary btn--sm" href="{{ url_for('student.formulas', tab='monday') }}">{{ ui.icon('arrow-left', 16) }}{{ _("Все экзамены") }}</a>
+    <h2 style="margin:0;font-size:20px">All Trigonometry</h2>
+  </div>
+  <span class="small muted">{{ tb.groups|length }} {{ tb.groups|length|plural_ru(_("раздел"), _("раздела"), _("разделов")) }}</span>
+</div>
+
+<div class="grid fx-sub-grid">
+  {% for g in tb.groups %}
+  <article class="card work-card">
+    <div class="row row--between">
+      <span class="tag tag--accent tag--xs">TRIG</span>
+    </div>
+    <h3 class="work-card__title">Trigonometry · {{ g.level.title }}</h3>
+    <p class="work-card__topics" title="{{ g.branches|map(attribute='name')|join(', ') }}">{{ g.branches|map(attribute='name')|join(', ') }}</p>
+    <div class="work-card__meta">
+      <span class="meta-item work-card__count">{{ ui.icon('list', 16) }}<span class="nw">{{ g.branches|length }} {{ g.branches|length|plural_ru(_("тема"), _("темы"), _("тем")) }} · {{ g.cards_count }} {{ g.cards_count|plural_ru(_("формула"), _("формулы"), _("формул")) }}</span></span>
+    </div>
+    <a class="btn btn--primary btn--block" href="{{ url_for('trig_block.trig_level', level_id=g.level.id) }}">{{ _("Открыть") }}</a>
+  </article>
+  {% endfor %}
+</div>
+{% endblock %}
