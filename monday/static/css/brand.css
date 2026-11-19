@@ -4737,7 +4737,7 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .fx-topics small { flex: none; font-weight: 600; color: var(--muted); }
 .fx-main { display: grid; gap: 14px; min-width: 0; }
 .page-head, .fx-head { scroll-margin-top: calc(var(--topbar, 72px) + env(safe-area-inset-top, 0px) + 16px); }
-.fx-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.fx-head { display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; text-align: left; }
 .fx-head h2 { margin: 0; font-size: 22px; }
 .fx-head p { margin: 2px 0 0; color: var(--text-2); font-size: 14px; }
 .page-head__text--csca { gap: 12px; align-items: flex-start; min-width: 0; max-width: 100%; }
