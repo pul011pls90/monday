@@ -1,44 +1,65 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <title>Auxiliary angle (harmonic</title>
-  <desc>Auxiliary angle (harmonic</desc>
-  <style data-monday-theme="1">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 320" role="img">
+<title>Auxiliary angle (harmonic) form</title>
+<desc>Auxiliary angle (harmonic) form</desc>
+<style>
   svg {
     --bg: #FFFFFF;
     --soft: #EEF2FF;
+    --soft-red: #FEE2E2;
     --ink: #0B0B0C;
     --muted: #4E5775;
     --axis: #8A93B2;
     --grid: #E3E8FA;
     --primary: #2F4FE0;
     --accent: #E5484D;
+    --halo: #FFFFFF;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) svg {
       --bg: #0F172A;
       --soft: #1E293B;
+      --soft-red: #3B1A24;
       --ink: #F1F5F9;
       --muted: #CBD5E1;
-      --axis: #7F8AA8;
-      --grid: #252B3D;
+      --axis: #64748B;
+      --grid: #1E293B;
       --primary: #7AA2FF;
       --accent: #FB7185;
+      --halo: #0F172A;
     }
   }
   :root[data-theme="dark"] svg {
     --bg: #0F172A;
     --soft: #1E293B;
+    --soft-red: #3B1A24;
     --ink: #F1F5F9;
     --muted: #CBD5E1;
-    --axis: #7F8AA8;
-    --grid: #252B3D;
+    --axis: #64748B;
+    --grid: #1E293B;
     --primary: #7AA2FF;
     --accent: #FB7185;
+    --halo: #0F172A;
   }
-  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .bg { fill: var(--bg); }
+  .halo { paint-order: stroke; stroke: var(--halo); stroke-width: 4px; stroke-linejoin: round; }
+  .lbl { fill: var(--ink); font-size: 22px; font-weight: 700; }
+  .tick { fill: var(--muted); font-size: 22px; font-weight: 600; }
+  .ax { stroke: var(--axis); stroke-width: 1.8; }
+  .grid { stroke: var(--grid); stroke-width: 1; }
+  .prim { stroke: var(--primary); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .acc { stroke: var(--accent); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 </style>
-  <rect width="720" height="450" fill="var(--bg)"/>
-  <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
-  </defs>
-<polygon points="180,340 510,340 510,125" fill="var(--soft)" stroke="var(--primary)" stroke-width="2.5"/><text x="345" y="372" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="600" font-style="italic" fill="var(--ink)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">a</text><text x="528" y="236" text-anchor="start" font-family="Arial,sans-serif" font-size="28" font-weight="600" font-style="italic" fill="var(--ink)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">b</text><text x="325" y="206" text-anchor="end" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--primary)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">R = √(a² + b²)</text><text x="255" y="325" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="600" font-style="italic" fill="var(--primary)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">φ</text></svg>
+<rect class="bg" width="520" height="320"/>
+
+  <polygon points="110,255 410,255 410,65" fill="var(--soft)" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round"/>
+  <polyline points="390,255 390,235 410,235" fill="none" stroke="var(--primary)" stroke-width="2"/>
+  <path d="M 165 255 A 55 55 0 0 0 156 226" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
+  <text class="halo" x="178" y="242" text-anchor="start" font-size="20" font-weight="700" fill="var(--primary)">φ</text>
+  <text class="halo" x="260" y="286" text-anchor="middle" font-size="21" font-weight="700" fill="var(--ink)">a</text>
+  <text class="halo" x="428" y="165" text-anchor="start" font-size="21" font-weight="700" fill="var(--ink)">b</text>
+  <text class="halo" x="155" y="140" text-anchor="end" font-size="21" font-weight="700" fill="var(--primary)">R =</text>
+  <path d="M 160.0 133.1 L 164.0 133.1 L 169.0 144.0 L 176.0 118.0 L 250.0 118.0" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text class="halo" x="181.0" y="139.3" font-size="21" font-weight="700" fill="var(--primary)">a² + b²</text>
+
+</svg>

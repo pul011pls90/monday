@@ -111,6 +111,32 @@ def fix_special_values() -> str:
     return wrap(520, 320, "Special angle values", body)
 
 
+def fix_cofunction() -> str:
+    body = """
+  <polygon points="105,250 415,250 415,58" fill="var(--soft)" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round"/>
+  <polyline points="395,250 395,230 415,230" fill="none" stroke="var(--primary)" stroke-width="2"/>
+  <path d="M 162 250 A 57 57 0 0 0 153 220" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
+  <text class="halo" x="174" y="236" text-anchor="start" font-size="20" font-weight="700" fill="var(--primary)">θ</text>
+  <text class="halo" x="405" y="132" text-anchor="end" font-size="20" font-weight="700" fill="var(--primary)">90° − θ</text>
+  <text class="halo" x="260" y="290" text-anchor="middle" font-size="21" font-weight="700" fill="var(--ink)">cos θ = sin(90° − θ)</text>
+"""
+    return wrap(520, 320, "Cofunction identities", body)
+
+
+def fix_auxiliary_angle() -> str:
+    body = f"""
+  <polygon points="110,255 410,255 410,65" fill="var(--soft)" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round"/>
+  <polyline points="390,255 390,235 410,235" fill="none" stroke="var(--primary)" stroke-width="2"/>
+  <path d="M 165 255 A 55 55 0 0 0 156 226" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
+  <text class="halo" x="178" y="242" text-anchor="start" font-size="20" font-weight="700" fill="var(--primary)">φ</text>
+  <text class="halo" x="260" y="286" text-anchor="middle" font-size="21" font-weight="700" fill="var(--ink)">a</text>
+  <text class="halo" x="428" y="165" text-anchor="start" font-size="21" font-weight="700" fill="var(--ink)">b</text>
+  <text class="halo" x="155" y="140" text-anchor="end" font-size="21" font-weight="700" fill="var(--primary)">R =</text>
+  {radical_svg(160, 118, 72, 26, body="a² + b²", color="var(--primary)", fs=21)}
+"""
+    return wrap(520, 320, "Auxiliary angle (harmonic) form", body)
+
+
 def main():
     fixes = {
         "reciprocal-quotient.svg": fix_reciprocal_quotient(),
@@ -120,6 +146,8 @@ def main():
         "trig-limits.svg": fix_trig_limits(),
         "right-triangle.svg": fix_right_triangle(),
         "special-values.svg": fix_special_values(),
+        "cofunction.svg": fix_cofunction(),
+        "auxiliary-angle.svg": fix_auxiliary_angle(),
     }
     for fname, svg in fixes.items():
         (TRIG_DIR / fname).write_text(svg, encoding="utf-8")
