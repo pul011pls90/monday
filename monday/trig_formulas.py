@@ -295,7 +295,7 @@ def _math_tex(s):
     ):
         t = t.replace(a, b)
     t = t.replace("lim(x\\to 0)", r"\lim_{x\to 0}")
-    t = re.sub(r"\b(arcsin|arccos|arctan|arccot|sin|cos|tan|cot|sec|csc|ln)\b", r"\\\1", t)
+    t = re.sub(r"\b(arcsin|arccos|arctan|arccot|sin|cos|tan|cot|sec|csc|ln)\b", r"\\\1 ", t)
     for phrase in (
         "Point on unit circle", "Quadrant I", "Quadrant II", "Quadrant III", "Quadrant IV",
         "all positive", "sin positive", "tan positive", "cos positive",
