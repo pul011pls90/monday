@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Phase 4 · Image Audit (/dev/image-audit){% endblock %}
+{% block body %}
+<main style="padding:20px;max-width:1440px;margin:0 auto">
+<section class="card" style="gap:12px">
+  <div class="row row--between" style="flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 style="margin:0;font-size:clamp(18px,4.5vw,24px);overflow-wrap:anywhere">Image Audit · До / После ({{ total }} изображений · {{ review_count }} в review_queue)</h1>
+      <p class="small muted" style="margin:4px 0 0">Сравнение оригиналов и исправленных SVG, список дефектов и формулы, которые их используют.</p>
+    </div>
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <button type="button" class="btn btn--secondary btn--sm" data-ia-theme="light">Светлая</button>
+      <button type="button" class="btn btn--secondary btn--sm" data-ia-theme="dark">Тёмная</button>
+      <button type="button" class="btn btn--secondary btn--sm" data-ia-width="desktop">480 px</button>
+      <button type="button" class="btn btn--secondary btn--sm" data-ia-width="mobile">Mobile 320 px</button>
+    </div>
+  </div>
+</section>
+
+<div id="ia-grid" style="display:grid;gap:16px;margin-top:16px">
+  {% for it in items %}
+  <article class="card" style="padding:16px;gap:10px" id="ia-{{ it.id }}">
+    <div class="row row--between" style="flex-wrap:wrap;gap:8px">
+      <div>
+        <strong style="font-size:16px">{{ it.id }}</strong>
+        <span class="tag tag--xs">{{ it.type }}</span>
+        <span class="small muted">{{ it.size_kb }} KB</span>
+        {% if it.review %}<span class="tag tag--accent tag--xs">review_queue</span>{% endif %}
+      </div>
+      <div class="small muted">{{ it.defects|length }} дефект(ов)</div>
+    </div>
+
+    <div class="small muted" style="overflow-wrap:anywhere"><b>Формулы:</b> {{ it.formulas }}</div>
+
+    {% if it.review %}
+    <div class="small" style="padding:8px 10px;border-radius:8px;background:var(--accent-soft);color:var(--accent-ink)"><b>Review queue:</b> {{ it.review }}</div>
+    {% endif %}
+
+    {% if it.defects %}
+    <ul class="small" style="margin:0;padding-left:18px;display:grid;gap:2px">
+      {% for d in it.defects %}
+      <li><b>[{{ d.severity }} · {{ d.defect_class }}]</b> {{ d.detail }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    <div class="ia-pair" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">
+      <div class="ia-slot" style="border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--surface)">
+        <div class="small muted" style="margin-bottom:6px;font-weight:700">До (Backup)</div>
+        {% if it.before_svg %}
+        <div class="ia-svg-box" style="width:100%;max-width:480px">{{ it.before_svg|safe }}</div>
+        {% else %}
+        <div class="small muted">Нет бэкапа (inline / trig / новый файл)</div>
+        {% endif %}
+      </div>
+      <div class="ia-slot" style="border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--surface)">
+        <div class="small muted" style="margin-bottom:6px;font-weight:700">После (Current)</div>
+        <div class="ia-svg-box" style="width:100%;max-width:480px">{{ it.after_svg|safe }}</div>
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+
+<script>
+document.querySelectorAll("[data-ia-theme]").forEach((b) => {
+  b.addEventListener("click", () => document.documentElement.setAttribute("data-theme", b.dataset.iaTheme));
+});
+document.querySelectorAll("[data-ia-width]").forEach((b) => {
+  b.addEventListener("click", () => {
+    const w = b.dataset.iaWidth === "mobile" ? "320px" : "480px";
+    document.querySelectorAll(".ia-svg-box").forEach((box) => { box.style.maxWidth = w; });
+  });
+});
+</script>
+</main>
+{% endblock %}

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-label="Две точки и прямоугольный треугольник по осям, расстояние как гипотенуза.">
+<style>
+  svg { --ink: #0B0B0C; --axis: #8A93B2; --grid: #E3E8FA; --primary: #2F4FE0; --primary-soft: #E3E8FA; --answer: #E5484D; --answer-soft: rgba(229,72,77,.14); --muted: #B8C0DA; --bg: #FFFFFF; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) svg { --ink: #F4F5F8; --axis: #7F8AA8; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; } }
+  :root[data-theme='dark'] svg { --ink: #F4F5F8; --axis: #7F8AA8; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; }
+  @media (prefers-reduced-motion: reduce) { svg * { transition: none !important; } }
+  .lbl { font-size: 13px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .var { font-family: 'KaTeX_Math', Georgia, serif; font-style: italic; font-size: 15px; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .mut { font-size: 12px; fill: var(--axis); }
+  .ax { stroke: var(--axis); stroke-width: 1.25; fill: none; }
+  .grd { stroke: var(--grid); stroke-width: 1; fill: none; }
+  .main { stroke: var(--primary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .aux { stroke: var(--axis); stroke-width: 1.25; stroke-dasharray: 4 3; fill: none; }
+  .soft { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; stroke-linejoin: round; }
+  .pt { fill: var(--primary); stroke: var(--bg); stroke-width: 1.5; }
+  .hole { fill: var(--bg); stroke: var(--primary); stroke-width: 2; }
+
+
+</style>
+<defs><marker id='ax' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='6' markerHeight='6' orient='auto'><path d='M1 1.5L9 5L1 8.5z' fill='var(--axis)'/></marker></defs>
+<text x="240.0" y="30.0" text-anchor="middle" class="lbl">Расстояние между точками</text>
+<line x1="80.0" y1="45.0" x2="80.0" y2="295.0" class="grd" />
+<line x1="112.0" y1="45.0" x2="112.0" y2="295.0" class="grd" />
+<line x1="144.0" y1="45.0" x2="144.0" y2="295.0" class="grd" />
+<line x1="176.0" y1="45.0" x2="176.0" y2="295.0" class="grd" />
+<line x1="208.0" y1="45.0" x2="208.0" y2="295.0" class="grd" />
+<line x1="240.0" y1="45.0" x2="240.0" y2="295.0" class="grd" />
+<line x1="272.0" y1="45.0" x2="272.0" y2="295.0" class="grd" />
+<line x1="304.0" y1="45.0" x2="304.0" y2="295.0" class="grd" />
+<line x1="336.0" y1="45.0" x2="336.0" y2="295.0" class="grd" />
+<line x1="368.0" y1="45.0" x2="368.0" y2="295.0" class="grd" />
+<line x1="400.0" y1="45.0" x2="400.0" y2="295.0" class="grd" />
+<line x1="55.0" y1="74.0" x2="425.0" y2="74.0" class="grd" />
+<line x1="55.0" y1="106.0" x2="425.0" y2="106.0" class="grd" />
+<line x1="55.0" y1="138.0" x2="425.0" y2="138.0" class="grd" />
+<line x1="55.0" y1="170.0" x2="425.0" y2="170.0" class="grd" />
+<line x1="55.0" y1="202.0" x2="425.0" y2="202.0" class="grd" />
+<line x1="55.0" y1="234.0" x2="425.0" y2="234.0" class="grd" />
+<line x1="55.0" y1="266.0" x2="425.0" y2="266.0" class="grd" />
+<line x1="55.0" y1="170.0" x2="425.0" y2="170.0" class="ax" marker-end="url(#ax)"/>
+<line x1="240.0" y1="295.0" x2="240.0" y2="45.0" class="ax" marker-end="url(#ax)"/>
+<text x="433.0" y="174.0" text-anchor="start" class="var">x</text>
+<text x="250.0" y="51.0" text-anchor="start" class="var">y</text>
+<path d="M 86.0 248.1 L 87.9 246.8 L 89.8 245.6 L 91.8 244.3 L 93.7 243.1 L 95.6 241.8 L 97.6 240.6 L 99.5 239.3 L 101.4 238.1 L 103.3 236.8 L 105.2 235.6 L 107.2 234.3 L 109.1 233.1 L 111.0 231.8 L 112.9 230.6 L 114.9 229.3 L 116.8 228.1 L 118.7 226.8 L 120.7 225.6 L 122.6 224.3 L 124.5 223.1 L 126.4 221.8 L 128.4 220.6 L 130.3 219.3 L 132.2 218.1 L 134.1 216.8 L 136.1 215.6 L 138.0 214.3 L 139.9 213.1 L 141.8 211.8 L 143.8 210.6 L 145.7 209.3 L 147.6 208.1 L 149.5 206.8 L 151.4 205.6 L 153.4 204.3 L 155.3 203.1 L 157.2 201.8 L 159.1 200.6 L 161.1 199.3 L 163.0 198.1 L 164.9 196.8 L 166.9 195.5 L 168.8 194.3 L 170.7 193.0 L 172.6 191.8 L 174.5 190.5 L 176.5 189.3 L 178.4 188.0 L 180.3 186.8 L 182.2 185.5 L 184.2 184.3 L 186.1 183.0 L 188.0 181.8 L 190.0 180.5 L 191.9 179.3 L 193.8 178.0 L 195.7 176.8 L 197.7 175.5 L 199.6 174.3 L 201.5 173.0 L 203.4 171.8 L 205.3 170.5 L 207.3 169.3 L 209.2 168.0 L 211.1 166.8 L 213.0 165.5 L 215.0 164.3 L 216.9 163.0 L 218.8 161.8 L 220.8 160.5 L 222.7 159.3 L 224.6 158.0 L 226.5 156.8 L 228.5 155.5 L 230.4 154.3 L 232.3 153.0 L 234.2 151.8 L 236.2 150.5 L 238.1 149.3 L 240.0 148.0 L 241.9 146.7 L 243.8 145.5 L 245.8 144.2 L 247.7 143.0 L 249.6 141.7 L 251.5 140.5 L 253.5 139.2 L 255.4 138.0 L 257.3 136.7 L 259.2 135.5 L 261.2 134.2 L 263.1 133.0 L 265.0 131.7 L 266.9 130.5 L 268.9 129.2 L 270.8 128.0 L 272.7 126.7 L 274.7 125.5 L 276.6 124.2 L 278.5 123.0 L 280.4 121.7 L 282.3 120.5 L 284.3 119.2 L 286.2 118.0 L 288.1 116.7 L 290.1 115.5 L 292.0 114.2 L 293.9 113.0 L 295.8 111.7 L 297.8 110.5 L 299.7 109.2 L 301.6 108.0 L 303.5 106.7 L 305.4 105.5 L 307.4 104.2 L 309.3 103.0 L 311.2 101.7 L 313.2 100.5 L 315.1 99.2 L 317.0 98.0 L 318.9 96.7 L 320.8 95.4 L 322.8 94.2 L 324.7 92.9 L 326.6 91.7 L 328.6 90.4 L 330.5 89.2 L 332.4 87.9 L 334.3 86.7 L 336.2 85.4 L 338.2 84.2 L 340.1 82.9 L 342.0 81.7 L 343.9 80.4 L 345.9 79.2 L 347.8 77.9 L 349.7 76.7 L 351.7 75.4 L 353.6 74.2 L 355.5 72.9 L 357.4 71.7 L 359.3 70.4 L 361.3 69.2 L 363.2 67.9 L 365.1 66.7 L 367.1 65.4 L 369.0 64.2 L 370.9 62.9 L 372.8 61.7 L 374.8 60.4 L 376.7 59.2 L 378.6 57.9 L 380.5 56.7 L 382.4 55.4 L 384.4 54.2 L 386.3 52.9 L 388.2 51.7 L 390.2 50.4 L 392.1 49.2 L 394.0 47.9" class="main"/>
+<circle cx="240.0" cy="148.0" r="4.5" class="pt" />
+<text x="250.0" y="144.0" text-anchor="start" class="lbl">(0; b)</text>
+</svg>

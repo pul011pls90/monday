@@ -475,6 +475,40 @@ def dev_visuals():
     return render_template("dev/visuals.html", examples=examples, formulas=formulas)
 
 
+@trig_bp.route("/dev/image-audit")
+def dev_image_audit():
+    """Phase 4 QA contact sheet: before/after SVGs, defect list, formulas, and theme/width toggles."""
+    import csv
+    audit_dir = _BASE.parent / "tools" / "image_audit"
+    inv_rows = list(csv.DictReader((audit_dir / "inventory.csv").open(encoding="utf-8"))) if (audit_dir / "inventory.csv").exists() else []
+    rep_rows = list(csv.DictReader((audit_dir / "audit_report.csv").open(encoding="utf-8"))) if (audit_dir / "audit_report.csv").exists() else []
+    rev_rows = {r["id"]: r["what_to_verify"] for r in csv.DictReader((audit_dir / "review_queue.csv").open(encoding="utf-8"))} if (audit_dir / "review_queue.csv").exists() else {}
+
+    defects_by_id = {}
+    for r in rep_rows:
+        defects_by_id.setdefault(r["image_id"], []).append(r)
+
+    backup_dir = Path(current_app.static_folder) / "img" / "formulas_backup"
+    items = []
+    for r in inv_rows:
+        iid = r["image_id"]
+        after_path = _BASE.parent / r["file"]
+        after_svg = after_path.read_text(encoding="utf-8", errors="replace") if after_path.exists() and after_path.suffix == ".svg" else ""
+        before_path = backup_dir / f"{iid}.svg" if "/" not in iid else None
+        before_svg = before_path.read_text(encoding="utf-8", errors="replace") if before_path and before_path.exists() else ""
+        items.append({
+            "id": iid,
+            "type": r["type"],
+            "size_kb": r["size_kb"],
+            "formulas": r["formulas"],
+            "defects": defects_by_id.get(iid, []),
+            "review": rev_rows.get(iid, ""),
+            "before_svg": before_svg,
+            "after_svg": after_svg,
+        })
+    return render_template("dev/image_audit.html", items=items, total=len(items), review_count=len(rev_rows))
+
+
 def init_trig_block(app):
     """Register the blueprint and the `trig_block()` template helper."""
     app.register_blueprint(trig_bp)

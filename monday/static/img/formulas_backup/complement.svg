@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-label="Прямоугольный треугольник с острыми углами α и 90° − α.">
+<style>
+  svg { --ink: #0B0B0C; --axis: #8A93B2; --grid: #E3E8FA; --primary: #2F4FE0; --primary-soft: #E3E8FA; --answer: #E5484D; --answer-soft: rgba(229,72,77,.14); --muted: #B8C0DA; --bg: #FFFFFF; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) svg { --ink: #F4F5F8; --axis: #7F8AA8; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; } }
+  :root[data-theme='dark'] svg { --ink: #F4F5F8; --axis: #7F8AA8; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; }
+  @media (prefers-reduced-motion: reduce) { svg * { transition: none !important; } }
+  .lbl { font-size: 13px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .var { font-family: 'KaTeX_Math', Georgia, serif; font-style: italic; font-size: 15px; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .mut { font-size: 12px; fill: var(--axis); }
+  .ax { stroke: var(--axis); stroke-width: 1.25; fill: none; }
+  .grd { stroke: var(--grid); stroke-width: 1; fill: none; }
+  .main { stroke: var(--primary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .aux { stroke: var(--axis); stroke-width: 1.25; stroke-dasharray: 4 3; fill: none; }
+  .soft { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; stroke-linejoin: round; }
+  .pt { fill: var(--primary); stroke: var(--bg); stroke-width: 1.5; }
+  .hole { fill: var(--bg); stroke: var(--primary); stroke-width: 2; }
+  svg[data-focus] [class*='f-'] { opacity: .30; transition: opacity .15s, stroke .15s; }
+  svg[data-focus~="complement"] .f-complement { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="complement"] text.f-complement, svg[data-focus~="complement"] .f-complement text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="complement"] .f-complement.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="cos"] .f-cos { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="cos"] text.f-cos, svg[data-focus~="cos"] .f-cos text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="cos"] .f-cos.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="hyp"] .f-hyp { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="hyp"] text.f-hyp, svg[data-focus~="hyp"] .f-hyp text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="hyp"] .f-hyp.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="result"] .f-result { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="result"] text.f-result, svg[data-focus~="result"] .f-result text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="result"] .f-result.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="sin"] .f-sin { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="sin"] text.f-sin, svg[data-focus~="sin"] .f-sin text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="sin"] .f-sin.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="tg"] .f-tg { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="tg"] text.f-tg, svg[data-focus~="tg"] .f-tg text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="tg"] .f-tg.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+</style>
+<defs><marker id='ax' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='6' markerHeight='6' orient='auto'><path d='M1 1.5L9 5L1 8.5z' fill='var(--axis)'/></marker></defs>
+<polygon points="105,245 365,245 365,85" class="soft f-fill"/>
+<polyline points="347,245 347,227 365,227" class="ax"/>
+<line x1="105.0" y1="245.0" x2="365.0" y2="245.0" class="main f-cos f-tg" />
+<line x1="365.0" y1="245.0" x2="365.0" y2="85.0" class="main f-sin f-tg" />
+<line x1="105.0" y1="245.0" x2="365.0" y2="85.0" class="main f-hyp f-result" />
+<path d="M 149.0 245.0 A 44.0 44.0 0 0 0 142.5 221.9" class="main f-sin f-cos f-tg"/>
+<text x="161.0" y="233.0" text-anchor="middle" class="var">θ</text>
+<text x="235.0" y="265.0" text-anchor="middle" class="lbl f-cos f-tg">4</text>
+<text x="379.0" y="169.0" text-anchor="start" class="lbl f-sin f-tg">3</text>
+<text x="221.0" y="155.0" text-anchor="end" class="lbl f-hyp f-result">5</text>
+</svg>
