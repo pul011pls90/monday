@@ -1,13 +1,15 @@
 {% extends "layout.html" %}
 {% block title %}Trigonometry · {{ group.level.title }}{% endblock %}
 {% block content %}
-<a href="{{ url_for('trig_block.trig_sections') }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}All Trigonometry</a>
-<div class="page-head">
-  <div class="page-head__text">
-    <h1>Trigonometry · {{ group.level.title }}</h1>
-    <p>{{ group.level.scope }}</p>
+<section class="card" style="gap:8px;padding:18px 22px">
+  <a href="{{ url_for('trig_block.trig_sections') }}" class="row small" style="gap:6px;font-weight:600">{{ ui.icon('arrow-left', 16) }}All Trigonometry</a>
+  <div class="page-head" style="padding:0;border:0;box-shadow:none;background:transparent">
+    <div class="page-head__text">
+      <h1>Trigonometry · {{ group.level.title }}</h1>
+      <p>{{ group.level.scope }}</p>
+    </div>
   </div>
-</div>
+</section>
 
 <div class="fx">
   <nav class="fx-topics" aria-label="{{ _('Темы') }}">
@@ -17,7 +19,7 @@
   </nav>
 
   <div class="fx-main">
-    <header class="fx-head">
+    <header class="fx-head card" style="padding:16px 20px">
       <div><h2>{{ branch.name }}</h2><p>{{ group.level.title }} · {{ group.level.scope }}</p></div>
     </header>
 

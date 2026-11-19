@@ -295,6 +295,14 @@ def _math_tex(s):
     ):
         t = t.replace(a, b)
     t = t.replace("lim(x\\to 0)", r"\lim_{x\to 0}")
+    for phrase in (
+        "Point on unit circle", "Quadrant I", "Quadrant II", "Quadrant III", "Quadrant IV",
+        "all positive", "sin positive", "tan positive", "cos positive",
+        "k is an integer", "n is an integer", "for sin and cos", "R is the circumradius",
+        "Phase shift", "Amplitude", "Period", "Midline", "tangent", "undefined",
+        "opposite", "adjacent", "hypotenuse", "Area",
+    ):
+        t = t.replace(phrase, rf"\text{{{phrase}}}")
     t = re.sub(r"√\(([^()]+)\)", r"\\sqrt{\1}", t)
     t = re.sub(r"√([A-Za-z0-9]+)", r"\\sqrt{\1}", t)
     return t.strip()
