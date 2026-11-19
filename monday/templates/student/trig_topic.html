@@ -28,6 +28,92 @@
       <div class="fx-card__top">
         <div><h3>{{ c.name }}</h3><span class="small">{{ c.branch }}</span></div>
       </div>
+      {% if c.id == 'special-values' %}
+      <div class="fx-card__formula">
+        <div class="fx-trig-table-wrap">
+          <table class="fx-trig-table">
+            <thead>
+              <tr>
+                <th>Angle<br><small>(degrees)</small></th>
+                {% for deg in ['0°','30°','45°','60°','90°','120°','135°','150°','180°','210°','225°','240°','270°','300°','315°','330°','360°'] %}
+                <th>{{ deg }}</th>
+                {% endfor %}
+              </tr>
+              <tr>
+                <th>Angle<br><small>(Radians)</small></th>
+                {% for rad in ['0', '\\frac{\\pi}{6}', '\\frac{\\pi}{4}', '\\frac{\\pi}{3}', '\\frac{\\pi}{2}', '\\frac{2\\pi}{3}', '\\frac{3\\pi}{4}', '\\frac{5\\pi}{6}', '\\pi', '\\frac{7\\pi}{6}', '\\frac{5\\pi}{4}', '\\frac{4\\pi}{3}', '\\frac{3\\pi}{2}', '\\frac{5\\pi}{3}', '\\frac{7\\pi}{4}', '\\frac{11\\pi}{6}', '2\\pi'] %}
+                <th class="math">${{ rad }}$</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>$\sin$</th>
+                {% for v in ['0', '\\frac{1}{2}', '\\frac{1}{\\sqrt{2}}', '\\frac{\\sqrt{3}}{2}', '1', '\\frac{\\sqrt{3}}{2}', '\\frac{1}{\\sqrt{2}}', '\\frac{1}{2}', '0', '-\\frac{1}{2}', '-\\frac{1}{\\sqrt{2}}', '-\\frac{\\sqrt{3}}{2}', '-1', '-\\frac{\\sqrt{3}}{2}', '-\\frac{1}{\\sqrt{2}}', '-\\frac{1}{2}', '0'] %}
+                <td class="math">${{ v }}$</td>
+                {% endfor %}
+              </tr>
+              <tr>
+                <th>$\cos$</th>
+                {% for v in ['1', '\\frac{\\sqrt{3}}{2}', '\\frac{1}{\\sqrt{2}}', '\\frac{1}{2}', '0', '-\\frac{1}{2}', '-\\frac{1}{\\sqrt{2}}', '-\\frac{\\sqrt{3}}{2}', '-1', '-\\frac{\\sqrt{3}}{2}', '-\\frac{1}{\\sqrt{2}}', '-\\frac{1}{2}', '0', '\\frac{1}{2}', '\\frac{1}{\\sqrt{2}}', '\\frac{\\sqrt{3}}{2}', '1'] %}
+                <td class="math">${{ v }}$</td>
+                {% endfor %}
+              </tr>
+              <tr>
+                <th>$\tan$</th>
+                {% for v in ['0', '\\frac{1}{\\sqrt{3}}', '1', '\\sqrt{3}', '\\text{UD}', '-\\sqrt{3}', '-1', '-\\frac{1}{\\sqrt{3}}', '0', '\\frac{1}{\\sqrt{3}}', '1', '\\sqrt{3}', '\\text{UD}', '-\\sqrt{3}', '-1', '-\\frac{1}{\\sqrt{3}}', '0'] %}
+                <td class="math">{% if v == '\\text{UD}' %}UD{% else %}${{ v }}${% endif %}</td>
+                {% endfor %}
+              </tr>
+              <tr>
+                <th>$\csc$</th>
+                {% for v in ['UD', '2', '\\sqrt{2}', '\\frac{2}{\\sqrt{3}}', '1', '\\frac{2}{\\sqrt{3}}', '\\sqrt{2}', '2', 'UD', '-2', '-\\sqrt{2}', '-\\frac{2}{\\sqrt{3}}', '-1', '-\\frac{2}{\\sqrt{3}}', '-\\sqrt{2}', '-2', 'UD'] %}
+                <td class="math">{% if v == 'UD' %}UD{% else %}${{ v }}${% endif %}</td>
+                {% endfor %}
+              </tr>
+              <tr>
+                <th>$\sec$</th>
+                {% for v in ['1', '\\frac{2}{\\sqrt{3}}', '\\sqrt{2}', '2', 'UD', '-2', '-\\sqrt{2}', '-\\frac{2}{\\sqrt{3}}', '-1', '-\\frac{2}{\\sqrt{3}}', '-\\sqrt{2}', '-2', 'UD', '2', '\\sqrt{2}', '\\frac{2}{\\sqrt{3}}', '1'] %}
+                <td class="math">{% if v == 'UD' %}UD{% else %}${{ v }}${% endif %}</td>
+                {% endfor %}
+              </tr>
+              <tr>
+                <th>$\cot$</th>
+                {% for v in ['UD', '\\sqrt{3}', '1', '\\frac{1}{\\sqrt{3}}', '0', '-\\frac{1}{\\sqrt{3}}', '-1', '-\\sqrt{3}', 'UD', '\\sqrt{3}', '1', '\\frac{1}{\\sqrt{3}}', '0', '-\\frac{1}{\\sqrt{3}}', '-1', '-\\sqrt{3}', 'UD'] %}
+                <td class="math">{% if v == 'UD' %}UD{% else %}${{ v }}${% endif %}</td>
+                {% endfor %}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="small muted"><b>UD</b> → Undefined · {{ c.description }}</div>
+        {% if c.photo_url %}
+        <div class="fx-card__figure" style="max-width:460px">
+          <img src="{{ c.photo_url }}" alt="{{ c.photo_brief }}" data-lightbox title="{{ _('Нажмите, чтобы увеличить') }}">
+          <button type="button" class="fx-card__zoom">{{ ui.icon('search', 14) }} {{ _('Увеличить') }}</button>
+        </div>
+        {% endif %}
+      </div>
+      {% elif c.id == 'unit-circle' %}
+      <div class="fx-card__formula">
+        <div class="fx-card__tex">
+          <div class="fx-card__eq math">$(x, y) = (\cos\theta,\; \sin\theta)$</div>
+          {% if c.description %}<div class="fx-card__desc math">{{ c.description }}</div>{% endif %}
+        </div>
+        <div class="fx-card__figures--pair">
+          {% if c.photo_url %}
+          <div class="fx-card__figure">
+            <img src="{{ c.photo_url }}" alt="{{ c.photo_brief }}" data-lightbox title="{{ _('Нажмите, чтобы увеличить') }}">
+            <button type="button" class="fx-card__zoom">{{ ui.icon('search', 14) }} {{ _('Увеличить') }}</button>
+          </div>
+          {% endif %}
+          <div class="fx-card__figure">
+            <img src="{{ url_for('static', filename='img/formulas/trig_signs.svg') }}" alt="Знаки sin, cos, tg, ctg по четвертям" data-lightbox title="{{ _('Нажмите, чтобы увеличить') }}">
+            <button type="button" class="fx-card__zoom">{{ ui.icon('search', 14) }} {{ _('Увеличить') }}</button>
+          </div>
+        </div>
+      </div>
+      {% else %}
       <div class="fx-card__formula{{ ' fx-card__formula--split' if c.tex_lines|length <= 6 }}">
         <div class="fx-card__tex">
           {% for eq in c.tex_lines %}
@@ -42,6 +128,7 @@
         </div>
         {% endif %}
       </div>
+      {% endif %}
       <div class="fx-examples" style="grid-template-columns:minmax(0,1fr)">
         {% with ex=c.ex_view, ex_photo_url=c.ex_photo_url, card_id=c.id, card_name=c.name %}
           {% include "partials/_example_stepper.html" %}

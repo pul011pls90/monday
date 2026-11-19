@@ -4761,6 +4761,13 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .fx-card__tex { display: flex; flex-direction: column; gap: 8px; min-width: 0; font-size: 20px; overflow-x: auto; }
 .fx-card__eq { min-width: 0; }
 .fx-card__figure { position: relative; display: flex; justify-content: center; align-items: center; padding: 14px 16px; border-radius: 12px; background: #FFFFFF; border: var(--bw, 1px) solid var(--line); cursor: zoom-in; }
+.fx-card__figures--pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.fx-trig-table-wrap { width: 100%; overflow-x: auto; border-radius: 12px; border: var(--bw, 1px) solid var(--line); background: var(--surface); }
+.fx-trig-table { width: 100%; border-collapse: collapse; font-size: 13.5px; text-align: center; }
+.fx-trig-table th, .fx-trig-table td { border: 1px solid var(--line); padding: 8px 7px; white-space: nowrap; }
+.fx-trig-table thead th { background: color-mix(in srgb, var(--accent) 8%, var(--surface)); font-weight: 700; color: var(--text); }
+.fx-trig-table th:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); font-weight: 700; text-align: left; padding-left: 12px; padding-right: 12px; }
+.fx-trig-table thead th:first-child { background: color-mix(in srgb, var(--accent) 8%, var(--surface)); }
 .fx-card__figure img { width: min(100%, 640px); height: auto; max-height: 340px; object-fit: contain; cursor: zoom-in; display: block; }
 .fx-card__zoom { position: absolute; right: 10px; bottom: 10px; display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 999px; background: rgba(255, 255, 255, .94); border: var(--bw, 1px) solid var(--line); font-size: 12px; font-weight: 600; color: var(--text-2); cursor: zoom-in; }
 .fx-card__zoom:hover { border-color: var(--accent); color: var(--accent); }
