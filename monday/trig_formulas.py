@@ -18,6 +18,233 @@ _raw_cache = None
 
 trig_bp = Blueprint("trig_block", __name__)
 
+_EXAMPLES = {
+    "deg-rad": {
+        "q": r"Convert $135^\circ$ to radians.",
+        "goal": r"Multiply degrees by $\frac{\pi}{180}$ and reduce the fraction.",
+        "use": r"$\text{rad} = 135 \cdot \frac{\pi}{180}$",
+        "steps": [r"Divide numerator and denominator by $45$: $\frac{135}{180} = \frac{3}{4}$.", r"Multiply by $\pi$: $\frac{3\pi}{4}$."],
+        "answer": r"$\frac{3\pi}{4}\text{ rad}$",
+    },
+    "arc-sector": {
+        "q": r"A circle has radius $r = 6$ and central angle $\theta = \frac{\pi}{3}$. Find the arc length $s$ and sector area $A$.",
+        "goal": r"Substitute $r$ and $\theta$ (in radians) directly into both formulas.",
+        "use": r"$s = r\theta,\quad A = \frac{1}{2}r^2\theta$",
+        "steps": [r"Arc length: $s = 6 \cdot \frac{\pi}{3} = 2\pi$.", r"Sector area: $A = \frac{1}{2} \cdot 6^2 \cdot \frac{\pi}{3} = 18 \cdot \frac{\pi}{3} = 6\pi$."],
+        "answer": r"$s = 2\pi,\; A = 6\pi$",
+    },
+    "right-triangle": {
+        "q": r"In a right triangle with legs $3$ and $4$ and hypotenuse $5$, angle $\theta$ is opposite the leg of length $3$. Find $\sin\theta$, $\cos\theta$, and $\tan\theta$.",
+        "goal": r"Identify opposite ($3$), adjacent ($4$), and hypotenuse ($5$) relative to $\theta$.",
+        "use": r"$\sin\theta = \frac{\text{opp}}{\text{hyp}},\; \cos\theta = \frac{\text{adj}}{\text{hyp}},\; \tan\theta = \frac{\text{opp}}{\text{adj}}$",
+        "steps": [r"$\sin\theta = \frac{3}{5}$ and $\cos\theta = \frac{4}{5}$.", r"$\tan\theta = \frac{3}{4}$."],
+        "answer": r"$\sin\theta = \frac{3}{5},\; \cos\theta = \frac{4}{5},\; \tan\theta = \frac{3}{4}$",
+    },
+    "reciprocal-quotient": {
+        "q": r"Given $\cos\theta = \frac{5}{13}$, find $\sec\theta$.",
+        "goal": r"Secant is the reciprocal of cosine.",
+        "use": r"$\sec\theta = \frac{1}{\cos\theta}$",
+        "steps": [r"Flip the fraction: $\sec\theta = \frac{1}{5/13} = \frac{13}{5}$."],
+        "answer": r"$\frac{13}{5}$",
+    },
+    "special-values": {
+        "q": r"Evaluate $\sin 60^\circ \cdot \cos 30^\circ$.",
+        "goal": r"Substitute exact values from the $30^\circ\text{–}60^\circ\text{–}90^\circ$ triangle.",
+        "use": r"$\sin 60^\circ = \frac{\sqrt{3}}{2},\quad \cos 30^\circ = \frac{\sqrt{3}}{2}$",
+        "steps": [r"Multiply: $\frac{\sqrt{3}}{2} \cdot \frac{\sqrt{3}}{2} = \frac{3}{4}$."],
+        "answer": r"$\frac{3}{4}$",
+    },
+    "unit-circle": {
+        "q": r"Find the exact values of $\sin\frac{5\pi}{6}$ and $\cos\frac{5\pi}{6}$.",
+        "goal": r"Find the quadrant of $\frac{5\pi}{6}$ and its reference angle.",
+        "use": r"$\frac{5\pi}{6} = \pi - \frac{\pi}{6}$ (Quadrant II: $\sin > 0$, $\cos < 0$)",
+        "steps": [r"Reference angle is $\frac{\pi}{6}$, where $\sin\frac{\pi}{6}=\frac{1}{2}$ and $\cos\frac{\pi}{6}=\frac{\sqrt{3}}{2}$.", r"Apply Quadrant II signs: $\sin = +\frac{1}{2}$, $\cos = -\frac{\sqrt{3}}{2}$."],
+        "answer": r"$\sin\frac{5\pi}{6} = \frac{1}{2},\; \cos\frac{5\pi}{6} = -\frac{\sqrt{3}}{2}$",
+    },
+    "periodicity": {
+        "q": r"Evaluate $\sin 405^\circ$.",
+        "goal": r"Subtract full $360^\circ$ rotations to bring the angle inside $[0^\circ, 360^\circ)$.",
+        "use": r"$\sin(\theta + 360^\circ k) = \sin\theta$",
+        "steps": [r"Write $405^\circ = 360^\circ + 45^\circ$.", r"Thus $\sin 405^\circ = \sin 45^\circ = \frac{\sqrt{2}}{2}$."],
+        "answer": r"$\frac{\sqrt{2}}{2}$",
+    },
+    "even-odd": {
+        "q": r"Evaluate $\cos\!\left(-\frac{\pi}{3}\right)$ and $\tan\!\left(-\frac{\pi}{4}\right)$.",
+        "goal": r"Use even symmetry for cosine and odd symmetry for tangent.",
+        "use": r"$\cos(-\theta) = \cos\theta,\quad \tan(-\theta) = -\tan\theta$",
+        "steps": [r"$\cos(-\frac{\pi}{3}) = \cos\frac{\pi}{3} = \frac{1}{2}$.", r"$\tan(-\frac{\pi}{4}) = -\tan\frac{\pi}{4} = -1$."],
+        "answer": r"$\frac{1}{2}$ and $-1$",
+    },
+    "pythagorean": {
+        "q": r"If $\sin\theta = \frac{3}{5}$ and $\theta$ is in Quadrant II, find $\cos\theta$.",
+        "goal": r"Use the Pythagorean identity and pick the sign for Quadrant II ($\cos < 0$).",
+        "use": r"$\sin^2\theta + \cos^2\theta = 1$",
+        "steps": [r"$\cos^2\theta = 1 - \left(\frac{3}{5}\right)^2 = 1 - \frac{9}{25} = \frac{16}{25}$.", r"Take the negative root in Quadrant II: $\cos\theta = -\frac{4}{5}$."],
+        "answer": r"$-\frac{4}{5}$",
+    },
+    "cofunction": {
+        "q": r"Express $\sin 70^\circ$ in terms of cosine.",
+        "goal": r"Replace the angle with its complement $90^\circ - \theta$.",
+        "use": r"$\sin(90^\circ - \theta) = \cos\theta$",
+        "steps": [r"$70^\circ = 90^\circ - 20^\circ$, so $\sin 70^\circ = \cos 20^\circ$."],
+        "answer": r"$\cos 20^\circ$",
+    },
+    "reduction": {
+        "q": r"Evaluate $\cos 120^\circ$.",
+        "goal": r"Rewrite $120^\circ$ as $180^\circ - 60^\circ$ (Quadrant II).",
+        "use": r"$\cos(180^\circ - \theta) = -\cos\theta$",
+        "steps": [r"$\cos 120^\circ = \cos(180^\circ - 60^\circ) = -\cos 60^\circ = -\frac{1}{2}$."],
+        "answer": r"$-\frac{1}{2}$",
+    },
+    "sum-difference": {
+        "q": r"Find the exact value of $\sin 75^\circ$.",
+        "goal": r"Split $75^\circ$ into two special angles: $45^\circ + 30^\circ$.",
+        "use": r"$\sin(A + B) = \sin A\cos B + \cos A\sin B$",
+        "steps": [r"$\sin(45^\circ + 30^\circ) = \sin 45^\circ\cos 30^\circ + \cos 45^\circ\sin 30^\circ$.", r"$= \frac{\sqrt{2}}{2}\cdot\frac{\sqrt{3}}{2} + \frac{\sqrt{2}}{2}\cdot\frac{1}{2} = \frac{\sqrt{6}+\sqrt{2}}{4}$."],
+        "answer": r"$\frac{\sqrt{6}+\sqrt{2}}{4}$",
+    },
+    "auxiliary-angle": {
+        "q": r"Write $\sin x + \cos x$ as a single sine and find its maximum value.",
+        "goal": r"Compute $R = \sqrt{a^2 + b^2}$ with $a = 1$, $b = 1$.",
+        "use": r"$a\sin x + b\cos x = R\sin(x + \varphi)$",
+        "steps": [r"$R = \sqrt{1^2 + 1^2} = \sqrt{2}$, and $\cos\varphi = \sin\varphi = \frac{1}{\sqrt{2}} \Rightarrow \varphi = \frac{\pi}{4}$.", r"So $\sin x + \cos x = \sqrt{2}\sin\!\left(x + \frac{\pi}{4}\right)$, whose maximum is $R = \sqrt{2}$."],
+        "answer": r"$\sqrt{2}\sin\!\left(x + \frac{\pi}{4}\right)$, maximum $\sqrt{2}$",
+    },
+    "double-angle": {
+        "q": r"Given $\sin\theta = \frac{3}{5}$ and $\cos\theta = \frac{4}{5}$, find $\sin 2\theta$ and $\cos 2\theta$.",
+        "goal": r"Plug $\sin\theta$ and $\cos\theta$ into the double-angle formulas.",
+        "use": r"$\sin 2\theta = 2\sin\theta\cos\theta,\quad \cos 2\theta = 1 - 2\sin^2\theta$",
+        "steps": [r"$\sin 2\theta = 2 \cdot \frac{3}{5} \cdot \frac{4}{5} = \frac{24}{25}$.", r"$\cos 2\theta = 1 - 2\left(\frac{3}{5}\right)^2 = 1 - \frac{18}{25} = \frac{7}{25}$."],
+        "answer": r"$\sin 2\theta = \frac{24}{25},\; \cos 2\theta = \frac{7}{25}$",
+    },
+    "half-angle": {
+        "q": r"Find the exact value of $\cos 15^\circ$.",
+        "goal": r"Write $15^\circ = \frac{30^\circ}{2}$ (Quadrant I, positive root).",
+        "use": r"$\cos\frac{\theta}{2} = +\sqrt{\frac{1 + \cos\theta}{2}}$",
+        "steps": [r"$\cos 15^\circ = \sqrt{\frac{1 + \cos 30^\circ}{2}} = \sqrt{\frac{1 + \sqrt{3}/2}{2}} = \sqrt{\frac{2+\sqrt{3}}{4}}$.", r"Simplify radical: $\frac{\sqrt{6}+\sqrt{2}}{4}$."],
+        "answer": r"$\frac{\sqrt{6}+\sqrt{2}}{4}$",
+    },
+    "power-reducing": {
+        "q": r"Evaluate $\cos^2\frac{\pi}{8}$.",
+        "goal": r"Replace $\cos^2\theta$ with a first-power expression in $\cos 2\theta$.",
+        "use": r"$\cos^2\theta = \frac{1 + \cos 2\theta}{2}$",
+        "steps": [r"With $\theta = \frac{\pi}{8}$, $2\theta = \frac{\pi}{4}$: $\frac{1 + \cos(\pi/4)}{2} = \frac{1 + \sqrt{2}/2}{2} = \frac{2+\sqrt{2}}{4}$."],
+        "answer": r"$\frac{2+\sqrt{2}}{4}$",
+    },
+    "triple-angle": {
+        "q": r"If $\sin\theta = \frac{1}{2}$, find $\sin 3\theta$.",
+        "goal": r"Substitute $\sin\theta = \frac{1}{2}$ directly into the triple-angle formula.",
+        "use": r"$\sin 3\theta = 3\sin\theta - 4\sin^3\theta$",
+        "steps": [r"$\sin 3\theta = 3\left(\frac{1}{2}\right) - 4\left(\frac{1}{2}\right)^3 = \frac{3}{2} - \frac{4}{8} = 1$."],
+        "answer": r"$1$",
+    },
+    "product-to-sum": {
+        "q": r"Evaluate $\sin 75^\circ \cos 15^\circ$.",
+        "goal": r"Convert the product into a sum of sines of $75^\circ \pm 15^\circ$.",
+        "use": r"$\sin A\cos B = \frac{1}{2}[\sin(A+B) + \sin(A-B)]$",
+        "steps": [r"$\frac{1}{2}[\sin 90^\circ + \sin 60^\circ] = \frac{1}{2}\left(1 + \frac{\sqrt{3}}{2}\right) = \frac{2+\sqrt{3}}{4}$."],
+        "answer": r"$\frac{2+\sqrt{3}}{4}$",
+    },
+    "sum-to-product": {
+        "q": r"Evaluate $\sin 75^\circ + \sin 15^\circ$.",
+        "goal": r"Use half-sum $\frac{75^\circ+15^\circ}{2}=45^\circ$ and half-difference $\frac{75^\circ-15^\circ}{2}=30^\circ$.",
+        "use": r"$\sin A + \sin B = 2\sin\frac{A+B}{2}\cos\frac{A-B}{2}$",
+        "steps": [r"$2\sin 45^\circ \cos 30^\circ = 2 \cdot \frac{\sqrt{2}}{2} \cdot \frac{\sqrt{3}}{2} = \frac{\sqrt{6}}{2}$."],
+        "answer": r"$\frac{\sqrt{6}}{2}$",
+    },
+    "graph-transformations": {
+        "q": r"Find the amplitude, period, phase shift, midline, and range of $y = 3\sin(2x - \pi) + 1$.",
+        "goal": r"Factor out $B = 2$ inside the sine to read $C$ directly.",
+        "use": r"$y = A\sin(B(x - C)) + D \;\Rightarrow\; y = 3\sin\!\left(2\left(x - \frac{\pi}{2}\right)\right) + 1$",
+        "steps": [r"Amplitude $|A| = 3$, period $\frac{2\pi}{2} = \pi$.", r"Phase shift $C = \frac{\pi}{2}$ right, midline $y = 1$, range $[1 - 3, 1 + 3] = [-2, 4]$."],
+        "answer": r"Amplitude $3$, period $\pi$, shift $\frac{\pi}{2}$ right, midline $y = 1$, range $[-2, 4]$",
+    },
+    "inverse-trig": {
+        "q": r"Evaluate $\arcsin\!\left(-\frac{1}{2}\right)$ and $\arccos\!\left(-\frac{1}{2}\right)$.",
+        "goal": r"Use odd/reflection identities within the restricted ranges.",
+        "use": r"$\arcsin(-x) = -\arcsin x,\quad \arccos(-x) = \pi - \arccos x$",
+        "steps": [r"$\arcsin(-\frac{1}{2}) = -\arcsin\frac{1}{2} = -\frac{\pi}{6}$.", r"$\arccos(-\frac{1}{2}) = \pi - \arccos\frac{1}{2} = \pi - \frac{\pi}{3} = \frac{2\pi}{3}$."],
+        "answer": r"$-\frac{\pi}{6}$ and $\frac{2\pi}{3}$",
+    },
+    "trig-equations": {
+        "q": r"Solve the equation $2\sin x = 1$ for all real $x$.",
+        "goal": r"Isolate $\sin x$ and apply the general sine solution.",
+        "use": r"$\sin x = a \;\Rightarrow\; x = (-1)^n \arcsin a + \pi n \quad (n \in \mathbb{Z})$",
+        "steps": [r"$\sin x = \frac{1}{2}$, and $\arcsin\frac{1}{2} = \frac{\pi}{6}$.", r"Write the general form: $x = (-1)^n\frac{\pi}{6} + \pi n$ (or $\frac{\pi}{6}+2\pi n$, $\frac{5\pi}{6}+2\pi n$)."],
+        "answer": r"$x = (-1)^n\frac{\pi}{6} + \pi n,\; n \in \mathbb{Z}$",
+    },
+    "sine-rule": {
+        "q": r"In $\triangle ABC$, $A = 30^\circ$, $a = 5$, and $B = 45^\circ$. Find side $b$.",
+        "goal": r"Relate sides $a, b$ with their opposite angles $A, B$.",
+        "use": r"$\frac{a}{\sin A} = \frac{b}{\sin B}$",
+        "steps": [r"$b = \frac{a\sin B}{\sin A} = \frac{5 \cdot \sin 45^\circ}{\sin 30^\circ} = \frac{5 \cdot \sqrt{2}/2}{1/2} = 5\sqrt{2}$."],
+        "answer": r"$5\sqrt{2}$",
+    },
+    "cosine-rule": {
+        "q": r"In $\triangle ABC$, $a = 3$, $b = 4$, and included angle $C = 60^\circ$. Find side $c$.",
+        "goal": r"Apply the Law of Cosines with the two given sides and included angle.",
+        "use": r"$c^2 = a^2 + b^2 - 2ab\cos C$",
+        "steps": [r"$c^2 = 3^2 + 4^2 - 2(3)(4)\cos 60^\circ = 9 + 16 - 24\cdot\frac{1}{2} = 13$.", r"Take the positive square root: $c = \sqrt{13}$."],
+        "answer": r"$\sqrt{13}$",
+    },
+    "triangle-area": {
+        "q": r"Find the area of a triangle with sides $a = 6$, $b = 8$, and included angle $C = 30^\circ$.",
+        "goal": r"Multiply half the product of the two sides by $\sin C$.",
+        "use": r"$\text{Area} = \frac{1}{2}ab\sin C$",
+        "steps": [r"$\text{Area} = \frac{1}{2} \cdot 6 \cdot 8 \cdot \sin 30^\circ = 24 \cdot \frac{1}{2} = 12$."],
+        "answer": r"$12$",
+    },
+    "trig-limits": {
+        "q": r"Evaluate $\lim_{x\to 0}\frac{\sin 5x}{2x}$.",
+        "goal": r"Match the denominator to $5x$ so the fundamental limit $\lim_{u\to 0}\frac{\sin u}{u} = 1$ applies.",
+        "use": r"$\lim_{x\to 0}\frac{\sin(kx)}{x} = k$",
+        "steps": [r"Rewrite: $\frac{\sin 5x}{2x} = \frac{5}{2}\cdot\frac{\sin 5x}{5x}$.", r"As $x \to 0$, $\frac{\sin 5x}{5x} \to 1$, giving $\frac{5}{2}$."],
+        "answer": r"$\frac{5}{2}$",
+    },
+    "trig-derivatives": {
+        "q": r"Differentiate $f(x) = x\sin x$.",
+        "goal": r"Apply the product rule $(uv)' = u'v + uv'$.",
+        "use": r"$(x)' = 1,\quad (\sin x)' = \cos x$",
+        "steps": [r"$f'(x) = (x)'\sin x + x(\sin x)' = 1\cdot\sin x + x\cos x$."],
+        "answer": r"$\sin x + x\cos x$",
+    },
+    "inverse-trig-derivatives": {
+        "q": r"Differentiate $f(x) = \arctan(2x)$.",
+        "goal": r"Use the $\arctan u$ derivative together with the chain rule ($u' = 2$).",
+        "use": r"$(\arctan u)' = \frac{u'}{1 + u^2}$",
+        "steps": [r"Set $u = 2x$: $f'(x) = \frac{2}{1 + (2x)^2} = \frac{2}{1 + 4x^2}$."],
+        "answer": r"$\frac{2}{1 + 4x^2}$",
+    },
+    "trig-integrals-basic": {
+        "q": r"Evaluate $\int (3\cos x - \sec^2 x)\,dx$.",
+        "goal": r"Integrate term-by-term using the basic antiderivatives.",
+        "use": r"$\int \cos x\,dx = \sin x + C,\quad \int \sec^2 x\,dx = \tan x + C$",
+        "steps": [r"$3\int\cos x\,dx - \int\sec^2 x\,dx = 3\sin x - \tan x + C$."],
+        "answer": r"$3\sin x - \tan x + C$",
+    },
+    "trig-integrals-log": {
+        "q": r"Evaluate the definite integral $\int_0^{\pi/4} \tan x\,dx$.",
+        "goal": r"Use the antiderivative $-\ln|\cos x|$ and evaluate at the limits.",
+        "use": r"$\int \tan x\,dx = -\ln|\cos x| + C$",
+        "steps": [r"$[-\ln(\cos x)]_0^{\pi/4} = -\ln\left(\cos\frac{\pi}{4}\right) + \ln(\cos 0) = -\ln\frac{\sqrt{2}}{2} + 0$.", r"Simplify: $-\ln(2^{-1/2}) = \frac{1}{2}\ln 2$."],
+        "answer": r"$\frac{1}{2}\ln 2$",
+    },
+    "inverse-trig-integrals": {
+        "q": r"Evaluate $\int \frac{dx}{9 + x^2}$.",
+        "goal": r"Identify $a^2 = 9 \Rightarrow a = 3$ in the standard $\arctan$ integral.",
+        "use": r"$\int \frac{dx}{a^2 + x^2} = \frac{1}{a}\arctan\frac{x}{a} + C$",
+        "steps": [r"Substitute $a = 3$: $\frac{1}{3}\arctan\frac{x}{3} + C$."],
+        "answer": r"$\frac{1}{3}\arctan\frac{x}{3} + C$",
+    },
+    "trig-integrals-powers": {
+        "q": r"Evaluate $\int_0^{\pi} \cos^2 x\,dx$.",
+        "goal": r"Use the power-reducing antiderivative of $\cos^2 x$.",
+        "use": r"$\int \cos^2 x\,dx = \frac{x}{2} + \frac{\sin 2x}{4} + C$",
+        "steps": [r"Evaluate at $x=\pi$ and $x=0$: $\left(\frac{\pi}{2} + \frac{\sin 2\pi}{4}\right) - (0 + 0) = \frac{\pi}{2}$."],
+        "answer": r"$\frac{\pi}{2}$",
+    },
+}
+
 
 def _load_raw():
     global _raw_cache
@@ -88,14 +315,12 @@ def build_trig_block(static_folder):
                     card = dict(c)
                     card["photo_url"] = _photo_url(static_folder, c["id"])
                     card["tex_lines"] = [_math_tex(f) for f in c["formulas"]]
-                    sol = c["example"]["solution"]
-                    steps = [s.strip() for s in re.split(r"(?<=\.)\s+", sol) if s.strip()]
-                    card["ex_view"] = {
+                    card["ex_view"] = _EXAMPLES.get(c["id"]) or {
                         "q": c["example"]["problem"],
                         "goal": c["description"],
                         "use": f"${card['tex_lines'][0]}$" if card["tex_lines"] else "",
-                        "steps": steps[:-1] if len(steps) > 1 else steps,
-                        "answer": steps[-1] if steps else sol,
+                        "steps": [c["example"]["solution"]],
+                        "answer": c["example"]["solution"],
                     }
                     cards.append(card)
             if cards:

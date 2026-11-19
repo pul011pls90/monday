@@ -26,11 +26,12 @@
       <div class="fx-card__top">
         <div><h3>{{ c.name }}</h3><span class="small">{{ c.branch }}</span></div>
       </div>
-      <div class="fx-card__formula">
+      <div class="fx-card__formula{{ ' fx-card__formula--split' if c.tex_lines|length <= 6 }}">
         <div class="fx-card__tex">
           {% for eq in c.tex_lines %}
           <div class="fx-card__eq math">${{ eq }}$</div>
           {% endfor %}
+          {% if c.description %}<div class="fx-card__desc math">{{ c.description }}</div>{% endif %}
         </div>
         {% if c.photo_url %}
         <div class="fx-card__figure">
@@ -42,7 +43,7 @@
       <div class="fx-examples" style="grid-template-columns:minmax(0,1fr)">
         <div class="fx-example">
           <div class="fx-example__q math">{{ c.ex_view.q }}</div>
-          <div class="fx-example__text math">{{ c.ex_view.goal }}</div>
+          {% if c.ex_view.goal %}<div class="fx-example__text math">{{ c.ex_view.goal }}</div>{% endif %}
           {% if c.ex_view.use %}<div class="fx-example__use math">{{ c.ex_view.use }}</div>{% endif %}
           {% if c.ex_view.steps %}
           <ol class="fx-example__steps math">{% for s in c.ex_view.steps %}<li>{{ s }}</li>{% endfor %}</ol>
