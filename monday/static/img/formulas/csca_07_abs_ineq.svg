@@ -1,29 +1,66 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Неравенства с модулем</title>
+  <desc>Неравенства с модулем</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
+    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
   </defs>
-  <line x1="95" y1="145" x2="625" y2="145" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <line x1="215" y1="145" x2="505" y2="145" stroke="#2B60E5" stroke-width="4" stroke-linecap="round"/>
-  <text x="360" y="109" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#0A1A5C">|x| &lt; a</text>
-  <line x1="360" y1="138" x2="360" y2="152" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="215" cy="145" r="6" fill="#FFFFFF" stroke="#2B60E5" stroke-width="3"/>
-  <circle cx="505" cy="145" r="6" fill="#FFFFFF" stroke="#2B60E5" stroke-width="3"/>
-  <text x="215" y="177" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0E0E0E">−a</text>
-  <text x="360" y="177" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#4B5E7A">0</text>
-  <text x="505" y="177" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0E0E0E">a</text>
-  <line x1="95" y1="295" x2="625" y2="295" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <line x1="110" y1="295" x2="215" y2="295" stroke="#2B60E5" stroke-width="4" stroke-linecap="round"/>
-  <line x1="505" y1="295" x2="610" y2="295" stroke="#2B60E5" stroke-width="4" stroke-linecap="round"/>
-  <text x="360" y="259" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#0A1A5C">|x| &gt; a</text>
-  <line x1="360" y1="288" x2="360" y2="302" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="215" cy="295" r="6" fill="#FFFFFF" stroke="#2B60E5" stroke-width="3"/>
-  <circle cx="505" cy="295" r="6" fill="#FFFFFF" stroke="#2B60E5" stroke-width="3"/>
-  <text x="215" y="327" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0E0E0E">−a</text>
-  <text x="360" y="327" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#4B5E7A">0</text>
-  <text x="505" y="327" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0E0E0E">a</text>
+  <line x1="95" y1="145" x2="625" y2="145" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <line x1="215" y1="145" x2="505" y2="145" stroke="var(--primary)" stroke-width="4" stroke-linecap="round"/>
+  <text x="360" y="109" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">|x| &lt; a</text>
+  <line x1="360" y1="138" x2="360" y2="152" stroke="var(--axis)" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="215" cy="145" r="6" fill="var(--bg)" stroke="var(--primary)" stroke-width="3"/>
+  <circle cx="505" cy="145" r="6" fill="var(--bg)" stroke="var(--primary)" stroke-width="3"/>
+  <text x="215" y="177" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">−a</text>
+  <text x="360" y="177" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">0</text>
+  <text x="505" y="177" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">a</text>
+  <line x1="95" y1="295" x2="625" y2="295" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <line x1="110" y1="295" x2="215" y2="295" stroke="var(--primary)" stroke-width="4" stroke-linecap="round"/>
+  <line x1="505" y1="295" x2="610" y2="295" stroke="var(--primary)" stroke-width="4" stroke-linecap="round"/>
+  <text x="360" y="259" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">|x| &gt; a</text>
+  <line x1="360" y1="288" x2="360" y2="302" stroke="var(--axis)" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="215" cy="295" r="6" fill="var(--bg)" stroke="var(--primary)" stroke-width="3"/>
+  <circle cx="505" cy="295" r="6" fill="var(--bg)" stroke="var(--primary)" stroke-width="3"/>
+  <text x="215" y="327" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">−a</text>
+  <text x="360" y="327" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">0</text>
+  <text x="505" y="327" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">a</text>
 </svg>

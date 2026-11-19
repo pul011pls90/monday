@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-label="Дерево выбора k из n с учётом порядка.">
+<title>Дерево выбора k из n с учётом порядка.</title>
+<desc>Дерево выбора k из n с учётом порядка.</desc>
+<style>
+  svg { --ink: #0B0B0C; --axis: #8A93B2; --muted-txt: #4E5775; --grid: #E3E8FA; --primary: #2F4FE0; --primary-soft: #E3E8FA; --answer: #E5484D; --answer-soft: rgba(229,72,77,.14); --muted: #B8C0DA; --bg: #FFFFFF; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) svg { --ink: #F4F5F8; --axis: #7F8AA8; --muted-txt: #CBD5E1; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; } }
+  :root[data-theme='dark'] svg { --ink: #F4F5F8; --axis: #7F8AA8; --muted-txt: #CBD5E1; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; }
+  @media (prefers-reduced-motion: reduce) { svg * { transition: none !important; } }
+  .lbl { font-size: 18px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .var { font-family: 'KaTeX_Math', Georgia, serif; font-style: italic; font-size: 19px; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .mut { font-size: 18px; fill: var(--muted-txt); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .ax { stroke: var(--axis); stroke-width: 1.25; fill: none; }
+  .grd { stroke: var(--grid); stroke-width: 1; fill: none; }
+  .main { stroke: var(--primary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .aux { stroke: var(--axis); stroke-width: 1.25; stroke-dasharray: 4 3; fill: none; }
+  .soft { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; stroke-linejoin: round; }
+  .pt { fill: var(--primary); stroke: var(--bg); stroke-width: 1.5; }
+  .hole { fill: var(--bg); stroke: var(--primary); stroke-width: 2; }
+
+
+</style>
+<defs><marker id='ax' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='6' markerHeight='6' orient='auto'><path d='M1 1.5L9 5L1 8.5z' fill='var(--axis)'/></marker></defs>
+<text x="240.0" y="36.0" text-anchor="middle" class="lbl">Размещения</text>
+<line x1="95.0" y1="165.0" x2="225.0" y2="95.0" class="main" />
+<line x1="95.0" y1="165.0" x2="225.0" y2="235.0" class="main" />
+<line x1="225.0" y1="95.0" x2="365.0" y2="68.0" class="main" />
+<line x1="225.0" y1="95.0" x2="365.0" y2="122.0" class="main" />
+<line x1="225.0" y1="235.0" x2="365.0" y2="208.0" class="main" />
+<line x1="225.0" y1="235.0" x2="365.0" y2="262.0" class="main" />
+<circle cx="95.0" cy="165.0" r="5.0" class="pt" />
+<circle cx="225.0" cy="95.0" r="4.5" class="pt" />
+<circle cx="225.0" cy="235.0" r="4.5" class="pt" />
+<circle cx="365.0" cy="68.0" r="4.5" class="pt" />
+<circle cx="365.0" cy="122.0" r="4.5" class="pt" />
+<circle cx="365.0" cy="208.0" r="4.5" class="pt" />
+<circle cx="365.0" cy="262.0" r="4.5" class="pt" />
+</svg>

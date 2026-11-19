@@ -1,51 +1,88 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>НОД и НОК</title>
+  <desc>НОД и НОК</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
+    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
   </defs>
-  <circle cx="210" cy="84" r="28" fill="#E8F1FB" stroke="#2B60E5" stroke-width="4"/>
-  <text x="210" y="91" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#2B60E5">84</text>
-  <line x1="200" y1="112" x2="174" y2="142" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round"/>
-  <line x1="220" y1="112" x2="246" y2="142" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="168" cy="160" r="20" fill="#E8F1FB" stroke="#2B60E5" stroke-width="3"/>
-  <text x="168" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#2B60E5">2</text>
-  <circle cx="252" cy="160" r="20" fill="#FFFFFF" stroke="#8FA3BF" stroke-width="2"/>
-  <text x="252" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0E0E0E">42</text>
-  <line x1="226" y1="186" x2="200" y2="216" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round"/>
-  <line x1="246" y1="186" x2="272" y2="216" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="194" cy="234" r="20" fill="#E8F1FB" stroke="#2B60E5" stroke-width="3"/>
-  <text x="194" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#2B60E5">2</text>
-  <circle cx="278" cy="234" r="20" fill="#FFFFFF" stroke="#8FA3BF" stroke-width="2"/>
-  <text x="278" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0E0E0E">21</text>
-  <line x1="252" y1="260" x2="226" y2="290" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round"/>
-  <line x1="272" y1="260" x2="298" y2="290" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="220" cy="308" r="20" fill="#E8F1FB" stroke="#2B60E5" stroke-width="3"/>
-  <text x="220" y="314" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#2B60E5">3</text>
-  <circle cx="304" cy="308" r="20" fill="#FFFFFF" stroke="#8FA3BF" stroke-width="2"/>
-  <text x="304" y="314" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0E0E0E">7</text>
-  <circle cx="510" cy="84" r="28" fill="#E8F1FB" stroke="#0A1A5C" stroke-width="4"/>
-  <text x="510" y="91" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">126</text>
-  <line x1="500" y1="112" x2="474" y2="142" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round"/>
-  <line x1="520" y1="112" x2="546" y2="142" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="468" cy="160" r="20" fill="#E8F1FB" stroke="#0A1A5C" stroke-width="3"/>
-  <text x="468" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0A1A5C">2</text>
-  <circle cx="552" cy="160" r="20" fill="#FFFFFF" stroke="#8FA3BF" stroke-width="2"/>
-  <text x="552" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0E0E0E">63</text>
-  <line x1="526" y1="186" x2="500" y2="216" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round"/>
-  <line x1="546" y1="186" x2="572" y2="216" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="494" cy="234" r="20" fill="#E8F1FB" stroke="#0A1A5C" stroke-width="3"/>
-  <text x="494" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0A1A5C">3</text>
-  <circle cx="578" cy="234" r="20" fill="#FFFFFF" stroke="#8FA3BF" stroke-width="2"/>
-  <text x="578" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0E0E0E">21</text>
-  <line x1="552" y1="260" x2="526" y2="290" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round"/>
-  <line x1="572" y1="260" x2="598" y2="290" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="520" cy="308" r="20" fill="#E8F1FB" stroke="#0A1A5C" stroke-width="3"/>
-  <text x="520" y="314" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0A1A5C">3</text>
-  <circle cx="604" cy="308" r="20" fill="#FFFFFF" stroke="#8FA3BF" stroke-width="2"/>
-  <text x="604" y="314" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0E0E0E">7</text>
-  <text x="360" y="398" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">НОД(a, b) · НОК(a, b) = a · b</text>
+  <circle cx="210" cy="84" r="28" fill="var(--soft)" stroke="var(--primary)" stroke-width="4"/>
+  <text x="210" y="91" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)">84</text>
+  <line x1="200" y1="112" x2="174" y2="142" stroke="var(--axis)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="220" y1="112" x2="246" y2="142" stroke="var(--axis)" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="168" cy="160" r="20" fill="var(--soft)" stroke="var(--primary)" stroke-width="3"/>
+  <text x="168" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)">2</text>
+  <circle cx="252" cy="160" r="20" fill="var(--bg)" stroke="var(--axis)" stroke-width="2"/>
+  <text x="252" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">42</text>
+  <line x1="226" y1="186" x2="200" y2="216" stroke="var(--axis)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="246" y1="186" x2="272" y2="216" stroke="var(--axis)" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="194" cy="234" r="20" fill="var(--soft)" stroke="var(--primary)" stroke-width="3"/>
+  <text x="194" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)">2</text>
+  <circle cx="278" cy="234" r="20" fill="var(--bg)" stroke="var(--axis)" stroke-width="2"/>
+  <text x="278" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">21</text>
+  <line x1="252" y1="260" x2="226" y2="290" stroke="var(--axis)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="272" y1="260" x2="298" y2="290" stroke="var(--axis)" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="220" cy="308" r="20" fill="var(--soft)" stroke="var(--primary)" stroke-width="3"/>
+  <text x="220" y="314" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)">3</text>
+  <circle cx="304" cy="308" r="20" fill="var(--bg)" stroke="var(--axis)" stroke-width="2"/>
+  <text x="304" y="314" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">7</text>
+  <circle cx="510" cy="84" r="28" fill="var(--soft)" stroke="var(--ink)" stroke-width="4"/>
+  <text x="510" y="91" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">126</text>
+  <line x1="500" y1="112" x2="474" y2="142" stroke="var(--axis)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="520" y1="112" x2="546" y2="142" stroke="var(--axis)" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="468" cy="160" r="20" fill="var(--soft)" stroke="var(--ink)" stroke-width="3"/>
+  <text x="468" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">2</text>
+  <circle cx="552" cy="160" r="20" fill="var(--bg)" stroke="var(--axis)" stroke-width="2"/>
+  <text x="552" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">63</text>
+  <line x1="526" y1="186" x2="500" y2="216" stroke="var(--axis)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="546" y1="186" x2="572" y2="216" stroke="var(--axis)" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="494" cy="234" r="20" fill="var(--soft)" stroke="var(--ink)" stroke-width="3"/>
+  <text x="494" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">3</text>
+  <circle cx="578" cy="234" r="20" fill="var(--bg)" stroke="var(--axis)" stroke-width="2"/>
+  <text x="578" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">21</text>
+  <line x1="552" y1="260" x2="526" y2="290" stroke="var(--axis)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="572" y1="260" x2="598" y2="290" stroke="var(--axis)" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="520" cy="308" r="20" fill="var(--soft)" stroke="var(--ink)" stroke-width="3"/>
+  <text x="520" y="314" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">3</text>
+  <circle cx="604" cy="308" r="20" fill="var(--bg)" stroke="var(--axis)" stroke-width="2"/>
+  <text x="604" y="314" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">7</text>
+  <text x="360" y="398" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">НОД(a, b) · НОК(a, b) = a · b</text>
 </svg>

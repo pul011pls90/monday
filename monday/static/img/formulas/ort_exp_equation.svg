@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-label="График y = a^x и горизонтальная линия, точка пересечения.">
+<title>График y = a^x и горизонтальная линия, точка пересечения.</title>
+<desc>График y = a^x и горизонтальная линия, точка пересечения.</desc>
+<style>
+  svg { --ink: #0B0B0C; --axis: #8A93B2; --muted-txt: #4E5775; --grid: #E3E8FA; --primary: #2F4FE0; --primary-soft: #E3E8FA; --answer: #E5484D; --answer-soft: rgba(229,72,77,.14); --muted: #B8C0DA; --bg: #FFFFFF; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) svg { --ink: #F4F5F8; --axis: #7F8AA8; --muted-txt: #CBD5E1; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; } }
+  :root[data-theme='dark'] svg { --ink: #F4F5F8; --axis: #7F8AA8; --muted-txt: #CBD5E1; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; }
+  @media (prefers-reduced-motion: reduce) { svg * { transition: none !important; } }
+  .lbl { font-size: 18px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .var { font-family: 'KaTeX_Math', Georgia, serif; font-style: italic; font-size: 19px; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .mut { font-size: 18px; fill: var(--muted-txt); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .ax { stroke: var(--axis); stroke-width: 1.25; fill: none; }
+  .grd { stroke: var(--grid); stroke-width: 1; fill: none; }
+  .main { stroke: var(--primary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .aux { stroke: var(--axis); stroke-width: 1.25; stroke-dasharray: 4 3; fill: none; }
+  .soft { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; stroke-linejoin: round; }
+  .pt { fill: var(--primary); stroke: var(--bg); stroke-width: 1.5; }
+  .hole { fill: var(--bg); stroke: var(--primary); stroke-width: 2; }
+
+
+</style>
+<defs><marker id='ax' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='6' markerHeight='6' orient='auto'><path d='M1 1.5L9 5L1 8.5z' fill='var(--axis)'/></marker></defs>
+<text x="240.0" y="30.0" text-anchor="middle" class="lbl">Показательное уравнение</text>
+<line x1="80.0" y1="50.0" x2="80.0" y2="300.0" class="grd" />
+<line x1="112.0" y1="50.0" x2="112.0" y2="300.0" class="grd" />
+<line x1="144.0" y1="50.0" x2="144.0" y2="300.0" class="grd" />
+<line x1="176.0" y1="50.0" x2="176.0" y2="300.0" class="grd" />
+<line x1="208.0" y1="50.0" x2="208.0" y2="300.0" class="grd" />
+<line x1="240.0" y1="50.0" x2="240.0" y2="300.0" class="grd" />
+<line x1="272.0" y1="50.0" x2="272.0" y2="300.0" class="grd" />
+<line x1="304.0" y1="50.0" x2="304.0" y2="300.0" class="grd" />
+<line x1="336.0" y1="50.0" x2="336.0" y2="300.0" class="grd" />
+<line x1="368.0" y1="50.0" x2="368.0" y2="300.0" class="grd" />
+<line x1="400.0" y1="50.0" x2="400.0" y2="300.0" class="grd" />
+<line x1="55.0" y1="79.0" x2="425.0" y2="79.0" class="grd" />
+<line x1="55.0" y1="111.0" x2="425.0" y2="111.0" class="grd" />
+<line x1="55.0" y1="143.0" x2="425.0" y2="143.0" class="grd" />
+<line x1="55.0" y1="175.0" x2="425.0" y2="175.0" class="grd" />
+<line x1="55.0" y1="207.0" x2="425.0" y2="207.0" class="grd" />
+<line x1="55.0" y1="239.0" x2="425.0" y2="239.0" class="grd" />
+<line x1="55.0" y1="271.0" x2="425.0" y2="271.0" class="grd" />
+<line x1="55.0" y1="175.0" x2="425.0" y2="175.0" class="ax" marker-end="url(#ax)"/>
+<line x1="240.0" y1="300.0" x2="240.0" y2="50.0" class="ax" marker-end="url(#ax)"/>
+<text x="433.0" y="179.0" text-anchor="start" class="var">x</text>
+<text x="250.0" y="56.0" text-anchor="start" class="var">y</text>
+<path d="M 130.0 167.4 L 131.3 167.2 L 132.6 167.0 L 133.9 166.9 L 135.2 166.7 L 136.5 166.5 L 137.8 166.3 L 139.0 166.2 L 140.3 166.0 L 141.6 165.8 L 142.9 165.6 L 144.2 165.4 L 145.5 165.2 L 146.8 165.0 L 148.1 164.8 L 149.4 164.6 L 150.7 164.4 L 152.0 164.2 L 153.3 163.9 L 154.6 163.7 L 155.8 163.5 L 157.1 163.2 L 158.4 163.0 L 159.7 162.7 L 161.0 162.5 L 162.3 162.2 L 163.6 161.9 L 164.9 161.7 L 166.2 161.4 L 167.5 161.1 L 168.8 160.8 L 170.1 160.5 L 171.4 160.2 L 172.7 159.9 L 173.9 159.6 L 175.2 159.3 L 176.5 159.0 L 177.8 158.6 L 179.1 158.3 L 180.4 158.0 L 181.7 157.6 L 183.0 157.2 L 184.3 156.9 L 185.6 156.5 L 186.9 156.1 L 188.2 155.7 L 189.5 155.3 L 190.7 154.9 L 192.0 154.5 L 193.3 154.1 L 194.6 153.6 L 195.9 153.2 L 197.2 152.7 L 198.5 152.3 L 199.8 151.8 L 201.1 151.3 L 202.4 150.8 L 203.7 150.3 L 205.0 149.8 L 206.3 149.3 L 207.6 148.7 L 208.8 148.2 L 210.1 147.6 L 211.4 147.1 L 212.7 146.5 L 214.0 145.9 L 215.3 145.3 L 216.6 144.7 L 217.9 144.0 L 219.2 143.4 L 220.5 142.7 L 221.8 142.1 L 223.1 141.4 L 224.4 140.7 L 225.6 140.0 L 226.9 139.3 L 228.2 138.5 L 229.5 137.8 L 230.8 137.0 L 232.1 136.2 L 233.4 135.4 L 234.7 134.6 L 236.0 133.7 L 237.3 132.9 L 238.6 132.0 L 239.9 131.1 L 241.2 130.2 L 242.4 129.3 L 243.7 128.3 L 245.0 127.3 L 246.3 126.3 L 247.6 125.3 L 248.9 124.3 L 250.2 123.2 L 251.5 122.2 L 252.8 121.1 L 254.1 120.0 L 255.4 118.8 L 256.7 117.6 L 258.0 116.5 L 259.2 115.2 L 260.5 114.0 L 261.8 112.7 L 263.1 111.4 L 264.4 110.1 L 265.7 108.8 L 267.0 107.4 L 268.3 106.0 L 269.6 104.5 L 270.9 103.1 L 272.2 101.6 L 273.5 100.1 L 274.8 98.5 L 276.1 96.9 L 277.3 95.3 L 278.6 93.6 L 279.9 92.0 L 281.2 90.2 L 282.5 88.5 L 283.8 86.7 L 285.1 84.8 L 286.4 83.0 L 287.7 81.0 L 289.0 79.1 L 290.3 77.1 L 291.6 75.1 L 292.9 73.0 L 294.1 70.9 L 295.4 68.7 L 296.7 66.5 L 298.0 64.2 L 299.3 61.9 L 300.6 59.6 L 301.9 57.2 L 303.2 54.8 L 304.5 52.3 L 305.8 49.7 L 307.1 47.1 L 308.4 44.4 L 309.7 41.7 L 310.9 39.0 L 312.2 36.1" class="main"/>
+<circle cx="240.0" cy="131.0" r="4.5" class="pt" />
+</svg>

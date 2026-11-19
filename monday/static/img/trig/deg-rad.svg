@@ -1,7 +1,44 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Degrees and radians</title>
+  <desc>Degrees and radians</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
   </defs>
-<circle cx="360" cy="235" r="135" fill="#E8F1FB" fill-opacity="0.35" stroke="#2B60E5" stroke-width="2.5"/><path d="M 360 235 L 495 235 A 135 135 0 0 0 432.9 121.4 Z" fill="#E8F1FB" stroke="#2B60E5" stroke-width="2.5"/><line x1="225" y1="235" x2="495" y2="235" stroke="#8FA3BF" stroke-width="1.8" stroke-dasharray="6 4"/><text x="422" y="206" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#2B60E5" paint-order="stroke" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round">1 rad ≈ 57.3°</text><text x="360" y="74" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="600" fill="#0E0E0E" paint-order="stroke" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round">π rad = 180°</text><text x="510" y="240" text-anchor="start" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#475569" paint-order="stroke" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round">0°</text><text x="210" y="240" text-anchor="end" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#475569" paint-order="stroke" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round">180° (π)</text></svg>
+<circle cx="360" cy="235" r="135" fill="var(--soft)" fill-opacity="0.35" stroke="var(--primary)" stroke-width="2.5"/><path d="M 360 235 L 495 235 A 135 135 0 0 0 432.9 121.4 Z" fill="var(--soft)" stroke="var(--primary)" stroke-width="2.5"/><line x1="225" y1="235" x2="495" y2="235" stroke="var(--axis)" stroke-width="1.8" stroke-dasharray="6 4"/><text x="422" y="206" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--primary)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">1 rad ≈ 57.3°</text><text x="360" y="74" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">π rad = 180°</text><text x="510" y="240" text-anchor="start" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--muted)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">0°</text><text x="210" y="240" text-anchor="end" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--muted)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">180° (π)</text></svg>

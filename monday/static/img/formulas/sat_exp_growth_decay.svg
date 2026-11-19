@@ -1,20 +1,57 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Рост</title>
+  <desc>Рост</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
   </defs>
-  <line x1="90" y1="380" x2="640" y2="380" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <line x1="90" y1="380" x2="90" y2="50" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="635" y="405" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A" font-style="italic">t</text>
-  <text x="72" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A" font-style="italic">y</text>
+  <line x1="90" y1="380" x2="640" y2="380" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <line x1="90" y1="380" x2="90" y2="50" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="635" y="405" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)" font-style="italic">t</text>
+  <text x="72" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)" font-style="italic">y</text>
   <!-- Growth curve -->
-  <path d="M90 290 Q 260 280, 380 205 T 580 75" fill="none" stroke="#2B60E5" stroke-width="4" stroke-linecap="round"/>
+  <path d="M90 290 Q 260 280, 380 205 T 580 75" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round"/>
   <!-- Decay curve -->
-  <path d="M90 110 Q 210 250, 360 320 T 600 368" fill="none" stroke="#0A1A5C" stroke-width="4" stroke-linecap="round" stroke-dasharray="9 6"/>
-  <circle cx="90" cy="290" r="6" fill="#2B60E5"/>
-  <circle cx="90" cy="110" r="6" fill="#0A1A5C"/>
-  <text x="112" y="295" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#2B60E5">(0, a)</text>
-  <text x="112" y="115" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0A1A5C">(0, a)</text>
-  <text x="485" y="74" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#2B60E5">y = a(1 + r)ᵗ</text>
-  <text x="455" y="348" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">y = a(1 − r)ᵗ</text>
+  <path d="M90 110 Q 210 250, 360 320 T 600 368" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round" stroke-dasharray="9 6"/>
+  <circle cx="90" cy="290" r="6" fill="var(--primary)"/>
+  <circle cx="90" cy="110" r="6" fill="var(--ink)"/>
+  <text x="112" y="295" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)">(0, a)</text>
+  <text x="112" y="115" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">(0, a)</text>
+  <text x="485" y="74" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)">y = a(1 + r)ᵗ</text>
+  <text x="455" y="348" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">y = a(1 − r)ᵗ</text>
 </svg>

@@ -1,25 +1,62 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Призма и цилиндр</title>
+  <desc>Призма и цилиндр</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <!-- Prism (left) -->
-  <polygon points="110,335 270,335 220,275" fill="#DBEAFE" stroke="#2B60E5" stroke-width="2.5" stroke-linejoin="round"/>
-  <polygon points="110,135 270,135 220,75" fill="#EFF4FF" stroke="#2B60E5" stroke-width="3" stroke-linejoin="round"/>
-  <line x1="110" y1="135" x2="110" y2="335" stroke="#2B60E5" stroke-width="3"/>
-  <line x1="270" y1="135" x2="270" y2="335" stroke="#2B60E5" stroke-width="3"/>
-  <line x1="220" y1="75" x2="220" y2="275" stroke="#2B60E5" stroke-width="2" stroke-dasharray="6 5"/>
-  <text x="190" y="316" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0A1A5C">Sосн</text>
-  <text x="90" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C" font-style="italic">h</text>
-  <text x="190" y="388" text-anchor="middle" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#0E0E0E">Призма</text>
-  <text x="190" y="414" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#2B60E5">V = Sосн · h</text>
+  <polygon points="110,335 270,335 220,275" fill="#DBEAFE" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round"/>
+  <polygon points="110,135 270,135 220,75" fill="var(--soft)" stroke="var(--primary)" stroke-width="3" stroke-linejoin="round"/>
+  <line x1="110" y1="135" x2="110" y2="335" stroke="var(--primary)" stroke-width="3"/>
+  <line x1="270" y1="135" x2="270" y2="335" stroke="var(--primary)" stroke-width="3"/>
+  <line x1="220" y1="75" x2="220" y2="275" stroke="var(--primary)" stroke-width="2" stroke-dasharray="6 5"/>
+  <text x="190" y="316" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">Sосн</text>
+  <text x="90" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)" font-style="italic">h</text>
+  <text x="190" y="388" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">Призма</text>
+  <text x="190" y="414" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)">V = Sосн · h</text>
 
   <!-- Cylinder (right) -->
-  <ellipse cx="520" cy="335" rx="95" ry="26" fill="#DBEAFE" stroke="#2B60E5" stroke-width="2.5"/>
-  <line x1="425" y1="125" x2="425" y2="335" stroke="#2B60E5" stroke-width="3"/>
-  <line x1="615" y1="125" x2="615" y2="335" stroke="#2B60E5" stroke-width="3"/>
-  <ellipse cx="520" cy="125" rx="95" ry="26" fill="#EFF4FF" stroke="#2B60E5" stroke-width="3"/>
-  <line x1="520" y1="125" x2="520" y2="335" stroke="#0A1A5C" stroke-width="2" stroke-dasharray="6 5"/>
-  <line x1="520" y1="335" x2="615" y2="335" stroke="#0A1A5C" stroke-width="2.5"/>
-  <text x="568" y="327" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#0A1A5C" font-style="italic">r</text>
-  <text x="506" y="235" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C" font-style="italic">h</text>
-  <text x="520" y="388" text-anchor="middle" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#0E0E0E">Цилиндр</text>
-  <text x="520" y="414" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#2B60E5">V = πr²h · Sбок = 2πrh</text>
+  <ellipse cx="520" cy="335" rx="95" ry="26" fill="#DBEAFE" stroke="var(--primary)" stroke-width="2.5"/>
+  <line x1="425" y1="125" x2="425" y2="335" stroke="var(--primary)" stroke-width="3"/>
+  <line x1="615" y1="125" x2="615" y2="335" stroke="var(--primary)" stroke-width="3"/>
+  <ellipse cx="520" cy="125" rx="95" ry="26" fill="var(--soft)" stroke="var(--primary)" stroke-width="3"/>
+  <line x1="520" y1="125" x2="520" y2="335" stroke="var(--ink)" stroke-width="2" stroke-dasharray="6 5"/>
+  <line x1="520" y1="335" x2="615" y2="335" stroke="var(--ink)" stroke-width="2.5"/>
+  <text x="568" y="327" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)" font-style="italic">r</text>
+  <text x="506" y="235" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)" font-style="italic">h</text>
+  <text x="520" y="388" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">Цилиндр</text>
+  <text x="520" y="414" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)">V = πr²h · Sбок = 2πrh</text>
 </svg>

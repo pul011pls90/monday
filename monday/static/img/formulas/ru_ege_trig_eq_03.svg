@@ -1,20 +1,57 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Уравнения tg x = a и ctg x = a</title>
+  <desc>Уравнения tg x = a и ctg x = a</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
+    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
   </defs>
-  <line x1="85" y1="225" x2="400" y2="225" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <line x1="240" y1="385" x2="240" y2="65" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="414" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">cos</text>
-  <text x="252" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">sin</text>
-  <circle cx="240" cy="225" r="125" fill="#FFFFFF" stroke="#2B60E5" stroke-width="4"/>
-  <line x1="365" y1="75" x2="365" y2="375" stroke="#0A1A5C" stroke-width="3" stroke-linecap="round"/>
-  <line x1="160" y1="285" x2="365" y2="131" stroke="#2B60E5" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
-  <circle cx="365" cy="131" r="6.5" fill="#0A1A5C" stroke="#0A1A5C" stroke-width="3"/>
-  <text x="535" y="195" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">x = arctg a + πn</text>
-  <text x="535" y="245" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#2B60E5">x = arcctg a + πn</text>
+  <line x1="85" y1="225" x2="400" y2="225" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <line x1="240" y1="385" x2="240" y2="65" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="414" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">cos</text>
+  <text x="252" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">sin</text>
+  <circle cx="240" cy="225" r="125" fill="var(--bg)" stroke="var(--primary)" stroke-width="4"/>
+  <line x1="365" y1="75" x2="365" y2="375" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+  <line x1="160" y1="285" x2="365" y2="131" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+  <circle cx="365" cy="131" r="6.5" fill="var(--ink)" stroke="var(--ink)" stroke-width="3"/>
+  <text x="535" y="195" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">x = arctg a + πn</text>
+  <text x="535" y="245" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)">x = arcctg a + πn</text>
 </svg>

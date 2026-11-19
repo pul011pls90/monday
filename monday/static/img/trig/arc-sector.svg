@@ -1,7 +1,44 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Arc length and sector area</title>
+  <desc>Arc length and sector area</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
   </defs>
-<path d="M 240 315 L 500 315 A 260 260 0 0 0 420 125 Z" fill="#E8F1FB" stroke="#2B60E5" stroke-width="2.5"/><path d="M 305 315 A 65 65 0 0 0 285 267" fill="none" stroke="#2B60E5" stroke-width="2.2"/><text x="322" y="294" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="600" font-style="italic" fill="#2B60E5" paint-order="stroke" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round">θ</text><text x="370" y="344" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="600" font-style="italic" fill="#0E0E0E" paint-order="stroke" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round">r</text><text x="486" y="205" text-anchor="start" font-family="Arial,sans-serif" font-size="20" font-weight="600" fill="#2B60E5" paint-order="stroke" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round">s = rθ</text><text x="380" y="248" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="600" fill="#0E0E0E" paint-order="stroke" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round">A = ½r²θ</text></svg>
+<path d="M 240 315 L 500 315 A 260 260 0 0 0 420 125 Z" fill="var(--soft)" stroke="var(--primary)" stroke-width="2.5"/><path d="M 305 315 A 65 65 0 0 0 285 267" fill="none" stroke="var(--primary)" stroke-width="2.2"/><text x="322" y="294" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="600" font-style="italic" fill="var(--primary)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">θ</text><text x="370" y="344" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="600" font-style="italic" fill="var(--ink)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">r</text><text x="486" y="205" text-anchor="start" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--primary)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">s = rθ</text><text x="380" y="248" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">A = ½r²θ</text></svg>

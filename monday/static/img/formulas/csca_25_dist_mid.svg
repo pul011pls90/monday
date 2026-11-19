@@ -1,26 +1,63 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Расстояние и середина отрезка</title>
+  <desc>Расстояние и середина отрезка</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
+    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
   </defs>
-  <line x1="95" y1="392" x2="625" y2="392" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="621" y="414" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A" font-style="italic">x</text>
-  <line x1="95" y1="392" x2="95" y2="48" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="79" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A" font-style="italic">y</text>
-  <line x1="196.9" y1="311.1" x2="523.1" y2="311.1" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
-  <line x1="523.1" y1="311.1" x2="523.1" y2="128.9" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
-  <path d="M509.1 311.1 L509.1 297.1 L523.1 297.1" fill="none" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <line x1="196.9" y1="311.1" x2="523.1" y2="128.9" stroke="#2B60E5" stroke-width="4" stroke-linecap="round"/>
-  <circle cx="196.9" cy="311.1" r="6" fill="#0A1A5C" stroke="none"/>
-  <circle cx="523.1" cy="128.9" r="6" fill="#0A1A5C" stroke="none"/>
-  <circle cx="360" cy="220" r="6" fill="#2B60E5" stroke="none"/>
-  <text x="172.9" y="297.1" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">P₁</text>
-  <text x="547.1" y="118.9" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">P₂</text>
-  <text x="342" y="202" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#2B60E5">M</text>
-  <text x="360" y="337.1" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">x₂−x₁</text>
-  <text x="557.1" y="226" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">y₂−y₁</text>
+  <line x1="95" y1="392" x2="625" y2="392" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="621" y="414" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)" font-style="italic">x</text>
+  <line x1="95" y1="392" x2="95" y2="48" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="79" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)" font-style="italic">y</text>
+  <line x1="196.9" y1="311.1" x2="523.1" y2="311.1" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+  <line x1="523.1" y1="311.1" x2="523.1" y2="128.9" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+  <path d="M509.1 311.1 L509.1 297.1 L523.1 297.1" fill="none" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="196.9" y1="311.1" x2="523.1" y2="128.9" stroke="var(--primary)" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="196.9" cy="311.1" r="6" fill="var(--ink)" stroke="none"/>
+  <circle cx="523.1" cy="128.9" r="6" fill="var(--ink)" stroke="none"/>
+  <circle cx="360" cy="220" r="6" fill="var(--primary)" stroke="none"/>
+  <text x="172.9" y="297.1" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">P₁</text>
+  <text x="547.1" y="118.9" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">P₂</text>
+  <text x="342" y="202" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)">M</text>
+  <text x="360" y="337.1" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">x₂−x₁</text>
+  <text x="557.1" y="226" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">y₂−y₁</text>
 </svg>

@@ -1,20 +1,57 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Разложение квадратного трёхчлена на множители</title>
+  <desc>Разложение квадратного трёхчлена на множители</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
+    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
   </defs>
-  <line x1="100" y1="285" x2="620" y2="285" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <line x1="340" y1="380" x2="340" y2="70" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="634" y="290" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">x</text>
-  <text x="352" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">y</text>
-  <path d="M175 392.8 L181 377.2 L187 362.3 L193 347.9 L199 334 L205 320.8 L211 308.1 L217 296 L223 284.5 L229 273.6 L235 263.2 L241 253.4 L247 244.2 L253 235.6 L259 227.5 L265 220 L271 213.1 L277 206.8 L283 201 L289 195.8 L295 191.2 L301 187.2 L307 183.7 L313 180.8 L319 178.5 L325 176.8 L331 175.6 L337 175.1 L343 175.1 L349 175.6 L355 176.8 L361 178.5 L367 180.8 L373 183.7 L379 187.2 L385 191.2 L391 195.8 L397 201 L403 206.8 L409 213.1 L415 220 L421 227.5 L427 235.6 L433 244.2 L439 253.4 L445 263.2 L451 273.6 L457 284.5 L463 296 L469 308.1 L475 320.8 L481 334 L487 347.9 L493 362.3 L499 377.2 L505 392.8" fill="none" stroke="#2B60E5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="223" cy="285" r="6.5" fill="#0A1A5C" stroke="#0A1A5C" stroke-width="3"/>
-  <text x="223" y="314" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">x₁</text>
-  <circle cx="457" cy="285" r="6.5" fill="#0A1A5C" stroke="#0A1A5C" stroke-width="3"/>
-  <text x="457" y="314" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">x₂</text>
-  <text x="510" y="110" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">a(x − x₁)(x − x₂)</text>
+  <line x1="100" y1="285" x2="620" y2="285" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <line x1="340" y1="380" x2="340" y2="70" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="634" y="290" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">x</text>
+  <text x="352" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">y</text>
+  <path d="M175 392.8 L181 377.2 L187 362.3 L193 347.9 L199 334 L205 320.8 L211 308.1 L217 296 L223 284.5 L229 273.6 L235 263.2 L241 253.4 L247 244.2 L253 235.6 L259 227.5 L265 220 L271 213.1 L277 206.8 L283 201 L289 195.8 L295 191.2 L301 187.2 L307 183.7 L313 180.8 L319 178.5 L325 176.8 L331 175.6 L337 175.1 L343 175.1 L349 175.6 L355 176.8 L361 178.5 L367 180.8 L373 183.7 L379 187.2 L385 191.2 L391 195.8 L397 201 L403 206.8 L409 213.1 L415 220 L421 227.5 L427 235.6 L433 244.2 L439 253.4 L445 263.2 L451 273.6 L457 284.5 L463 296 L469 308.1 L475 320.8 L481 334 L487 347.9 L493 362.3 L499 377.2 L505 392.8" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="223" cy="285" r="6.5" fill="var(--ink)" stroke="var(--ink)" stroke-width="3"/>
+  <text x="223" y="314" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">x₁</text>
+  <circle cx="457" cy="285" r="6.5" fill="var(--ink)" stroke="var(--ink)" stroke-width="3"/>
+  <text x="457" y="314" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">x₂</text>
+  <text x="510" y="110" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">a(x − x₁)(x − x₂)</text>
 </svg>

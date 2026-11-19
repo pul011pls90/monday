@@ -65,7 +65,7 @@ def static_checks(row: dict, svg_text: str) -> list[tuple[str, str, str]]:
 
     if "<image" in svg_text.lower():
         defects.append(("structure", "P1", "Embedded raster <image> found"))
-    if re.search(r"https?://|@import|fonts\.googleapis", svg_text, re.I):
+    if re.search(r"@import|fonts\.googleapis|<link\b|https?://(?!www\.w3\.org/2000/svg)", svg_text, re.I):
         defects.append(("structure", "P1", "External font or link reference found"))
     if "<title" not in svg_text.lower():
         defects.append(("structure", "P2", "Missing <title> element"))
@@ -83,10 +83,11 @@ def static_checks(row: dict, svg_text: str) -> list[tuple[str, str, str]]:
     if off:
         defects.append(("style_palette", "P2", f"Off-palette colors without theme vars: {', '.join(off[:6])}"))
 
-    # Math notation plain-text approximations
-    if re.search(r"[ⁿ²ᵏ³⁴]√|√\([^)]+\)", svg_text):
+    # Math notation plain-text approximations (only check visible <text> elements, not <title>/<desc>)
+    visible_texts = " ".join(re.findall(r"<text\b[^>]*>(.*?)</text>", svg_text, re.I | re.S))
+    if re.search(r"[ⁿ²ᵏ³⁴]√|√\([^)]+\)", visible_texts):
         defects.append(("math_notation", "P1", "Plain-text radical approximation (e.g. ⁿ√ / ²ᵏ√ / √(...)) without radical bar"))
-    if re.search(r"неч\.|чет\.", svg_text):
+    if re.search(r"неч\.|чет\.", visible_texts):
         defects.append(("math_notation", "P1", "Abbreviated parity label (неч./чет.) in diagram"))
 
     # Ambiguous symbolic point labels on function graphs like (-a, |a|) or (-a, -a)
@@ -181,13 +182,13 @@ JS_INSPECT = r"""
     }
   }
 
-  // Text-text overlaps
+  // Text-text overlaps (using rendered boundingClientRect so <g transform> is respected)
   const textOverlaps = [];
   for (let i = 0; i < textBoxes.length; i++) {
     for (let j = i + 1; j < textBoxes.length; j++) {
-      const a = textBoxes[i].bb, b = textBoxes[j].bb;
-      const ix = Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x));
-      const iy = Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y));
+      const a = textBoxes[i].rect, b = textBoxes[j].rect;
+      const ix = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+      const iy = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
       if (ix > 2 && iy > 2) {
         textOverlaps.push(`${textBoxes[i].text} <-> ${textBoxes[j].text}`);
       }

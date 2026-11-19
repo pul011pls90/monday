@@ -1,22 +1,59 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Свойства степеней</title>
+  <desc>Свойства степеней</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
+    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
   </defs>
-  <line x1="90" y1="350" x2="606" y2="350" stroke="#0A1A5C" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
-  <line x1="90" y1="350" x2="630" y2="350" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="626" y="372" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A" font-style="italic">x</text>
-  <line x1="360" y1="398" x2="360" y2="48" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="344" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A" font-style="italic">y</text>
-  <path d="M121.2 336 L124.9 335.7 L128.7 335.3 L132.4 334.9 L136.2 334.6 L140 334.2 L143.7 333.8 L147.5 333.3 L151.3 332.9 L155 332.5 L158.8 332 L162.6 331.6 L166.3 331.1 L170.1 330.6 L173.9 330.2 L177.6 329.6 L181.4 329.1 L185.1 328.6 L188.9 328.1 L192.7 327.5 L196.4 326.9 L200.2 326.3 L204 325.7 L207.7 325.1 L211.5 324.5 L215.3 323.8 L219 323.2 L222.8 322.5 L226.6 321.8 L230.3 321.1 L234.1 320.3 L237.9 319.6 L241.6 318.8 L245.4 318 L249.1 317.2 L252.9 316.4 L256.7 315.5 L260.4 314.7 L264.2 313.8 L268 312.8 L271.7 311.9 L275.5 310.9 L279.3 309.9 L283 308.9 L286.8 307.9 L290.6 306.8 L294.3 305.7 L298.1 304.6 L301.8 303.4 L305.6 302.2 L309.4 301 L313.1 299.8 L316.9 298.5 L320.7 297.2 L324.4 295.8 L328.2 294.5 L332 293 L335.7 291.6 L339.5 290.1 L343.3 288.6 L347 287 L350.8 285.4 L354.5 283.8 L358.3 282.1 L362.1 280.4 L365.8 278.6 L369.6 276.8 L373.4 274.9 L377.1 273 L380.9 271.1 L384.7 269.1 L388.4 267 L392.2 264.9 L396 262.7 L399.7 260.5 L403.5 258.2 L407.2 255.9 L411 253.5 L414.8 251 L418.5 248.5 L422.3 245.9 L426.1 243.3 L429.8 240.6 L433.6 237.8 L437.4 234.9 L441.1 232 L444.9 229 L448.7 225.9 L452.4 222.8 L456.2 219.5 L460 216.2 L463.7 212.8 L467.5 209.3 L471.2 205.8 L475 202.1 L478.8 198.3 L482.5 194.5 L486.3 190.5 L490.1 186.5 L493.8 182.3 L497.6 178 L501.4 173.7 L505.1 169.2 L508.9 164.6 L512.7 159.8 L516.4 155 L520.2 150 L523.9 145 L527.7 139.7 L531.5 134.4 L535.2 128.9 L539 123.3 L542.8 117.5 L546.5 111.6 L550.3 105.5 L554.1 99.3 L557.8 92.9 L561.6 86.4 L565.4 79.7 L569.1 72.8 L572.9 65.8" fill="none" stroke="#2B60E5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M147.1 65.8 L150.9 72.8 L154.6 79.7 L158.4 86.4 L162.2 92.9 L165.9 99.3 L169.7 105.5 L173.5 111.6 L177.2 117.5 L181 123.3 L184.8 128.9 L188.5 134.4 L192.3 139.7 L196.1 145 L199.8 150 L203.6 155 L207.3 159.8 L211.1 164.6 L214.9 169.2 L218.6 173.7 L222.4 178 L226.2 182.3 L229.9 186.5 L233.7 190.5 L237.5 194.5 L241.2 198.3 L245 202.1 L248.8 205.8 L252.5 209.3 L256.3 212.8 L260 216.2 L263.8 219.5 L267.6 222.8 L271.3 225.9 L275.1 229 L278.9 232 L282.6 234.9 L286.4 237.8 L290.2 240.6 L293.9 243.3 L297.7 245.9 L301.5 248.5 L305.2 251 L309 253.5 L312.8 255.9 L316.5 258.2 L320.3 260.5 L324 262.7 L327.8 264.9 L331.6 267 L335.3 269.1 L339.1 271.1 L342.9 273 L346.6 274.9 L350.4 276.8 L354.2 278.6 L357.9 280.4 L361.7 282.1 L365.5 283.8 L369.2 285.4 L373 287 L376.7 288.6 L380.5 290.1 L384.3 291.6 L388 293 L391.8 294.5 L395.6 295.8 L399.3 297.2 L403.1 298.5 L406.9 299.8 L410.6 301 L414.4 302.2 L418.2 303.4 L421.9 304.6 L425.7 305.7 L429.4 306.8 L433.2 307.9 L437 308.9 L440.7 309.9 L444.5 310.9 L448.3 311.9 L452 312.8 L455.8 313.8 L459.6 314.7 L463.3 315.5 L467.1 316.4 L470.9 317.2 L474.6 318 L478.4 318.8 L482.1 319.6 L485.9 320.3 L489.7 321.1 L493.4 321.8 L497.2 322.5 L501 323.2 L504.7 323.8 L508.5 324.5 L512.3 325.1 L516 325.7 L519.8 326.3 L523.6 326.9 L527.3 327.5 L531.1 328.1 L534.9 328.6 L538.6 329.1 L542.4 329.6 L546.1 330.2 L549.9 330.6 L553.7 331.1 L557.4 331.6 L561.2 332 L565 332.5 L568.7 332.9 L572.5 333.3 L576.3 333.8 L580 334.2 L583.8 334.6 L587.6 334.9 L591.3 335.3 L595.1 335.7 L598.8 336" fill="none" stroke="#0A1A5C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="360" cy="281.3" r="6" fill="#0A1A5C" stroke="none"/>
-  <text x="404" y="309.3" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">(0, 1)</text>
-  <text x="606.9" y="120.1" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#2B60E5">a &gt; 1</text>
-  <text x="103.1" y="120.1" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">0 &lt; a &lt; 1</text>
-  <text x="141.9" y="378" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">y = 0</text>
+  <line x1="90" y1="350" x2="606" y2="350" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+  <line x1="90" y1="350" x2="630" y2="350" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="626" y="372" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)" font-style="italic">x</text>
+  <line x1="360" y1="398" x2="360" y2="48" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="344" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)" font-style="italic">y</text>
+  <path d="M121.2 336 L124.9 335.7 L128.7 335.3 L132.4 334.9 L136.2 334.6 L140 334.2 L143.7 333.8 L147.5 333.3 L151.3 332.9 L155 332.5 L158.8 332 L162.6 331.6 L166.3 331.1 L170.1 330.6 L173.9 330.2 L177.6 329.6 L181.4 329.1 L185.1 328.6 L188.9 328.1 L192.7 327.5 L196.4 326.9 L200.2 326.3 L204 325.7 L207.7 325.1 L211.5 324.5 L215.3 323.8 L219 323.2 L222.8 322.5 L226.6 321.8 L230.3 321.1 L234.1 320.3 L237.9 319.6 L241.6 318.8 L245.4 318 L249.1 317.2 L252.9 316.4 L256.7 315.5 L260.4 314.7 L264.2 313.8 L268 312.8 L271.7 311.9 L275.5 310.9 L279.3 309.9 L283 308.9 L286.8 307.9 L290.6 306.8 L294.3 305.7 L298.1 304.6 L301.8 303.4 L305.6 302.2 L309.4 301 L313.1 299.8 L316.9 298.5 L320.7 297.2 L324.4 295.8 L328.2 294.5 L332 293 L335.7 291.6 L339.5 290.1 L343.3 288.6 L347 287 L350.8 285.4 L354.5 283.8 L358.3 282.1 L362.1 280.4 L365.8 278.6 L369.6 276.8 L373.4 274.9 L377.1 273 L380.9 271.1 L384.7 269.1 L388.4 267 L392.2 264.9 L396 262.7 L399.7 260.5 L403.5 258.2 L407.2 255.9 L411 253.5 L414.8 251 L418.5 248.5 L422.3 245.9 L426.1 243.3 L429.8 240.6 L433.6 237.8 L437.4 234.9 L441.1 232 L444.9 229 L448.7 225.9 L452.4 222.8 L456.2 219.5 L460 216.2 L463.7 212.8 L467.5 209.3 L471.2 205.8 L475 202.1 L478.8 198.3 L482.5 194.5 L486.3 190.5 L490.1 186.5 L493.8 182.3 L497.6 178 L501.4 173.7 L505.1 169.2 L508.9 164.6 L512.7 159.8 L516.4 155 L520.2 150 L523.9 145 L527.7 139.7 L531.5 134.4 L535.2 128.9 L539 123.3 L542.8 117.5 L546.5 111.6 L550.3 105.5 L554.1 99.3 L557.8 92.9 L561.6 86.4 L565.4 79.7 L569.1 72.8 L572.9 65.8" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M147.1 65.8 L150.9 72.8 L154.6 79.7 L158.4 86.4 L162.2 92.9 L165.9 99.3 L169.7 105.5 L173.5 111.6 L177.2 117.5 L181 123.3 L184.8 128.9 L188.5 134.4 L192.3 139.7 L196.1 145 L199.8 150 L203.6 155 L207.3 159.8 L211.1 164.6 L214.9 169.2 L218.6 173.7 L222.4 178 L226.2 182.3 L229.9 186.5 L233.7 190.5 L237.5 194.5 L241.2 198.3 L245 202.1 L248.8 205.8 L252.5 209.3 L256.3 212.8 L260 216.2 L263.8 219.5 L267.6 222.8 L271.3 225.9 L275.1 229 L278.9 232 L282.6 234.9 L286.4 237.8 L290.2 240.6 L293.9 243.3 L297.7 245.9 L301.5 248.5 L305.2 251 L309 253.5 L312.8 255.9 L316.5 258.2 L320.3 260.5 L324 262.7 L327.8 264.9 L331.6 267 L335.3 269.1 L339.1 271.1 L342.9 273 L346.6 274.9 L350.4 276.8 L354.2 278.6 L357.9 280.4 L361.7 282.1 L365.5 283.8 L369.2 285.4 L373 287 L376.7 288.6 L380.5 290.1 L384.3 291.6 L388 293 L391.8 294.5 L395.6 295.8 L399.3 297.2 L403.1 298.5 L406.9 299.8 L410.6 301 L414.4 302.2 L418.2 303.4 L421.9 304.6 L425.7 305.7 L429.4 306.8 L433.2 307.9 L437 308.9 L440.7 309.9 L444.5 310.9 L448.3 311.9 L452 312.8 L455.8 313.8 L459.6 314.7 L463.3 315.5 L467.1 316.4 L470.9 317.2 L474.6 318 L478.4 318.8 L482.1 319.6 L485.9 320.3 L489.7 321.1 L493.4 321.8 L497.2 322.5 L501 323.2 L504.7 323.8 L508.5 324.5 L512.3 325.1 L516 325.7 L519.8 326.3 L523.6 326.9 L527.3 327.5 L531.1 328.1 L534.9 328.6 L538.6 329.1 L542.4 329.6 L546.1 330.2 L549.9 330.6 L553.7 331.1 L557.4 331.6 L561.2 332 L565 332.5 L568.7 332.9 L572.5 333.3 L576.3 333.8 L580 334.2 L583.8 334.6 L587.6 334.9 L591.3 335.3 L595.1 335.7 L598.8 336" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="360" cy="281.3" r="6" fill="var(--ink)" stroke="none"/>
+  <text x="404" y="309.3" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">(0, 1)</text>
+  <text x="606.9" y="120.1" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)">a &gt; 1</text>
+  <text x="103.1" y="120.1" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">0 &lt; a &lt; 1</text>
+  <text x="141.9" y="378" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">y = 0</text>
 </svg>

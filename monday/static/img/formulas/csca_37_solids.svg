@@ -1,32 +1,69 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Призма, цилиндр, пирамида, конус</title>
+  <desc>Призма, цилиндр, пирамида, конус</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
+    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
   </defs>
-  <path d="M117 115 V295 A58 16 0 0 0 233 295 V115 Z" fill="#E8F1FB" stroke="#2B60E5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <ellipse cx="175" cy="115" rx="58" ry="16" fill="#E8F1FB" stroke="#2B60E5" stroke-width="4"/>
-  <path d="M117 295 A58 16 0 0 1 233 295" fill="none" stroke="#2B60E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 5"/>
-  <line x1="175" y1="115" x2="175" y2="295" stroke="#0A1A5C" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
-  <line x1="175" y1="295" x2="233" y2="295" stroke="#0A1A5C" stroke-width="2" stroke-linecap="round"/>
-  <text x="159" y="205" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C" font-style="italic">h</text>
-  <text x="204" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0A1A5C" font-style="italic">r</text>
-  <text x="175" y="358" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0E0E0E">Cylinder</text>
-  <path d="M292 295 L360 108 L428 295 L360 313 Z" fill="#E8F1FB" stroke="#2B60E5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <line x1="360" y1="108" x2="360" y2="313" stroke="#2B60E5" stroke-width="3" stroke-linecap="round"/>
-  <line x1="292" y1="295" x2="428" y2="295" stroke="#2B60E5" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
-  <line x1="360" y1="108" x2="360" y2="295" stroke="#0A1A5C" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
-  <text x="344" y="213.5" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C" font-style="italic">h</text>
-  <text x="360" y="358" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0E0E0E">Pyramid</text>
-  <path d="M483 295 L545 108 L607 295 A62 18 0 0 1 483 295 Z" fill="#E8F1FB" stroke="#2B60E5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M483 295 A62 18 0 0 1 607 295" fill="none" stroke="#2B60E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 5"/>
-  <line x1="545" y1="108" x2="545" y2="295" stroke="#0A1A5C" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
-  <line x1="545" y1="295" x2="607" y2="295" stroke="#0A1A5C" stroke-width="2" stroke-linecap="round"/>
-  <text x="529" y="211.5" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C" font-style="italic">h</text>
-  <text x="576" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0A1A5C" font-style="italic">r</text>
-  <text x="587" y="197.5" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#2B60E5" font-style="italic">l</text>
-  <text x="545" y="358" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0E0E0E">Cone</text>
+  <path d="M117 115 V295 A58 16 0 0 0 233 295 V115 Z" fill="var(--soft)" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="175" cy="115" rx="58" ry="16" fill="var(--soft)" stroke="var(--primary)" stroke-width="4"/>
+  <path d="M117 295 A58 16 0 0 1 233 295" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 5"/>
+  <line x1="175" y1="115" x2="175" y2="295" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+  <line x1="175" y1="295" x2="233" y2="295" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
+  <text x="159" y="205" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)" font-style="italic">h</text>
+  <text x="204" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)" font-style="italic">r</text>
+  <text x="175" y="358" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">Cylinder</text>
+  <path d="M292 295 L360 108 L428 295 L360 313 Z" fill="var(--soft)" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="360" y1="108" x2="360" y2="313" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"/>
+  <line x1="292" y1="295" x2="428" y2="295" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+  <line x1="360" y1="108" x2="360" y2="295" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+  <text x="344" y="213.5" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)" font-style="italic">h</text>
+  <text x="360" y="358" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">Pyramid</text>
+  <path d="M483 295 L545 108 L607 295 A62 18 0 0 1 483 295 Z" fill="var(--soft)" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M483 295 A62 18 0 0 1 607 295" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 5"/>
+  <line x1="545" y1="108" x2="545" y2="295" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+  <line x1="545" y1="295" x2="607" y2="295" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
+  <text x="529" y="211.5" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)" font-style="italic">h</text>
+  <text x="576" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)" font-style="italic">r</text>
+  <text x="587" y="197.5" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)" font-style="italic">l</text>
+  <text x="545" y="358" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">Cone</text>
 </svg>

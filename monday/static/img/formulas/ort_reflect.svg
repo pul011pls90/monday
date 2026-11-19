@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-label="Исходный график и отражение относительно оси Ox или Oy.">
+<title>Исходный график и отражение относительно оси Ox или Oy.</title>
+<desc>Исходный график и отражение относительно оси Ox или Oy.</desc>
+<style>
+  svg { --ink: #0B0B0C; --axis: #8A93B2; --muted-txt: #4E5775; --grid: #E3E8FA; --primary: #2F4FE0; --primary-soft: #E3E8FA; --answer: #E5484D; --answer-soft: rgba(229,72,77,.14); --muted: #B8C0DA; --bg: #FFFFFF; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) svg { --ink: #F4F5F8; --axis: #7F8AA8; --muted-txt: #CBD5E1; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; } }
+  :root[data-theme='dark'] svg { --ink: #F4F5F8; --axis: #7F8AA8; --muted-txt: #CBD5E1; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; }
+  @media (prefers-reduced-motion: reduce) { svg * { transition: none !important; } }
+  .lbl { font-size: 18px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .var { font-family: 'KaTeX_Math', Georgia, serif; font-style: italic; font-size: 19px; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .mut { font-size: 18px; fill: var(--muted-txt); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .ax { stroke: var(--axis); stroke-width: 1.25; fill: none; }
+  .grd { stroke: var(--grid); stroke-width: 1; fill: none; }
+  .main { stroke: var(--primary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .aux { stroke: var(--axis); stroke-width: 1.25; stroke-dasharray: 4 3; fill: none; }
+  .soft { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; stroke-linejoin: round; }
+  .pt { fill: var(--primary); stroke: var(--bg); stroke-width: 1.5; }
+  .hole { fill: var(--bg); stroke: var(--primary); stroke-width: 2; }
+
+
+</style>
+<defs><marker id='ax' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='6' markerHeight='6' orient='auto'><path d='M1 1.5L9 5L1 8.5z' fill='var(--axis)'/></marker></defs>
+<text x="240.0" y="30.0" text-anchor="middle" class="lbl">Отражение графика</text>
+<line x1="80.0" y1="80.0" x2="80.0" y2="340.0" class="grd" />
+<line x1="112.0" y1="80.0" x2="112.0" y2="340.0" class="grd" />
+<line x1="144.0" y1="80.0" x2="144.0" y2="340.0" class="grd" />
+<line x1="176.0" y1="80.0" x2="176.0" y2="340.0" class="grd" />
+<line x1="208.0" y1="80.0" x2="208.0" y2="340.0" class="grd" />
+<line x1="240.0" y1="80.0" x2="240.0" y2="340.0" class="grd" />
+<line x1="272.0" y1="80.0" x2="272.0" y2="340.0" class="grd" />
+<line x1="304.0" y1="80.0" x2="304.0" y2="340.0" class="grd" />
+<line x1="336.0" y1="80.0" x2="336.0" y2="340.0" class="grd" />
+<line x1="368.0" y1="80.0" x2="368.0" y2="340.0" class="grd" />
+<line x1="400.0" y1="80.0" x2="400.0" y2="340.0" class="grd" />
+<line x1="55.0" y1="82.0" x2="425.0" y2="82.0" class="grd" />
+<line x1="55.0" y1="114.0" x2="425.0" y2="114.0" class="grd" />
+<line x1="55.0" y1="146.0" x2="425.0" y2="146.0" class="grd" />
+<line x1="55.0" y1="178.0" x2="425.0" y2="178.0" class="grd" />
+<line x1="55.0" y1="210.0" x2="425.0" y2="210.0" class="grd" />
+<line x1="55.0" y1="242.0" x2="425.0" y2="242.0" class="grd" />
+<line x1="55.0" y1="274.0" x2="425.0" y2="274.0" class="grd" />
+<line x1="55.0" y1="306.0" x2="425.0" y2="306.0" class="grd" />
+<line x1="55.0" y1="338.0" x2="425.0" y2="338.0" class="grd" />
+<line x1="55.0" y1="210.0" x2="425.0" y2="210.0" class="ax" marker-end="url(#ax)"/>
+<line x1="240.0" y1="340.0" x2="240.0" y2="80.0" class="ax" marker-end="url(#ax)"/>
+<text x="433.0" y="214.0" text-anchor="start" class="var">x</text>
+<text x="250.0" y="86.0" text-anchor="start" class="var">y</text>
+<path d="M 102.0 61.8 L 103.7 67.0 L 105.5 72.2 L 107.2 77.3 L 108.9 82.3 L 110.6 87.3 L 112.4 92.2 L 114.1 97.0 L 115.8 101.8 L 117.5 106.5 L 119.2 111.2 L 121.0 115.7 L 122.7 120.2 L 124.4 124.7 L 126.1 129.1 L 127.9 133.4 L 129.6 137.6 L 131.3 141.8 L 133.1 145.9 L 134.8 150.0 L 136.5 153.9 L 138.2 157.9 L 139.9 161.7 L 141.7 165.5 L 143.4 169.2 L 145.1 172.9 L 146.9 176.4 L 148.6 180.0 L 150.3 183.4 L 152.0 186.8 L 153.8 190.1 L 155.5 193.4 L 157.2 196.6 L 158.9 199.7 L 160.6 202.8 L 162.4 205.8 L 164.1 208.7 L 165.8 211.6 L 167.6 214.4 L 169.3 217.1 L 171.0 219.8 L 172.7 222.3 L 174.4 224.9 L 176.2 227.4 L 177.9 229.8 L 179.6 232.1 L 181.3 234.4 L 183.1 236.6 L 184.8 238.7 L 186.5 240.8 L 188.2 242.8 L 190.0 244.7 L 191.7 246.6 L 193.4 248.4 L 195.2 250.2 L 196.9 251.8 L 198.6 253.4 L 200.3 255.0 L 202.0 256.5 L 203.8 257.9 L 205.5 259.2 L 207.2 260.5 L 209.0 261.7 L 210.7 262.9 L 212.4 264.0 L 214.1 265.0 L 215.8 266.0 L 217.6 266.8 L 219.3 267.7 L 221.0 268.4 L 222.8 269.1 L 224.5 269.7 L 226.2 270.3 L 227.9 270.8 L 229.7 271.2 L 231.4 271.6 L 233.1 271.9 L 234.8 272.1 L 236.5 272.3 L 238.3 272.4 L 240.0 272.4 L 241.7 272.4 L 243.4 272.3 L 245.2 272.1 L 246.9 271.9 L 248.6 271.6 L 250.3 271.2 L 252.1 270.8 L 253.8 270.3 L 255.5 269.7 L 257.2 269.1 L 259.0 268.4 L 260.7 267.7 L 262.4 266.8 L 264.2 266.0 L 265.9 265.0 L 267.6 264.0 L 269.3 262.9 L 271.1 261.7 L 272.8 260.5 L 274.5 259.2 L 276.2 257.9 L 277.9 256.5 L 279.7 255.0 L 281.4 253.4 L 283.1 251.8 L 284.8 250.2 L 286.6 248.4 L 288.3 246.6 L 290.0 244.7 L 291.8 242.8 L 293.5 240.8 L 295.2 238.7 L 296.9 236.6 L 298.7 234.4 L 300.4 232.1 L 302.1 229.8 L 303.8 227.4 L 305.6 224.9 L 307.3 222.3 L 309.0 219.8 L 310.7 217.1 L 312.4 214.4 L 314.2 211.6 L 315.9 208.7 L 317.6 205.8 L 319.3 202.8 L 321.1 199.7 L 322.8 196.6 L 324.5 193.4 L 326.2 190.1 L 328.0 186.8 L 329.7 183.4 L 331.4 180.0 L 333.2 176.4 L 334.9 172.9 L 336.6 169.2 L 338.3 165.5 L 340.1 161.7 L 341.8 157.9 L 343.5 153.9 L 345.2 150.0 L 346.9 145.9 L 348.7 141.8 L 350.4 137.6 L 352.1 133.4 L 353.8 129.1 L 355.6 124.7 L 357.3 120.2 L 359.0 115.7 L 360.8 111.2 L 362.5 106.5 L 364.2 101.8 L 365.9 97.0 L 367.7 92.2 L 369.4 87.3 L 371.1 82.3 L 372.8 77.3 L 374.6 72.2 L 376.3 67.0 L 378.0 61.8" class="main"/>
+<circle cx="240.0" cy="272.4" r="4.5" class="pt" />
+<circle cx="164.9" cy="210.0" r="4.5" class="pt" />
+<circle cx="315.1" cy="210.0" r="4.5" class="pt" />
+</svg>

@@ -1,7 +1,44 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Unit circle and signs by quadrant</title>
+  <desc>Unit circle and signs by quadrant</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
   </defs>
-<line x1="135" y1="230" x2="585" y2="230" stroke="#8FA3BF" stroke-width="1.8" marker-end="url(#ax)"/><line x1="360" y1="405" x2="360" y2="55" stroke="#8FA3BF" stroke-width="1.8" marker-end="url(#ax)"/><text x="581" y="252" font-family="Arial,sans-serif" font-size="16" font-style="italic" fill="#475569">x</text><text x="372" y="69" font-family="Arial,sans-serif" font-size="16" font-style="italic" fill="#475569">y</text><circle cx="360" cy="230" r="130" fill="none" stroke="#2B60E5" stroke-width="2.5"/><line x1="360" y1="230" x2="459.6" y2="146.4" stroke="#2B60E5" stroke-width="2.4"/><line x1="459.6" y1="146.4" x2="459.6" y2="230" stroke="#8FA3BF" stroke-width="1.8" stroke-dasharray="5 4"/><line x1="360" y1="146.4" x2="459.6" y2="146.4" stroke="#8FA3BF" stroke-width="1.8" stroke-dasharray="5 4"/><circle cx="459.6" cy="146.4" r="5.5" fill="#2B60E5"/><text x="474" y="140" text-anchor="start" font-family="Arial,sans-serif" font-size="17" font-weight="600" fill="#0E0E0E" paint-order="stroke" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round">(cos θ, sin θ)</text><text x="410" y="250" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="600" fill="#475569" paint-order="stroke" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round">cos θ</text><text x="348" y="192" text-anchor="end" font-family="Arial,sans-serif" font-size="15" font-weight="600" fill="#475569" paint-order="stroke" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round">sin θ</text><rect x="494.0" y="69.0" width="108" height="34" rx="10" fill="#E8F1FB" stroke="#2B60E5" stroke-opacity="0.25" stroke-width="1.2"/><text x="548" y="91" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#2B60E5">I: All +</text><rect x="118.0" y="69.0" width="108" height="34" rx="10" fill="#E8F1FB" stroke="#2B60E5" stroke-opacity="0.25" stroke-width="1.2"/><text x="172" y="91" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#2B60E5">II: sin +</text><rect x="118.0" y="357.0" width="108" height="34" rx="10" fill="#E8F1FB" stroke="#2B60E5" stroke-opacity="0.25" stroke-width="1.2"/><text x="172" y="379" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#2B60E5">III: tan +</text><rect x="494.0" y="357.0" width="108" height="34" rx="10" fill="#E8F1FB" stroke="#2B60E5" stroke-opacity="0.25" stroke-width="1.2"/><text x="548" y="379" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#2B60E5">IV: cos +</text></svg>
+<line x1="135" y1="230" x2="585" y2="230" stroke="var(--axis)" stroke-width="1.8" marker-end="url(#ax)"/><line x1="360" y1="405" x2="360" y2="55" stroke="var(--axis)" stroke-width="1.8" marker-end="url(#ax)"/><text x="581" y="252" font-family="Arial,sans-serif" font-size="28" font-style="italic" fill="var(--muted)">x</text><text x="372" y="69" font-family="Arial,sans-serif" font-size="28" font-style="italic" fill="var(--muted)">y</text><circle cx="360" cy="230" r="130" fill="none" stroke="var(--primary)" stroke-width="2.5"/><line x1="360" y1="230" x2="459.6" y2="146.4" stroke="var(--primary)" stroke-width="2.4"/><line x1="459.6" y1="146.4" x2="459.6" y2="230" stroke="var(--axis)" stroke-width="1.8" stroke-dasharray="5 4"/><line x1="360" y1="146.4" x2="459.6" y2="146.4" stroke="var(--axis)" stroke-width="1.8" stroke-dasharray="5 4"/><circle cx="459.6" cy="146.4" r="5.5" fill="var(--primary)"/><text x="474" y="140" text-anchor="start" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">(cos θ, sin θ)</text><text x="410" y="250" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--muted)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">cos θ</text><text x="348" y="192" text-anchor="end" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="var(--muted)" paint-order="stroke" stroke="var(--bg)" stroke-width="6" stroke-linejoin="round">sin θ</text><rect x="494.0" y="69.0" width="108" height="34" rx="10" fill="var(--soft)" stroke="var(--primary)" stroke-opacity="0.25" stroke-width="1.2"/><text x="548" y="91" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="var(--primary)">I: All +</text><rect x="118.0" y="69.0" width="108" height="34" rx="10" fill="var(--soft)" stroke="var(--primary)" stroke-opacity="0.25" stroke-width="1.2"/><text x="172" y="91" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="var(--primary)">II: sin +</text><rect x="118.0" y="357.0" width="108" height="34" rx="10" fill="var(--soft)" stroke="var(--primary)" stroke-opacity="0.25" stroke-width="1.2"/><text x="172" y="379" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="var(--primary)">III: tan +</text><rect x="494.0" y="357.0" width="108" height="34" rx="10" fill="var(--soft)" stroke="var(--primary)" stroke-opacity="0.25" stroke-width="1.2"/><text x="548" y="379" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="var(--primary)">IV: cos +</text></svg>

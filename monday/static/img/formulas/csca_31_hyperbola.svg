@@ -1,24 +1,61 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Гипербола</title>
+  <desc>Гипербола</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
+    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
   </defs>
-  <line x1="90" y1="225" x2="630" y2="225" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="626" y="247" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A" font-style="italic">x</text>
-  <line x1="360" y1="394" x2="360" y2="56" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="344" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A" font-style="italic">y</text>
-  <line x1="135" y1="386" x2="585" y2="64" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
-  <line x1="135" y1="64" x2="585" y2="386" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
-  <path d="M581.9 364.8 L573.1 357.7 L564.8 350.8 L556.9 344.2 L549.5 337.8 L542.4 331.7 L535.8 325.8 L529.5 320.1 L523.5 314.7 L517.9 309.4 L512.7 304.3 L507.7 299.3 L503.1 294.5 L498.8 289.9 L494.7 285.4 L491 281 L487.5 276.8 L484.3 272.6 L481.4 268.6 L478.7 264.6 L476.3 260.8 L474.1 257 L472.2 253.3 L470.5 249.6 L469 246 L467.8 242.4 L466.8 238.9 L466 235.4 L465.4 231.9 L465.1 228.5 L465 225 L465.1 221.5 L465.4 218.1 L466 214.6 L466.8 211.1 L467.8 207.6 L469 204 L470.5 200.4 L472.2 196.7 L474.1 193 L476.3 189.2 L478.7 185.4 L481.4 181.4 L484.3 177.4 L487.5 173.2 L491 169 L494.7 164.6 L498.8 160.1 L503.1 155.5 L507.7 150.7 L512.7 145.7 L517.9 140.6 L523.5 135.3 L529.5 129.9 L535.8 124.2 L542.4 118.3 L549.5 112.2 L556.9 105.8 L564.8 99.2 L573.1 92.3 L581.9 85.2" fill="none" stroke="#2B60E5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M138.1 364.8 L146.9 357.7 L155.2 350.8 L163.1 344.2 L170.5 337.8 L177.6 331.7 L184.2 325.8 L190.5 320.1 L196.5 314.7 L202.1 309.4 L207.3 304.3 L212.3 299.3 L216.9 294.5 L221.2 289.9 L225.3 285.4 L229 281 L232.5 276.8 L235.7 272.6 L238.6 268.6 L241.3 264.6 L243.7 260.8 L245.9 257 L247.8 253.3 L249.5 249.6 L251 246 L252.2 242.4 L253.2 238.9 L254 235.4 L254.6 231.9 L254.9 228.5 L255 225 L254.9 221.5 L254.6 218.1 L254 214.6 L253.2 211.1 L252.2 207.6 L251 204 L249.5 200.4 L247.8 196.7 L245.9 193 L243.7 189.2 L241.3 185.4 L238.6 181.4 L235.7 177.4 L232.5 173.2 L229 169 L225.3 164.6 L221.2 160.1 L216.9 155.5 L212.3 150.7 L207.3 145.7 L202.1 140.6 L196.5 135.3 L190.5 129.9 L184.2 124.2 L177.6 118.3 L170.5 112.2 L163.1 105.8 L155.2 99.2 L146.9 92.3 L138.1 85.2" fill="none" stroke="#2B60E5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="231" cy="225" r="6" fill="#0A1A5C" stroke="none"/>
-  <circle cx="489" cy="225" r="6" fill="#0A1A5C" stroke="none"/>
-  <text x="213" y="251" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">F₁</text>
-  <text x="507" y="251" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">F₂</text>
-  <text x="451" y="251" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0E0E0E" font-style="italic">a</text>
-  <text x="525" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">y = (b/a)x</text>
+  <line x1="90" y1="225" x2="630" y2="225" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="626" y="247" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)" font-style="italic">x</text>
+  <line x1="360" y1="394" x2="360" y2="56" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="344" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)" font-style="italic">y</text>
+  <line x1="135" y1="386" x2="585" y2="64" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+  <line x1="135" y1="64" x2="585" y2="386" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+  <path d="M581.9 364.8 L573.1 357.7 L564.8 350.8 L556.9 344.2 L549.5 337.8 L542.4 331.7 L535.8 325.8 L529.5 320.1 L523.5 314.7 L517.9 309.4 L512.7 304.3 L507.7 299.3 L503.1 294.5 L498.8 289.9 L494.7 285.4 L491 281 L487.5 276.8 L484.3 272.6 L481.4 268.6 L478.7 264.6 L476.3 260.8 L474.1 257 L472.2 253.3 L470.5 249.6 L469 246 L467.8 242.4 L466.8 238.9 L466 235.4 L465.4 231.9 L465.1 228.5 L465 225 L465.1 221.5 L465.4 218.1 L466 214.6 L466.8 211.1 L467.8 207.6 L469 204 L470.5 200.4 L472.2 196.7 L474.1 193 L476.3 189.2 L478.7 185.4 L481.4 181.4 L484.3 177.4 L487.5 173.2 L491 169 L494.7 164.6 L498.8 160.1 L503.1 155.5 L507.7 150.7 L512.7 145.7 L517.9 140.6 L523.5 135.3 L529.5 129.9 L535.8 124.2 L542.4 118.3 L549.5 112.2 L556.9 105.8 L564.8 99.2 L573.1 92.3 L581.9 85.2" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M138.1 364.8 L146.9 357.7 L155.2 350.8 L163.1 344.2 L170.5 337.8 L177.6 331.7 L184.2 325.8 L190.5 320.1 L196.5 314.7 L202.1 309.4 L207.3 304.3 L212.3 299.3 L216.9 294.5 L221.2 289.9 L225.3 285.4 L229 281 L232.5 276.8 L235.7 272.6 L238.6 268.6 L241.3 264.6 L243.7 260.8 L245.9 257 L247.8 253.3 L249.5 249.6 L251 246 L252.2 242.4 L253.2 238.9 L254 235.4 L254.6 231.9 L254.9 228.5 L255 225 L254.9 221.5 L254.6 218.1 L254 214.6 L253.2 211.1 L252.2 207.6 L251 204 L249.5 200.4 L247.8 196.7 L245.9 193 L243.7 189.2 L241.3 185.4 L238.6 181.4 L235.7 177.4 L232.5 173.2 L229 169 L225.3 164.6 L221.2 160.1 L216.9 155.5 L212.3 150.7 L207.3 145.7 L202.1 140.6 L196.5 135.3 L190.5 129.9 L184.2 124.2 L177.6 118.3 L170.5 112.2 L163.1 105.8 L155.2 99.2 L146.9 92.3 L138.1 85.2" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="231" cy="225" r="6" fill="var(--ink)" stroke="none"/>
+  <circle cx="489" cy="225" r="6" fill="var(--ink)" stroke="none"/>
+  <text x="213" y="251" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">F₁</text>
+  <text x="507" y="251" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">F₂</text>
+  <text x="451" y="251" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)" font-style="italic">a</text>
+  <text x="525" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">y = (b/a)x</text>
 </svg>

@@ -1,26 +1,63 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Линейное уравнение</title>
+  <desc>Линейное уравнение</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
+    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
   </defs>
-  <line x1="85" y1="275" x2="360" y2="275" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <line x1="210" y1="365" x2="210" y2="75" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="374" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">x</text>
-  <text x="222" y="79" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">y</text>
-  <line x1="110" y1="345" x2="330" y2="115" stroke="#2B60E5" stroke-width="4" stroke-linecap="round"/>
-  <circle cx="177" cy="275" r="6.5" fill="#0A1A5C" stroke="#0A1A5C" stroke-width="3"/>
-  <text x="177" y="305" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0A1A5C">x = −b/a</text>
-  <rect x="395" y="85" width="245" height="76" rx="14" fill="#E8F1FB" stroke="#2B60E5" stroke-width="3"/>
-  <text x="517.5" y="117.7" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">a ≠ 0</text>
-  <text x="517.5" y="141.2" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="600" fill="#4B5E7A">1 корень</text>
-  <rect x="395" y="180" width="245" height="76" rx="14" fill="#FFFFFF" stroke="#0A1A5C" stroke-width="3"/>
-  <text x="517.5" y="212.7" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">a = 0, b = 0</text>
-  <text x="517.5" y="236.2" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="600" fill="#4B5E7A">∞ решений</text>
-  <rect x="395" y="275" width="245" height="76" rx="14" fill="#FFFFFF" stroke="#8FA3BF" stroke-width="3"/>
-  <text x="517.5" y="307.7" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">a = 0, b ≠ 0</text>
-  <text x="517.5" y="331.2" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="600" fill="#4B5E7A">нет корней</text>
+  <line x1="85" y1="275" x2="360" y2="275" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <line x1="210" y1="365" x2="210" y2="75" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="374" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">x</text>
+  <text x="222" y="79" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">y</text>
+  <line x1="110" y1="345" x2="330" y2="115" stroke="var(--primary)" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="177" cy="275" r="6.5" fill="var(--ink)" stroke="var(--ink)" stroke-width="3"/>
+  <text x="177" y="305" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">x = −b/a</text>
+  <rect x="395" y="85" width="245" height="76" rx="14" fill="var(--soft)" stroke="var(--primary)" stroke-width="3"/>
+  <text x="517.5" y="117.7" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">a ≠ 0</text>
+  <text x="517.5" y="141.2" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="600" fill="var(--muted)">1 корень</text>
+  <rect x="395" y="180" width="245" height="76" rx="14" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"/>
+  <text x="517.5" y="212.7" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">a = 0, b = 0</text>
+  <text x="517.5" y="236.2" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="600" fill="var(--muted)">∞ решений</text>
+  <rect x="395" y="275" width="245" height="76" rx="14" fill="var(--bg)" stroke="var(--axis)" stroke-width="3"/>
+  <text x="517.5" y="307.7" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">a = 0, b ≠ 0</text>
+  <text x="517.5" y="331.2" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="600" fill="var(--muted)">нет корней</text>
 </svg>

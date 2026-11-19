@@ -1,17 +1,54 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Параллельные и перпендикулярные прямые</title>
+  <desc>Параллельные и перпендикулярные прямые</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
+    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
   </defs>
-  <line x1="105" y1="225" x2="305" y2="135" stroke="#2B60E5" stroke-width="4" stroke-linecap="round"/>
-  <line x1="105" y1="290" x2="305" y2="200" stroke="#0A1A5C" stroke-width="3" stroke-linecap="round"/>
-  <text x="205" y="368" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#0A1A5C">m₁ = m₂</text>
-  <line x1="431" y1="275" x2="599" y2="149" stroke="#2B60E5" stroke-width="4" stroke-linecap="round"/>
-  <line x1="452" y1="128" x2="578" y2="296" stroke="#0A1A5C" stroke-width="3" stroke-linecap="round"/>
-  <path d="M527.8 202.4 L537.4 215.2 L524.6 224.8" fill="none" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="515" y="368" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#0A1A5C">m₁·m₂ = −1</text>
+  <line x1="105" y1="225" x2="305" y2="135" stroke="var(--primary)" stroke-width="4" stroke-linecap="round"/>
+  <line x1="105" y1="290" x2="305" y2="200" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+  <text x="205" y="368" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">m₁ = m₂</text>
+  <line x1="431" y1="275" x2="599" y2="149" stroke="var(--primary)" stroke-width="4" stroke-linecap="round"/>
+  <line x1="452" y1="128" x2="578" y2="296" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M527.8 202.4 L537.4 215.2 L524.6 224.8" fill="none" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="515" y="368" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">m₁·m₂ = −1</text>
 </svg>

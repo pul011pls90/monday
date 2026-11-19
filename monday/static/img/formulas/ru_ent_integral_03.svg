@@ -1,18 +1,55 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Площадь криволинейной трапеции</title>
+  <desc>Площадь криволинейной трапеции</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
+    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
   </defs>
-  <line x1="100" y1="310" x2="600" y2="310" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <line x1="140" y1="360" x2="140" y2="70" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="614" y="315" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">x</text>
-  <text x="152" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">y</text>
-  <path d="M 190 173.8 L 200 168.8 L 210 164.2 L 220 160 L 230 156.2 L 240 152.8 L 250 149.8 L 260 147.2 L 270 145 L 280 143.2 L 290 141.8 L 300 140.8 L 310 140.2 L 320 140 L 330 140.2 L 340 140.8 L 350 141.8 L 360 143.2 L 370 145 L 380 147.2 L 390 149.8 L 400 152.8 L 410 156.2 L 420 160 L 430 164.2 L 440 168.8 L 450 173.8 L 450 239.7 L 440 243.4 L 430 246.8 L 420 250 L 410 252.8 L 400 255.4 L 390 257.6 L 380 259.6 L 370 261.2 L 360 262.6 L 350 263.6 L 340 264.4 L 330 264.9 L 320 265 L 310 264.9 L 300 264.4 L 290 263.6 L 280 262.6 L 270 261.2 L 260 259.6 L 250 257.6 L 240 255.4 L 230 252.8 L 220 250 L 210 246.8 L 200 243.4 L 190 239.7 Z" fill="#E8F1FB" stroke="none"/>
-  <path d="M190 173.8 L200 168.8 L210 164.2 L220 160 L230 156.2 L240 152.8 L250 149.8 L260 147.2 L270 145 L280 143.2 L290 141.8 L300 140.8 L310 140.2 L320 140 L330 140.2 L340 140.8 L350 141.8 L360 143.2 L370 145 L380 147.2 L390 149.8 L400 152.8 L410 156.2 L420 160 L430 164.2 L440 168.8 L450 173.8" fill="none" stroke="#2B60E5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M190 239.7 L200 243.4 L210 246.8 L220 250 L230 252.8 L240 255.4 L250 257.6 L260 259.6 L270 261.2 L280 262.6 L290 263.6 L300 264.4 L310 264.9 L320 265 L330 264.9 L340 264.4 L350 263.6 L360 262.6 L370 261.2 L380 259.6 L390 257.6 L400 255.4 L410 252.8 L420 250 L430 246.8 L440 243.4 L450 239.7" fill="none" stroke="#0A1A5C" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="520" y="135" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">S = ∫ₐᵇ (f − g)dx</text>
+  <line x1="100" y1="310" x2="600" y2="310" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <line x1="140" y1="360" x2="140" y2="70" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="614" y="315" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">x</text>
+  <text x="152" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">y</text>
+  <path d="M 190 173.8 L 200 168.8 L 210 164.2 L 220 160 L 230 156.2 L 240 152.8 L 250 149.8 L 260 147.2 L 270 145 L 280 143.2 L 290 141.8 L 300 140.8 L 310 140.2 L 320 140 L 330 140.2 L 340 140.8 L 350 141.8 L 360 143.2 L 370 145 L 380 147.2 L 390 149.8 L 400 152.8 L 410 156.2 L 420 160 L 430 164.2 L 440 168.8 L 450 173.8 L 450 239.7 L 440 243.4 L 430 246.8 L 420 250 L 410 252.8 L 400 255.4 L 390 257.6 L 380 259.6 L 370 261.2 L 360 262.6 L 350 263.6 L 340 264.4 L 330 264.9 L 320 265 L 310 264.9 L 300 264.4 L 290 263.6 L 280 262.6 L 270 261.2 L 260 259.6 L 250 257.6 L 240 255.4 L 230 252.8 L 220 250 L 210 246.8 L 200 243.4 L 190 239.7 Z" fill="var(--soft)" stroke="none"/>
+  <path d="M190 173.8 L200 168.8 L210 164.2 L220 160 L230 156.2 L240 152.8 L250 149.8 L260 147.2 L270 145 L280 143.2 L290 141.8 L300 140.8 L310 140.2 L320 140 L330 140.2 L340 140.8 L350 141.8 L360 143.2 L370 145 L380 147.2 L390 149.8 L400 152.8 L410 156.2 L420 160 L430 164.2 L440 168.8 L450 173.8" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M190 239.7 L200 243.4 L210 246.8 L220 250 L230 252.8 L240 255.4 L250 257.6 L260 259.6 L270 261.2 L280 262.6 L290 263.6 L300 264.4 L310 264.9 L320 265 L330 264.9 L340 264.4 L350 263.6 L360 262.6 L370 261.2 L380 259.6 L390 257.6 L400 255.4 L410 252.8 L420 250 L430 246.8 L440 243.4 L450 239.7" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="520" y="135" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">S = ∫ₐᵇ (f − g)dx</text>
 </svg>

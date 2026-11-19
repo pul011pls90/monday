@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-label="Квадрат a² с вырезанным b², перекомпоновка в прямоугольник (a − b)(a + b).">
+<title>Квадрат a² с вырезанным b², перекомпоновка в прямоугольник (a − b)(a + b).</title>
+<desc>Квадрат a² с вырезанным b², перекомпоновка в прямоугольник (a − b)(a + b).</desc>
+<style>
+  svg { --ink: #0B0B0C; --axis: #8A93B2; --muted-txt: #4E5775; --grid: #E3E8FA; --primary: #2F4FE0; --primary-soft: #E3E8FA; --answer: #E5484D; --answer-soft: rgba(229,72,77,.14); --muted: #B8C0DA; --bg: #FFFFFF; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) svg { --ink: #F4F5F8; --axis: #7F8AA8; --muted-txt: #CBD5E1; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; } }
+  :root[data-theme='dark'] svg { --ink: #F4F5F8; --axis: #7F8AA8; --muted-txt: #CBD5E1; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; }
+  @media (prefers-reduced-motion: reduce) { svg * { transition: none !important; } }
+  .lbl { font-size: 18px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .var { font-family: 'KaTeX_Math', Georgia, serif; font-style: italic; font-size: 19px; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .mut { font-size: 18px; fill: var(--muted-txt); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .ax { stroke: var(--axis); stroke-width: 1.25; fill: none; }
+  .grd { stroke: var(--grid); stroke-width: 1; fill: none; }
+  .main { stroke: var(--primary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .aux { stroke: var(--axis); stroke-width: 1.25; stroke-dasharray: 4 3; fill: none; }
+  .soft { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; stroke-linejoin: round; }
+  .pt { fill: var(--primary); stroke: var(--bg); stroke-width: 1.5; }
+  .hole { fill: var(--bg); stroke: var(--primary); stroke-width: 2; }
+
+
+</style>
+<defs><marker id='ax' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='6' markerHeight='6' orient='auto'><path d='M1 1.5L9 5L1 8.5z' fill='var(--axis)'/></marker></defs>
+<text x="240.0" y="38.0" text-anchor="middle" class="lbl">Разность квадратов</text>
+<rect x="120" y="75" width="145" height="110" class="soft"/>
+<rect x="265" y="75" width="95" height="110" class="grd"/>
+<rect x="120" y="185" width="145" height="75" class="grd"/>
+<rect x="265" y="185" width="95" height="75" class="soft"/>
+<rect x="120" y="75" width="240" height="185" class="main"/>
+<text x="192.5" y="65.0" text-anchor="middle" class="var">a</text>
+<text x="312.5" y="65.0" text-anchor="middle" class="var">b</text>
+<text x="104.0" y="134.0" text-anchor="middle" class="var">a</text>
+<text x="104.0" y="226.5" text-anchor="middle" class="var">b</text>
+<text x="192.5" y="134.0" text-anchor="middle" class="var">a²</text>
+<text x="312.5" y="134.0" text-anchor="middle" class="var">ab</text>
+<text x="192.5" y="226.5" text-anchor="middle" class="var">ab</text>
+<text x="312.5" y="226.5" text-anchor="middle" class="var">b²</text>
+</svg>

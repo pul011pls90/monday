@@ -1,19 +1,56 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Каноническое уравнение параболы</title>
+  <desc>Каноническое уравнение параболы</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
+    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
   </defs>
-  <line x1="205.7" y1="398" x2="205.7" y2="52" stroke="#0A1A5C" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
-  <line x1="90" y1="225" x2="630" y2="225" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="626" y="247" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A" font-style="italic">x</text>
-  <line x1="282.9" y1="398" x2="282.9" y2="52" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="266.9" y="66" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A" font-style="italic">y</text>
-  <path d="M415.7 376.4 L409.2 372.6 L402.8 368.8 L396.6 365 L390.5 361.2 L384.6 357.5 L378.9 353.7 L373.3 349.9 L367.9 346.1 L362.7 342.3 L357.6 338.5 L352.7 334.7 L348 331 L343.4 327.2 L339 323.4 L334.8 319.6 L330.7 315.8 L326.8 312 L323.1 308.3 L319.5 304.5 L316.1 300.7 L312.8 296.9 L309.8 293.1 L306.9 289.3 L304.1 285.6 L301.5 281.8 L299.1 278 L296.9 274.2 L294.8 270.4 L292.9 266.6 L291.2 262.8 L289.6 259.1 L288.2 255.3 L286.9 251.5 L285.8 247.7 L284.9 243.9 L284.2 240.1 L283.6 236.4 L283.2 232.6 L282.9 228.8 L282.9 225 L282.9 221.2 L283.2 217.4 L283.6 213.6 L284.2 209.9 L284.9 206.1 L285.8 202.3 L286.9 198.5 L288.2 194.7 L289.6 190.9 L291.2 187.2 L292.9 183.4 L294.8 179.6 L296.9 175.8 L299.1 172 L301.5 168.2 L304.1 164.4 L306.9 160.7 L309.8 156.9 L312.8 153.1 L316.1 149.3 L319.5 145.5 L323.1 141.7 L326.8 138 L330.7 134.2 L334.8 130.4 L339 126.6 L343.4 122.8 L348 119 L352.7 115.3 L357.6 111.5 L362.7 107.7 L367.9 103.9 L373.3 100.1 L378.9 96.3 L384.6 92.5 L390.5 88.8 L396.6 85 L402.8 81.2 L409.2 77.4 L415.7 73.6" fill="none" stroke="#2B60E5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="360" cy="225" r="6" fill="#0A1A5C" stroke="none"/>
-  <text x="374" y="253" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">F(p/2, 0)</text>
-  <text x="153.7" y="116.9" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">x = −p/2</text>
+  <line x1="205.7" y1="398" x2="205.7" y2="52" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+  <line x1="90" y1="225" x2="630" y2="225" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="626" y="247" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)" font-style="italic">x</text>
+  <line x1="282.9" y1="398" x2="282.9" y2="52" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="266.9" y="66" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)" font-style="italic">y</text>
+  <path d="M415.7 376.4 L409.2 372.6 L402.8 368.8 L396.6 365 L390.5 361.2 L384.6 357.5 L378.9 353.7 L373.3 349.9 L367.9 346.1 L362.7 342.3 L357.6 338.5 L352.7 334.7 L348 331 L343.4 327.2 L339 323.4 L334.8 319.6 L330.7 315.8 L326.8 312 L323.1 308.3 L319.5 304.5 L316.1 300.7 L312.8 296.9 L309.8 293.1 L306.9 289.3 L304.1 285.6 L301.5 281.8 L299.1 278 L296.9 274.2 L294.8 270.4 L292.9 266.6 L291.2 262.8 L289.6 259.1 L288.2 255.3 L286.9 251.5 L285.8 247.7 L284.9 243.9 L284.2 240.1 L283.6 236.4 L283.2 232.6 L282.9 228.8 L282.9 225 L282.9 221.2 L283.2 217.4 L283.6 213.6 L284.2 209.9 L284.9 206.1 L285.8 202.3 L286.9 198.5 L288.2 194.7 L289.6 190.9 L291.2 187.2 L292.9 183.4 L294.8 179.6 L296.9 175.8 L299.1 172 L301.5 168.2 L304.1 164.4 L306.9 160.7 L309.8 156.9 L312.8 153.1 L316.1 149.3 L319.5 145.5 L323.1 141.7 L326.8 138 L330.7 134.2 L334.8 130.4 L339 126.6 L343.4 122.8 L348 119 L352.7 115.3 L357.6 111.5 L362.7 107.7 L367.9 103.9 L373.3 100.1 L378.9 96.3 L384.6 92.5 L390.5 88.8 L396.6 85 L402.8 81.2 L409.2 77.4 L415.7 73.6" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="360" cy="225" r="6" fill="var(--ink)" stroke="none"/>
+  <text x="374" y="253" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">F(p/2, 0)</text>
+  <text x="153.7" y="116.9" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">x = −p/2</text>
 </svg>

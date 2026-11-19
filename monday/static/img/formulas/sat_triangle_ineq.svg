@@ -1,9 +1,46 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
-  <polygon points="150,330 570,330 410,120" fill="#EFF4FF" stroke="#2B60E5" stroke-width="4" stroke-linejoin="round"/>
-  <text x="265" y="210" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#0A1A5C" font-style="italic">a</text>
-  <text x="510" y="215" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#0A1A5C" font-style="italic">b</text>
-  <text x="360" y="362" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#2B60E5" font-style="italic">c</text>
-  <rect x="210" y="390" width="300" height="36" rx="18" fill="#EFF4FF" stroke="#C7D7FE" stroke-width="1.5"/>
-  <text x="360" y="414" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">|a − b| &lt; c &lt; a + b</text>
+  <title>Неравенство треугольника</title>
+  <desc>Неравенство треугольника</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
+  <polygon points="150,330 570,330 410,120" fill="var(--soft)" stroke="var(--primary)" stroke-width="4" stroke-linejoin="round"/>
+  <text x="265" y="210" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)" font-style="italic">a</text>
+  <text x="510" y="215" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)" font-style="italic">b</text>
+  <text x="360" y="362" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)" font-style="italic">c</text>
+  <rect x="210" y="390" width="300" height="36" rx="18" fill="var(--soft)" stroke="var(--grid)" stroke-width="1.5"/>
+  <text x="360" y="414" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">|a − b| &lt; c &lt; a + b</text>
 </svg>

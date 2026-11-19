@@ -1,24 +1,61 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Независимость и условная вероятность</title>
+  <desc>Независимость и условная вероятность</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
+    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
   </defs>
-  <line x1="140" y1="225" x2="330" y2="130" stroke="#2B60E5" stroke-width="3" stroke-linecap="round"/>
-  <line x1="140" y1="225" x2="330" y2="320" stroke="#8FA3BF" stroke-width="3" stroke-linecap="round"/>
-  <line x1="330" y1="130" x2="540" y2="82" stroke="#0A1A5C" stroke-width="3" stroke-linecap="round"/>
-  <line x1="330" y1="130" x2="540" y2="178" stroke="#8FA3BF" stroke-width="3" stroke-linecap="round"/>
-  <line x1="330" y1="320" x2="540" y2="272" stroke="#8FA3BF" stroke-width="3" stroke-linecap="round"/>
-  <line x1="330" y1="320" x2="540" y2="368" stroke="#8FA3BF" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="140" cy="225" r="6" fill="#0A1A5C" stroke="none"/>
-  <circle cx="330" cy="130" r="6" fill="#2B60E5" stroke="none"/>
-  <circle cx="330" cy="320" r="6" fill="#8FA3BF" stroke="none"/>
-  <circle cx="540" cy="82" r="6" fill="#0A1A5C" stroke="none"/>
-  <text x="225" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#2B60E5">P(A)</text>
-  <text x="225" y="305" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#4B5E7A">P(Aᶜ)</text>
-  <text x="430" y="82" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">P(B|A)</text>
-  <text x="598" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">P(AB)</text>
+  <line x1="140" y1="225" x2="330" y2="130" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"/>
+  <line x1="140" y1="225" x2="330" y2="320" stroke="var(--axis)" stroke-width="3" stroke-linecap="round"/>
+  <line x1="330" y1="130" x2="540" y2="82" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+  <line x1="330" y1="130" x2="540" y2="178" stroke="var(--axis)" stroke-width="3" stroke-linecap="round"/>
+  <line x1="330" y1="320" x2="540" y2="272" stroke="var(--axis)" stroke-width="3" stroke-linecap="round"/>
+  <line x1="330" y1="320" x2="540" y2="368" stroke="var(--axis)" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="140" cy="225" r="6" fill="var(--ink)" stroke="none"/>
+  <circle cx="330" cy="130" r="6" fill="var(--primary)" stroke="none"/>
+  <circle cx="330" cy="320" r="6" fill="var(--axis)" stroke="none"/>
+  <circle cx="540" cy="82" r="6" fill="var(--ink)" stroke="none"/>
+  <text x="225" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)">P(A)</text>
+  <text x="225" y="305" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">P(Aᶜ)</text>
+  <text x="430" y="82" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">P(B|A)</text>
+  <text x="598" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">P(AB)</text>
 </svg>

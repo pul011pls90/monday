@@ -1,22 +1,59 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Монотонность и экстремумы</title>
+  <desc>Монотонность и экстремумы</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
+    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
   </defs>
-  <line x1="100" y1="230" x2="620" y2="230" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <line x1="140" y1="290" x2="140" y2="60" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="634" y="235" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">x</text>
-  <text x="152" y="64" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">f(x)</text>
-  <path d="M140 175 L150 164.6 L160 154.6 L170 145 L180 136.2 L190 128.4 L200 121.8 L210 116.5 L220 112.7 L230 110.6 L240 110 L250 111.2 L260 113.9 L270 118.2 L280 124 L290 131.1 L300 139.3 L310 148.4 L320 158.2 L330 168.4 L340 178.8 L350 189.1 L360 199 L370 208.3 L380 216.8 L390 224.2 L400 230.3 L410 235.1 L420 238.3 L430 239.8 L440 239.8 L450 238 L460 234.7 L470 229.8 L480 223.5 L490 216 L500 207.5 L510 198.1 L520 188.1 L530 177.8 L540 167.4 L550 157.2 L560 147.5 L570 138.5" fill="none" stroke="#2B60E5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="238" cy="110" r="6.5" fill="#0A1A5C" stroke="#0A1A5C" stroke-width="3"/>
-  <circle cx="434" cy="240" r="6.5" fill="#0A1A5C" stroke="#0A1A5C" stroke-width="3"/>
-  <line x1="100" y1="355" x2="620" y2="355" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="634" y="361" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">f′</text>
-  <text x="185" y="338" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#2B60E5">+</text>
-  <text x="335" y="338" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">−</text>
-  <text x="515" y="338" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#2B60E5">+</text>
+  <line x1="100" y1="230" x2="620" y2="230" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <line x1="140" y1="290" x2="140" y2="60" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="634" y="235" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">x</text>
+  <text x="152" y="64" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">f(x)</text>
+  <path d="M140 175 L150 164.6 L160 154.6 L170 145 L180 136.2 L190 128.4 L200 121.8 L210 116.5 L220 112.7 L230 110.6 L240 110 L250 111.2 L260 113.9 L270 118.2 L280 124 L290 131.1 L300 139.3 L310 148.4 L320 158.2 L330 168.4 L340 178.8 L350 189.1 L360 199 L370 208.3 L380 216.8 L390 224.2 L400 230.3 L410 235.1 L420 238.3 L430 239.8 L440 239.8 L450 238 L460 234.7 L470 229.8 L480 223.5 L490 216 L500 207.5 L510 198.1 L520 188.1 L530 177.8 L540 167.4 L550 157.2 L560 147.5 L570 138.5" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="238" cy="110" r="6.5" fill="var(--ink)" stroke="var(--ink)" stroke-width="3"/>
+  <circle cx="434" cy="240" r="6.5" fill="var(--ink)" stroke="var(--ink)" stroke-width="3"/>
+  <line x1="100" y1="355" x2="620" y2="355" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="634" y="361" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">f′</text>
+  <text x="185" y="338" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)">+</text>
+  <text x="335" y="338" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">−</text>
+  <text x="515" y="338" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--primary)">+</text>
 </svg>

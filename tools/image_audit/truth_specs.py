@@ -63,17 +63,17 @@ def radical_svg(x: float, y: float, w: float, h: float, index: str = "", body: s
     d = f"M {x:.1f} {y + h*0.58:.1f} L {x+4:.1f} {y + h*0.58:.1f} L {x+9:.1f} {y + h:.1f} L {x+16:.1f} {y:.1f} L {x+18+w:.1f} {y:.1f}"
     parts = [f'<path d="{d}" fill="none" stroke="{color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>']
     if index:
-        parts.append(f'<text x="{x + 7:.1f}" y="{y + h*0.42:.1f}" text-anchor="end" font-size="{max(18, fs-2)}" font-weight="700" fill="{color}">{index}</text>')
+        parts.append(f'<text class="halo" x="{x + 7:.1f}" y="{y + h*0.42:.1f}" text-anchor="end" font-size="{max(18, fs-2)}" font-weight="700" fill="{color}">{index}</text>')
     if body:
-        parts.append(f'<text x="{x + 21:.1f}" y="{y + h*0.82:.1f}" font-size="{fs}" font-weight="700" fill="{color}">{body}</text>')
+        parts.append(f'<text class="halo" x="{x + 21:.1f}" y="{y + h*0.82:.1f}" font-size="{fs}" font-weight="700" fill="{color}">{body}</text>')
     return "\n  ".join(parts)
 
 
 def gen_ru_ege_powers_roots_04() -> str:
     """Seed image: exact 1:1 coordinate graph of y = x vs y = |x| with numeric points (-3;-3) and (-3;3)."""
     W, H = 560, 380
-    ox, oy = 210, 195  # origin
-    scale = 42.0       # 1 unit = 42 px on both axes (exact 1:1 scale -> slope 1!)
+    ox, oy = 230, 195  # origin
+    scale = 38.0       # 1 unit = 38 px on both axes (exact 1:1 scale -> slope 1!)
 
     def mx(x: float) -> float:
         return ox + x * scale

@@ -1,19 +1,56 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
+  <title>Формула Ньютона–Лейбница</title>
+  <desc>Формула Ньютона–Лейбница</desc>
+  <style data-monday-theme="1">
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #7F8AA8;
+      --grid: #252B3D;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #7F8AA8;
+    --grid: #252B3D;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+  }
+  text { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+</style>
+  <rect width="720" height="450" fill="var(--bg)"/>
   <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
+    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--primary)"/></marker>
+    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="var(--ink)"/></marker>
+    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--ink)"/></marker>
   </defs>
-  <line x1="100" y1="310" x2="600" y2="310" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <line x1="140" y1="360" x2="140" y2="70" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="614" y="315" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">x</text>
-  <text x="152" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#4B5E7A">y</text>
-  <path d="M 200 310 L 200 240 L 210 231.6 L 220 223.4 L 230 215.3 L 240 207.7 L 250 200.5 L 260 193.8 L 270 187.9 L 280 182.7 L 290 178.3 L 300 174.8 L 310 172.2 L 320 170.6 L 330 170 L 340 170.4 L 350 171.8 L 360 174.2 L 370 177.6 L 380 181.8 L 390 186.9 L 400 192.7 L 410 199.2 L 420 206.3 L 430 213.9 L 440 221.9 L 450 230.1 L 450 310 Z" fill="#E8F1FB" stroke="none"/>
-  <path d="M200 240 L210 231.6 L220 223.4 L230 215.3 L240 207.7 L250 200.5 L260 193.8 L270 187.9 L280 182.7 L290 178.3 L300 174.8 L310 172.2 L320 170.6 L330 170 L340 170.4 L350 171.8 L360 174.2 L370 177.6 L380 181.8 L390 186.9 L400 192.7 L410 199.2 L420 206.3 L430 213.9 L440 221.9 L450 230.1" fill="none" stroke="#2B60E5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="200" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">a</text>
-  <text x="450" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">b</text>
-  <text x="520" y="135" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">∫ₐᵇ f(x)dx = F(b) − F(a)</text>
+  <line x1="100" y1="310" x2="600" y2="310" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <line x1="140" y1="360" x2="140" y2="70" stroke="var(--axis)" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
+  <text x="614" y="315" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">x</text>
+  <text x="152" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--muted)">y</text>
+  <path d="M 200 310 L 200 240 L 210 231.6 L 220 223.4 L 230 215.3 L 240 207.7 L 250 200.5 L 260 193.8 L 270 187.9 L 280 182.7 L 290 178.3 L 300 174.8 L 310 172.2 L 320 170.6 L 330 170 L 340 170.4 L 350 171.8 L 360 174.2 L 370 177.6 L 380 181.8 L 390 186.9 L 400 192.7 L 410 199.2 L 420 206.3 L 430 213.9 L 440 221.9 L 450 230.1 L 450 310 Z" fill="var(--soft)" stroke="none"/>
+  <path d="M200 240 L210 231.6 L220 223.4 L230 215.3 L240 207.7 L250 200.5 L260 193.8 L270 187.9 L280 182.7 L290 178.3 L300 174.8 L310 172.2 L320 170.6 L330 170 L340 170.4 L350 171.8 L360 174.2 L370 177.6 L380 181.8 L390 186.9 L400 192.7 L410 199.2 L420 206.3 L430 213.9 L440 221.9 L450 230.1" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="200" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">a</text>
+  <text x="450" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">b</text>
+  <text x="520" y="135" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="var(--ink)">∫ₐᵇ f(x)dx = F(b) − F(a)</text>
 </svg>
