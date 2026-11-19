@@ -1,35 +1,121 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
-  <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-  </defs>
-  <!-- Axes centered at (360, 250) -->
-  <line x1="80" y1="250" x2="640" y2="250" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <line x1="360" y1="400" x2="360" y2="55" stroke="#8FA3BF" stroke-width="2" stroke-linecap="round" marker-end="url(#ax)"/>
-  <text x="648" y="255" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#4B5E7A" font-style="italic">a</text>
-  <text x="374" y="65" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#4B5E7A" font-style="italic">y</text>
-  <text x="346" y="268" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#8FA3BF">0</text>
-
-  <!-- Even root: y = |a| (V-shape, solid navy) -->
-  <polyline points="170,60 360,250 550,60" fill="none" stroke="#0A1A5C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 6"/>
-
-  <!-- Odd root: y = a (diagonal line, solid blue) -->
-  <line x1="170" y1="410" x2="550" y2="60" stroke="#2B60E5" stroke-width="4" stroke-linecap="round"/>
-
-  <!-- Sample points at a = -2 (x=220) and a = 2 (x=500) -->
-  <line x1="220" y1="250" x2="220" y2="110" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4 4"/>
-  <line x1="220" y1="250" x2="220" y2="364" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4 4"/>
-  <circle cx="220" cy="110" r="6" fill="#0A1A5C"/>
-  <circle cx="220" cy="364" r="6" fill="#2B60E5"/>
-  <text x="206" y="100" text-anchor="end" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#0A1A5C">(−a, |a|)</text>
-  <text x="206" y="370" text-anchor="end" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#2B60E5">(−a, −a)</text>
-
-  <!-- Legend pills -->
-  <rect x="400" y="290" width="235" height="44" rx="12" fill="#EFF4FF" stroke="#C7D7FE" stroke-width="1.5"/>
-  <line x1="416" y1="312" x2="444" y2="312" stroke="#2B60E5" stroke-width="4" stroke-linecap="round"/>
-  <text x="456" y="318" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#2B60E5">ⁿ√(aⁿ) = a (n неч.)</text>
-
-  <rect x="400" y="346" width="235" height="44" rx="12" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
-  <line x1="416" y1="368" x2="444" y2="368" stroke="#0A1A5C" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="6 5"/>
-  <text x="456" y="374" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#0A1A5C">²ᵏ√(a²ᵏ) = |a|</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 380" role="img">
+<title>Сравнение корней чётной и нечётной степени: y = x и y = |x|</title>
+<desc>Координатная плоскость с графиками y = x (сплошная синяя прямая через (0; 0) с наклоном 1) и y = |x| (пунктирный красный график, совпадающий с y = x при x ≥ 0), с точками (−3; −3) и (−3; 3).</desc>
+<style>
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --soft-red: #FEE2E2;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+    --halo: #FFFFFF;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --soft-red: #3B1A24;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #64748B;
+      --grid: #1E293B;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+      --halo: #0F172A;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --soft-red: #3B1A24;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #64748B;
+    --grid: #1E293B;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+    --halo: #0F172A;
+  }
+  .bg { fill: var(--bg); }
+  .halo { paint-order: stroke; stroke: var(--halo); stroke-width: 4px; stroke-linejoin: round; }
+  .lbl { fill: var(--ink); font-size: 18px; font-weight: 700; }
+  .tick { fill: var(--muted); font-size: 18px; font-weight: 600; }
+  .ax { stroke: var(--axis); stroke-width: 1.8; }
+  .grid { stroke: var(--grid); stroke-width: 1; }
+  .prim { stroke: var(--primary); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .acc { stroke: var(--accent); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+<defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker>
+</defs>
+<rect class="bg" width="560" height="380"/>
+<line class="grid" x1="84.0" y1="30" x2="84.0" y2="350"/>
+<line class="grid" x1="40" y1="321.0" x2="380" y2="321.0"/>
+<line class="ax" x1="84.0" y1="191" x2="84.0" y2="199"/>
+<text class="tick halo" x="84.0" y="217" text-anchor="middle">-3</text>
+<line class="ax" x1="206" y1="321.0" x2="214" y2="321.0"/>
+<text class="tick halo" x="200" y="327.0" text-anchor="end">-3</text>
+<line class="grid" x1="126.0" y1="30" x2="126.0" y2="350"/>
+<line class="grid" x1="40" y1="279.0" x2="380" y2="279.0"/>
+<line class="ax" x1="126.0" y1="191" x2="126.0" y2="199"/>
+<text class="tick halo" x="126.0" y="217" text-anchor="middle">-2</text>
+<line class="ax" x1="206" y1="279.0" x2="214" y2="279.0"/>
+<text class="tick halo" x="200" y="285.0" text-anchor="end">-2</text>
+<line class="grid" x1="168.0" y1="30" x2="168.0" y2="350"/>
+<line class="grid" x1="40" y1="237.0" x2="380" y2="237.0"/>
+<line class="ax" x1="168.0" y1="191" x2="168.0" y2="199"/>
+<text class="tick halo" x="168.0" y="217" text-anchor="middle">-1</text>
+<line class="ax" x1="206" y1="237.0" x2="214" y2="237.0"/>
+<text class="tick halo" x="200" y="243.0" text-anchor="end">-1</text>
+<line class="grid" x1="210.0" y1="30" x2="210.0" y2="350"/>
+<line class="grid" x1="40" y1="195.0" x2="380" y2="195.0"/>
+<line class="grid" x1="252.0" y1="30" x2="252.0" y2="350"/>
+<line class="grid" x1="40" y1="153.0" x2="380" y2="153.0"/>
+<line class="ax" x1="252.0" y1="191" x2="252.0" y2="199"/>
+<text class="tick halo" x="252.0" y="217" text-anchor="middle">1</text>
+<line class="ax" x1="206" y1="153.0" x2="214" y2="153.0"/>
+<text class="tick halo" x="200" y="159.0" text-anchor="end">1</text>
+<line class="grid" x1="294.0" y1="30" x2="294.0" y2="350"/>
+<line class="grid" x1="40" y1="111.0" x2="380" y2="111.0"/>
+<line class="ax" x1="294.0" y1="191" x2="294.0" y2="199"/>
+<text class="tick halo" x="294.0" y="217" text-anchor="middle">2</text>
+<line class="ax" x1="206" y1="111.0" x2="214" y2="111.0"/>
+<text class="tick halo" x="200" y="117.0" text-anchor="end">2</text>
+<line class="grid" x1="336.0" y1="30" x2="336.0" y2="350"/>
+<line class="grid" x1="40" y1="69.0" x2="380" y2="69.0"/>
+<line class="ax" x1="336.0" y1="191" x2="336.0" y2="199"/>
+<text class="tick halo" x="336.0" y="217" text-anchor="middle">3</text>
+<line class="ax" x1="206" y1="69.0" x2="214" y2="69.0"/>
+<text class="tick halo" x="200" y="75.0" text-anchor="end">3</text>
+<line class="ax" x1="40" y1="195" x2="382" y2="195" marker-end="url(#arr)"/>
+<line class="ax" x1="210" y1="350" x2="210" y2="28" marker-end="url(#arr)"/>
+<text class="lbl halo" x="390" y="201">x</text>
+<text class="lbl halo" x="222" y="38">y</text>
+<text class="tick halo" x="200" y="217" text-anchor="end">0</text>
+<line class="prim" x1="67.2" y1="337.8" x2="352.8" y2="52.2"/>
+<polyline class="acc" stroke-dasharray="8 6" points="67.2,52.2 210.0,195.0 352.8,52.2"/>
+<line x1="84.0" y1="69.0" x2="84.0" y2="321.0" stroke="var(--axis)" stroke-width="1.5" stroke-dasharray="4 4"/>
+<circle cx="84.0" cy="69.0" r="5.5" fill="var(--accent)"/>
+<circle cx="84.0" cy="321.0" r="5.5" fill="var(--primary)"/>
+<circle cx="210.0" cy="195.0" r="4.5" fill="var(--ink)"/>
+<text class="lbl halo" x="74.0" y="59.0" text-anchor="end" fill="var(--accent)">(−3; 3)</text>
+<text class="lbl halo" x="74.0" y="343.0" text-anchor="end" fill="var(--primary)">(−3; −3)</text>
+<rect x="396" y="135" width="154" height="190" rx="14" fill="var(--soft)" stroke="var(--grid)" stroke-width="1.5"/>
+<line class="prim" x1="408" y1="168" x2="432" y2="168"/>
+<path d="M 444.0 165.9 L 448.0 165.9 L 453.0 176.0 L 460.0 152.0 L 496.0 152.0" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="451.0" y="162.1" text-anchor="end" font-size="18" font-weight="700" fill="var(--primary)">n</text>
+  <text x="465.0" y="171.7" font-size="19" font-weight="700" fill="var(--primary)">xⁿ = x</text>
+<text x="410" y="198" font-size="18" font-weight="600" fill="var(--muted)">n — нечётное</text>
+<line class="acc" stroke-dasharray="6 5" x1="408" y1="238" x2="432" y2="238"/>
+<path d="M 448.0 235.9 L 452.0 235.9 L 457.0 246.0 L 464.0 222.0 L 504.0 222.0" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="455.0" y="232.1" text-anchor="end" font-size="18" font-weight="700" fill="var(--accent)">2k</text>
+  <text x="469.0" y="241.7" font-size="19" font-weight="700" fill="var(--accent)">x²ᵏ = |x|</text>
+<text x="410" y="268" font-size="18" font-weight="600" fill="var(--muted)">2k — чётное</text>
+<text x="410" y="302" font-size="18" font-weight="700" fill="var(--ink)">при x ≥ 0</text>
+<text x="410" y="322" font-size="18" font-weight="600" fill="var(--muted)">совпадают</text>
 </svg>

@@ -1,22 +1,65 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450">
-  <rect width="720" height="450" fill="#FFFFFF"/>
-  <defs>
-    <marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#8FA3BF"/></marker>
-    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#2B60E5"/></marker>
-    <marker id="arr-navy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-s" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M9 1.5L1 5L9 8.5z" fill="#0A1A5C"/></marker>
-    <marker id="arr-navy-e" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="#0A1A5C"/></marker>
-  </defs>
-  <rect x="90" y="85" width="255" height="120" rx="14" fill="#E8F1FB" stroke="#2B60E5" stroke-width="3"/>
-  <text x="217.5" y="136.6" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">√(a·b) = √a · √b</text>
-  <text x="217.5" y="173.8" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="600" fill="#4B5E7A">√(4·9) = 2·3 = 6</text>
-  <rect x="375" y="85" width="255" height="120" rx="14" fill="#E8F1FB" stroke="#2B60E5" stroke-width="3"/>
-  <text x="502.5" y="136.6" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">√(a/b) = √a / √b</text>
-  <text x="502.5" y="173.8" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="600" fill="#4B5E7A">√(9/16) = 3/4</text>
-  <rect x="90" y="240" width="255" height="120" rx="14" fill="#E8F1FB" stroke="#2B60E5" stroke-width="3"/>
-  <text x="217.5" y="291.6" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">(√a)² = a</text>
-  <text x="217.5" y="328.8" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="600" fill="#4B5E7A">(√5)² = 5</text>
-  <rect x="375" y="240" width="255" height="120" rx="14" fill="#E8F1FB" stroke="#2B60E5" stroke-width="3"/>
-  <text x="502.5" y="291.6" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0A1A5C">√(a²) = |a|</text>
-  <text x="502.5" y="328.8" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="600" fill="#4B5E7A">√((−3)²) = 3</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 320" role="img">
+<title>Квадратный корень из квадрата числа: √(a²) = |a|</title>
+<desc>Тождество квадратного корня из квадрата с примерами для положительного и отрицательного числа.</desc>
+<style>
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --soft-red: #FEE2E2;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+    --halo: #FFFFFF;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --soft-red: #3B1A24;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #64748B;
+      --grid: #1E293B;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+      --halo: #0F172A;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --soft-red: #3B1A24;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #64748B;
+    --grid: #1E293B;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+    --halo: #0F172A;
+  }
+  .bg { fill: var(--bg); }
+  .halo { paint-order: stroke; stroke: var(--halo); stroke-width: 4px; stroke-linejoin: round; }
+  .lbl { fill: var(--ink); font-size: 18px; font-weight: 700; }
+  .tick { fill: var(--muted); font-size: 18px; font-weight: 600; }
+  .ax { stroke: var(--axis); stroke-width: 1.8; }
+  .grid { stroke: var(--grid); stroke-width: 1; }
+  .prim { stroke: var(--primary); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .acc { stroke: var(--accent); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+<rect class="bg" width="500" height="320"/>
+<rect x="24" y="24" width="452" height="106" rx="16" fill="var(--soft)" stroke="var(--grid)" stroke-width="1.5"/>
+<path d="M 120.0 71.4 L 124.0 71.4 L 129.0 84.0 L 136.0 54.0 L 172.0 54.0" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="141.0" y="78.6" font-size="28" font-weight="700" fill="var(--primary)">a² = |a|</text>
+<rect x="24" y="152" width="216" height="140" rx="14" fill="var(--soft)" stroke="var(--grid)" stroke-width="1.5"/>
+<text x="132" y="188" text-anchor="middle" font-size="19" font-weight="700" fill="var(--primary)">a = 3 ≥ 0</text>
+<path d="M 56.0 234.2 L 60.0 234.2 L 65.0 246.0 L 72.0 218.0 L 108.0 218.0" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="77.0" y="241.0" font-size="22" font-weight="700" fill="var(--ink)">3² = 3</text>
+<rect x="260" y="152" width="216" height="140" rx="14" fill="var(--soft-red)" stroke="var(--grid)" stroke-width="1.5"/>
+<text x="368" y="188" text-anchor="middle" font-size="19" font-weight="700" fill="var(--accent)">a = −3 &lt; 0</text>
+<path d="M 274.0 234.2 L 278.0 234.2 L 283.0 246.0 L 290.0 218.0 L 358.0 218.0" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="295.0" y="241.0" font-size="20" font-weight="700" fill="var(--ink)">(−3)² = |−3| = 3</text>
 </svg>

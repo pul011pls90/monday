@@ -1,28 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-label="Квадрат со стороной a, площадь a², √(a²) = |a|.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img">
+<title>Квадрат со стороной |a| и корень из квадрата</title>
+<desc>Геометрический квадрат со стороной |a| и площадью a², иллюстрирующий равенство √(a²) = |a|.</desc>
 <style>
-  svg { --ink: #0B0B0C; --axis: #8A93B2; --grid: #E3E8FA; --primary: #2F4FE0; --primary-soft: #E3E8FA; --answer: #E5484D; --answer-soft: rgba(229,72,77,.14); --muted: #B8C0DA; --bg: #FFFFFF; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) svg { --ink: #F4F5F8; --axis: #7F8AA8; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; } }
-  :root[data-theme='dark'] svg { --ink: #F4F5F8; --axis: #7F8AA8; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; }
-  @media (prefers-reduced-motion: reduce) { svg * { transition: none !important; } }
-  .lbl { font-size: 13px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
-  .var { font-family: 'KaTeX_Math', Georgia, serif; font-style: italic; font-size: 15px; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
-  .mut { font-size: 12px; fill: var(--axis); }
-  .ax { stroke: var(--axis); stroke-width: 1.25; fill: none; }
-  .grd { stroke: var(--grid); stroke-width: 1; fill: none; }
-  .main { stroke: var(--primary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-  .aux { stroke: var(--axis); stroke-width: 1.25; stroke-dasharray: 4 3; fill: none; }
-  .soft { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; stroke-linejoin: round; }
-  .pt { fill: var(--primary); stroke: var(--bg); stroke-width: 1.5; }
-  .hole { fill: var(--bg); stroke: var(--primary); stroke-width: 2; }
-
-
+  svg {
+    --bg: #FFFFFF;
+    --soft: #EEF2FF;
+    --soft-red: #FEE2E2;
+    --ink: #0B0B0C;
+    --muted: #4E5775;
+    --axis: #8A93B2;
+    --grid: #E3E8FA;
+    --primary: #2F4FE0;
+    --accent: #E5484D;
+    --halo: #FFFFFF;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) svg {
+      --bg: #0F172A;
+      --soft: #1E293B;
+      --soft-red: #3B1A24;
+      --ink: #F1F5F9;
+      --muted: #CBD5E1;
+      --axis: #64748B;
+      --grid: #1E293B;
+      --primary: #7AA2FF;
+      --accent: #FB7185;
+      --halo: #0F172A;
+    }
+  }
+  :root[data-theme="dark"] svg {
+    --bg: #0F172A;
+    --soft: #1E293B;
+    --soft-red: #3B1A24;
+    --ink: #F1F5F9;
+    --muted: #CBD5E1;
+    --axis: #64748B;
+    --grid: #1E293B;
+    --primary: #7AA2FF;
+    --accent: #FB7185;
+    --halo: #0F172A;
+  }
+  .bg { fill: var(--bg); }
+  .halo { paint-order: stroke; stroke: var(--halo); stroke-width: 4px; stroke-linejoin: round; }
+  .lbl { fill: var(--ink); font-size: 18px; font-weight: 700; }
+  .tick { fill: var(--muted); font-size: 18px; font-weight: 600; }
+  .ax { stroke: var(--axis); stroke-width: 1.8; }
+  .grid { stroke: var(--grid); stroke-width: 1; }
+  .prim { stroke: var(--primary); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .acc { stroke: var(--accent); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 </style>
-<defs><marker id='ax' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='6' markerHeight='6' orient='auto'><path d='M1 1.5L9 5L1 8.5z' fill='var(--axis)'/></marker></defs>
-<text x="240.0" y="48.0" text-anchor="middle" class="lbl">Корень из квадрата</text>
-<rect x="95" y="208" width="64" height="32" rx="8" class="soft"/>
-<text x="127.0" y="198.0" text-anchor="middle" class="var">a^1</text>
-<rect x="205" y="176" width="64" height="64" rx="8" class="soft"/>
-<text x="237.0" y="166.0" text-anchor="middle" class="var">a^2</text>
-<rect x="315" y="112" width="64" height="128" rx="8" class="soft"/>
-<text x="347.0" y="102.0" text-anchor="middle" class="var">a^3</text>
+<rect class="bg" width="480" height="320"/>
+<rect x="64" y="54" width="170" height="170" rx="8" fill="var(--soft)" stroke="var(--primary)" stroke-width="3"/>
+<text x="149" y="148" text-anchor="middle" font-size="26" font-weight="700" fill="var(--primary)">S = a²</text>
+<text x="149" y="254" text-anchor="middle" font-size="22" font-weight="700" fill="var(--ink)">|a|</text>
+<text x="42" y="146" text-anchor="middle" font-size="22" font-weight="700" fill="var(--ink)">|a|</text>
+<path d="M 266.0 134.2 L 270.0 134.2 L 275.0 146.0 L 282.0 118.0 L 316.0 118.0" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="287.0" y="141.0" font-size="24" font-weight="700" fill="var(--ink)">a² = |a|</text>
 </svg>

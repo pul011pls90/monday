@@ -39,6 +39,6 @@ def render(params: dict, aria_label: str = "") -> str:
         circle(tx, ty, 4.5, "pt f-result f-value f-mirror f-half f-three_alpha"),
         line(ax, ay, tx, ty, "aux f-mirror f-split_angle"),
         f'<path d="{arc_path(cx, cy, 50, 0, t_deg)}" class="main f-result f-split_angle f-half f-three_alpha"/>',
-        text(tx + 16 * tc, ty - 16 * ts, f"{int(t_deg) if t_deg.is_integer() else t_deg}°", "lbl f-result f-value f-sin2a f-cos2a f-half f-three_alpha", "start" if tc >= 0 else "end"),
+        text(tx - 14 if abs(tc) < 0.25 else tx + 16 * tc, ty - 16 * ts, f"{int(t_deg) if t_deg.is_integer() else t_deg}°", "lbl f-result f-value f-sin2a f-cos2a f-half f-three_alpha", "end" if abs(tc) < 0.25 or tc < 0 else "start"),
     ]
     return svg_wrap("\n".join(parts), ALL_KEYS, aria_label or f"Соотношение углов: {rel}")

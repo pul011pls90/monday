@@ -19,7 +19,7 @@ def render(params: dict, aria_label: str = "") -> str:
             circle(cx - dx, ly, 4.5, "pt f-points f-general"),
             text(cx + dx + 10, ly - 8, "x₁", "lbl f-points f-general", "start"),
             text(cx - dx - 10, ly - 8, "x₂", "lbl f-points f-general", "end"),
-            text(cx + 135, ly - 10, f"y = {a}", "lbl f-line", "end"),
+            text(cx + 142, ly + 18, f"y = {a}", "lbl f-line", "end"),
         ]
     else:
         lx = cx + a * r
