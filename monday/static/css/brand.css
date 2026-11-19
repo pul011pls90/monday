@@ -4775,7 +4775,7 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .sheet-entry img[src$="trig_signs.svg"] { width: 100%; max-height: 150px; object-fit: contain; }
 .fx-examples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .fx-example { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border: var(--bw, 1px) solid var(--line); border-radius: 14px; min-width: 0; }
-.fx-example__q { font-size: 18px; line-height: 1.45; font-weight: 700; color: var(--text); }
+.fx-example__q { font-size: 22px; line-height: 1.4; font-weight: 700; color: var(--text); }
 .fx-example--split { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr); gap: 22px; align-items: stretch; padding: 20px 22px; }
 .fx-example__left { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .fx-example__sol-label { font-size: 15.5px; font-weight: 800; color: var(--text); margin-top: 2px; }
@@ -4789,7 +4789,8 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .fx-stepper { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(310px, 0.9fr); gap: 20px; align-items: start; padding: 18px 20px; outline: none; }
 @media (max-width: 900px) { .fx-stepper { grid-template-columns: minmax(0, 1fr); } }
 .fx-stepper__left { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.fx-stepper__task { font-size: 18px; font-weight: 700; line-height: 1.45; color: var(--text); }
+.fx-stepper__task { font-size: 22px; font-weight: 700; line-height: 1.4; color: var(--text); }
+@media (max-width: 640px) { .fx-example__q, .fx-stepper__task { font-size: 19px; } }
 .fx-stepper__meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 14px; color: var(--text-2); }
 .fx-rule-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); font-size: 12.5px; font-weight: 700; text-decoration: none; border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent); }
 .fx-rule-chip:hover { border-color: var(--accent); text-decoration: none; }
