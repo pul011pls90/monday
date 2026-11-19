@@ -6,9 +6,9 @@
   @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) svg { --ink: #F4F5F8; --axis: #7F8AA8; --muted-txt: #CBD5E1; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; } }
   :root[data-theme='dark'] svg { --ink: #F4F5F8; --axis: #7F8AA8; --muted-txt: #CBD5E1; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; }
   @media (prefers-reduced-motion: reduce) { svg * { transition: none !important; } }
-  .lbl { font-size: 19px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .lbl { font-size: 18px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
   .var { font-family: 'KaTeX_Math', Georgia, serif; font-style: italic; font-size: 19px; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
-  .mut { font-size: 19px; fill: var(--muted-txt); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .mut { font-size: 18px; fill: var(--muted-txt); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
   .ax { stroke: var(--axis); stroke-width: 1.25; fill: none; }
   .grd { stroke: var(--grid); stroke-width: 1; fill: none; }
   .main { stroke: var(--primary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
@@ -91,5 +91,5 @@
 <line x1="240.0" y1="160.0" x2="167.9" y2="87.9" class="main f-angle f-angle45" />
 <circle cx="167.9" cy="87.9" r="4.5" class="pt f-coords f-sign" />
 <text x="158.0" y="78.0" text-anchor="end" class="lbl f-degree_label f-angle45">135°</text>
-<text x="158.0" y="96.0" text-anchor="end" class="lbl f-radian_label">3π/4</text>
+<text x="158.0" y="102.0" text-anchor="end" class="lbl f-radian_label">3π/4</text>
 </svg>

@@ -18,10 +18,10 @@ def render(params: dict, aria_label: str = "") -> str:
     parts = [grid_and_axes(cx, cy, 185, 130, 34), circle(cx, cy, r, "main")]
     if "quadrant_signs" in show:
         parts += [
-            text(cx + 85, cy - 82, "I (+)", "lbl f-quadrant"),
-            text(cx - 85, cy - 82, "II (sin+)", "lbl f-quadrant"),
-            text(cx - 85, cy + 92, "III (tg+)", "lbl f-quadrant"),
-            text(cx + 85, cy + 92, "IV (cos+)", "lbl f-quadrant"),
+            text(cx + 128, cy - 105, "I (+)", "lbl f-quadrant", "start"),
+            text(cx - 128, cy - 105, "II (sin+)", "lbl f-quadrant", "end"),
+            text(cx - 128, cy + 115, "III (tg+)", "lbl f-quadrant", "end"),
+            text(cx + 128, cy + 115, "IV (cos+)", "lbl f-quadrant", "start"),
         ]
     if "arc" in show or "full_turn" in show:
         a1 = deg % 360 or 45
@@ -44,7 +44,7 @@ def render(params: dict, aria_label: str = "") -> str:
         from fractions import Fraction
         fr = Fraction(round(deg), 180)
         rad_lbl = "π" if fr == 1 else (f"{fr.numerator}π/{fr.denominator}" if fr.numerator != 1 else f"π/{fr.denominator}")
-        parts.append(text(px + (14 * c), py - (14 * s) + 18, rad_lbl, "lbl f-radian_label", anch))
+        parts.append(text(px + (14 * c), py - (14 * s) + 24, rad_lbl, "lbl f-radian_label", anch))
     if "coords" in show:
         parts.append(text(px + (14 * c), py - (14 * s) - 6, f"({c:.2f}; {s:.2f})".replace(".", ","), "lbl f-coords f-x_coord f-y_coord", anch))
     if "reference_angle" in show:

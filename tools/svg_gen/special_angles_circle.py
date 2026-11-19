@@ -17,6 +17,6 @@ def render(params: dict, aria_label: str = "") -> str:
         parts += [
             line(cx, cy, px, py, f"aux f-{key}"),
             circle(px, py, 4.5, f"pt f-{key} f-result"),
-            text(lx, ly, f"{int(deg)}°", f"lbl f-{key} f-result", "start" if math.cos(rd) > 0.2 else "middle"),
+            text(lx - 18 if deg == 90 else lx, ly, f"{int(deg)}°", f"lbl f-{key} f-result", "end" if deg == 90 else ("start" if math.cos(rd) > 0.2 else "middle")),
         ]
     return svg_wrap("\n".join(parts), ALL_KEYS, aria_label or "Табличные углы на окружности")

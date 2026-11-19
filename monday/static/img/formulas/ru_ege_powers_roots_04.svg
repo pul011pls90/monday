@@ -43,8 +43,8 @@
   }
   .bg { fill: var(--bg); }
   .halo { paint-order: stroke; stroke: var(--halo); stroke-width: 4px; stroke-linejoin: round; }
-  .lbl { fill: var(--ink); font-size: 18px; font-weight: 700; }
-  .tick { fill: var(--muted); font-size: 18px; font-weight: 600; }
+  .lbl { fill: var(--ink); font-size: 22px; font-weight: 700; }
+  .tick { fill: var(--muted); font-size: 22px; font-weight: 600; }
   .ax { stroke: var(--axis); stroke-width: 1.8; }
   .grid { stroke: var(--grid); stroke-width: 1; }
   .prim { stroke: var(--primary); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
@@ -108,12 +108,12 @@
 <rect x="396" y="135" width="154" height="190" rx="14" fill="var(--soft)" stroke="var(--grid)" stroke-width="1.5"/>
 <line class="prim" x1="408" y1="168" x2="432" y2="168"/>
 <path d="M 444.0 165.9 L 448.0 165.9 L 453.0 176.0 L 460.0 152.0 L 496.0 152.0" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <text class="halo" x="451.0" y="162.1" text-anchor="end" font-size="18" font-weight="700" fill="var(--primary)">n</text>
+  <text class="halo" x="451.0" y="162.1" text-anchor="end" font-size="22" font-weight="700" fill="var(--primary)">n</text>
   <text class="halo" x="465.0" y="171.7" font-size="19" font-weight="700" fill="var(--primary)">xⁿ = x</text>
 <text x="410" y="198" font-size="18" font-weight="600" fill="var(--muted)">n — нечётное</text>
 <line class="acc" stroke-dasharray="6 5" x1="408" y1="238" x2="432" y2="238"/>
 <path d="M 448.0 235.9 L 452.0 235.9 L 457.0 246.0 L 464.0 222.0 L 504.0 222.0" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <text class="halo" x="455.0" y="232.1" text-anchor="end" font-size="18" font-weight="700" fill="var(--accent)">2k</text>
+  <text class="halo" x="455.0" y="232.1" text-anchor="end" font-size="22" font-weight="700" fill="var(--accent)">2k</text>
   <text class="halo" x="469.0" y="241.7" font-size="19" font-weight="700" fill="var(--accent)">x²ᵏ = |x|</text>
 <text x="410" y="268" font-size="18" font-weight="600" fill="var(--muted)">2k — чётное</text>
 <text x="410" y="302" font-size="18" font-weight="700" fill="var(--ink)">при x ≥ 0</text>

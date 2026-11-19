@@ -48,8 +48,8 @@ STYLE_BLOCK = """<style>
   }
   .bg { fill: var(--bg); }
   .halo { paint-order: stroke; stroke: var(--halo); stroke-width: 4px; stroke-linejoin: round; }
-  .lbl { fill: var(--ink); font-size: 18px; font-weight: 700; }
-  .tick { fill: var(--muted); font-size: 18px; font-weight: 600; }
+  .lbl { fill: var(--ink); font-size: 22px; font-weight: 700; }
+  .tick { fill: var(--muted); font-size: 22px; font-weight: 600; }
   .ax { stroke: var(--axis); stroke-width: 1.8; }
   .grid { stroke: var(--grid); stroke-width: 1; }
   .prim { stroke: var(--primary); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
@@ -63,7 +63,7 @@ def radical_svg(x: float, y: float, w: float, h: float, index: str = "", body: s
     d = f"M {x:.1f} {y + h*0.58:.1f} L {x+4:.1f} {y + h*0.58:.1f} L {x+9:.1f} {y + h:.1f} L {x+16:.1f} {y:.1f} L {x+18+w:.1f} {y:.1f}"
     parts = [f'<path d="{d}" fill="none" stroke="{color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>']
     if index:
-        parts.append(f'<text class="halo" x="{x + 7:.1f}" y="{y + h*0.42:.1f}" text-anchor="end" font-size="{max(18, fs-2)}" font-weight="700" fill="{color}">{index}</text>')
+        parts.append(f'<text class="halo" x="{x + 7:.1f}" y="{y + h*0.42:.1f}" text-anchor="end" font-size="{max(22, fs-2)}" font-weight="700" fill="{color}">{index}</text>')
     if body:
         parts.append(f'<text class="halo" x="{x + 21:.1f}" y="{y + h*0.82:.1f}" font-size="{fs}" font-weight="700" fill="{color}">{body}</text>')
     return "\n  ".join(parts)
