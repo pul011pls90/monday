@@ -18,7 +18,7 @@
 
   <div class="fx-main">
     <header class="fx-head">
-      <div><h2>{{ branch.name }}</h2><p>{{ group.level.title }}</p></div>
+      <div><h2>{{ branch.name }}</h2><p>{{ group.level.title }} · {{ group.level.scope }}</p></div>
     </header>
 
     {% for c in branch.cards %}
@@ -28,24 +28,26 @@
       </div>
       <div class="fx-card__formula">
         <div class="fx-card__tex">
-          {% for eq in c.formulas %}
-          <div class="fx-card__eq">{{ eq }}</div>
+          {% for eq in c.tex_lines %}
+          <div class="fx-card__eq math">${{ eq }}$</div>
           {% endfor %}
         </div>
+        {% if c.photo_url %}
         <div class="fx-card__figure">
-          {% if c.photo_url %}
           <img src="{{ c.photo_url }}" alt="{{ c.photo_brief }}" data-lightbox title="{{ _('Нажмите, чтобы увеличить') }}">
           <button type="button" class="fx-card__zoom">{{ ui.icon('search', 14) }} {{ _('Увеличить') }}</button>
-          {% else %}
-          <span class="small muted" style="text-align:center;padding:12px">{{ c.photo_brief }}</span>
-          {% endif %}
         </div>
+        {% endif %}
       </div>
       <div class="fx-examples" style="grid-template-columns:minmax(0,1fr)">
         <div class="fx-example">
-          <div class="fx-example__q">{{ c.example.problem }}</div>
-          <div class="fx-example__text">{{ c.description }}</div>
-          <div class="fx-example__answer"><b>{{ _("Ответ:") }}</b> {{ c.example.solution }}</div>
+          <div class="fx-example__q math">{{ c.ex_view.q }}</div>
+          <div class="fx-example__text math">{{ c.ex_view.goal }}</div>
+          {% if c.ex_view.use %}<div class="fx-example__use math">{{ c.ex_view.use }}</div>{% endif %}
+          {% if c.ex_view.steps %}
+          <ol class="fx-example__steps math">{% for s in c.ex_view.steps %}<li>{{ s }}</li>{% endfor %}</ol>
+          {% endif %}
+          <div class="fx-example__answer math"><b>{{ _("Ответ:") }}</b> {{ c.ex_view.answer }}</div>
         </div>
       </div>
     </article>

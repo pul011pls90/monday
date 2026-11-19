@@ -38,6 +38,41 @@ def _photo_url(app_static_folder, card_id):
     return None
 
 
+def _math_tex(s):
+    """Convert Unicode trig notation to clean KaTeX LaTeX."""
+    t = str(s or "")
+    for a, b in (
+        ("½", r"\frac{1}{2}"),
+        ("²", "^2"),
+        ("³", "^3"),
+        ("ⁿ", "^n"),
+        ("′", "'"),
+        ("−", "-"),
+        ("·", r"\cdot "),
+        ("×", r"\times "),
+        ("±", r"\pm "),
+        ("∓", r"\mp "),
+        ("≤", r"\le "),
+        ("≥", r"\ge "),
+        ("≠", r"\neq "),
+        ("⇒", r"\Rightarrow "),
+        ("→", r"\to "),
+        ("ℝ", r"\mathbb{R}"),
+        ("∞", r"\infty "),
+        ("π", r"\pi "),
+        ("θ", r"\theta "),
+        ("φ", r"\varphi "),
+        ("°", r"^\circ "),
+        ("∫", r"\int "),
+        ("lim(x->0)", r"\lim_{x\to 0}"),
+    ):
+        t = t.replace(a, b)
+    t = t.replace("lim(x\\to 0)", r"\lim_{x\to 0}")
+    t = re.sub(r"√\(([^()]+)\)", r"\\sqrt{\1}", t)
+    t = re.sub(r"√([A-Za-z0-9]+)", r"\\sqrt{\1}", t)
+    return t.strip()
+
+
 def build_trig_block(static_folder):
     """Return {'levels': [...], 'groups': [{'level': {...}, 'branches': [{'id', 'name', 'cards'}]}]}."""
     raw = _load_raw()
@@ -52,6 +87,16 @@ def build_trig_block(static_folder):
                 if c["branch"] == name:
                     card = dict(c)
                     card["photo_url"] = _photo_url(static_folder, c["id"])
+                    card["tex_lines"] = [_math_tex(f) for f in c["formulas"]]
+                    sol = c["example"]["solution"]
+                    steps = [s.strip() for s in re.split(r"(?<=\.)\s+", sol) if s.strip()]
+                    card["ex_view"] = {
+                        "q": c["example"]["problem"],
+                        "goal": c["description"],
+                        "use": f"${card['tex_lines'][0]}$" if card["tex_lines"] else "",
+                        "steps": steps[:-1] if len(steps) > 1 else steps,
+                        "answer": steps[-1] if steps else sol,
+                    }
                     cards.append(card)
             if cards:
                 branches.append({"id": _slug(name), "name": name, "cards": cards})
