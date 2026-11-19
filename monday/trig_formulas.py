@@ -195,11 +195,55 @@ _EXAMPLES = {
         "answer": r"$12$",
     },
     "trig-limits": {
-        "q": r"Evaluate $\lim_{x\to 0}\frac{\sin 5x}{2x}$.",
-        "goal": r"Match the denominator to $5x$ so the fundamental limit $\lim_{u\to 0}\frac{\sin u}{u} = 1$ applies.",
-        "use": r"$\lim_{x\to 0}\frac{\sin(kx)}{x} = k$",
-        "steps": [r"Rewrite: $\frac{\sin 5x}{2x} = \frac{5}{2}\cdot\frac{\sin 5x}{5x}$.", r"As $x \to 0$, $\frac{\sin 5x}{5x} \to 1$, giving $\frac{5}{2}$."],
-        "answer": r"$\frac{5}{2}$",
+        "task": r"Вычислите $\lim\limits_{x\to0}\frac{\sin5x}{2x}$.",
+        "goal": r"Найти предел при $x\to0$.",
+        "rule": {
+            "id": "first_remarkable_limit",
+            "title": "Первый замечательный предел",
+            "latex": r"\lim_{u\to0}\frac{\sin u}{u}=1",
+            "card_id": "trig-limits",
+        },
+        "steps": [
+            {
+                "action": "Определить тип предела",
+                "math": r"\frac{\sin5x}{2x}\;\xrightarrow{x\to0}\;\frac{0}{0}",
+                "why": r"Подстановка $x=0$ даёт $\frac00$, значит выражение нужно преобразовать.",
+                "visual_focus": "hole",
+            },
+            {
+                "action": r"Привести знаменатель к виду $5x$",
+                "math": r"\frac{\sin5x}{2x}=\htmlClass{hl}{\frac52}\cdot\frac{\sin5x}{\htmlClass{hl}{5x}}",
+                "why": "Умножаем и делим на 5. Значение выражения не меняется.",
+                "visual_focus": "same_curve",
+            },
+            {
+                "action": r"Ввести замену $u=5x$",
+                "math": r"\frac52\cdot\lim_{u\to0}\frac{\sin u}{u}",
+                "why": r"Если $x\to0$, то и $u=5x\to0$.",
+                "visual_focus": "none",
+            },
+            {
+                "action": "Применить правило",
+                "math": r"\frac52\cdot\htmlClass{hl}{1}=\frac52",
+                "why": r"По первому замечательному пределу $\lim_{u\to0}\frac{\sin u}{u}=1$.",
+                "rule_id": "first_remarkable_limit",
+                "visual_focus": "point",
+            },
+        ],
+        "check": {
+            "type": "table",
+            "label": r"Проверка: значения при $x\to0$",
+            "rows": [["0{,}1", "2{,}3971"], ["0{,}01", "2{,}4990"], ["0{,}001", "2{,}5000"]],
+            "conclusion": r"Значения приближаются к $2{,}5=\frac52$.",
+        },
+        "pitfall": r"Нельзя «сократить» $x$ и записать $\frac{\sin5}{2}$. Синус берётся от всего произведения $5x$.",
+        "answer": {"exact": r"\frac52", "approx": "2{,}5"},
+        "visual": {
+            "type": "limit_graph",
+            "function": "sin(5*x)/(2*x)",
+            "x_range": [-1.5, 1.5],
+            "hole": {"x": 0, "y": 2.5, "label": "(0; 5/2)"},
+        },
     },
     "trig-derivatives": {
         "q": r"Differentiate $f(x) = x\sin x$.",
@@ -309,6 +353,20 @@ def _math_tex(s):
     return t.strip()
 
 
+def validate_structured_example(ex):
+    """Ensure every new-format example (dict steps) has task, goal, steps(action, math, why), and answer."""
+    steps = ex.get("steps")
+    if not (isinstance(steps, list) and steps and isinstance(steps[0], dict)):
+        return
+    for key in ("task", "goal", "answer"):
+        if not ex.get(key):
+            raise ValueError(f"Structured example missing '{key}'")
+    for idx, st in enumerate(steps):
+        for sk in ("action", "math", "why"):
+            if not st.get(sk):
+                raise ValueError(f"Structured example step {idx} missing '{sk}'")
+
+
 def build_trig_block(static_folder):
     """Return {'levels': [...], 'groups': [{'level': {...}, 'branches': [{'id', 'name', 'cards'}]}]}."""
     raw = _load_raw()
@@ -332,6 +390,10 @@ def build_trig_block(static_folder):
                         "steps": [c["example"]["solution"]],
                         "answer": c["example"]["solution"],
                     }
+                    ex_svg_path = Path(static_folder) / "img" / "examples" / f"{c['id'].replace('-', '_')}_0.svg"
+                    if isinstance(card["ex_view"], dict) and isinstance(card["ex_view"].get("visual"), dict) and ex_svg_path.exists():
+                        card["ex_view"] = dict(card["ex_view"])
+                        card["ex_view"]["visual"] = dict(card["ex_view"]["visual"], svg_html=ex_svg_path.read_text(encoding="utf-8"), caption=card["ex_view"]["visual"].get("caption") or "График y = sin(5x)/(2x) с выколотой точкой (0; 5/2).")
                     cards.append(card)
             if cards:
                 branches.append({"id": _slug(name), "name": name, "cards": cards})
@@ -372,6 +434,16 @@ def trig_level(level_id):
 def trig_api():
     """JSON endpoint."""
     return jsonify(_load_raw())
+
+
+@trig_bp.route("/dev/visuals")
+def dev_visuals():
+    """QA contact sheet for all generated example and formula SVGs."""
+    ex_dir = Path(current_app.static_folder) / "img" / "examples"
+    fm_dir = Path(current_app.static_folder) / "img" / "formulas"
+    examples = [{"id": p.stem, "svg": p.read_text(encoding="utf-8")} for p in sorted(ex_dir.glob("*.svg"))] if ex_dir.exists() else []
+    formulas = [{"id": p.stem, "svg": p.read_text(encoding="utf-8")} for p in sorted(fm_dir.glob("*.svg"))] if fm_dir.exists() else []
+    return render_template("dev/visuals.html", examples=examples, formulas=formulas)
 
 
 def init_trig_block(app):

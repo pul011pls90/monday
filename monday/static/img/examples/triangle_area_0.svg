@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-label="Треугольник со сторонами 6 и 8 и углом 30°, проведена высота.">
+<style>
+  svg { --ink: #0B0B0C; --axis: #8A93B2; --grid: #E3E8FA; --primary: #2F4FE0; --primary-soft: #E3E8FA; --answer: #E5484D; --answer-soft: rgba(229,72,77,.14); --muted: #B8C0DA; --bg: #FFFFFF; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) svg { --ink: #F4F5F8; --axis: #7F8AA8; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; } }
+  :root[data-theme='dark'] svg { --ink: #F4F5F8; --axis: #7F8AA8; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; }
+  @media (prefers-reduced-motion: reduce) { svg * { transition: none !important; } }
+  .lbl { font-size: 13px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .var { font-family: 'KaTeX_Math', Georgia, serif; font-style: italic; font-size: 15px; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .mut { font-size: 12px; fill: var(--axis); }
+  .ax { stroke: var(--axis); stroke-width: 1.25; fill: none; }
+  .grd { stroke: var(--grid); stroke-width: 1; fill: none; }
+  .main { stroke: var(--primary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .aux { stroke: var(--axis); stroke-width: 1.25; stroke-dasharray: 4 3; fill: none; }
+  .soft { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; stroke-linejoin: round; }
+  .pt { fill: var(--primary); stroke: var(--bg); stroke-width: 1.5; }
+  .hole { fill: var(--bg); stroke: var(--primary); stroke-width: 2; }
+  svg[data-focus] [class*='f-'] { opacity: .30; transition: opacity .15s, stroke .15s; }
+  svg[data-focus~="area"] .f-area { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="area"] text.f-area, svg[data-focus~="area"] .f-area text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="area"] .f-area.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="height"] .f-height { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="height"] text.f-height, svg[data-focus~="height"] .f-height text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="height"] .f-height.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="included_angle"] .f-included_angle { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="included_angle"] text.f-included_angle, svg[data-focus~="included_angle"] .f-included_angle text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="included_angle"] .f-included_angle.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="pair"] .f-pair { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="pair"] text.f-pair, svg[data-focus~="pair"] .f-pair text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="pair"] .f-pair.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="unknown"] .f-unknown { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="unknown"] text.f-unknown, svg[data-focus~="unknown"] .f-unknown text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="unknown"] .f-unknown.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+</style>
+<defs><marker id='ax' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='6' markerHeight='6' orient='auto'><path d='M1 1.5L9 5L1 8.5z' fill='var(--axis)'/></marker></defs>
+<polygon points="95,250 385,250 285,78" class="soft f-fill f-area"/>
+<line x1="95.0" y1="250.0" x2="385.0" y2="250.0" class="main f-pair" />
+<line x1="385.0" y1="250.0" x2="285.0" y2="78.0" class="main f-pair f-included_angle" />
+<line x1="95.0" y1="250.0" x2="285.0" y2="78.0" class="main f-unknown" />
+<line x1="285.0" y1="78.0" x2="285.0" y2="250.0" class="aux f-height" />
+<path d="M 366.0 217.1 A 38.0 38.0 0 0 0 347.0 250.0" class="main f-included_angle"/>
+<text x="83.0" y="266.0" text-anchor="middle" class="lbl f-pair">A</text>
+<text x="397.0" y="266.0" text-anchor="middle" class="lbl f-pair f-included_angle">B</text>
+<text x="285.0" y="66.0" text-anchor="middle" class="lbl f-unknown">30</text>
+<text x="240.0" y="270.0" text-anchor="middle" class="lbl f-pair">8</text>
+<text x="351.0" y="164.0" text-anchor="start" class="lbl f-pair">6</text>
+<text x="174.0" y="164.0" text-anchor="end" class="lbl f-unknown">c</text>
+<text x="255.0" y="195.0" text-anchor="middle" class="lbl f-area">S = ½ab sin C</text>
+</svg>

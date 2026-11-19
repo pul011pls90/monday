@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-label="Ступенчатая диаграмма, сложенная с перевёрнутой копией до прямоугольника (метод Гаусса).">
+<style>
+  svg { --ink: #0B0B0C; --axis: #8A93B2; --grid: #E3E8FA; --primary: #2F4FE0; --primary-soft: #E3E8FA; --answer: #E5484D; --answer-soft: rgba(229,72,77,.14); --muted: #B8C0DA; --bg: #FFFFFF; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) svg { --ink: #F4F5F8; --axis: #7F8AA8; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; } }
+  :root[data-theme='dark'] svg { --ink: #F4F5F8; --axis: #7F8AA8; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; }
+  @media (prefers-reduced-motion: reduce) { svg * { transition: none !important; } }
+  .lbl { font-size: 13px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .var { font-family: 'KaTeX_Math', Georgia, serif; font-style: italic; font-size: 15px; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .mut { font-size: 12px; fill: var(--axis); }
+  .ax { stroke: var(--axis); stroke-width: 1.25; fill: none; }
+  .grd { stroke: var(--grid); stroke-width: 1; fill: none; }
+  .main { stroke: var(--primary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .aux { stroke: var(--axis); stroke-width: 1.25; stroke-dasharray: 4 3; fill: none; }
+  .soft { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; stroke-linejoin: round; }
+  .pt { fill: var(--primary); stroke: var(--bg); stroke-width: 1.5; }
+  .hole { fill: var(--bg); stroke: var(--primary); stroke-width: 2; }
+
+
+</style>
+<defs><marker id='ax' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='6' markerHeight='6' orient='auto'><path d='M1 1.5L9 5L1 8.5z' fill='var(--axis)'/></marker></defs>
+<text x="240.0" y="34.0" text-anchor="middle" class="lbl">Сумма прогрессии</text>
+<line x1="-285.0" y1="60.0" x2="-285.0" y2="440.0" class="grd" />
+<line x1="-245.0" y1="60.0" x2="-245.0" y2="440.0" class="grd" />
+<line x1="-205.0" y1="60.0" x2="-205.0" y2="440.0" class="grd" />
+<line x1="-165.0" y1="60.0" x2="-165.0" y2="440.0" class="grd" />
+<line x1="-125.0" y1="60.0" x2="-125.0" y2="440.0" class="grd" />
+<line x1="-85.0" y1="60.0" x2="-85.0" y2="440.0" class="grd" />
+<line x1="-45.0" y1="60.0" x2="-45.0" y2="440.0" class="grd" />
+<line x1="-5.0" y1="60.0" x2="-5.0" y2="440.0" class="grd" />
+<line x1="35.0" y1="60.0" x2="35.0" y2="440.0" class="grd" />
+<line x1="75.0" y1="60.0" x2="75.0" y2="440.0" class="grd" />
+<line x1="115.0" y1="60.0" x2="115.0" y2="440.0" class="grd" />
+<line x1="155.0" y1="60.0" x2="155.0" y2="440.0" class="grd" />
+<line x1="195.0" y1="60.0" x2="195.0" y2="440.0" class="grd" />
+<line x1="235.0" y1="60.0" x2="235.0" y2="440.0" class="grd" />
+<line x1="275.0" y1="60.0" x2="275.0" y2="440.0" class="grd" />
+<line x1="315.0" y1="60.0" x2="315.0" y2="440.0" class="grd" />
+<line x1="355.0" y1="60.0" x2="355.0" y2="440.0" class="grd" />
+<line x1="395.0" y1="60.0" x2="395.0" y2="440.0" class="grd" />
+<line x1="435.0" y1="60.0" x2="435.0" y2="440.0" class="grd" />
+<line x1="-285.0" y1="90.0" x2="435.0" y2="90.0" class="grd" />
+<line x1="-285.0" y1="130.0" x2="435.0" y2="130.0" class="grd" />
+<line x1="-285.0" y1="170.0" x2="435.0" y2="170.0" class="grd" />
+<line x1="-285.0" y1="210.0" x2="435.0" y2="210.0" class="grd" />
+<line x1="-285.0" y1="250.0" x2="435.0" y2="250.0" class="grd" />
+<line x1="-285.0" y1="290.0" x2="435.0" y2="290.0" class="grd" />
+<line x1="-285.0" y1="330.0" x2="435.0" y2="330.0" class="grd" />
+<line x1="-285.0" y1="370.0" x2="435.0" y2="370.0" class="grd" />
+<line x1="-285.0" y1="410.0" x2="435.0" y2="410.0" class="grd" />
+<line x1="-285.0" y1="250.0" x2="435.0" y2="250.0" class="ax" marker-end="url(#ax)"/>
+<line x1="75.0" y1="440.0" x2="75.0" y2="60.0" class="ax" marker-end="url(#ax)"/>
+<text x="443.0" y="254.0" text-anchor="start" class="var">n</text>
+<text x="85.0" y="66.0" text-anchor="start" class="var">aₙ</text>
+<line x1="127.0" y1="250.0" x2="127.0" y2="226.0" class="aux" />
+<circle cx="127.0" cy="226.0" r="4.5" class="pt" />
+<text x="127.0" y="266.0" text-anchor="middle" class="mut">1</text>
+<line x1="179.0" y1="250.0" x2="179.0" y2="202.0" class="aux" />
+<circle cx="179.0" cy="202.0" r="4.5" class="pt" />
+<text x="179.0" y="266.0" text-anchor="middle" class="mut">2</text>
+<line x1="231.0" y1="250.0" x2="231.0" y2="178.0" class="aux" />
+<circle cx="231.0" cy="178.0" r="4.5" class="pt" />
+<text x="231.0" y="266.0" text-anchor="middle" class="mut">3</text>
+<line x1="283.0" y1="250.0" x2="283.0" y2="154.0" class="aux" />
+<circle cx="283.0" cy="154.0" r="4.5" class="pt" />
+<text x="283.0" y="266.0" text-anchor="middle" class="mut">4</text>
+<line x1="335.0" y1="250.0" x2="335.0" y2="130.0" class="aux" />
+<circle cx="335.0" cy="130.0" r="4.5" class="pt" />
+<text x="335.0" y="266.0" text-anchor="middle" class="mut">5</text>
+<line x1="387.0" y1="250.0" x2="387.0" y2="106.0" class="aux" />
+<circle cx="387.0" cy="106.0" r="4.5" class="pt" />
+<text x="387.0" y="266.0" text-anchor="middle" class="mut">6</text>
+</svg>

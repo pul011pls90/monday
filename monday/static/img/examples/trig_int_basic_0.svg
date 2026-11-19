@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-label="Цикл производных sin, cos, −sin, −cos.">
+<style>
+  svg { --ink: #0B0B0C; --axis: #8A93B2; --grid: #E3E8FA; --primary: #2F4FE0; --primary-soft: #E3E8FA; --answer: #E5484D; --answer-soft: rgba(229,72,77,.14); --muted: #B8C0DA; --bg: #FFFFFF; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) svg { --ink: #F4F5F8; --axis: #7F8AA8; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; } }
+  :root[data-theme='dark'] svg { --ink: #F4F5F8; --axis: #7F8AA8; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; }
+  @media (prefers-reduced-motion: reduce) { svg * { transition: none !important; } }
+  .lbl { font-size: 13px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .var { font-family: 'KaTeX_Math', Georgia, serif; font-style: italic; font-size: 15px; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .mut { font-size: 12px; fill: var(--axis); }
+  .ax { stroke: var(--axis); stroke-width: 1.25; fill: none; }
+  .grd { stroke: var(--grid); stroke-width: 1; fill: none; }
+  .main { stroke: var(--primary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .aux { stroke: var(--axis); stroke-width: 1.25; stroke-dasharray: 4 3; fill: none; }
+  .soft { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; stroke-linejoin: round; }
+  .pt { fill: var(--primary); stroke: var(--bg); stroke-width: 1.5; }
+  .hole { fill: var(--bg); stroke: var(--primary); stroke-width: 2; }
+  svg[data-focus] [class*='f-'] { opacity: .30; transition: opacity .15s, stroke .15s; }
+  svg[data-focus~="a_equals_3"] .f-a_equals_3 { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="a_equals_3"] text.f-a_equals_3, svg[data-focus~="a_equals_3"] .f-a_equals_3 text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="a_equals_3"] .f-a_equals_3.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="antiderivative"] .f-antiderivative { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="antiderivative"] text.f-antiderivative, svg[data-focus~="antiderivative"] .f-antiderivative text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="antiderivative"] .f-antiderivative.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="area"] .f-area { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="area"] text.f-area, svg[data-focus~="area"] .f-area text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="area"] .f-area.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="bounds"] .f-bounds { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="bounds"] text.f-bounds, svg[data-focus~="bounds"] .f-bounds text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="bounds"] .f-bounds.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="cos_to_sin"] .f-cos_to_sin { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="cos_to_sin"] text.f-cos_to_sin, svg[data-focus~="cos_to_sin"] .f-cos_to_sin text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="cos_to_sin"] .f-cos_to_sin.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="hole"] .f-hole { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="hole"] text.f-hole, svg[data-focus~="hole"] .f-hole text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="hole"] .f-hole.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="inner"] .f-inner { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="inner"] text.f-inner, svg[data-focus~="inner"] .f-inner text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="inner"] .f-inner.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="lower"] .f-lower { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="lower"] text.f-lower, svg[data-focus~="lower"] .f-lower text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="lower"] .f-lower.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="parts"] .f-parts { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="parts"] text.f-parts, svg[data-focus~="parts"] .f-parts text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="parts"] .f-parts.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="point"] .f-point { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="point"] text.f-point, svg[data-focus~="point"] .f-point text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="point"] .f-point.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="result"] .f-result { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="result"] text.f-result, svg[data-focus~="result"] .f-result text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="result"] .f-result.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="same_curve"] .f-same_curve { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="same_curve"] text.f-same_curve, svg[data-focus~="same_curve"] .f-same_curve text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="same_curve"] .f-same_curve.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="sec2_to_tan"] .f-sec2_to_tan { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="sec2_to_tan"] text.f-sec2_to_tan, svg[data-focus~="sec2_to_tan"] .f-sec2_to_tan text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="sec2_to_tan"] .f-sec2_to_tan.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="slope"] .f-slope { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="slope"] text.f-slope, svg[data-focus~="slope"] .f-slope text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="slope"] .f-slope.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="tangent"] .f-tangent { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="tangent"] text.f-tangent, svg[data-focus~="tangent"] .f-tangent text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="tangent"] .f-tangent.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="upper"] .f-upper { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="upper"] text.f-upper, svg[data-focus~="upper"] .f-upper text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="upper"] .f-upper.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+</style>
+<defs><marker id='ax' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='6' markerHeight='6' orient='auto'><path d='M1 1.5L9 5L1 8.5z' fill='var(--axis)'/></marker></defs>
+<rect x="75" y="55" width="120" height="52" rx="12" class="soft f-cos_to_sin"/>
+<rect x="285" y="55" width="120" height="52" rx="12" class="soft f-cos_to_sin"/>
+<rect x="285" y="210" width="120" height="52" rx="12" class="soft f-parts"/>
+<rect x="75" y="210" width="120" height="52" rx="12" class="soft f-parts"/>
+<line x1="195.0" y1="81.0" x2="281.0" y2="81.0" class="main f-cos_to_sin" marker-end="url(#ax)"/>
+<line x1="345.0" y1="107.0" x2="345.0" y2="206.0" class="main f-parts" marker-end="url(#ax)"/>
+<line x1="285.0" y1="236.0" x2="199.0" y2="236.0" class="main f-parts" marker-end="url(#ax)"/>
+<line x1="135.0" y1="210.0" x2="135.0" y2="111.0" class="main f-cos_to_sin" marker-end="url(#ax)"/>
+<text x="135.0" y="86.0" text-anchor="middle" class="var">sin x</text>
+<text x="345.0" y="86.0" text-anchor="middle" class="var">cos x</text>
+<text x="345.0" y="241.0" text-anchor="middle" class="var">−sin x</text>
+<text x="135.0" y="241.0" text-anchor="middle" class="var">−cos x</text>
+<text x="240.0" y="165.0" text-anchor="middle" class="lbl f-sec2_to_tan">d/dx</text>
+</svg>

@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-label="График y = 3 sin(2x − π) + 1 с амплитудой, периодом, сдвигом.">
+<style>
+  svg { --ink: #0B0B0C; --axis: #8A93B2; --grid: #E3E8FA; --primary: #2F4FE0; --primary-soft: #E3E8FA; --answer: #E5484D; --answer-soft: rgba(229,72,77,.14); --muted: #B8C0DA; --bg: #FFFFFF; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) svg { --ink: #F4F5F8; --axis: #7F8AA8; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; } }
+  :root[data-theme='dark'] svg { --ink: #F4F5F8; --axis: #7F8AA8; --grid: #252B3D; --primary: #6B93FF; --primary-soft: #1B2542; --answer: #FF6B6B; --answer-soft: rgba(255,107,107,.18); --muted: #56607A; --bg: #0F131D; }
+  @media (prefers-reduced-motion: reduce) { svg * { transition: none !important; } }
+  .lbl { font-size: 13px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .var { font-family: 'KaTeX_Math', Georgia, serif; font-style: italic; font-size: 15px; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .mut { font-size: 12px; fill: var(--axis); }
+  .ax { stroke: var(--axis); stroke-width: 1.25; fill: none; }
+  .grd { stroke: var(--grid); stroke-width: 1; fill: none; }
+  .main { stroke: var(--primary); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .aux { stroke: var(--axis); stroke-width: 1.25; stroke-dasharray: 4 3; fill: none; }
+  .soft { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; stroke-linejoin: round; }
+  .pt { fill: var(--primary); stroke: var(--bg); stroke-width: 1.5; }
+  .hole { fill: var(--bg); stroke: var(--primary); stroke-width: 2; }
+  svg[data-focus] [class*='f-'] { opacity: .30; transition: opacity .15s, stroke .15s; }
+  svg[data-focus~="amplitude_period"] .f-amplitude_period { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="amplitude_period"] text.f-amplitude_period, svg[data-focus~="amplitude_period"] .f-amplitude_period text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="amplitude_period"] .f-amplitude_period.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="intersections"] .f-intersections { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="intersections"] text.f-intersections, svg[data-focus~="intersections"] .f-intersections text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="intersections"] .f-intersections.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="midline"] .f-midline { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="midline"] text.f-midline, svg[data-focus~="midline"] .f-midline text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="midline"] .f-midline.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="point"] .f-point { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="point"] text.f-point, svg[data-focus~="point"] .f-point text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="point"] .f-point.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="range"] .f-range { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="range"] text.f-range, svg[data-focus~="range"] .f-range text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="range"] .f-range.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+  svg[data-focus~="shift_midline"] .f-shift_midline { opacity: 1; stroke: var(--answer); }
+  svg[data-focus~="shift_midline"] text.f-shift_midline, svg[data-focus~="shift_midline"] .f-shift_midline text { stroke: none; fill: var(--answer); font-weight: 700; }
+  svg[data-focus~="shift_midline"] .f-shift_midline.f-fill { fill: var(--answer-soft); stroke: var(--answer); }
+</style>
+<defs><marker id='ax' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='6' markerHeight='6' orient='auto'><path d='M1 1.5L9 5L1 8.5z' fill='var(--axis)'/></marker></defs>
+<line x1="-20.0" y1="40.0" x2="-20.0" y2="300.0" class="grd" />
+<line x1="12.0" y1="40.0" x2="12.0" y2="300.0" class="grd" />
+<line x1="44.0" y1="40.0" x2="44.0" y2="300.0" class="grd" />
+<line x1="76.0" y1="40.0" x2="76.0" y2="300.0" class="grd" />
+<line x1="108.0" y1="40.0" x2="108.0" y2="300.0" class="grd" />
+<line x1="140.0" y1="40.0" x2="140.0" y2="300.0" class="grd" />
+<line x1="172.0" y1="40.0" x2="172.0" y2="300.0" class="grd" />
+<line x1="204.0" y1="40.0" x2="204.0" y2="300.0" class="grd" />
+<line x1="236.0" y1="40.0" x2="236.0" y2="300.0" class="grd" />
+<line x1="268.0" y1="40.0" x2="268.0" y2="300.0" class="grd" />
+<line x1="300.0" y1="40.0" x2="300.0" y2="300.0" class="grd" />
+<line x1="-45.0" y1="42.0" x2="325.0" y2="42.0" class="grd" />
+<line x1="-45.0" y1="74.0" x2="325.0" y2="74.0" class="grd" />
+<line x1="-45.0" y1="106.0" x2="325.0" y2="106.0" class="grd" />
+<line x1="-45.0" y1="138.0" x2="325.0" y2="138.0" class="grd" />
+<line x1="-45.0" y1="170.0" x2="325.0" y2="170.0" class="grd" />
+<line x1="-45.0" y1="202.0" x2="325.0" y2="202.0" class="grd" />
+<line x1="-45.0" y1="234.0" x2="325.0" y2="234.0" class="grd" />
+<line x1="-45.0" y1="266.0" x2="325.0" y2="266.0" class="grd" />
+<line x1="-45.0" y1="298.0" x2="325.0" y2="298.0" class="grd" />
+<line x1="-45.0" y1="170.0" x2="325.0" y2="170.0" class="ax" marker-end="url(#ax)"/>
+<line x1="140.0" y1="300.0" x2="140.0" y2="40.0" class="ax" marker-end="url(#ax)"/>
+<text x="333.0" y="174.0" text-anchor="start" class="var">x</text>
+<text x="150.0" y="46.0" text-anchor="start" class="var">y</text>
+<path d="M 72.0 136.0 L 74.1 126.0 L 76.2 116.1 L 78.4 106.4 L 80.5 97.0 L 82.6 87.9 L 84.8 79.3 L 86.9 71.3 L 89.0 63.9" class="main f-amplitude_period f-range"/>
+<path d="M 123.0 63.9 L 125.1 71.3 L 127.2 79.3 L 129.4 87.9 L 131.5 97.0 L 133.6 106.4 L 135.8 116.1 L 137.9 126.0 L 140.0 136.0 L 142.1 146.0 L 144.2 155.9 L 146.4 165.6 L 148.5 175.0 L 150.6 184.1 L 152.8 192.7 L 154.9 200.7 L 157.0 208.1 L 159.1 214.8 L 161.2 220.8 L 163.4 226.0 L 165.5 230.2 L 167.6 233.6 L 169.8 236.0 L 171.9 237.5 L 174.0 238.0 L 176.1 237.5 L 178.2 236.0 L 180.4 233.6 L 182.5 230.2 L 184.6 226.0 L 186.8 220.8 L 188.9 214.8 L 191.0 208.1 L 193.1 200.7 L 195.2 192.7 L 197.4 184.1 L 199.5 175.0 L 201.6 165.6 L 203.8 155.9 L 205.9 146.0 L 208.0 136.0 L 210.1 126.0 L 212.2 116.1 L 214.4 106.4 L 216.5 97.0 L 218.6 87.9 L 220.8 79.3 L 222.9 71.3 L 225.0 63.9" class="main f-amplitude_period f-range"/>
+<path d="M 259.0 63.9 L 261.1 71.3 L 263.2 79.3 L 265.4 87.9 L 267.5 97.0 L 269.6 106.4 L 271.8 116.1 L 273.9 126.0 L 276.0 136.0 L 278.1 146.0 L 280.2 155.9 L 282.4 165.6 L 284.5 175.0 L 286.6 184.1 L 288.8 192.7 L 290.9 200.7 L 293.0 208.1 L 295.1 214.8 L 297.2 220.8 L 299.4 226.0 L 301.5 230.2 L 303.6 233.6 L 305.8 236.0 L 307.9 237.5 L 310.0 238.0 L 312.1 237.5 L 314.2 236.0 L 316.4 233.6 L 318.5 230.2 L 320.6 226.0 L 322.8 220.8 L 324.9 214.8 L 327.0 208.1 L 329.1 200.7 L 331.2 192.7 L 333.4 184.1 L 335.5 175.0 L 337.6 165.6 L 339.8 155.9 L 341.9 146.0 L 344.0 136.0 L 346.1 126.0 L 348.2 116.1 L 350.4 106.4 L 352.5 97.0 L 354.6 87.9 L 356.8 79.3 L 358.9 71.3 L 361.0 63.9" class="main f-amplitude_period f-range"/>
+<path d="M 395.0 63.9 L 397.1 71.3 L 399.2 79.3 L 401.4 87.9 L 403.5 97.0 L 405.6 106.4 L 407.8 116.1 L 409.9 126.0 L 412.0 136.0" class="main f-amplitude_period f-range"/>
+<line x1="45.0" y1="136.0" x2="435.0" y2="136.0" class="aux f-midline f-shift_midline" />
+<text x="438.0" y="130.0" text-anchor="end" class="lbl f-midline">y=1.0</text>
+</svg>

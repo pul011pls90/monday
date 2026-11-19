@@ -43,28 +43,15 @@
         {% endif %}
       </div>
       <div class="fx-examples" style="grid-template-columns:minmax(0,1fr)">
-        <div class="fx-example fx-example--split">
-          <div class="fx-example__left">
-            <div class="fx-example__q math">{{ c.ex_view.q }}</div>
-            {% if c.ex_view.goal %}<div class="fx-example__text math">{{ c.ex_view.goal }}</div>{% endif %}
-            <div class="fx-example__sol-label">Solution :</div>
-            {% if c.ex_view.steps %}
-            <ol class="fx-example__steps math">{% for s in c.ex_view.steps %}<li>{{ s }}</li>{% endfor %}</ol>
-            {% endif %}
-            <div class="fx-example__answer math"><b>{{ _("Ответ:") }}</b> {{ c.ex_view.answer }}</div>
-          </div>
-          {% if c.ex_photo_url %}
-          <div class="fx-example__right">
-            <div class="fx-example__figure">
-              <img src="{{ c.ex_photo_url }}" alt="{{ c.name }} example" data-lightbox title="{{ _('Нажмите, чтобы увеличить') }}">
-              <button type="button" class="fx-card__zoom">{{ ui.icon('search', 14) }} {{ _('Увеличить') }}</button>
-            </div>
-          </div>
-          {% endif %}
-        </div>
+        {% with ex=c.ex_view, ex_photo_url=c.ex_photo_url, card_id=c.id, card_name=c.name %}
+          {% include "partials/_example_stepper.html" %}
+        {% endwith %}
       </div>
     </article>
     {% endfor %}
   </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script defer src="{{ url_for('static', filename='js/example-stepper.js') }}"></script>
 {% endblock %}

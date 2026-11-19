@@ -14,6 +14,7 @@
         { left: "$", right: "$", display: false },
       ],
       throwOnError: false,
+      trust: (ctx) => ctx.command === "\\htmlClass",
       ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option", "input"],
       ignoredClasses: ["no-math"],
     });

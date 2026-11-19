@@ -1,0 +1,103 @@
+{# Guided example stepper (new object steps) with backward-compatible fallback for plain string steps. #}
+{% if ex.steps and ex.steps[0] is mapping %}
+<div class="fx-example fx-stepper" data-fx-stepper tabindex="0">
+  <div class="fx-stepper__left">
+    <div class="fx-stepper__task math">{{ ex.task }}</div>
+
+    <div class="fx-stepper__meta">
+      <span class="fx-stepper__goal math"><b>Найти:</b> {{ ex.goal }}</span>
+      {% if ex.rule %}
+      <a class="fx-rule-chip" href="#trig-{{ ex.rule.card_id or card_id }}">{{ _("Правило:") }} {{ ex.rule.title }}</a>
+      {% endif %}
+    </div>
+
+    <div class="fx-stepper__bar">
+      <span class="fx-stepper__title"><b>{{ _("Решение") }}</b> · <span data-step-counter>{{ _("Шаг 1 из %(n)s", n=ex.steps|length) }}</span></span>
+      <div class="fx-stepper__nav">
+        <button type="button" class="icon-btn icon-btn--xs" data-step-prev aria-label="{{ _('Предыдущий шаг') }}">‹</button>
+        <button type="button" class="icon-btn icon-btn--xs" data-step-next aria-label="{{ _('Следующий шаг') }}">›</button>
+        <button type="button" class="btn btn--secondary btn--sm" data-step-all aria-pressed="false">{{ _("Показать всё") }}</button>
+      </div>
+    </div>
+
+    <div class="fx-stepper__steps">
+      {% for st in ex.steps %}
+      <div class="fx-step{{ ' is-active' if loop.first }}" data-step-idx="{{ loop.index0 }}" data-visual-focus="{{ st.visual_focus or 'none' }}"{% if not loop.first %} hidden{% endif %}>
+        <div class="fx-step__action math"><span class="fx-step__num">{{ loop.index }}.</span> {{ st.action }}</div>
+        <div class="fx-step__math math">$${{ st.math }}$$</div>
+        <div class="fx-step__why math">
+          <b>{{ _("Почему") }}:</b> {{ st.why }}
+          {% if st.rule_id and ex.rule and st.rule_id == ex.rule.id %}
+            <a class="fx-rule-chip fx-rule-chip--sm" href="#trig-{{ ex.rule.card_id or card_id }}">{{ ex.rule.title }}</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if ex.check %}
+    <div class="fx-check">
+      <div class="fx-check__head math"><b>{{ _("Проверка") }}:</b> {{ ex.check.label }}</div>
+      {% if ex.check.rows %}
+      <table class="fx-check__table">
+        <thead><tr><th>$x$</th><th>$f(x)$</th></tr></thead>
+        <tbody>
+          {% for r in ex.check.rows %}
+          <tr><td class="math">${{ r[0] }}$</td><td class="math">${{ r[1] }}$</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+      {% if ex.check.conclusion %}<div class="fx-check__note math">{{ ex.check.conclusion }}</div>{% endif %}
+    </div>
+    {% endif %}
+
+    {% if ex.pitfall %}
+    <div class="fx-pitfall math">
+      <b>{{ _("Типичная ошибка") }}:</b> {{ ex.pitfall }}
+    </div>
+    {% endif %}
+
+    <div class="fx-answer-card">
+      <b>{{ _("Ответ") }}:</b>
+      <span class="math">${{ ex.answer.exact }}$</span>
+      {% if ex.answer.approx %}<span class="muted math">($\approx {{ ex.answer.approx }}$)</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="fx-stepper__right">
+    <div class="fx-visual-panel">
+      {% if ex.rule and ex.rule.latex %}
+      <div class="fx-visual__formula math">${{ ex.rule.latex }}$</div>
+      {% endif %}
+      <div class="fx-visual__canvas"{% if not (ex.visual and ex.visual.svg_html) %} data-visual-json='{{ ex.visual|tojson }}'{% endif %} data-visual-inline>
+        {% if ex.visual and ex.visual.svg_html %}{{ ex.visual.svg_html|safe }}{% endif %}
+      </div>
+      {% if ex.visual and ex.visual.caption %}
+      <div class="fx-visual__caption small muted">{{ ex.visual.caption }}</div>
+      {% endif %}
+      <button type="button" class="fx-card__zoom fx-visual__zoom" data-visual-zoom>{{ ui.icon('search', 14) }} {{ _("Увеличить") }}</button>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="fx-example fx-example--split">
+  <div class="fx-example__left">
+    <div class="fx-example__q math">{{ ex.q }}</div>
+    {% if ex.goal %}<div class="fx-example__text math">{{ ex.goal }}</div>{% endif %}
+    <div class="fx-example__sol-label">{{ _("Решение") }} :</div>
+    {% if ex.steps %}
+    <ol class="fx-example__steps math">{% for s in ex.steps %}<li>{{ s }}</li>{% endfor %}</ol>
+    {% endif %}
+    <div class="fx-example__answer math"><b>{{ _("Ответ:") }}</b> {{ ex.answer }}</div>
+  </div>
+  {% if ex_photo_url %}
+  <div class="fx-example__right">
+    <div class="fx-example__figure">
+      <img src="{{ ex_photo_url }}" alt="{{ card_name }}" data-lightbox title="{{ _('Нажмите, чтобы увеличить') }}">
+      <button type="button" class="fx-card__zoom">{{ ui.icon('search', 14) }} {{ _("Увеличить") }}</button>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
