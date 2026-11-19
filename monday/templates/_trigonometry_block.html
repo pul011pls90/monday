@@ -1,0 +1,78 @@
+{% set tb = trig_block() %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/trigonometry_block.css') }}">
+
+<section class="trig-block" id="trigonometry-formulas" data-trig-block>
+  <header class="trig-head">
+    <h2 class="trig-title">Trigonometry formulas</h2>
+    <p class="trig-subtitle">From school level to Calculus 1</p>
+  </header>
+
+  <div class="trig-tabs" role="tablist" aria-label="Trigonometry level">
+    <button type="button" class="trig-tab is-active" role="tab" data-level="all">All</button>
+    {% for level in tb.levels %}
+    <button type="button" class="trig-tab" role="tab" data-level="{{ level.id }}">{{ level.title }}</button>
+    {% endfor %}
+  </div>
+
+  {% for group in tb.groups %}
+  <div class="trig-level" data-level="{{ group.level.id }}">
+    <h3 class="trig-level-title">{{ group.level.title }}<span class="trig-level-scope">{{ group.level.scope }}</span></h3>
+
+    {% for branch in group.branches %}
+    <details class="trig-branch" open>
+      <summary class="trig-branch-head">
+        <span>{{ branch.name }}</span>
+        <span class="trig-count">{{ branch.cards|length }}</span>
+      </summary>
+
+      <div class="trig-cards">
+        {% for card in branch.cards %}
+        <article class="trig-card" id="trig-{{ card.id }}">
+          <h4 class="trig-card-name">{{ card.name }}</h4>
+          <p class="trig-card-branch">{{ card.branch }}</p>
+
+          <div class="trig-photo">
+            {% if card.photo_url %}
+            <img src="{{ card.photo_url }}" alt="{{ card.photo_brief }}" loading="lazy">
+            {% else %}
+            <span class="trig-photo-brief">{{ card.photo_brief }}</span>
+            {% endif %}
+          </div>
+
+          <ul class="trig-formulas">
+            {% for f in card.formulas %}<li>{{ f }}</li>{% endfor %}
+          </ul>
+
+          <p class="trig-desc">{{ card.description }}</p>
+
+          <div class="trig-example">
+            <span class="trig-example-label">Example</span>
+            <p>{{ card.example.problem }}</p>
+            <p class="trig-example-solution">{{ card.example.solution }}</p>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </details>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</section>
+
+<script>
+(function () {
+  var root = document.querySelector('[data-trig-block]');
+  if (!root) return;
+  var tabs = root.querySelectorAll('.trig-tab');
+  var levels = root.querySelectorAll('.trig-level');
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var target = tab.getAttribute('data-level');
+      tabs.forEach(function (t) { t.classList.toggle('is-active', t === tab); });
+      levels.forEach(function (lvl) {
+        lvl.hidden = !(target === 'all' || lvl.getAttribute('data-level') === target);
+      });
+    });
+  });
+})();
+</script>

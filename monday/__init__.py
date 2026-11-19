@@ -80,6 +80,8 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     app.register_blueprint(roadmap.bp)
     from . import course
     app.register_blueprint(course.bp)
+    from .trig_formulas import init_trig_block
+    init_trig_block(app)
 
     def branch_groups(entries):
         """Formula-sheet entries grouped by section, ignoring case and extra spaces; first spelling wins."""

@@ -1,0 +1,599 @@
+{
+  "block": "Trigonometry formulas",
+  "levels": [
+    {
+      "id": "basic",
+      "title": "Basic",
+      "scope": "Angles, definitions, unit circle, fundamental identities"
+    },
+    {
+      "id": "intermediate",
+      "title": "Intermediate",
+      "scope": "Reduction, sum/difference, multiple-angle, product/sum, graphs, equations, triangles"
+    },
+    {
+      "id": "calculus",
+      "title": "Calculus 1",
+      "scope": "Trigonometric limits, derivatives, integrals"
+    }
+  ],
+  "branches": [
+    "Angles and radians",
+    "Right-triangle definitions",
+    "Unit circle",
+    "Fundamental identities",
+    "Reduction formulas",
+    "Sum and difference",
+    "Multiple-angle and half-angle",
+    "Product-to-sum and sum-to-product",
+    "Graphs of trigonometric functions",
+    "Inverse trigonometric functions",
+    "Trigonometric equations",
+    "Triangle laws",
+    "Limits",
+    "Derivatives",
+    "Integrals"
+  ],
+  "cards": [
+    {
+      "id": "deg-rad",
+      "name": "Degrees and radians",
+      "branch": "Angles and radians",
+      "level": "basic",
+      "photo_brief": "Circle with angle π rad = 180° marked and a sector of 1 radian highlighted",
+      "formulas": [
+        "rad = deg · π/180",
+        "deg = rad · 180/π"
+      ],
+      "description": "Converts between the two angle units. π rad equals 180°.",
+      "example": {
+        "problem": "Convert 135° to radians.",
+        "solution": "135 · π/180 = 3π/4."
+      }
+    },
+    {
+      "id": "arc-sector",
+      "name": "Arc length and sector area",
+      "branch": "Angles and radians",
+      "level": "basic",
+      "photo_brief": "Sector of a circle with radius r, central angle θ, arc s labelled",
+      "formulas": [
+        "s = rθ",
+        "A = ½r²θ"
+      ],
+      "description": "Valid only when θ is in radians.",
+      "example": {
+        "problem": "r = 6, θ = π/3. Find s and A.",
+        "solution": "s = 6 · π/3 = 2π. A = ½ · 36 · π/3 = 6π."
+      }
+    },
+    {
+      "id": "right-triangle",
+      "name": "Right-triangle definitions",
+      "branch": "Right-triangle definitions",
+      "level": "basic",
+      "photo_brief": "Right triangle with opposite, adjacent and hypotenuse relative to angle θ",
+      "formulas": [
+        "sin θ = opposite / hypotenuse",
+        "cos θ = adjacent / hypotenuse",
+        "tan θ = opposite / adjacent"
+      ],
+      "description": "Defines the three basic ratios for an acute angle θ.",
+      "example": {
+        "problem": "Legs 3 and 4, hypotenuse 5. θ is opposite the leg 3. Find sin θ, cos θ, tan θ.",
+        "solution": "sin θ = 3/5, cos θ = 4/5, tan θ = 3/4."
+      }
+    },
+    {
+      "id": "reciprocal-quotient",
+      "name": "Reciprocal and quotient identities",
+      "branch": "Right-triangle definitions",
+      "level": "basic",
+      "photo_brief": "Table linking sin, cos, tan with csc, sec, cot",
+      "formulas": [
+        "csc θ = 1/sin θ",
+        "sec θ = 1/cos θ",
+        "cot θ = 1/tan θ",
+        "tan θ = sin θ / cos θ",
+        "cot θ = cos θ / sin θ"
+      ],
+      "description": "Expresses all six functions through sine and cosine.",
+      "example": {
+        "problem": "cos θ = 5/13. Find sec θ.",
+        "solution": "sec θ = 1/(5/13) = 13/5."
+      }
+    },
+    {
+      "id": "special-values",
+      "name": "Special angle values",
+      "branch": "Right-triangle definitions",
+      "level": "basic",
+      "photo_brief": "30-60-90 and 45-45-90 triangles with side ratios 1 : √3 : 2 and 1 : 1 : √2",
+      "formulas": [
+        "θ: 0°, 30°, 45°, 60°, 90°",
+        "sin θ: 0, 1/2, √2/2, √3/2, 1",
+        "cos θ: 1, √3/2, √2/2, 1/2, 0",
+        "tan θ: 0, √3/3, 1, √3, undefined"
+      ],
+      "description": "Exact values used throughout school and exam problems.",
+      "example": {
+        "problem": "Evaluate sin 60° · cos 30°.",
+        "solution": "(√3/2)(√3/2) = 3/4."
+      }
+    },
+    {
+      "id": "unit-circle",
+      "name": "Unit circle and signs by quadrant",
+      "branch": "Unit circle",
+      "level": "basic",
+      "photo_brief": "Unit circle with point (cos θ, sin θ), quadrants labelled with positive functions (I all, II sin, III tan, IV cos)",
+      "formulas": [
+        "Point on unit circle: (cos θ, sin θ)",
+        "Quadrant I: all positive",
+        "Quadrant II: sin positive",
+        "Quadrant III: tan positive",
+        "Quadrant IV: cos positive"
+      ],
+      "description": "Sine is the y-coordinate and cosine is the x-coordinate. Use the reference angle for the magnitude and the quadrant for the sign.",
+      "example": {
+        "problem": "Find sin(5π/6) and cos(5π/6).",
+        "solution": "Quadrant II, reference angle π/6. sin = 1/2, cos = −√3/2."
+      }
+    },
+    {
+      "id": "periodicity",
+      "name": "Periodicity",
+      "branch": "Unit circle",
+      "level": "basic",
+      "photo_brief": "Sine wave with one period 2π highlighted, tangent with period π",
+      "formulas": [
+        "sin(θ + 2πk) = sin θ",
+        "cos(θ + 2πk) = cos θ",
+        "tan(θ + πk) = tan θ",
+        "k is an integer"
+      ],
+      "description": "Sine and cosine repeat every 2π. Tangent and cotangent repeat every π.",
+      "example": {
+        "problem": "Evaluate sin 405°.",
+        "solution": "405° = 360° + 45°, so sin 405° = sin 45° = √2/2."
+      }
+    },
+    {
+      "id": "even-odd",
+      "name": "Even and odd properties",
+      "branch": "Unit circle",
+      "level": "basic",
+      "photo_brief": "Unit circle with angles θ and −θ mirrored across the x-axis",
+      "formulas": [
+        "sin(−θ) = −sin θ",
+        "cos(−θ) = cos θ",
+        "tan(−θ) = −tan θ"
+      ],
+      "description": "Cosine is even. Sine, tangent, cotangent are odd.",
+      "example": {
+        "problem": "Evaluate cos(−π/3) and tan(−π/4).",
+        "solution": "cos(−π/3) = cos(π/3) = 1/2. tan(−π/4) = −tan(π/4) = −1."
+      }
+    },
+    {
+      "id": "pythagorean",
+      "name": "Pythagorean identities",
+      "branch": "Fundamental identities",
+      "level": "basic",
+      "photo_brief": "Unit circle with right triangle of hypotenuse 1 and legs cos θ, sin θ",
+      "formulas": [
+        "sin²θ + cos²θ = 1",
+        "1 + tan²θ = sec²θ",
+        "1 + cot²θ = csc²θ"
+      ],
+      "description": "Follow from x² + y² = 1 on the unit circle. Used to find one function from another.",
+      "example": {
+        "problem": "sin θ = 3/5, θ in Quadrant II. Find cos θ.",
+        "solution": "cos²θ = 1 − 9/25 = 16/25. Quadrant II gives cos θ = −4/5."
+      }
+    },
+    {
+      "id": "cofunction",
+      "name": "Cofunction identities",
+      "branch": "Fundamental identities",
+      "level": "basic",
+      "photo_brief": "Right triangle with complementary angles θ and 90° − θ",
+      "formulas": [
+        "sin(90° − θ) = cos θ",
+        "cos(90° − θ) = sin θ",
+        "tan(90° − θ) = cot θ"
+      ],
+      "description": "A function of an angle equals the cofunction of its complement.",
+      "example": {
+        "problem": "Write sin 70° as a cosine.",
+        "solution": "sin 70° = cos(90° − 70°) = cos 20°."
+      }
+    },
+    {
+      "id": "reduction",
+      "name": "Reduction formulas",
+      "branch": "Reduction formulas",
+      "level": "intermediate",
+      "photo_brief": "Unit circle showing angles π − θ, π + θ, 2π − θ as reflections of θ",
+      "formulas": [
+        "sin(π − θ) = sin θ;  cos(π − θ) = −cos θ;  tan(π − θ) = −tan θ",
+        "sin(π + θ) = −sin θ;  cos(π + θ) = −cos θ;  tan(π + θ) = tan θ",
+        "sin(2π − θ) = −sin θ;  cos(2π − θ) = cos θ;  tan(2π − θ) = −tan θ",
+        "sin(π/2 + θ) = cos θ;  cos(π/2 + θ) = −sin θ"
+      ],
+      "description": "Reduces any angle to an acute angle. Determine the sign from the quadrant of the original angle.",
+      "example": {
+        "problem": "Evaluate cos 120°.",
+        "solution": "cos 120° = cos(180° − 60°) = −cos 60° = −1/2."
+      }
+    },
+    {
+      "id": "sum-difference",
+      "name": "Sum and difference formulas",
+      "branch": "Sum and difference",
+      "level": "intermediate",
+      "photo_brief": "Two adjacent angles A and B on the unit circle with their sum A + B",
+      "formulas": [
+        "sin(A ± B) = sin A cos B ± cos A sin B",
+        "cos(A ± B) = cos A cos B ∓ sin A sin B",
+        "tan(A ± B) = (tan A ± tan B) / (1 ∓ tan A tan B)"
+      ],
+      "description": "Note the sign change in the cosine formula. Used to obtain exact values of non-special angles.",
+      "example": {
+        "problem": "Find sin 75°.",
+        "solution": "sin(45° + 30°) = (√2/2)(√3/2) + (√2/2)(1/2) = (√6 + √2)/4."
+      }
+    },
+    {
+      "id": "double-angle",
+      "name": "Double-angle formulas",
+      "branch": "Multiple-angle and half-angle",
+      "level": "intermediate",
+      "photo_brief": "Unit circle with angles θ and 2θ",
+      "formulas": [
+        "sin 2θ = 2 sin θ cos θ",
+        "cos 2θ = cos²θ − sin²θ = 2cos²θ − 1 = 1 − 2sin²θ",
+        "tan 2θ = 2 tan θ / (1 − tan²θ)"
+      ],
+      "description": "Special case of the sum formulas with A = B = θ. Choose the cosine form that matches the given quantity.",
+      "example": {
+        "problem": "sin θ = 3/5, cos θ = 4/5. Find sin 2θ and cos 2θ.",
+        "solution": "sin 2θ = 2 · 3/5 · 4/5 = 24/25. cos 2θ = 1 − 2 · 9/25 = 7/25."
+      }
+    },
+    {
+      "id": "half-angle",
+      "name": "Half-angle formulas",
+      "branch": "Multiple-angle and half-angle",
+      "level": "intermediate",
+      "photo_brief": "Unit circle with angles θ and θ/2",
+      "formulas": [
+        "sin(θ/2) = ±√((1 − cos θ)/2)",
+        "cos(θ/2) = ±√((1 + cos θ)/2)",
+        "tan(θ/2) = sin θ / (1 + cos θ) = (1 − cos θ) / sin θ"
+      ],
+      "description": "The sign of the root is set by the quadrant of θ/2.",
+      "example": {
+        "problem": "Find cos 15°.",
+        "solution": "cos 15° = √((1 + cos 30°)/2) = √((2 + √3)/4) = (√6 + √2)/4."
+      }
+    },
+    {
+      "id": "power-reducing",
+      "name": "Power-reducing formulas",
+      "branch": "Multiple-angle and half-angle",
+      "level": "intermediate",
+      "photo_brief": "Graphs of sin²θ and cos²θ shifted around the midline 1/2",
+      "formulas": [
+        "sin²θ = (1 − cos 2θ)/2",
+        "cos²θ = (1 + cos 2θ)/2",
+        "tan²θ = (1 − cos 2θ)/(1 + cos 2θ)"
+      ],
+      "description": "Rewrites squares of sine and cosine without powers. Essential for integration.",
+      "example": {
+        "problem": "Evaluate cos²(π/8).",
+        "solution": "(1 + cos(π/4))/2 = (1 + √2/2)/2 = (2 + √2)/4."
+      }
+    },
+    {
+      "id": "triple-angle",
+      "name": "Triple-angle formulas",
+      "branch": "Multiple-angle and half-angle",
+      "level": "intermediate",
+      "photo_brief": "Unit circle with angles θ and 3θ",
+      "formulas": [
+        "sin 3θ = 3 sin θ − 4 sin³θ",
+        "cos 3θ = 4 cos³θ − 3 cos θ"
+      ],
+      "description": "Express a triple angle through powers of a single function.",
+      "example": {
+        "problem": "sin θ = 1/2. Find sin 3θ.",
+        "solution": "3 · 1/2 − 4 · 1/8 = 3/2 − 1/2 = 1."
+      }
+    },
+    {
+      "id": "product-to-sum",
+      "name": "Product-to-sum formulas",
+      "branch": "Product-to-sum and sum-to-product",
+      "level": "intermediate",
+      "photo_brief": "Two waves multiplied and shown as the sum of two waves",
+      "formulas": [
+        "sin A cos B = ½[sin(A + B) + sin(A − B)]",
+        "cos A cos B = ½[cos(A − B) + cos(A + B)]",
+        "sin A sin B = ½[cos(A − B) − cos(A + B)]"
+      ],
+      "description": "Converts a product into a sum. Used to simplify expressions and integrate products.",
+      "example": {
+        "problem": "Evaluate sin 75° cos 15°.",
+        "solution": "½[sin 90° + sin 60°] = ½(1 + √3/2) = (2 + √3)/4."
+      }
+    },
+    {
+      "id": "sum-to-product",
+      "name": "Sum-to-product formulas",
+      "branch": "Product-to-sum and sum-to-product",
+      "level": "intermediate",
+      "photo_brief": "Sum of two waves shown as a product of a slow and a fast wave",
+      "formulas": [
+        "sin A + sin B = 2 sin((A + B)/2) cos((A − B)/2)",
+        "sin A − sin B = 2 cos((A + B)/2) sin((A − B)/2)",
+        "cos A + cos B = 2 cos((A + B)/2) cos((A − B)/2)",
+        "cos A − cos B = −2 sin((A + B)/2) sin((A − B)/2)"
+      ],
+      "description": "Converts a sum into a product. Used to factor expressions and solve equations.",
+      "example": {
+        "problem": "Evaluate sin 75° + sin 15°.",
+        "solution": "2 sin 45° cos 30° = 2 · (√2/2)(√3/2) = √6/2."
+      }
+    },
+    {
+      "id": "auxiliary-angle",
+      "name": "Auxiliary angle (harmonic) form",
+      "branch": "Sum and difference",
+      "level": "intermediate",
+      "photo_brief": "Right triangle with legs a and b, hypotenuse R and angle φ",
+      "formulas": [
+        "a sin x + b cos x = R sin(x + φ)",
+        "R = √(a² + b²)",
+        "cos φ = a/R,  sin φ = b/R"
+      ],
+      "description": "Combines a sine and a cosine of the same angle into one sine. Gives the maximum R and minimum −R.",
+      "example": {
+        "problem": "Write sin x + cos x as a single sine and find its maximum.",
+        "solution": "R = √2, φ = π/4. sin x + cos x = √2 sin(x + π/4). Maximum √2."
+      }
+    },
+    {
+      "id": "graph-transformations",
+      "name": "Sinusoidal graph parameters",
+      "branch": "Graphs of trigonometric functions",
+      "level": "intermediate",
+      "photo_brief": "Sine wave with amplitude, period, phase shift and midline annotated",
+      "formulas": [
+        "y = A sin(B(x − C)) + D",
+        "Amplitude = |A|",
+        "Period = 2π/|B|  (tangent: π/|B|)",
+        "Phase shift = C",
+        "Midline: y = D"
+      ],
+      "description": "Reads the shape of a sine or cosine graph directly from its equation.",
+      "example": {
+        "problem": "Analyse y = 3 sin(2x − π) + 1.",
+        "solution": "y = 3 sin(2(x − π/2)) + 1. Amplitude 3, period π, shift π/2 right, midline y = 1, range [−2, 4]."
+      }
+    },
+    {
+      "id": "inverse-trig",
+      "name": "Inverse trigonometric functions",
+      "branch": "Inverse trigonometric functions",
+      "level": "intermediate",
+      "photo_brief": "Graphs of arcsin, arccos, arctan with restricted ranges highlighted",
+      "formulas": [
+        "arcsin: [−1, 1] → [−π/2, π/2]",
+        "arccos: [−1, 1] → [0, π]",
+        "arctan: ℝ → (−π/2, π/2)",
+        "arcsin x + arccos x = π/2",
+        "arcsin(−x) = −arcsin x;  arccos(−x) = π − arccos x;  arctan(−x) = −arctan x"
+      ],
+      "description": "Each inverse returns a single angle from its restricted range.",
+      "example": {
+        "problem": "Evaluate arcsin(−1/2) and arccos(−1/2).",
+        "solution": "arcsin(−1/2) = −π/6. arccos(−1/2) = π − π/3 = 2π/3."
+      }
+    },
+    {
+      "id": "trig-equations",
+      "name": "Solutions of basic trigonometric equations",
+      "branch": "Trigonometric equations",
+      "level": "intermediate",
+      "photo_brief": "Horizontal line y = a intersecting a sine wave at repeating points",
+      "formulas": [
+        "sin x = a  ⇒  x = (−1)ⁿ arcsin a + πn",
+        "cos x = a  ⇒  x = ± arccos a + 2πn",
+        "tan x = a  ⇒  x = arctan a + πn",
+        "sin x = 0: x = πn;  sin x = 1: x = π/2 + 2πn;  sin x = −1: x = −π/2 + 2πn",
+        "cos x = 0: x = π/2 + πn;  cos x = 1: x = 2πn;  cos x = −1: x = π + 2πn",
+        "n is an integer;  |a| ≤ 1 for sin and cos"
+      ],
+      "description": "General solutions. Special cases are written in simplified form.",
+      "example": {
+        "problem": "Solve 2 sin x = 1.",
+        "solution": "sin x = 1/2, x = (−1)ⁿ π/6 + πn, i.e. x = π/6 + 2πn or x = 5π/6 + 2πn."
+      }
+    },
+    {
+      "id": "sine-rule",
+      "name": "Law of sines",
+      "branch": "Triangle laws",
+      "level": "intermediate",
+      "photo_brief": "Triangle ABC with sides a, b, c opposite angles A, B, C and circumscribed circle of radius R",
+      "formulas": [
+        "a / sin A = b / sin B = c / sin C = 2R",
+        "R is the circumradius"
+      ],
+      "description": "Relates each side to the sine of the opposite angle. Used when an angle–side pair is known.",
+      "example": {
+        "problem": "A = 30°, a = 5, B = 45°. Find b.",
+        "solution": "b = a sin B / sin A = 5 · (√2/2) / (1/2) = 5√2."
+      }
+    },
+    {
+      "id": "cosine-rule",
+      "name": "Law of cosines",
+      "branch": "Triangle laws",
+      "level": "intermediate",
+      "photo_brief": "Triangle ABC with angle C between sides a and b",
+      "formulas": [
+        "c² = a² + b² − 2ab cos C",
+        "cos C = (a² + b² − c²) / (2ab)"
+      ],
+      "description": "Generalises the Pythagorean theorem for two sides and the included angle, or for three sides.",
+      "example": {
+        "problem": "a = 3, b = 4, C = 60°. Find c.",
+        "solution": "c² = 9 + 16 − 2 · 12 · 1/2 = 13, so c = √13."
+      }
+    },
+    {
+      "id": "triangle-area",
+      "name": "Triangle area with sine",
+      "branch": "Triangle laws",
+      "level": "intermediate",
+      "photo_brief": "Triangle with two sides and the included angle shaded",
+      "formulas": [
+        "Area = ½ab sin C"
+      ],
+      "description": "Area from two sides and the included angle.",
+      "example": {
+        "problem": "a = 6, b = 8, C = 30°. Find the area.",
+        "solution": "½ · 6 · 8 · sin 30° = 24 · 1/2 = 12."
+      }
+    },
+    {
+      "id": "trig-limits",
+      "name": "Fundamental trigonometric limits",
+      "branch": "Limits",
+      "level": "calculus",
+      "photo_brief": "Graph of sin x / x approaching 1 near x = 0",
+      "formulas": [
+        "lim(x→0) sin x / x = 1",
+        "lim(x→0) tan x / x = 1",
+        "lim(x→0) (1 − cos x) / x = 0",
+        "lim(x→0) (1 − cos x) / x² = 1/2",
+        "lim(x→0) sin(kx) / x = k"
+      ],
+      "description": "Valid with x in radians. Used to resolve 0/0 forms.",
+      "example": {
+        "problem": "Evaluate lim(x→0) sin 5x / (2x).",
+        "solution": "= (5/2) · lim sin 5x / (5x) = 5/2."
+      }
+    },
+    {
+      "id": "trig-derivatives",
+      "name": "Derivatives of trigonometric functions",
+      "branch": "Derivatives",
+      "level": "calculus",
+      "photo_brief": "Cycle diagram: sin → cos → −sin → −cos → sin under repeated differentiation",
+      "formulas": [
+        "(sin x)′ = cos x",
+        "(cos x)′ = −sin x",
+        "(tan x)′ = sec²x",
+        "(cot x)′ = −csc²x",
+        "(sec x)′ = sec x tan x",
+        "(csc x)′ = −csc x cot x"
+      ],
+      "description": "Valid with x in radians. Functions beginning with “co” have negative derivatives.",
+      "example": {
+        "problem": "Differentiate x sin x.",
+        "solution": "Product rule: (x sin x)′ = sin x + x cos x."
+      }
+    },
+    {
+      "id": "inverse-trig-derivatives",
+      "name": "Derivatives of inverse trigonometric functions",
+      "branch": "Derivatives",
+      "level": "calculus",
+      "photo_brief": "Graph of arctan with its derivative curve 1/(1 + x²)",
+      "formulas": [
+        "(arcsin x)′ = 1/√(1 − x²)",
+        "(arccos x)′ = −1/√(1 − x²)",
+        "(arctan x)′ = 1/(1 + x²)",
+        "(arccot x)′ = −1/(1 + x²)"
+      ],
+      "description": "Combine with the chain rule for composite arguments.",
+      "example": {
+        "problem": "Differentiate arctan(2x).",
+        "solution": "2/(1 + 4x²)."
+      }
+    },
+    {
+      "id": "trig-integrals-basic",
+      "name": "Basic trigonometric integrals",
+      "branch": "Integrals",
+      "level": "calculus",
+      "photo_brief": "Reverse of the derivative cycle diagram",
+      "formulas": [
+        "∫ sin x dx = −cos x + C",
+        "∫ cos x dx = sin x + C",
+        "∫ sec²x dx = tan x + C",
+        "∫ csc²x dx = −cot x + C",
+        "∫ sec x tan x dx = sec x + C",
+        "∫ csc x cot x dx = −csc x + C"
+      ],
+      "description": "Direct reversals of the derivative table.",
+      "example": {
+        "problem": "Evaluate ∫(3 cos x − sec²x) dx.",
+        "solution": "3 sin x − tan x + C."
+      }
+    },
+    {
+      "id": "trig-integrals-log",
+      "name": "Integrals of tan, cot, sec, csc",
+      "branch": "Integrals",
+      "level": "calculus",
+      "photo_brief": "Graph of tan x with shaded area under the curve on [0, π/4]",
+      "formulas": [
+        "∫ tan x dx = −ln|cos x| + C = ln|sec x| + C",
+        "∫ cot x dx = ln|sin x| + C",
+        "∫ sec x dx = ln|sec x + tan x| + C",
+        "∫ csc x dx = −ln|csc x + cot x| + C"
+      ],
+      "description": "Logarithmic results. The first two follow from substitution u = cos x and u = sin x.",
+      "example": {
+        "problem": "Evaluate ∫ from 0 to π/4 of tan x dx.",
+        "solution": "[−ln(cos x)] from 0 to π/4 = −ln(√2/2) = ½ ln 2."
+      }
+    },
+    {
+      "id": "inverse-trig-integrals",
+      "name": "Integrals giving inverse trigonometric functions",
+      "branch": "Integrals",
+      "level": "calculus",
+      "photo_brief": "Graph of 1/(1 + x²) with area under the curve equal to arctan",
+      "formulas": [
+        "∫ dx / √(a² − x²) = arcsin(x/a) + C",
+        "∫ dx / (a² + x²) = (1/a) arctan(x/a) + C"
+      ],
+      "description": "Recognise the forms √(a² − x²) and a² + x² in the denominator.",
+      "example": {
+        "problem": "Evaluate ∫ dx/(9 + x²).",
+        "solution": "(1/3) arctan(x/3) + C."
+      }
+    },
+    {
+      "id": "trig-integrals-powers",
+      "name": "Integrals of sin²x and cos²x",
+      "branch": "Integrals",
+      "level": "calculus",
+      "photo_brief": "Graph of cos²x with area under the curve on [0, π]",
+      "formulas": [
+        "∫ sin²x dx = x/2 − sin 2x / 4 + C",
+        "∫ cos²x dx = x/2 + sin 2x / 4 + C"
+      ],
+      "description": "Obtained with the power-reducing formulas.",
+      "example": {
+        "problem": "Evaluate ∫ from 0 to π of cos²x dx.",
+        "solution": "[x/2 + sin 2x / 4] from 0 to π = π/2."
+      }
+    }
+  ]
+}

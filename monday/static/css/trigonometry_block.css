@@ -1,0 +1,124 @@
+/* Trigonometry formulas block. All selectors use the .trig- prefix. */
+.trig-block {
+  --trig-ink: #0b0b0c;
+  --trig-paper: #ffffff;
+  --trig-muted: #5f6368;
+  --trig-line: #e3e5e8;
+  --trig-blue: #1f5eff;
+  --trig-blue-soft: #eef3ff;
+  margin: 48px 0;
+  color: var(--trig-ink);
+  font-family: inherit;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .trig-block {
+    --trig-ink: #f4f5f6;
+    --trig-paper: #0b0b0c;
+    --trig-muted: #9aa0a6;
+    --trig-line: #2a2c30;
+    --trig-blue: #6b93ff;
+    --trig-blue-soft: #151b2e;
+  }
+}
+:root[data-theme="dark"] .trig-block {
+  --trig-ink: #f4f5f6;
+  --trig-paper: #0b0b0c;
+  --trig-muted: #9aa0a6;
+  --trig-line: #2a2c30;
+  --trig-blue: #6b93ff;
+  --trig-blue-soft: #151b2e;
+}
+
+.trig-head {
+  border-left: 4px solid var(--trig-blue);
+  padding-left: 14px;
+  margin-bottom: 20px;
+}
+.trig-title { margin: 0; font-size: 1.6rem; font-weight: 700; }
+.trig-subtitle { margin: 4px 0 0; color: var(--trig-muted); font-size: 0.95rem; }
+
+.trig-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.trig-tab {
+  border: 1px solid var(--trig-line);
+  background: var(--trig-paper);
+  color: var(--trig-ink);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.trig-tab.is-active { background: var(--trig-ink); color: var(--trig-paper); border-color: var(--trig-ink); }
+.trig-tab:focus-visible { outline: 2px solid var(--trig-blue); outline-offset: 2px; }
+
+.trig-level[hidden] { display: none; }
+.trig-level { margin-bottom: 36px; }
+.trig-level-title {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px;
+  margin: 0 0 14px; font-size: 1.2rem;
+  padding-bottom: 8px; border-bottom: 2px solid var(--trig-ink);
+}
+.trig-level-scope { color: var(--trig-muted); font-size: 0.85rem; font-weight: 400; }
+
+.trig-branch { margin-bottom: 14px; }
+.trig-branch-head {
+  display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer; padding: 10px 14px;
+  background: var(--trig-blue-soft);
+  border-left: 3px solid var(--trig-blue);
+  font-weight: 600; list-style: none;
+}
+.trig-branch-head::-webkit-details-marker { display: none; }
+.trig-count { color: var(--trig-blue); font-size: 0.85rem; }
+
+.trig-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.trig-card {
+  border: 1px solid var(--trig-line);
+  background: var(--trig-paper);
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  min-width: 0;
+}
+.trig-card-name { margin: 0; font-size: 1.05rem; }
+.trig-card-branch { margin: 0; color: var(--trig-blue); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+
+.trig-photo {
+  aspect-ratio: 16 / 9;
+  background: var(--trig-blue-soft);
+  border: 1px dashed var(--trig-line);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; text-align: center;
+}
+.trig-photo img { width: 100%; height: 100%; object-fit: contain; }
+.trig-photo-brief { color: var(--trig-muted); font-size: 0.78rem; padding: 10px; }
+
+.trig-formulas {
+  list-style: none; margin: 0; padding: 12px;
+  background: var(--trig-ink); color: var(--trig-paper);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9rem; line-height: 1.6;
+  overflow-x: auto;
+}
+.trig-formulas li + li { margin-top: 4px; }
+
+.trig-desc { margin: 0; color: var(--trig-muted); font-size: 0.9rem; line-height: 1.5; }
+
+.trig-example {
+  border-top: 1px solid var(--trig-line);
+  padding-top: 10px; font-size: 0.9rem; line-height: 1.5;
+}
+.trig-example p { margin: 4px 0 0; }
+.trig-example-label { color: var(--trig-blue); font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.trig-example-solution { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+
+@media (max-width: 480px) {
+  .trig-block { margin: 32px 0; }
+  .trig-title { font-size: 1.35rem; }
+}

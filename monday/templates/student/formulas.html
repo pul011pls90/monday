@@ -106,6 +106,7 @@
 </div>
 {% endif %}
 </div>
+{% include "_trigonometry_block.html" %}
 {% else %}
 <form method="post" class="card formula-new">
   {{ ui.csrf() }}<input type="hidden" name="action" value="create">
