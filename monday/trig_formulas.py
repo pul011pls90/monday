@@ -420,10 +420,16 @@ def build_trig_block(static_folder):
                     cards.append(card)
             if cards:
                 branches.append({"id": _slug(name), "name": name, "cards": cards})
+        summary = (
+            ", ".join(b["name"] for b in branches)
+            if len(branches) >= 6
+            else ", ".join(c["name"] for b in branches for c in b["cards"])
+        )
         groups.append({
             "level": level,
             "branches": branches,
             "cards_count": sum(len(b["cards"]) for b in branches),
+            "summary": summary,
         })
     return {
         "levels": raw["levels"],

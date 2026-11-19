@@ -25,7 +25,7 @@
       <span class="tag tag--accent tag--xs">TRIG</span>
     </div>
     <h3 class="work-card__title">Trigonometry · {{ g.level.title }}</h3>
-    <p class="work-card__topics" title="{{ g.branches|map(attribute='name')|join(', ') }}">{{ g.branches|map(attribute='name')|join(', ') }}</p>
+    <p class="work-card__topics" title="{{ g.summary }}">{{ g.summary }}</p>
     <div class="work-card__meta">
       <span class="meta-item work-card__count">{{ ui.icon('list', 16) }}<span class="nw">{{ g.branches|length }} {{ g.branches|length|plural_ru(_("тема"), _("темы"), _("тем")) }} · {{ g.cards_count }} {{ g.cards_count|plural_ru(_("формула"), _("формулы"), _("формул")) }}</span></span>
     </div>
