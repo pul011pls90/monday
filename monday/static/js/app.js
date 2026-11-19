@@ -101,6 +101,15 @@
     if (form.requestSubmit) form.requestSubmit(e.submitter || undefined); else form.submit();
   }, true);
 
+  document.addEventListener("click", async (e) => {
+    const link = e.target.closest("a[data-confirm]");
+    if (!link || link.hasAttribute("data-ds-discard")) return;
+    e.preventDefault();
+    const ok = await window.MondayConfirm({ title: link.dataset.confirm, ok: link.dataset.confirmOk,
+                                            danger: /удал|delete|сброш/i.test(link.dataset.confirm) });
+    if (ok) window.location.href = link.getAttribute("href");
+  });
+
   /* ---------- image lightbox with zoom & pan (shared by all formula photos) ---------- */
   const lightbox = $("#lightbox");
   if (lightbox) {

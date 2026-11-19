@@ -626,7 +626,8 @@
       btn.addEventListener("click", async (e) => {
         e.preventDefault();
         const msg = btn.dataset.confirm || "Начать заново? Текущий прогресс будет сброшен.";
-        if (!window.confirm(msg)) return;
+        const ok = await askConfirm({ title: msg, ok: btn.dataset.confirmOk || "Начать заново", danger: true });
+        if (!ok) return;
         await markComplete(activeEl.dataset.dsType, activeEl.dataset.dsId, "abandoned");
         const href = btn.getAttribute("href");
         if (href) window.location.href = href;
@@ -710,6 +711,11 @@
   });
 
   // --------------------------------------------------------------------------- Resume Card on Home (Stage 4)
+  function askConfirm(opts) {
+    if (typeof window.MondayConfirm === "function") return window.MondayConfirm(opts);
+    return Promise.resolve(window.confirm(opts.title || ""));
+  }
+
   async function initResumeCard() {
     const host = document.getElementById("ds-resume-card");
     if (!host || !USER_ID) return;
@@ -740,7 +746,7 @@
               <span class="ds-resume__sub">${escapeHtml(sub ? `${sub} · ` : "")}Прогресс: ${escapeHtml(progress)}</span>
             </div>
             <div class="ds-resume__btns">
-              <a class="btn btn--primary btn--sm ds-resume__btn" href="${escapeHtml(resumeHref)}">Продолжить</a>
+              <a class="btn btn--primary btn--sm ds-resume__btn" data-ds-resume-continue data-title="${escapeHtml(title)}" href="${escapeHtml(resumeHref)}">Продолжить</a>
               <button type="button" class="btn btn--ghost btn--sm ds-resume__btn" data-ds-resume-discard data-type="${escapeHtml(rec.type)}" data-id="${escapeHtml(rec.activity_id)}">Начать заново</button>
             </div>
           </div>
@@ -764,9 +770,26 @@
         });
       }
 
+      host.querySelectorAll("[data-ds-resume-continue]").forEach((link) => {
+        link.addEventListener("click", async (e) => {
+          e.preventDefault();
+          const ok = await askConfirm({
+            title: `Продолжить «${link.dataset.title || "тест"}»?`,
+            body: "Вы продолжите с того места, где остановились.",
+            ok: "Продолжить",
+          });
+          if (ok) window.location.href = link.getAttribute("href");
+        });
+      });
+
       host.querySelectorAll("[data-ds-resume-discard]").forEach((btn) => {
         btn.addEventListener("click", async () => {
-          if (!window.confirm("Начать заново? Текущий прогресс будет сброшен.")) return;
+          const ok = await askConfirm({
+            title: "Начать заново? Текущий прогресс будет сброшен.",
+            ok: "Начать заново",
+            danger: true,
+          });
+          if (!ok) return;
           await markComplete(btn.dataset.type, btn.dataset.id, "abandoned");
           const row = btn.closest("[data-ds-resume-item]");
           if (row) row.remove();
