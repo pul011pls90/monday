@@ -137,6 +137,51 @@ def fix_auxiliary_angle() -> str:
     return wrap(520, 320, "Auxiliary angle (harmonic) form", body)
 
 
+def fix_trig_integrals_powers() -> str:
+    import math
+    parts = []
+    panels = [
+        ("sin²x", lambda x: math.sin(x) ** 2, 16),
+        ("cos²x", lambda x: math.cos(x) ** 2, 292),
+    ]
+    for fn_lbl, fn, px in panels:
+        pw = 252
+        ox = px + 44
+        oy = 266
+        sx = 176.0 / math.pi  # [0, pi] -> 176 px
+        sy = 148.0            # [0, 1] -> 148 px
+        pts = []
+        area_pts = [f"{ox:.1f},{oy:.1f}"]
+        for i in range(61):
+            x = math.pi * i / 60.0
+            y = fn(x)
+            gx = ox + x * sx
+            gy = oy - y * sy
+            pts.append(f"{gx:.1f},{gy:.1f}")
+            area_pts.append(f"{gx:.1f},{gy:.1f}")
+        area_pts.append(f"{ox + math.pi * sx:.1f},{oy:.1f}")
+        parts.append(f'<rect x="{px}" y="16" width="{pw}" height="308" rx="16" fill="var(--bg)" stroke="var(--grid)" stroke-width="1.8"/>')
+        parts.append(
+            f'<text x="{px + pw/2:.1f}" y="54" text-anchor="middle" font-size="21" font-weight="700" fill="var(--primary)">'
+            f'∫<tspan dy="5" font-size="14">0</tspan><tspan dy="-12" font-size="14">π</tspan><tspan dy="7"> {fn_lbl} dx = π/2</tspan></text>'
+        )
+        parts.append(f'<polygon points="{" ".join(area_pts)}" fill="var(--soft)"/>')
+        parts.append(f'<line x1="{px + 18}" y1="{oy}" x2="{px + pw - 14}" y2="{oy}" stroke="var(--axis)" stroke-width="1.6" marker-end="url(#ax)"/>')
+        parts.append(f'<line x1="{ox}" y1="292" x2="{ox}" y2="90" stroke="var(--axis)" stroke-width="1.6" marker-end="url(#ax)"/>')
+        parts.append(f'<polyline points="{" ".join(pts)}" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>')
+        # Ticks: 0, pi/2, pi, and 1 on y-axis
+        for tx_val, tx_lbl in [(math.pi / 2, "π/2"), (math.pi, "π")]:
+            tx = ox + tx_val * sx
+            parts.append(f'<line x1="{tx:.1f}" y1="{oy-4}" x2="{tx:.1f}" y2="{oy+4}" stroke="var(--axis)" stroke-width="1.5"/>')
+            parts.append(f'<text class="halo" x="{tx:.1f}" y="{oy+24}" text-anchor="middle" font-size="21" font-weight="600" fill="var(--muted)">{tx_lbl}</text>')
+        parts.append(f'<text class="halo" x="{ox-10}" y="{oy+24}" text-anchor="end" font-size="21" font-weight="600" fill="var(--muted)">0</text>')
+        parts.append(f'<line x1="{ox-4}" y1="{oy-sy:.1f}" x2="{ox+4}" y2="{oy-sy:.1f}" stroke="var(--axis)" stroke-width="1.5"/>')
+        parts.append(f'<text class="halo" x="{ox-10}" y="{oy-sy+6:.1f}" text-anchor="end" font-size="21" font-weight="600" fill="var(--muted)">1</text>')
+
+    defs = '<defs><marker id="ax" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1.5L9 5L1 8.5z" fill="var(--axis)"/></marker></defs>'
+    return wrap(560, 340, "Integrals of sin²x and cos²x", defs + "\n" + "\n".join(parts))
+
+
 def main():
     fixes = {
         "reciprocal-quotient.svg": fix_reciprocal_quotient(),
@@ -148,6 +193,7 @@ def main():
         "special-values.svg": fix_special_values(),
         "cofunction.svg": fix_cofunction(),
         "auxiliary-angle.svg": fix_auxiliary_angle(),
+        "trig-integrals-powers.svg": fix_trig_integrals_powers(),
     }
     for fname, svg in fixes.items():
         (TRIG_DIR / fname).write_text(svg, encoding="utf-8")
