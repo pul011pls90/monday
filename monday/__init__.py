@@ -101,6 +101,8 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     def sheet_image(path):
         """A sheet entry's picture: the student's upload, or a drawing that came with a Monday template."""
         from .formulas import IMAGE_PREFIX
+        if path.startswith("static:"):
+            return url_for("static", filename=path[len("static:"):])
         if path.startswith(IMAGE_PREFIX):
             return url_for("static", filename="img/formulas/" + path[len(IMAGE_PREFIX):])
         return url_for("uploaded_file", filename=path)

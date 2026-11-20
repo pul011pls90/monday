@@ -21,12 +21,19 @@
   <div class="fx-main">
     <header class="fx-head card" style="padding:16px 20px">
       <div><h2>{{ branch.name }}</h2><p>{{ group.level.title }} · {{ group.level.scope }}</p></div>
+      <div class="fx-head__tools">
+        <form method="post" action="{{ url_for('trig_block.trig_add', level_id=group.level.id) }}">{{ ui.csrf() }}<input type="hidden" name="topic" value="{{ branch.id }}">
+          <button class="btn btn--primary btn--sm" type="submit">{{ ui.icon('plus', 16) }}{{ _("Добавить всю тему") }}</button></form>
+      </div>
     </header>
 
     {% for c in branch.cards %}
     <article class="fx-card" id="trig-{{ c.id }}">
       <div class="fx-card__top">
         <div><h3>{{ c.name }}</h3><span class="small">{{ c.branch }}</span></div>
+        {% if added is defined and c.id in added %}<span class="tag tag--ok">{{ _("Добавлено") }}</span>
+        {% else %}<form method="post" action="{{ url_for('trig_block.trig_add', level_id=group.level.id) }}">{{ ui.csrf() }}<input type="hidden" name="topic" value="{{ branch.id }}"><input type="hidden" name="formula" value="{{ c.id }}">
+          <button class="btn btn--secondary btn--sm" type="submit">{{ ui.icon('plus', 16) }}{{ _("В мои формулы") }}</button></form>{% endif %}
       </div>
       {% if c.id == 'special-values' %}
       <div class="fx-card__formula">

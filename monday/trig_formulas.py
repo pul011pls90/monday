@@ -7,8 +7,8 @@ import json
 import re
 from pathlib import Path
 
-from flask import Blueprint, abort, current_app, jsonify, render_template, request, url_for
-from flask_login import login_required
+from flask import Blueprint, abort, current_app, flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 
 _BASE = Path(__file__).resolve().parent
 _DATA_FILE = _BASE / "data" / "trigonometry_formulas.json"
@@ -448,6 +448,16 @@ def trig_sections():
     return render_template("student/trig_sections.html", tb=tb)
 
 
+def _stored_trig(card):
+    return "$" + " \\;;\\; ".join(card["tex_lines"]) + "$"
+
+
+def _trig_added_ids(user, group):
+    from .models import ReferenceSheet
+    have = {e.formula for s in ReferenceSheet.query.filter_by(user_id=user.id).all() for e in s.entries}
+    return {c["id"] for b in group["branches"] for c in b["cards"] if _stored_trig(c) in have}
+
+
 @trig_bp.route("/formulas/trigonometry/<level_id>")
 @login_required
 def trig_level(level_id):
@@ -456,7 +466,55 @@ def trig_level(level_id):
     group = next((g for g in tb["groups"] if g["level"]["id"] == level_id), None) or abort(404)
     topic_id = request.args.get("topic")
     branch = next((b for b in group["branches"] if b["id"] == topic_id), group["branches"][0])
-    return render_template("student/trig_topic.html", group=group, branch=branch)
+    return render_template("student/trig_topic.html", group=group, branch=branch, added=_trig_added_ids(current_user, group))
+
+
+@trig_bp.route("/formulas/trigonometry/<level_id>/add", methods=["POST"])
+@login_required
+def trig_add(level_id):
+    """Add one trigonometry formula or an entire branch to the student's ReferenceSheet."""
+    from .extensions import db
+    from .models import ReferenceSheet, SheetEntry
+    tb = build_trig_block(current_app.static_folder)
+    group = next((g for g in tb["groups"] if g["level"]["id"] == level_id), None) or abort(404)
+    topic_id = request.form.get("topic")
+    branch = next((b for b in group["branches"] if b["id"] == topic_id), None) or abort(404)
+    formula_id = request.form.get("formula") or None
+
+    have = _trig_added_ids(current_user, group)
+    fresh = [c for c in branch["cards"] if c["id"] not in have and formula_id in (None, c["id"])]
+    title = "Мои формулы · All Trigonometry"
+    if fresh:
+        sheet = ReferenceSheet.query.filter_by(user_id=current_user.id, exam=None, title=title).first()
+        if not sheet:
+            sheet = ReferenceSheet(
+                user_id=current_user.id,
+                exam=None,
+                title=title,
+                position=ReferenceSheet.query.filter_by(user_id=current_user.id).count(),
+            )
+            db.session.add(sheet)
+        start = len(sheet.entries)
+        for n, c in enumerate(fresh):
+            img_rel = None
+            for ext in ("svg", "png"):
+                if (Path(current_app.static_folder) / _PHOTO_SUBDIR / f"{c['id']}.{ext}").exists():
+                    img_rel = f"static:{_PHOTO_SUBDIR}/{c['id']}.{ext}"
+                    break
+            db.session.add(SheetEntry(
+                sheet=sheet,
+                branch=branch["name"],
+                topic=c["name"],
+                formula=_stored_trig(c),
+                position=start + n,
+                image_path=img_rel,
+            ))
+        db.session.commit()
+        flash(f"Добавлено в «{title}»: {len(fresh)}.", "success")
+    else:
+        flash("Уже есть в твоих формулах.", "info")
+    anchor = f"trig-{formula_id}" if formula_id else None
+    return redirect(url_for("trig_block.trig_level", level_id=level_id, topic=branch["id"], _anchor=anchor))
 
 
 @trig_bp.route("/api/trigonometry-formulas")
