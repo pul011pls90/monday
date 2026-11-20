@@ -164,9 +164,9 @@
           st.classList.toggle("is-active", idx === cur);
           st.classList.remove("is-past");
         } else {
-          st.hidden = idx > cur;
+          st.hidden = idx !== cur;
           st.classList.toggle("is-active", idx === cur);
-          st.classList.toggle("is-past", idx < cur);
+          st.classList.remove("is-past");
         }
       });
       if (counter) counter.textContent = `Шаг ${cur + 1} из ${steps.length}`;
