@@ -250,6 +250,38 @@ def gen_csca_09_am_gm() -> str:
     ])
 
 
+def gen_trig_signs() -> str:
+    """2x2 quadrant sign panels for sin θ, cos θ, tan θ, cot θ."""
+    W, H = 520, 340
+    panels = [
+        ("sin θ", ("+", "+", "−", "−"), 16, 16),
+        ("cos θ", ("+", "−", "−", "+"), 268, 16),
+        ("tan θ", ("+", "−", "+", "−"), 16, 178),
+        ("cot θ", ("+", "−", "+", "−"), 268, 178),
+    ]
+    body = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" role="img">',
+        "<title>Знаки sin, cos, tan, cot по четвертям</title>",
+        "<desc>Четыре координатные четверти со знаками + и − для sin θ, cos θ, tan θ и cot θ.</desc>",
+        STYLE_BLOCK,
+        f'<rect class="bg" width="{W}" height="{H}"/>',
+    ]
+    for title, signs, px, py in panels:
+        cx, cy, r = px + 148, py + 73, 44
+        body.append(f'<rect x="{px}" y="{py}" width="236" height="146" rx="14" fill="var(--bg)" stroke="var(--grid)" stroke-width="1.8"/>')
+        body.append(f'<text x="{px + 18}" y="{py + 34}" font-size="22" font-weight="700" fill="var(--ink)">{title}</text>')
+        body.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="var(--soft)" stroke="var(--primary)" stroke-width="2.2"/>')
+        body.append(f'<line x1="{cx - r - 12}" y1="{cy}" x2="{cx + r + 12}" y2="{cy}" stroke="var(--axis)" stroke-width="1.5"/>')
+        body.append(f'<line x1="{cx}" y1="{cy + r + 12}" x2="{cx}" y2="{cy - r - 12}" stroke="var(--axis)" stroke-width="1.5"/>')
+        # Q1 (+,+), Q2 (-,+), Q3 (-,-), Q4 (+,-)
+        coords = [(cx + 20, cy - 12), (cx - 20, cy - 12), (cx - 20, cy + 25), (cx + 20, cy + 25)]
+        for s, (sx, sy) in zip(signs, coords):
+            col = "var(--primary)" if s == "+" else "var(--accent)"
+            body.append(f'<text class="halo" x="{sx}" y="{sy}" text-anchor="middle" font-size="22" font-weight="700" fill="{col}">{s}</text>')
+    body.append("</svg>")
+    return "\n".join(body)
+
+
 def main():
     targets = {
         "ru_ege_powers_roots_04.svg": gen_ru_ege_powers_roots_04(),
@@ -258,6 +290,7 @@ def main():
         "root_sq.svg": gen_root_sq(),
         "root_mul.svg": gen_root_mul(),
         "csca_09_am_gm.svg": gen_csca_09_am_gm(),
+        "trig_signs.svg": gen_trig_signs(),
     }
     for fname, svg in targets.items():
         (FORMULAS_DIR / fname).write_text(svg, encoding="utf-8")
