@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as ui with context %}
+{% block title %}{{ _("Заявка на обучение") }}{% endblock %}
+{% block body %}
+<div class="page-sky" data-hero data-hero-bg aria-hidden="true"><canvas class="hero__canvas" data-hero-dots></canvas></div>
+<main class="page page--narrow" style="padding-top:48px">
+  <div class="row row--between">
+    <a class="session-bar__brand" href="{{ url_for('auth.login') }}" aria-label="Monday">{% for ch in "MONDAY" %}<span>{{ ch }}</span>{% endfor %}</a>
+    <a class="btn btn--secondary btn--sm" href="{{ url_for('auth.login') }}">{{ _("Войти в кабинет") }}</a>
+  </div>
+  {{ ui.flashes() }}
+
+  {% if submitted %}
+  <section class="card">
+    <h1>{{ _("Заявка принята!") }}</h1>
+    <p class="text-2">{{ _("Наш менеджер свяжется с вами в ближайшее время и подберёт удобное расписание.") }}</p>
+    <div><a class="btn btn--primary" href="{{ url_for('crm_intake.public_apply') }}">{{ _("Отправить ещё заявку") }}</a></div>
+  </section>
+  {% else %}
+  <section class="card">
+    <div class="stack-sm">
+      <span class="eyebrow">Monday Academy</span>
+      <h1 style="font-size:32px">{{ _("Записаться на пробный урок") }}</h1>
+      <p class="text-2">{{ _("Оставьте контакты — менеджер ответит в течение 15 минут.") }}</p>
+    </div>
+    <form method="post" action="{{ url_for('crm_intake.public_apply') }}" class="stack">
+      {{ ui.csrf() }}
+      <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px" aria-hidden="true">
+      <div class="field">
+        <label for="ap-name">{{ _("Имя и фамилия") }} *</label>
+        <input class="input" id="ap-name" name="full_name" required value="{{ form.get('full_name', '') }}" placeholder="Айдана Асанова">
+      </div>
+      <div class="grid grid-2">
+        <div class="field">
+          <label for="ap-phone">{{ _("Телефон") }}</label>
+          <input class="input" id="ap-phone" name="phone" value="{{ form.get('phone', '') }}" placeholder="+996 700 123 456">
+        </div>
+        <div class="field">
+          <label for="ap-msg">{{ _("Telegram / WhatsApp") }}</label>
+          <input class="input" id="ap-msg" name="messenger_handle" value="{{ form.get('messenger_handle', '') }}" placeholder="@username">
+        </div>
+      </div>
+      <div class="grid grid-2">
+        <div class="field">
+          <label for="ap-int">{{ _("Курс / экзамен") }}</label>
+          <input class="input" id="ap-int" name="interest" value="{{ form.get('interest', '') }}" placeholder="SAT Math / ОРТ / ЕНТ">
+        </div>
+        <div class="field">
+          <label for="ap-mode">{{ _("Удобный формат") }}</label>
+          <select class="select" id="ap-mode" name="mode_preference">
+            {% for m, lbl in MODE_PREF_LABELS.items() %}<option value="{{ m }}" {{ 'selected' if form.get('mode_preference', '') == m }}>{{ lbl }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="ap-note">{{ _("Комментарий") }}</label>
+        <textarea class="textarea" id="ap-note" name="note" rows="3" placeholder="{{ _('Класс, желаемое время занятий или вопросы') }}">{{ form.get('note', '') }}</textarea>
+      </div>
+      <div><button class="btn btn--primary btn--lg" type="submit">{{ _("Оставить заявку") }}</button></div>
+    </form>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}

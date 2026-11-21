@@ -5,7 +5,7 @@
 {% block body %}
 {# the dotted sky: one fixed background behind every student page. Pages with a backdrop of their own empty this block;
    tests and question screens extend base.html, so they never get it. #}
-{% block sky %}{% if current_user.role == 'student' or current_user.is_teacher %}
+{% block sky %}{% if current_user.role == 'student' or current_user.is_teacher or current_user.is_manager %}
 <div class="page-sky" data-hero data-hero-bg aria-hidden="true"><canvas class="hero__canvas" data-hero-dots></canvas></div>
 <script defer src="{{ url_for('static', filename='js/hero.js') }}"></script>
 {% endif %}{% endblock %}
@@ -23,12 +23,23 @@
       ] %}
       {% set teacher_extra = [
         ('teacher.tree', 'skills', _('Карта'), ['teacher.tree']),
+        ('academic.schedule', 'calendar', _('Расписание'), ['academic.schedule', 'academic.lesson_detail']),
         ('teacher.questions', 'questions', _('Вопросы'), ['teacher.questions', 'teacher.question_new', 'teacher.question_edit', 'assistant.home', 'assistant.import_preview', 'assistant.import_save', 'assistant.mine']),
         ('reports.inbox', 'flag', _('Исправления'), ['reports.inbox']),
       ] %}
       {% if current_user.can_review %}{% set teacher_extra = teacher_extra + [('review.queue', 'check', _('Модерация'), ['review.queue'])] %}{% endif %}
-      {% if current_user.is_admin %}{% set teacher_extra = teacher_extra + [('admin.index', 'shield', _('Админ'), ['admin.index']), ('analytics.dashboard', 'chart', _('Аналитика'), ['analytics.dashboard'])] %}{% endif %}
+      {% if current_user.is_admin %}{% set teacher_extra = teacher_extra + [('manager.dashboard', 'inbox', _('CRM'), ['manager.dashboard', 'manager.leads', 'manager.lead_detail', 'manager.pipeline', 'manager.audit', 'manager.account']), ('admin.index', 'shield', _('Админ'), ['admin.index']), ('analytics.dashboard', 'chart', _('Аналитика'), ['analytics.dashboard'])] %}{% endif %}
       {% set primary = ['teacher.dashboard', 'teacher.students', 'teacher.works', 'teacher.review', 'teacher.bank'] %}
+    {% elif current_user.role in ('sales_manager', 'supervisor') %}
+      <a class="rail__logo" href="{{ url_for('manager.dashboard') }}" aria-label="Monday">M</a>
+      {% set items = [
+        ('manager.dashboard', 'home', _('Сегодня'), ['manager.dashboard']),
+        ('manager.leads', 'users', _('Лиды'), ['manager.leads', 'manager.lead_detail']),
+        ('manager.pipeline', 'list', _('Воронка'), ['manager.pipeline']),
+        ('academic.schedule', 'calendar', _('Расписание'), ['academic.schedule', 'academic.lesson_detail']),
+      ] %}
+      {% if current_user.is_crm_supervisor %}{% set items = items + [('manager.audit', 'shield', _('Аудит'), ['manager.audit'])] %}{% endif %}
+      {% set primary = ['manager.dashboard', 'manager.leads', 'manager.pipeline', 'academic.schedule', 'manager.audit'] %}
     {% elif current_user.is_assistant %}
       <a class="rail__logo" href="{{ url_for('assistant.home') }}" aria-label="Monday">M</a>
       {% set items = [
@@ -79,6 +90,12 @@
           {{ ui.icon('settings', 22) }}<span class="rail__label">{{ _('Настройки') }}</span>
         </a>
       </div>
+    {% elif current_user.role in ('sales_manager', 'supervisor') %}
+      <div class="rail__foot">
+        <a class="rail__item{{ ' is-active' if ep == 'manager.account' }}" href="{{ url_for('manager.account') }}" title="{{ _('Настройки') }}" aria-label="{{ _('Настройки') }}"{{ ' aria-current=page' if ep == 'manager.account' }}>
+          {{ ui.icon('settings', 22) }}<span class="rail__label">{{ _('Настройки') }}</span>
+        </a>
+      </div>
     {% endif %}
   </nav>
 
@@ -122,7 +139,7 @@
     <header class="topbar">
       {% if extras %}<button class="icon-btn nav-burger{{ ' has-active' if ns.extra_active }}" type="button" data-nav-open aria-controls="nav-drawer" aria-expanded="false" aria-label="{{ _('Меню') }}">{{ ui.icon('menu') }}</button>{% endif %}
       <a class="session-bar__brand topbar__brand" href="{{ url_for('auth.index') }}" aria-label="{{ _('На главную') }}">{% for ch in "MONDAY" %}<span>{{ ch }}</span>{% endfor %}</a>
-      <div class="topbar__context">{% block context %}{% if current_user.profile and current_user.profile.exam %}{{ current_user.profile.exam|exam_label }} · {{ _("математика") }}{{ exam_switch() }}{% elif current_user.is_teacher %}{{ _("Кабинет учителя") }}{% elif current_user.is_assistant %}{{ _("Кабинет ассистента") }}{% endif %}{% endblock %}</div>
+      <div class="topbar__context">{% block context %}{% if current_user.profile and current_user.profile.exam %}{{ current_user.profile.exam|exam_label }} · {{ _("математика") }}{{ exam_switch() }}{% elif current_user.is_teacher %}{{ _("Кабинет учителя") }}{% elif current_user.is_supervisor %}{{ _("Кабинет супервайзера") }}{% elif current_user.is_sales_manager %}{{ _("Кабинет менеджера") }}{% elif current_user.is_assistant %}{{ _("Кабинет ассистента") }}{% endif %}{% endblock %}</div>
       <div class="topbar__tools">
         {% block topbar_extra %}{% endblock %}
         <form method="post" action="{{ url_for('auth.toggle_theme') }}" data-theme-toggle>

@@ -285,11 +285,13 @@ def students():
 
         now = utcnow()
         online_cutoff = now - timedelta(minutes=5)
-        role_order = {"student": 0, "teacher": 1, "admin": 2, "assistant": 3}
+        role_order = {"student": 0, "teacher": 1, "sales_manager": 2, "supervisor": 3, "admin": 4, "assistant": 5}
 
         def _default_page(u):
             if u.role == "student":
                 return "/home" if (u.profile and u.profile.onboarded) else "/onboarding"
+            if u.role in ("sales_manager", "supervisor"):
+                return "/manager"
             if u.role == "assistant":
                 return "/assistant/"
             if u.role == "teacher" and not u.is_approved:

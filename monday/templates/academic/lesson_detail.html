@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+{% block title %}{{ lesson.group.name }} · {{ _("Урок") }}{% endblock %}
+{% block context %}{{ _("Посещаемость урока") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <div class="row" style="gap:8px;align-items:center">
+      <a class="small muted" href="{{ url_for('academic.schedule') }}">← {{ _("Расписание") }}</a>
+      <span class="tag {{ 'tag--soft' if lesson.lesson_mode == 'online' else 'tag--line' }} tag--xs">{{ LESSON_MODE_LABELS.get(lesson.lesson_mode, lesson.lesson_mode) }}</span>
+    </div>
+    <h1>{{ lesson.group.name }} · {{ lesson.starts_at|d('d MMM y, HH:mm') }}</h1>
+    <p>{{ lesson.group.course.name }}{% if lesson.topic %} · {{ lesson.topic }}{% endif %}{% if lesson.teacher %} · {{ lesson.teacher.name }}{% endif %}{% if lesson.location %} · {{ lesson.location.name }}{% endif %}</p>
+  </div>
+</div>
+
+{% if not can_mark %}
+  <div class="flash flash--info">
+    {% if is_retro_window_passed %}
+      {{ _("Режим чтения: прошло более 24 часов с начала занятия; ретро-правки доступны только супервайзеру или администратору с записью в аудит.") }}
+    {% else %}
+      {{ _("Режим чтения: менеджеры продаж могут просматривать расписание и посещаемость без редактирования.") }}
+    {% endif %}
+  </div>
+{% endif %}
+
+{% if roster %}
+<div class="table-wrap">
+  <table class="table crm-table">
+    <thead>
+      <tr>
+        <th>{{ _("Ученик") }}</th>
+        <th>{{ _("Текущий статус") }}</th>
+        <th>{{ _("Примечание") }}</th>
+        {% if can_mark %}<th>{{ _("Отметить / изменить") }}</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for st in roster %}
+        {% set att = att_by_student.get(st.id) %}
+        <tr>
+          <td class="t-strong">{{ st.name }} <span class="small muted">#{{ st.id }}</span></td>
+          <td>
+            {% if att %}
+              <span class="tag {{ 'tag--ok' if att.status == 'present' else ('tag--warn' if att.status in ('late', 'excused') else 'tag--bad') }} tag--xs">
+                {{ ATTENDANCE_LABELS.get(att.status, att.status) }}
+              </span>
+            {% else %}
+              <span class="small muted">{{ _("не отмечен") }}</span>
+            {% endif %}
+          </td>
+          <td class="small">{{ att.note if att and att.note else '—' }}</td>
+          {% if can_mark %}
+          <td>
+            <form method="post" action="{{ url_for('academic.lesson_mark_attendance', lesson_id=lesson.id) }}" class="row" style="gap:6px;flex-wrap:wrap">
+              {{ ui.csrf() }}
+              <input type="hidden" name="student_user_id" value="{{ st.id }}">
+              <select class="select crm-inline-select" name="status">
+                {% for s in LESSON_ATTENDANCE_STATUSES %}<option value="{{ s }}" {{ 'selected' if att and att.status == s }}>{{ ATTENDANCE_LABELS[s] }}</option>{% endfor %}
+              </select>
+              <input class="input input--sm" name="note" value="{{ att.note if att else '' }}" placeholder="{{ _('Заметка') }}" style="width:140px;min-height:32px">
+              {% if att and is_retro_window_passed %}
+                <input class="input input--sm" name="reason" required placeholder="{{ _('Причина ретро-правки *') }}" style="width:180px;min-height:32px">
+              {% endif %}
+              <button class="btn btn--primary btn--sm" type="submit" style="min-height:32px;padding:0 12px">{{ _("Сохранить") }}</button>
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty"><h3>{{ _("В группе пока нет зачисленных учеников") }}</h3></div>
+{% endif %}
+{% endblock %}

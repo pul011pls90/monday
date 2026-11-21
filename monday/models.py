@@ -52,7 +52,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     name = db.Column(db.String(120), nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(16), nullable=False, default="student")  # student | teacher | assistant | admin
+    role = db.Column(db.String(16), nullable=False, default="student")  # student | teacher | assistant | sales_manager | supervisor | admin
     is_approved = db.Column(db.Boolean, nullable=False, default=True)  # teachers need approval
     language = db.Column(db.String(8), nullable=False, default="ru")
     theme = db.Column(db.String(8), nullable=False, default="light")  # light | dark | system
@@ -105,6 +105,26 @@ class User(UserMixin, db.Model):
     @property
     def is_assistant(self):
         return self.role == "assistant"
+
+    @property
+    def is_sales_manager(self):
+        return self.role == "sales_manager"
+
+    @property
+    def is_supervisor(self):
+        return self.role == "supervisor"
+
+    @property
+    def is_manager(self):
+        return self.role in ("sales_manager", "supervisor", "admin")
+
+    @property
+    def is_crm_supervisor(self):
+        return self.role in ("supervisor", "admin")
+
+    def has_perm(self, perm: str) -> bool:
+        from .access import has_permission
+        return has_permission(self, perm)
 
     @property
     def can_review(self):
@@ -1043,6 +1063,241 @@ class LoginEvent(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow, index=True)
 
     user = db.relationship("User", backref=db.backref("login_events", lazy="dynamic", cascade="all, delete-orphan"))
+
+
+# --------------------------------------------------------------------------- CRM & Audit
+
+
+LEAD_SOURCES = ("instagram", "whatsapp", "telegram", "site", "referral", "other")
+LEAD_STATUSES = ("new", "contacted", "trial_scheduled", "trial_done", "negotiation", "won", "lost")
+LEAD_ACTIVITY_TYPES = ("call", "message", "note", "status_change", "reassign")
+LEAD_MODE_PREFERENCES = ("", "online", "offline", "any")
+
+
+class Lead(db.Model):
+    """Prospective student tracked in the Sales CRM (separate from Student/User until conversion)."""
+
+    __tablename__ = "leads"
+    __table_args__ = (
+        db.Index("ix_leads_status_assigned", "status", "assigned_manager_id"),
+        db.Index("ix_leads_created_status", "created_at", "status"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    full_name = db.Column(db.String(160), nullable=False)
+    phone = db.Column(db.String(40), nullable=True, index=True)
+    messenger_handle = db.Column(db.String(120), nullable=True)
+    source = db.Column(db.String(32), nullable=False, default="other", index=True)
+    interest = db.Column(db.String(160), nullable=False, default="")
+    mode_preference = db.Column(db.String(16), nullable=False, default="")
+    status = db.Column(db.String(24), nullable=False, default="new", index=True)
+    assigned_manager_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow, index=True)
+    first_contact_at = db.Column(db.DateTime, nullable=True)
+    last_contact_at = db.Column(db.DateTime, nullable=True)
+    converted_student_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
+    lost_reason = db.Column(db.String(255), nullable=False, default="")
+
+    assigned_manager = db.relationship("User", foreign_keys=[assigned_manager_id])
+    converted_student = db.relationship("User", foreign_keys=[converted_student_id])
+    activities = db.relationship(
+        "LeadActivity",
+        back_populates="lead",
+        order_by="LeadActivity.created_at.desc()",
+        cascade="all, delete-orphan",
+    )
+    tasks = db.relationship(
+        "LeadTask",
+        back_populates="lead",
+        order_by="LeadTask.due_at.asc()",
+        cascade="all, delete-orphan",
+    )
+
+
+class LeadActivity(db.Model):
+    """Chronological timeline entry on a Lead (call, message, note, status_change, reassign)."""
+
+    __tablename__ = "lead_activities"
+    __table_args__ = (
+        db.Index("ix_lead_activities_lead_created", "lead_id", "created_at"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    lead_id = db.Column(db.Integer, db.ForeignKey("leads.id", ondelete="CASCADE"), nullable=False, index=True)
+    actor_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
+    type = db.Column(db.String(24), nullable=False, default="note")
+    body = db.Column(db.Text, nullable=False, default="")
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow, index=True)
+
+    lead = db.relationship("Lead", back_populates="activities")
+    actor = db.relationship("User", foreign_keys=[actor_id])
+
+
+class LeadTask(db.Model):
+    """Follow-up task assigned to a manager for a Lead."""
+
+    __tablename__ = "lead_tasks"
+    __table_args__ = (
+        db.Index("ix_lead_tasks_assignee_due", "assignee_id", "due_at"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    lead_id = db.Column(db.Integer, db.ForeignKey("leads.id", ondelete="CASCADE"), nullable=False, index=True)
+    assignee_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
+    due_at = db.Column(db.DateTime, nullable=False, index=True)
+    done_at = db.Column(db.DateTime, nullable=True, index=True)
+    note = db.Column(db.String(300), nullable=False, default="")
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    lead = db.relationship("Lead", back_populates="tasks")
+    assignee = db.relationship("User", foreign_keys=[assignee_id])
+
+
+class AuditLog(db.Model):
+    """Immutable audit trail for role changes, lead reassignments/deletions/conversions, and retroactive edits."""
+
+    __tablename__ = "audit_logs"
+    __table_args__ = (
+        db.Index("ix_audit_logs_entity", "entity_type", "entity_id"),
+        db.Index("ix_audit_logs_action_ts", "action", "timestamp"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    actor_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
+    action = db.Column(db.String(64), nullable=False, index=True)
+    entity_type = db.Column(db.String(40), nullable=False, index=True)
+    entity_id = db.Column(db.Integer, nullable=True, index=True)
+    old_value = db.Column(JSONText, nullable=True)
+    new_value = db.Column(JSONText, nullable=True)
+    reason = db.Column(db.String(300), nullable=False, default="")
+    timestamp = db.Column(db.DateTime, nullable=False, default=utcnow, index=True)
+
+    actor = db.relationship("User", foreign_keys=[actor_id])
+
+
+# --------------------------------------------------------------------------- Academic Operations (MVP-1)
+
+
+LESSON_MODES = ("online", "offline")
+LESSON_ATTENDANCE_STATUSES = ("present", "absent", "late", "excused")
+ENROLLMENT_STATUSES = ("active", "completed", "transferred", "dropped")
+
+
+class Location(db.Model):
+    """Physical classroom / campus location for offline lessons."""
+
+    __tablename__ = "locations"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    address = db.Column(db.String(255), nullable=False, default="")
+    room = db.Column(db.String(80), nullable=False, default="")
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+
+class AcademicCourse(db.Model):
+    """Academy course offering (e.g. SAT Math, ORT Intensive, CSCA) linked to study groups & enrollments."""
+
+    __tablename__ = "academic_courses"
+
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(40), unique=True, nullable=False, index=True)
+    name = db.Column(db.String(160), nullable=False)
+    exam = db.Column(db.String(16), nullable=False, default="")
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+
+class StudyGroup(db.Model):
+    """Scheduled teaching cohort for an AcademicCourse led by a Teacher."""
+
+    __tablename__ = "study_groups"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey("academic_courses.id", ondelete="RESTRICT"), nullable=False, index=True)
+    teacher_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
+    default_location_id = db.Column(db.Integer, db.ForeignKey("locations.id", ondelete="SET NULL"), nullable=True, index=True)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    course = db.relationship("AcademicCourse")
+    teacher = db.relationship("User", foreign_keys=[teacher_id])
+    default_location = db.relationship("Location", foreign_keys=[default_location_id])
+    enrollments = db.relationship("GroupEnrollment", back_populates="group", cascade="all, delete-orphan")
+    lessons = db.relationship("Lesson", back_populates="group", order_by="Lesson.starts_at.desc()", cascade="all, delete-orphan")
+
+
+class GroupEnrollment(db.Model):
+    """Many-to-many Student <-> Group/Course enrollment with full history (left_at preserves past enrollments)."""
+
+    __tablename__ = "group_enrollments"
+    __table_args__ = (
+        db.Index("ix_group_enrollments_student_active", "student_user_id", "left_at"),
+        db.Index("ix_group_enrollments_group_active", "group_id", "left_at"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey("study_groups.id", ondelete="CASCADE"), nullable=False, index=True)
+    student_user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True)
+    course_id = db.Column(db.Integer, db.ForeignKey("academic_courses.id", ondelete="RESTRICT"), nullable=False, index=True)
+    enrolled_at = db.Column(db.DateTime, nullable=False, default=utcnow, index=True)
+    left_at = db.Column(db.DateTime, nullable=True, index=True)
+    status = db.Column(db.String(24), nullable=False, default="active")
+    note = db.Column(db.String(255), nullable=False, default="")
+
+    group = db.relationship("StudyGroup", back_populates="enrollments")
+    student = db.relationship("User", foreign_keys=[student_user_id])
+    course = db.relationship("AcademicCourse", foreign_keys=[course_id])
+
+
+class Lesson(db.Model):
+    """Individual scheduled class session. `lesson_mode` (online/offline) lives on the Lesson, never the Student."""
+
+    __tablename__ = "lessons"
+    __table_args__ = (
+        db.Index("ix_lessons_mode_starts", "lesson_mode", "starts_at"),
+        db.Index("ix_lessons_group_starts", "group_id", "starts_at"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey("study_groups.id", ondelete="CASCADE"), nullable=False, index=True)
+    teacher_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
+    starts_at = db.Column(db.DateTime, nullable=False, index=True)
+    duration_min = db.Column(db.Integer, nullable=False, default=90)
+    lesson_mode = db.Column(db.String(16), nullable=False, default="offline", index=True)  # online | offline
+    location_id = db.Column(db.Integer, db.ForeignKey("locations.id", ondelete="SET NULL"), nullable=True, index=True)
+    meeting_url = db.Column(db.String(400), nullable=False, default="")
+    topic = db.Column(db.String(200), nullable=False, default="")
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    group = db.relationship("StudyGroup", back_populates="lessons")
+    teacher = db.relationship("User", foreign_keys=[teacher_id])
+    location = db.relationship("Location", foreign_keys=[location_id])
+    attendances = db.relationship("LessonAttendance", back_populates="lesson", cascade="all, delete-orphan")
+
+
+class LessonAttendance(db.Model):
+    """Per-lesson attendance record (Present/Absent/Late/Excused) with retroactive edit auditing."""
+
+    __tablename__ = "lesson_attendance"
+    __table_args__ = (
+        UniqueConstraint("lesson_id", "student_user_id", name="uq_lesson_attendance_lesson_student"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    lesson_id = db.Column(db.Integer, db.ForeignKey("lessons.id", ondelete="CASCADE"), nullable=False, index=True)
+    student_user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True)
+    status = db.Column(db.String(16), nullable=False, default="present", index=True)  # present|absent|late|excused
+    note = db.Column(db.String(255), nullable=False, default="")
+    marked_by_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
+    marked_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=utcnow, onupdate=utcnow)
+
+    lesson = db.relationship("Lesson", back_populates="attendances")
+    student = db.relationship("User", foreign_keys=[student_user_id])
+    marked_by = db.relationship("User", foreign_keys=[marked_by_id])
 
 
 # Safety net for PostgreSQL, which (unlike SQLite) rejects a string longer than its column:

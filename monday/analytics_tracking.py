@@ -29,6 +29,8 @@ _IGNORED_PREFIXES = (
     "/uploads",
     "/api",
     "/admin",
+    "/manager",
+    "/academic",
     "/course/admin",
     "/roadmap/admin",
     "/favicon.ico",

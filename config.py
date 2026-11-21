@@ -131,3 +131,5 @@ class Config:
     RATELIMIT_HEADERS_ENABLED = True
     ANALYTICS_IP_SALT = os.environ.get("ANALYTICS_IP_SALT", "").strip()
     TRUST_PROXY_GEO_HEADERS = os.environ.get("TRUST_PROXY_GEO_HEADERS", "1") == "1"
+    CRM_SLA_MINUTES = int(os.environ.get("CRM_SLA_MINUTES", "15") or "15")
+    CRM_WEBHOOK_SECRET = os.environ.get("CRM_WEBHOOK_SECRET", "").strip()

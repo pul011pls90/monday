@@ -47,6 +47,10 @@ services:
         sync: false
       - key: RATELIMIT_STORAGE_URI
         sync: false
+      - key: CRM_WEBHOOK_SECRET
+        sync: false
+      - key: CRM_SLA_MINUTES
+        value: "15"
       - key: MONDAY_TEST_ALWAYS_OPEN   # the Monday test only on Mondays 19:00–24:00
         value: "0"
       - key: WEB_CONCURRENCY

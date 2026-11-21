@@ -1,0 +1,171 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Расписание и посещаемость") }}{% endblock %}
+{% block context %}{{ _("Учебное расписание") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Расписание занятий") }}</h1>
+    <p>{{ _("Локации, группы, уроки (Онлайн / Офлайн) и посещаемость.") }}</p>
+  </div>
+</div>
+
+{# Online vs Offline Summary #}
+<div class="crm-kpis">
+  <a class="card crm-kpi" href="{{ url_for('academic.schedule', lesson_mode='online') }}">
+    <span class="eyebrow">{{ _("Онлайн-уроки") }}</span>
+    <span class="stat-value num">{{ mode_counts.get('online', 0) }}</span>
+    <span class="stat-label">{{ _("отметок: %(n)s (был: %(p)s)", n=att_by_mode.online.values()|sum, p=att_by_mode.online.get('present', 0)) }}</span>
+  </a>
+  <a class="card crm-kpi" href="{{ url_for('academic.schedule', lesson_mode='offline') }}">
+    <span class="eyebrow">{{ _("Офлайн-уроки") }}</span>
+    <span class="stat-value num">{{ mode_counts.get('offline', 0) }}</span>
+    <span class="stat-label">{{ _("отметок: %(n)s (был: %(p)s)", n=att_by_mode.offline.values()|sum, p=att_by_mode.offline.get('present', 0)) }}</span>
+  </a>
+  <div class="card crm-kpi">
+    <span class="eyebrow">{{ _("Групп") }}</span>
+    <span class="stat-value num">{{ groups|length }}</span>
+    <span class="stat-label">{{ _("курсов: %(n)s", n=courses|length) }}</span>
+  </div>
+  <div class="card crm-kpi">
+    <span class="eyebrow">{{ _("Локаций") }}</span>
+    <span class="stat-value num">{{ locations|length }}</span>
+    <span class="stat-label">{{ _("активных кабинетов") }}</span>
+  </div>
+</div>
+
+{# Filter Bar #}
+<form method="get" action="{{ url_for('academic.schedule') }}" class="card card--tight">
+  <div class="crm-filters">
+    <select class="select select--sm" name="lesson_mode">
+      <option value="">{{ _("Все форматы") }}</option>
+      {% for m in LESSON_MODES %}<option value="{{ m }}" {{ 'selected' if filters.lesson_mode == m }}>{{ LESSON_MODE_LABELS[m] }}</option>{% endfor %}
+    </select>
+    <select class="select select--sm" name="group_id">
+      <option value="">{{ _("Все группы") }}</option>
+      {% for g in groups %}<option value="{{ g.id }}" {{ 'selected' if filters.group_id == g.id }}>{{ g.name }}</option>{% endfor %}
+    </select>
+    <select class="select select--sm" name="location_id">
+      <option value="">{{ _("Все локации") }}</option>
+      {% for loc in locations %}<option value="{{ loc.id }}" {{ 'selected' if filters.location_id == loc.id }}>{{ loc.name }}</option>{% endfor %}
+    </select>
+    <input class="input input--sm" type="date" name="date_from" value="{{ filters.date_from }}">
+    <input class="input input--sm" type="date" name="date_to" value="{{ filters.date_to }}">
+    <button class="btn btn--primary btn--sm" type="submit">{{ _("Показать") }}</button>
+    <a class="btn btn--ghost btn--sm" href="{{ url_for('academic.schedule') }}">{{ _("Сброс") }}</a>
+  </div>
+</form>
+
+{# Supervisor / Admin Management Forms #}
+{% if current_user.has_perm('academic.schedule.manage') %}
+<div class="grid grid-2">
+  <details class="card card--tight">
+    <summary class="t-add-card__sum" style="justify-content:flex-start;padding:0">{{ _("Добавить урок") }}</summary>
+    <form method="post" action="{{ url_for('academic.lesson_create') }}" class="stack-sm" style="margin-top:12px">
+      {{ ui.csrf() }}
+      <select class="select input--sm" name="group_id" required>
+        <option value="">{{ _("Выберите группу...") }}</option>
+        {% for g in groups %}<option value="{{ g.id }}">{{ g.name }} ({{ g.course.name }})</option>{% endfor %}
+      </select>
+      <div class="row" style="gap:8px">
+        <input class="input input--sm" type="datetime-local" name="starts_at" required style="flex:1">
+        <select class="select input--sm" name="lesson_mode" style="width:auto">
+          <option value="offline">{{ _("Офлайн") }}</option>
+          <option value="online">{{ _("Онлайн") }}</option>
+        </select>
+      </div>
+      <div class="row" style="gap:8px">
+        <select class="select input--sm" name="location_id" style="flex:1">
+          <option value="">{{ _("Локация (для офлайн)") }}</option>
+          {% for loc in locations %}<option value="{{ loc.id }}">{{ loc.name }}{% if loc.room %} · {{ loc.room }}{% endif %}</option>{% endfor %}
+        </select>
+        <input class="input input--sm" name="meeting_url" placeholder="https://meet.google.com/..." style="flex:1">
+      </div>
+      <input class="input input--sm" name="topic" placeholder="{{ _('Тема занятия') }}">
+      <button class="btn btn--primary btn--sm" type="submit">{{ _("Создать урок") }}</button>
+    </form>
+  </details>
+
+  <details class="card card--tight">
+    <summary class="t-add-card__sum" style="justify-content:flex-start;padding:0">{{ _("Локации, курсы и группы") }}</summary>
+    <div class="stack" style="margin-top:12px">
+      <form method="post" action="{{ url_for('academic.location_create') }}" class="row" style="gap:6px">
+        {{ ui.csrf() }}
+        <input class="input input--sm" name="name" required placeholder="{{ _('Новая локация') }}" style="flex:1">
+        <input class="input input--sm" name="room" placeholder="{{ _('Кабинет') }}" style="width:110px">
+        <button class="btn btn--secondary btn--sm" type="submit">+</button>
+      </form>
+      <form method="post" action="{{ url_for('academic.course_create') }}" class="row" style="gap:6px">
+        {{ ui.csrf() }}
+        <input class="input input--sm" name="code" required placeholder="SAT-MATH" style="width:110px">
+        <input class="input input--sm" name="name" required placeholder="{{ _('Название курса') }}" style="flex:1">
+        <button class="btn btn--secondary btn--sm" type="submit">+</button>
+      </form>
+      <form method="post" action="{{ url_for('academic.group_create') }}" class="stack-sm">
+        {{ ui.csrf() }}
+        <div class="row" style="gap:6px">
+          <input class="input input--sm" name="name" required placeholder="{{ _('Название группы') }}" style="flex:1">
+          <select class="select input--sm" name="course_id" required style="flex:1">
+            <option value="">{{ _("Курс...") }}</option>
+            {% for c in courses %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="row" style="gap:6px">
+          <select class="select input--sm" name="teacher_id" style="flex:1">
+            <option value="">{{ _("Учитель...") }}</option>
+            {% for t in teachers %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
+          </select>
+          <select class="select input--sm" name="default_location_id" style="flex:1">
+            <option value="">{{ _("Локация...") }}</option>
+            {% for loc in locations %}<option value="{{ loc.id }}">{{ loc.name }}</option>{% endfor %}
+          </select>
+          <button class="btn btn--primary btn--sm" type="submit">{{ _("Создать группу") }}</button>
+        </div>
+      </form>
+    </div>
+  </details>
+</div>
+{% endif %}
+
+{# Lessons Table #}
+{% if lessons %}
+<div class="table-wrap">
+  <table class="table crm-table">
+    <thead>
+      <tr>
+        <th>{{ _("Дата / время") }}</th>
+        <th>{{ _("Группа / курс") }}</th>
+        <th>{{ _("Формат") }}</th>
+        <th>{{ _("Локация / ссылка") }}</th>
+        <th>{{ _("Учитель") }}</th>
+        <th>{{ _("Посещаемость") }}</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in lessons %}
+      <tr>
+        <td class="small nowrap num">{{ l.starts_at|d('d MMM y, HH:mm') }}</td>
+        <td>
+          <div class="t-strong">{{ l.group.name }}</div>
+          <div class="small muted">{{ l.group.course.name }}{% if l.topic %} · {{ l.topic }}{% endif %}</div>
+        </td>
+        <td><span class="tag {{ 'tag--soft' if l.lesson_mode == 'online' else 'tag--line' }} tag--xs">{{ LESSON_MODE_LABELS.get(l.lesson_mode, l.lesson_mode) }}</span></td>
+        <td class="small">
+          {% if l.lesson_mode == 'online' %}
+            {% if l.meeting_url %}<a href="{{ l.meeting_url }}" target="_blank" rel="noopener">{{ _("Ссылка на урок") }}</a>{% else %}<span class="muted">—</span>{% endif %}
+          {% else %}
+            {{ l.location.name if l.location else '—' }}{% if l.location and l.location.room %} · {{ l.location.room }}{% endif %}
+          {% endif %}
+        </td>
+        <td class="small">{{ l.teacher.name if l.teacher else '—' }}</td>
+        <td class="small num">{{ l.attendances|length }}</td>
+        <td><a class="btn btn--secondary btn--sm" href="{{ url_for('academic.lesson_detail', lesson_id=l.id) }}">{{ _("Открыть") }}</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty"><h3>{{ _("Занятий пока нет") }}</h3></div>
+{% endif %}
+{% endblock %}
