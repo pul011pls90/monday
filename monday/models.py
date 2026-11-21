@@ -63,6 +63,7 @@ class User(UserMixin, db.Model):
     auth_provider = db.Column(db.String(16), nullable=False, default="password")  # password | google
     google_sub = db.Column(db.String(64), unique=True, nullable=True, index=True)  # immutable Google OIDC subject ID
     session_version = db.Column(db.Integer, nullable=False, default=1)  # bumped on password change/reset or block
+    must_change_password = db.Column(db.Boolean, nullable=False, default=False)  # force password rotation on first login
     login_count = db.Column(db.Integer, nullable=False, default=0)  # total successful sign-ins
     last_seen_at = db.Column(db.DateTime)  # updated at most every few minutes
     total_visits = db.Column(db.Integer, nullable=False, default=0)  # cached by daily analytics job

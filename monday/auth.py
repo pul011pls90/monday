@@ -19,6 +19,8 @@ bp = Blueprint("auth", __name__)
 
 
 def _home_for(user):
+    if getattr(user, "must_change_password", False):
+        return url_for("auth.force_password_change")
     if user.role in ("sales_manager", "supervisor"):
         return url_for("manager.dashboard")
     if user.is_assistant:
@@ -348,6 +350,39 @@ def pending():
     if current_user.is_approved:
         return redirect(_home_for(current_user))
     return render_template("auth/pending.html")
+
+
+@bp.route("/change-password", methods=["GET", "POST"])
+@login_required
+def force_password_change():
+    """Mandatory password change screen when `must_change_password` is True."""
+    if request.method == "POST":
+        cur_pw = request.form.get("current", "")
+        new_pw = request.form.get("new", "")
+        confirm_pw = request.form.get("confirm", "")
+        errors = []
+        if not current_user.check_password(cur_pw):
+            errors.append(_("Текущий пароль неверный."))
+        if len(new_pw) < 8:
+            errors.append(_("Новый пароль должен быть не короче 8 символов."))
+        if new_pw and new_pw == cur_pw:
+            errors.append(_("Новый пароль должен отличаться от временного."))
+        if confirm_pw and confirm_pw != new_pw:
+            errors.append(_("Пароли не совпадают."))
+        if errors:
+            for e in errors:
+                flash(e, "error")
+            return render_template("auth/change_password.html"), 400
+
+        user_obj = current_user._get_current_object()
+        user_obj.set_password(new_pw)  # increments session_version -> revokes other sessions
+        user_obj.must_change_password = False
+        db.session.commit()
+        session.clear()
+        login_user(user_obj, remember=False)
+        flash(_("Пароль успешно обновлён."), "success")
+        return redirect(_home_for(user_obj))
+    return render_template("auth/change_password.html")
 
 
 @bp.route("/prefs/theme", methods=["POST"])
