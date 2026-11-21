@@ -263,10 +263,33 @@ def test_pipeline_shell_toolbar_csrf_and_rbac():
         leads_html = c.get("/manager/pipeline").data.decode()
         assert "Сделки по этапам — от первого обращения до оплаты." in leads_html
         assert "mgr-pipeline-filter" in leads_html
-        assert "mgr-col--new" in leads_html
+        assert 'class="mgr-col"' in leads_html
 
-    for denied_email in ("stu@monday.kg", "tch@monday.kg"):
-        c = _login_csrf(app.test_client(), denied_email)
-        assert c.get("/manager/pipeline").status_code == 403
-        assert c.get("/manager/pipeline?tab=clients").status_code == 403
+        for check_url in ("/manager/", "/manager/leads", "/manager/finance", "/manager/account", "/academic/schedule"):
+            r = c.get(check_url)
+            assert r.status_code == 200, (email, check_url)
+            h = r.data.decode()
+            assert 'class="app-shell-panel"' in h
+            for form_html in re.findall(r"<form\b[^>]*method=[\"']post[\"'][^>]*>.*?</form>", h, flags=re.I | re.S):
+                assert 'name="csrf_token"' in form_html
+
+    # Verify Audit sidebar link & route are strictly hidden from sales_manager (403) and shown to supervisor
+    mgr_c = _login_csrf(app.test_client(), "mgr@monday.kg")
+    mgr_dash = mgr_c.get("/manager/").data.decode()
+    assert "/manager/audit" not in mgr_dash
+    assert mgr_c.get("/manager/audit").status_code == 403
+
+    sup_c = _login_csrf(app.test_client(), "sup@monday.kg")
+    sup_dash = sup_c.get("/manager/").data.decode()
+    assert "/manager/audit" in sup_dash
+    assert sup_c.get("/manager/audit").status_code == 200
+
+    stu_client = _login_csrf(app.test_client(), "stu@monday.kg")
+    for denied_url in ("/manager/pipeline", "/manager/pipeline?tab=clients", "/manager/leads", "/manager/finance", "/academic/schedule"):
+        assert stu_client.get(denied_url).status_code == 403, ("stu@monday.kg", denied_url)
+
+    tch_client = _login_csrf(app.test_client(), "tch@monday.kg")
+    for denied_url in ("/manager/pipeline", "/manager/pipeline?tab=clients", "/manager/leads", "/manager/finance"):
+        assert tch_client.get(denied_url).status_code == 403, ("tch@monday.kg", denied_url)
+    assert tch_client.get("/academic/schedule").status_code == 200
 

@@ -9,7 +9,7 @@
     _("Все обращения и заявки в одном месте.")
   ) %}
     <button type="button" class="mgr-btn mgr-btn--primary mgr-btn--sm" data-lead-drawer-open>{{ ui.icon('plus', 15) }}<span>{{ _("Новый лид") }}</span></button>
-    {{ mui.btn(_("Воронка"), href=url_for('manager.pipeline'), variant='secondary', size='sm', icon_name='list') }}
+    {{ mui.btn(_("Воронка"), href=url_for('manager.pipeline'), variant='secondary', size='sm', icon_name='kanban') }}
   {% endcall %}
 
   {# Row 1: Status Chips as Tabs with Live Counts #}

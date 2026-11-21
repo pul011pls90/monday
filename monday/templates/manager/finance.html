@@ -21,16 +21,16 @@
   {% endcall %}
 
   <div class="mgr-kpi-grid">
-    {{ mui.kpi(_("Выручка (30 дней)"), rev_30d ~ " KGS", _("за вычетом возвратов"), tone='ok', icon_name='bank', cls='mgr-kpi--money-ok', kgs_amount=rev_30d) }}
-    {{ mui.kpi(_("Общий долг"), total_debt ~ " KGS", _("абонементов с долгом: %(n)s", n=debt_passes|length) if total_debt else _("все оплаты закрыты"), tone='bad' if total_debt else 'ok', icon_name='flag' if total_debt else 'check', cls='mgr-kpi--money-bad' if total_debt else 'mgr-kpi--money-slate', kgs_amount=total_debt) }}
+    {{ mui.kpi(_("Выручка (30 дней)"), rev_30d ~ " KGS", _("за вычетом возвратов"), tone='ok', icon_name='dollar', cls='mgr-kpi--money-ok', kgs_amount=rev_30d) }}
+    {{ mui.kpi(_("Общий долг"), total_debt ~ " KGS", _("абонементов с долгом: %(n)s", n=debt_passes|length) if total_debt else _("все оплаты закрыты"), tone='bad' if total_debt else 'ok', icon_name='info' if total_debt else 'check', cls='mgr-kpi--money-bad' if total_debt else 'mgr-kpi--money-slate', kgs_amount=total_debt) }}
     {{ mui.kpi(_("Активные абонементы"), active_passes_count, _("действуют прямо сейчас"), tone='accent', icon_name='bookmark', cls='mgr-kpi--money-accent') }}
-    {{ mui.kpi(_("Скоро продление"), expiring_passes|length, _("осталось 1–2 урока или до 7 дней") if expiring_passes else _("срочных продлений нет"), tone='warn' if expiring_passes else 'ok', icon_name='bell' if expiring_passes else 'clock', cls='mgr-kpi--money-warn') }}
+    {{ mui.kpi(_("Скоро продление"), expiring_passes|length, _("осталось 1–2 урока или до 7 дней") if expiring_passes else _("срочных продлений нет"), tone='warn' if expiring_passes else 'ok', icon_name='clock', cls='mgr-kpi--money-warn') }}
   </div>
 
   <div class="mgr-detail-grid mgr-finance-grid">
     <div class="mgr-finance-col">
       {% call mui.card() %}
-        {{ mui.section_head('bank', _("Журнал операций"), count=recent_tx|length) }}
+        {{ mui.section_head('dollar', _("Журнал операций"), count=recent_tx|length) }}
         {% if recent_tx %}
           {% call mui.table_wrap() %}
             <table class="mgr-table">

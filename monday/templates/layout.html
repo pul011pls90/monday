@@ -31,18 +31,18 @@
         ('reports.inbox', 'flag', _('Исправления'), ['reports.inbox']),
       ] %}
       {% if current_user.can_review %}{% set teacher_extra = teacher_extra + [('review.queue', 'check', _('Модерация'), ['review.queue'])] %}{% endif %}
-      {% if current_user.is_admin %}{% set teacher_extra = teacher_extra + [('manager.dashboard', 'inbox', _('CRM'), ['manager.dashboard', 'manager.leads', 'manager.lead_detail', 'manager.pipeline', 'manager.student_detail', 'manager.finance', 'manager.audit', 'manager.account']), ('admin.index', 'shield', _('Админ'), ['admin.index']), ('analytics.dashboard', 'chart', _('Аналитика'), ['analytics.dashboard'])] %}{% endif %}
+      {% if current_user.is_admin %}{% set teacher_extra = teacher_extra + [('manager.dashboard', 'dashboard', _('CRM'), ['manager.dashboard', 'manager.leads', 'manager.lead_detail', 'manager.pipeline', 'manager.student_detail', 'manager.finance', 'manager.audit', 'manager.account']), ('admin.index', 'shield', _('Админ'), ['admin.index']), ('analytics.dashboard', 'chart', _('Аналитика'), ['analytics.dashboard'])] %}{% endif %}
       {% set primary = ['teacher.dashboard', 'teacher.students', 'teacher.works', 'teacher.review', 'teacher.bank'] %}
     {% elif current_user.role in ('sales_manager', 'supervisor') %}
       <a class="rail__logo" href="{{ url_for('manager.dashboard') }}" aria-label="Monday">M</a>
       {% set items = [
-        ('manager.dashboard', 'home', _('Сегодня'), ['manager.dashboard']),
+        ('manager.dashboard', 'dashboard', _('Сегодня'), ['manager.dashboard']),
         ('manager.leads', 'users', _('Лиды'), ['manager.leads', 'manager.lead_detail']),
-        ('manager.pipeline', 'list', _('Воронка'), ['manager.pipeline', 'manager.student_detail']),
+        ('manager.pipeline', 'kanban', _('Воронка'), ['manager.pipeline', 'manager.student_detail']),
         ('academic.schedule', 'calendar', _('Расписание'), ['academic.schedule', 'academic.lesson_detail']),
-        ('manager.finance', 'bank', _('Финансы'), ['manager.finance']),
+        ('manager.finance', 'dollar', _('Финансы'), ['manager.finance']),
       ] %}
-      {% if current_user.is_crm_supervisor %}{% set items = items + [('manager.audit', 'shield', _('Аудит'), ['manager.audit'])] %}{% endif %}
+      {% if current_user.is_crm_supervisor %}{% set items = items + [('manager.audit', 'shield-check', _('Аудит'), ['manager.audit'])] %}{% endif %}
       {% set primary = ['manager.dashboard', 'manager.leads', 'manager.pipeline', 'academic.schedule', 'manager.finance'] %}
     {% elif current_user.is_assistant %}
       <a class="rail__logo" href="{{ url_for('assistant.home') }}" aria-label="Monday">M</a>
@@ -98,7 +98,7 @@
     {% elif current_user.role in ('sales_manager', 'supervisor') %}
       <div class="rail__foot">
         <a class="rail__item{{ ' is-active' if ep == 'manager.account' }}" href="{{ url_for('manager.account') }}" title="{{ _('Настройки') }}" aria-label="{{ _('Настройки') }}"{{ ' aria-current=page' if ep == 'manager.account' }}>
-          {{ ui.icon('settings', 22) }}<span class="rail__label">{{ _('Настройки') }}</span>
+          {{ ui.icon('sliders', 20) }}<span class="rail__label">{{ _('Настройки') }}</span>
         </a>
       </div>
     {% endif %}
@@ -108,6 +108,8 @@
   {% set extras = items|rejectattr(0, 'in', primary)|list %}
   {% if current_user.is_teacher %}
     {% set extras = extras + teacher_extra + [('teacher.account', 'settings', _('Настройки'), ['teacher.account'])] %}
+  {% elif current_user.role in ('sales_manager', 'supervisor') %}
+    {% set extras = extras + [('manager.account', 'sliders', _('Настройки'), ['manager.account'])] %}
   {% elif current_user.role == 'student' %}
     {% set extras = extras + [
       ('student.support', 'chat', _('Поддержка'), ['student.support']),

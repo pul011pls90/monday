@@ -42,7 +42,7 @@
     {% for key in ('unassigned', 'at_risk', 'healthy', 'paused') %}
       {% set items = health_cols[key] %}
       {% set h_tone = 'bad' if key == 'at_risk' else ('ok' if key == 'healthy' else ('warn' if key == 'unassigned' else 'neutral')) %}
-      <section class="mgr-col mgr-col--health-{{ key }}">
+      <section class="mgr-col">
         <div class="mgr-col__head">
           {{ mui.badge(health_labels[key], tone=h_tone, dot=true) }}
           <span class="mgr-pill num">{{ items|length }}</span>
@@ -89,7 +89,7 @@
       {% set items = columns[st] %}
       {% set st_tone = 'ok' if st == 'won' else ('bad' if st == 'lost' else ('warn' if st in ('trial_scheduled', 'trial_done') else 'accent')) %}
       {% set moves = allowed_transitions.get(st, []) if allowed_transitions is defined else ([next_status_map[st]] if st in next_status_map else []) %}
-      <section class="mgr-col mgr-col--{{ st }}">
+      <section class="mgr-col">
         <div class="mgr-col__head">
           {{ mui.badge(STATUS_LABELS[st], tone=st_tone, dot=true) }}
           <span class="mgr-pill num">{{ items|length }}</span>

@@ -61,7 +61,7 @@
   {% if current_user.has_perm('academic.schedule.manage') %}
   <div class="mgr-detail-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
     <details class="mgr-card">
-      <summary class="t-add-card__sum" style="justify-content:flex-start;padding:0">{{ _("Добавить урок") }}</summary>
+      <summary class="t-add-card__sum">{{ _("Добавить урок") }}</summary>
       <form method="post" action="{{ url_for('academic.lesson_create') }}" class="stack-sm" style="margin-top:10px" data-lesson-form>
         {{ ui.csrf() }}
         <input type="hidden" name="starts_at" data-lesson-combined>
@@ -95,7 +95,7 @@
     </details>
 
     <details class="mgr-card">
-      <summary class="t-add-card__sum" style="justify-content:flex-start;padding:0">{{ _("Локации, курсы и группы") }}</summary>
+      <summary class="t-add-card__sum">{{ _("Локации, курсы и группы") }}</summary>
       <div class="stack" style="margin-top:10px">
         <form method="post" action="{{ url_for('academic.location_create') }}" class="row" style="gap:6px">
           {{ ui.csrf() }}
@@ -135,7 +135,7 @@
 
     {% if groups %}
     <details class="mgr-card" style="grid-column:1 / -1">
-      <summary class="t-add-card__sum" style="justify-content:flex-start;padding:0">{{ _("Состав учебных групп (зачисление и отчисление)") }}</summary>
+      <summary class="t-add-card__sum">{{ _("Состав учебных групп (зачисление и отчисление)") }}</summary>
       <div class="stack" style="margin-top:10px">
         {% for g in groups %}
           <div class="mgr-kanban-card">

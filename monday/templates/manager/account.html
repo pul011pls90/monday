@@ -110,11 +110,11 @@
       <div class="mgr-row-line">
         <div class="row" style="gap:8px;flex-wrap:wrap">
           {{ mui.btn(_("Список лидов"), href=url_for('manager.leads'), variant='secondary', size='sm', icon_name='users') }}
-          {{ mui.btn(_("Воронка продаж"), href=url_for('manager.pipeline'), variant='secondary', size='sm', icon_name='list') }}
-          {{ mui.btn(_("Финансы"), href=url_for('manager.finance'), variant='secondary', size='sm', icon_name='bank') }}
+          {{ mui.btn(_("Воронка продаж"), href=url_for('manager.pipeline'), variant='secondary', size='sm', icon_name='kanban') }}
+          {{ mui.btn(_("Финансы"), href=url_for('manager.finance'), variant='secondary', size='sm', icon_name='dollar') }}
           {{ mui.btn(_("Расписание"), href=url_for('academic.schedule'), variant='secondary', size='sm', icon_name='calendar') }}
           {% if current_user.is_crm_supervisor %}
-            {{ mui.btn(_("Журнал аудита"), href=url_for('manager.audit'), variant='secondary', size='sm', icon_name='shield') }}
+            {{ mui.btn(_("Журнал аудита"), href=url_for('manager.audit'), variant='secondary', size='sm', icon_name='shield-check') }}
           {% endif %}
         </div>
       </div>

@@ -16,9 +16,9 @@
       </button>
     </form>
     {{ mui.btn(_("Новый лид"), href=url_for('manager.leads') ~ '#new-lead', variant='primary', size='sm', icon_name='plus') }}
-    {{ mui.btn(_("Воронка"), href=url_for('manager.pipeline'), variant='secondary', size='sm', icon_name='list') }}
+    {{ mui.btn(_("Воронка"), href=url_for('manager.pipeline'), variant='secondary', size='sm', icon_name='kanban') }}
     {% if current_user.is_crm_supervisor %}
-      {{ mui.btn(_("Аудит"), href=url_for('manager.audit'), variant='ghost', size='sm', icon_name='shield') }}
+      {{ mui.btn(_("Аудит"), href=url_for('manager.audit'), variant='ghost', size='sm', icon_name='shield-check') }}
     {% endif %}
   {% endcall %}
 

@@ -89,7 +89,7 @@
       {% endcall %}
 
       <details class="mgr-card">
-        <summary class="t-add-card__sum" style="justify-content:flex-start;padding:0">{{ _("Редактировать данные лида") }}</summary>
+        <summary class="t-add-card__sum">{{ _("Редактировать данные лида") }}</summary>
         <form method="post" action="{{ url_for('manager.lead_edit', lead_id=lead.id) }}" class="stack-sm" style="margin-top:8px">
           {{ ui.csrf() }}
           <div class="grid grid-2">

@@ -15,7 +15,7 @@
     {% if total_debt %}
       {{ mui.badge(_("Долг") ~ ": " ~ total_debt ~ " KGS", tone='bad', dot=true) }}
     {% endif %}
-    {{ mui.btn(_("Финансы"), href=url_for('manager.finance'), variant='secondary', size='sm', icon_name='bank') }}
+    {{ mui.btn(_("Финансы"), href=url_for('manager.finance'), variant='secondary', size='sm', icon_name='dollar') }}
   {% endcall %}
 
   <div class="mgr-detail-grid">
@@ -80,7 +80,7 @@
 
     <div class="stack">
       {% call mui.card() %}
-        {{ mui.section_head('bank', _("Абонементы и оплаты"), count=passes|length) }}
+        {{ mui.section_head('dollar', _("Абонементы и оплаты"), count=passes|length) }}
         {% if passes %}
           <div class="stack-sm">
             {% for sp in passes %}
