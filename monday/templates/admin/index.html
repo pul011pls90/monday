@@ -36,7 +36,8 @@
 {# ------------------------------------------------------------ tabs #}
 {% set tabs = [('overview', _('Обзор'), None, false), ('apps', _('Заявки'), pending_teachers|length, true),
                ('moderation', _('Модерация'), pending_works|length + pending_questions, true), ('students', _('Ученики'), counts.student, false),
-               ('teachers', _('Учителя'), counts.teacher, false), ('assistants', _('Ассистенты'), counts.assistant, false),
+               ('teachers', _('Учителя'), counts.teacher, false), ('managers', _('Менеджеры'), counts.sales_manager, false),
+               ('supervisors', _('Супервайзеры'), counts.supervisor, false), ('assistants', _('Ассистенты'), counts.assistant, false),
                ('admins', _('Админы'), counts.admin, false)] %}
 <nav class="admin-tabs" aria-label="{{ _('Разделы') }}">
   {% for key, label, n, hot in tabs %}

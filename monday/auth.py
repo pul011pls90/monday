@@ -19,6 +19,8 @@ bp = Blueprint("auth", __name__)
 
 
 def _home_for(user):
+    if user.role in ("sales_manager", "supervisor"):
+        return url_for("manager.dashboard")
     if user.is_assistant:
         return url_for("assistant.home")
     if user.is_teacher:

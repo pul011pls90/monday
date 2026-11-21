@@ -7,7 +7,7 @@ from flask_babel import gettext as _
 from flask_login import current_user
 from sqlalchemy import func
 
-from .access import admin_required
+from .access import ROLES, admin_required
 from .constants import EXAMS
 from .extensions import db
 from .models import (Attempt, ContentNode, LoginEvent, Question, StudentProfile, StudentRecord, User, Work, utcnow)
@@ -15,8 +15,15 @@ from .services import content_gaps, progress_summary, temporary_password
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
 
-TABS = ("overview", "apps", "moderation", "students", "teachers", "assistants", "admins")
-PEOPLE = {"students": "student", "teachers": "teacher", "assistants": "assistant", "admins": "admin"}
+TABS = ("overview", "apps", "moderation", "students", "teachers", "managers", "supervisors", "assistants", "admins")
+PEOPLE = {
+    "students": "student",
+    "teachers": "teacher",
+    "managers": "sales_manager",
+    "supervisors": "supervisor",
+    "assistants": "assistant",
+    "admins": "admin",
+}
 PER_PAGE = 25
 THIN = 3  # a skill with fewer published questions than this needs content
 
@@ -81,7 +88,7 @@ def index():
         tab = "overview"
     pending_teachers = User.query.filter_by(role="teacher", is_approved=False).order_by(User.created_at).all()
     pending_works = Work.query.filter_by(status="pending").order_by(Work.updated_at).all()
-    counts = {r: User.query.filter_by(role=r).count() for r in ("student", "teacher", "assistant", "admin")}
+    counts = {r: User.query.filter_by(role=r).count() for r in ROLES}
     pending_questions = Question.query.filter_by(status="pending").count()
     ctx = {"tab": tab, "pending_teachers": pending_teachers, "pending_works": pending_works, "counts": counts,
            "pending_questions": pending_questions,
@@ -195,11 +202,23 @@ def set_role(user_id):
     role = request.form.get("role")
     if u.id == current_user.id:
         flash(_("Нельзя менять собственную роль."), "error")
-    elif role in ("student", "teacher", "assistant", "admin"):
+    elif role in ROLES:
+        old_role = u.role
         u.role = role
         u.is_approved = True
         if role == "student" and not u.profile:
             u.profile = StudentProfile()
+        if old_role != role:
+            from .audit import write_audit_log
+            write_audit_log(
+                actor_id=current_user.id,
+                action="role_change",
+                entity_type="user",
+                entity_id=u.id,
+                old_value={"role": old_role},
+                new_value={"role": role},
+                reason=request.form.get("reason", ""),
+            )
         db.session.commit()
         flash(_("%(name)s: роль изменена.", name=u.name), "success")
     return _back()
@@ -230,7 +249,7 @@ def reset_password(user_id):
     notice = _("Временный пароль для %(name)s: %(password)s. Он показан один раз.", name=u.name, password=raw)
     pending_teachers = User.query.filter_by(role="teacher", is_approved=False).order_by(User.created_at).all()
     pending_works = Work.query.filter_by(status="pending").order_by(Work.updated_at).all()
-    counts = {r: User.query.filter_by(role=r).count() for r in ("student", "teacher", "assistant", "admin")}
+    counts = {r: User.query.filter_by(role=r).count() for r in ROLES}
     pending_questions = Question.query.filter_by(status="pending").count()
     resp = make_response(render_template(
         "admin/index.html", tab="overview", ov=_overview(), pending_teachers=pending_teachers,

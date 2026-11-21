@@ -78,7 +78,7 @@ def create_app(config_object=Config, *, seed_if_empty=True):
             return None
         return u
 
-    from . import admin, assistant, auth, bank, daily, picker, student, teacher
+    from . import academic, admin, assistant, auth, bank, crm_intake, daily, manager, picker, student, teacher
     app.register_blueprint(auth.bp)
     app.register_blueprint(student.bp)
     app.register_blueprint(bank.bp)
@@ -87,6 +87,9 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     app.register_blueprint(assistant.bp)
     app.register_blueprint(assistant.review_bp)
     app.register_blueprint(teacher.bp)
+    app.register_blueprint(manager.bp)
+    app.register_blueprint(crm_intake.bp)
+    app.register_blueprint(academic.bp)
     from . import reports
     app.register_blueprint(reports.bp)
     app.register_blueprint(admin.bp)

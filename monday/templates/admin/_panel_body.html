@@ -8,7 +8,7 @@
       <b class="person__name">{{ u.name }}</b>
       <span class="small muted">{{ u.email }}</span>
       <div class="chips">
-        <span class="tag tag--soft">{{ {'student': _('ученик'), 'teacher': _('учитель'), 'assistant': _('ассистент'), 'admin': _('админ')}[u.role] }}</span>
+        <span class="tag tag--soft">{{ {'student': _('ученик'), 'teacher': _('учитель'), 'assistant': _('ассистент'), 'sales_manager': _('менеджер продаж'), 'supervisor': _('супервайзер'), 'admin': _('админ')}.get(u.role, u.role) }}</span>
         {% if u.is_methodist and u.role == 'teacher' %}<span class="tag tag--line">{{ _("методист") }}</span>{% endif %}
         {% if u.role == 'teacher' and not u.is_approved %}<span class="tag tag--warn">{{ _("ждёт подтверждения") }}</span>{% endif %}
         {% if u.is_blocked %}<span class="tag tag--bad">{{ _("заблокирован") }}</span>{% endif %}
@@ -83,7 +83,7 @@
       <input type="hidden" name="next" value="{{ back }}">
       <label class="sr-only" for="pr-role">{{ _("Роль") }}</label>
       <select class="select" id="pr-role" name="role" style="flex:1">
-        {% for r, l in [('student', _('Ученик')), ('teacher', _('Учитель')), ('assistant', _('Ассистент')), ('admin', _('Админ'))] %}<option value="{{ r }}" {{ 'selected' if u.role == r }}>{{ l }}</option>{% endfor %}
+        {% for r, l in [('student', _('Ученик')), ('teacher', _('Учитель')), ('sales_manager', _('Менеджер продаж')), ('supervisor', _('Супервайзер')), ('assistant', _('Ассистент')), ('admin', _('Админ'))] %}<option value="{{ r }}" {{ 'selected' if u.role == r }}>{{ l }}</option>{% endfor %}
       </select>
       <button class="btn btn--secondary" type="submit">{{ _("Сменить роль") }}</button>
     </form>

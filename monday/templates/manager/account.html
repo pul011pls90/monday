@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Настройки · CRM") }}{% endblock %}
+{% block context %}{{ _("Настройки аккаунта") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Настройки") }}</h1>
+    <p>{{ current_user.name }} · {{ current_user.email }}</p>
+  </div>
+</div>
+
+<section class="card" style="max-width:560px">
+  <h2 style="font-size:18px">{{ _("Смена пароля") }}</h2>
+  <form method="post" action="{{ url_for('manager.account') }}" class="stack">
+    {{ ui.csrf() }}
+    <input type="hidden" name="action" value="password">
+    <div class="field"><label for="pw-cur">{{ _("Текущий пароль") }}</label><input class="input" id="pw-cur" type="password" name="current" required></div>
+    <div class="field"><label for="pw-new">{{ _("Новый пароль (от 8 символов)") }}</label><input class="input" id="pw-new" type="password" name="new" minlength="8" required></div>
+    <div><button class="btn btn--primary" type="submit">{{ _("Обновить пароль") }}</button></div>
+  </form>
+</section>
+{% endblock %}
