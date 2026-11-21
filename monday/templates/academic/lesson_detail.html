@@ -2,110 +2,117 @@
 {% block title %}{{ lesson.group.name }} · {{ _("Урок") }}{% endblock %}
 {% block context %}{{ _("Посещаемость урока") }}{% endblock %}
 {% block content %}
-<div class="page-head">
-  <div class="page-head__text">
-    <div class="row" style="gap:8px;align-items:center">
-      <a class="small muted" href="{{ url_for('academic.schedule') }}">← {{ _("Расписание") }}</a>
-      <span class="tag {{ 'tag--soft' if lesson.lesson_mode == 'online' else 'tag--line' }} tag--xs">{{ LESSON_MODE_LABELS.get(lesson.lesson_mode, lesson.lesson_mode) }}</span>
+<div class="crm-workspace">
+  <div class="t-hero-bar">
+    <div class="t-hero-bar__title">
+      <div class="row" style="gap:8px;align-items:center">
+        <a class="small muted" href="{{ url_for('academic.schedule') }}">← {{ _("Расписание") }}</a>
+        <span class="tag {{ 'tag--soft' if lesson.lesson_mode == 'online' else 'tag--line' }} tag--xs">{{ LESSON_MODE_LABELS.get(lesson.lesson_mode, lesson.lesson_mode) }}</span>
+      </div>
+      <h1>{{ lesson.group.name }} · {{ lesson.starts_at|d('d MMM y, HH:mm') }}</h1>
+      <p>{{ lesson.group.course.name }}{% if lesson.topic %} · {{ lesson.topic }}{% endif %}{% if lesson.teacher %} · {{ lesson.teacher.name }}{% endif %}{% if lesson.location %} · {{ lesson.location.name }}{% endif %}</p>
     </div>
-    <h1>{{ lesson.group.name }} · {{ lesson.starts_at|d('d MMM y, HH:mm') }}</h1>
-    <p>{{ lesson.group.course.name }}{% if lesson.topic %} · {{ lesson.topic }}{% endif %}{% if lesson.teacher %} · {{ lesson.teacher.name }}{% endif %}{% if lesson.location %} · {{ lesson.location.name }}{% endif %}</p>
-  </div>
-</div>
-
-{% if not can_mark %}
-  <div class="flash flash--info">
-    {% if is_retro_window_passed %}
-      {{ _("Режим чтения: прошло более 24 часов с начала занятия; ретро-правки доступны только супервайзеру или администратору с записью в аудит.") }}
-    {% else %}
-      {{ _("Режим чтения: менеджеры продаж могут просматривать расписание и посещаемость без редактирования.") }}
+    {% if lesson.lesson_mode == 'online' and lesson.meeting_url and lesson.meeting_url.startswith(('http://', 'https://')) %}
+    <div class="t-hero-actions">
+      <a class="btn btn--primary btn--min" href="{{ lesson.meeting_url }}" target="_blank" rel="noopener noreferrer">{{ ui.icon('link', 15) }}<span>{{ _("Ссылка на урок") }}</span></a>
+    </div>
     {% endif %}
   </div>
-{% endif %}
 
-{% if roster %}
-<div class="table-wrap">
-  <table class="table crm-table">
-    <thead>
-      <tr>
-        <th>{{ _("Ученик") }}</th>
-        <th>{{ _("Зачисление и абонемент") }}</th>
-        <th>{{ _("Текущий статус") }}</th>
-        <th>{{ _("Примечание") }}</th>
-        {% if can_mark %}<th>{{ _("Отметить / изменить") }}</th>{% endif %}
-      </tr>
-    </thead>
-    <tbody>
-      {% for st in roster %}
-        {% set att = att_by_student.get(st.id) %}
-        {% set enr = enrollment_by_student.get(st.id) %}
-        {% set stat = group_att_summary.get(st.id) %}
-        {% set sp = pass_by_student.get(st.id) %}
+  {% if not can_mark %}
+    <div class="flash flash--info">
+      {% if is_retro_window_passed %}
+        {{ _("Режим чтения: прошло более 24 часов с начала занятия; ретро-правки доступны только супервайзеру или администратору с записью в аудит.") }}
+      {% else %}
+        {{ _("Режим чтения: менеджеры продаж могут просматривать расписание и посещаемость без редактирования.") }}
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if roster %}
+  <div class="table-wrap">
+    <table class="table crm-table">
+      <thead>
         <tr>
-          <td class="t-strong">
-            {% if current_user.role in ('sales_manager', 'supervisor', 'admin') %}
-              <a href="{{ url_for('manager.student_detail', student_id=st.id) }}">{{ st.name }}</a>
-            {% else %}
-              {{ st.name }}
-            {% endif %}
-            <span class="small muted">#{{ st.id }}</span>
-          </td>
-          <td class="small">
-            {% if enr %}
-              <span class="tag {{ 'tag--ok' if enr.left_at is none else 'tag--warn' }} tag--xs">{{ enr.status }}</span>
-              <span class="muted num">{{ enr.enrolled_at|d('d MMM') }}</span>
-            {% else %}
-              <span class="tag tag--line tag--xs">{{ _("разовая запись") }}</span>
-            {% endif %}
-            {% if sp %}
-              <div>
-                <span class="tag {{ 'tag--ok' if sp.status == 'active' and (sp.lessons_remaining is none or sp.lessons_remaining > 2) else ('tag--warn' if sp.status == 'active' else 'tag--bad') }} tag--xs">
-                  {% if sp.lessons_total is not none %}{{ sp.lessons_remaining }}/{{ sp.lessons_total }} {{ _("ур.") }}{% else %}{{ _("безлимит") }}{% endif %}
-                </span>
-                {% if sp.debt_amount %}<span class="tag tag--bad tag--xs num">{{ _("Долг") }} {{ sp.debt_amount }}</span>{% endif %}
-              </div>
-            {% endif %}
-            {% if stat and stat.total %}
-              <div class="muted num">{{ _("Был") }}: {{ stat.present + stat.late }}/{{ stat.total }}{% if stat.absent %} · {{ _("Нет") }}: {{ stat.absent }}{% endif %}</div>
-            {% endif %}
-          </td>
-          <td>
-            {% if att %}
-              <span class="tag {{ 'tag--ok' if att.status == 'present' else ('tag--warn' if att.status in ('late', 'excused') else 'tag--bad') }} tag--xs">
-                {{ ATTENDANCE_LABELS.get(att.status, att.status) }}
-              </span>
-            {% else %}
-              <span class="small muted">{{ _("не отмечен") }}</span>
-            {% endif %}
-          </td>
-          <td class="small">{{ att.note if att and att.note else '—' }}</td>
-          {% if can_mark %}
-          <td>
-            <form method="post" action="{{ url_for('academic.lesson_mark_attendance', lesson_id=lesson.id) }}" class="row" style="gap:6px;flex-wrap:wrap">
-              {{ ui.csrf() }}
-              <input type="hidden" name="student_user_id" value="{{ st.id }}">
-              <div class="att-pills">
-                {% for s in LESSON_ATTENDANCE_STATUSES %}
-                  <label class="att-pill att-pill--{{ s }}">
-                    <input type="radio" name="status" value="{{ s }}" {{ 'checked' if (att and att.status == s) or (not att and s == 'present') }} required>
-                    <span>{{ ATTENDANCE_LABELS[s] }}</span>
-                  </label>
-                {% endfor %}
-              </div>
-              <input class="input input--sm" name="note" value="{{ att.note if att else '' }}" placeholder="{{ _('Заметка') }}" style="width:130px;min-height:32px">
-              {% if att and is_retro_window_passed %}
-                <input class="input input--sm" name="reason" required placeholder="{{ _('Причина ретро-правки *') }}" style="width:170px;min-height:32px">
-              {% endif %}
-              <button class="btn btn--primary btn--sm" type="submit" style="min-height:32px;padding:0 12px">{{ _("Сохранить") }}</button>
-            </form>
-          </td>
-          {% endif %}
+          <th>{{ _("Ученик") }}</th>
+          <th>{{ _("Зачисление и абонемент") }}</th>
+          <th>{{ _("Текущий статус") }}</th>
+          <th>{{ _("Примечание") }}</th>
+          {% if can_mark %}<th>{{ _("Отметить / изменить") }}</th>{% endif %}
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for st in roster %}
+          {% set att = att_by_student.get(st.id) %}
+          {% set enr = enrollment_by_student.get(st.id) %}
+          {% set stat = group_att_summary.get(st.id) %}
+          {% set sp = pass_by_student.get(st.id) %}
+          <tr>
+            <td class="t-strong">
+              {% if current_user.role in ('sales_manager', 'supervisor', 'admin') %}
+                <a href="{{ url_for('manager.student_detail', student_id=st.id) }}">{{ st.name }}</a>
+              {% else %}
+                {{ st.name }}
+              {% endif %}
+              <span class="small muted">#{{ st.id }}</span>
+            </td>
+            <td class="small">
+              {% if enr %}
+                <span class="tag {{ 'tag--ok' if enr.left_at is none else 'tag--warn' }} tag--xs">{{ enr.status }}</span>
+                <span class="muted num">{{ enr.enrolled_at|d('d MMM') }}</span>
+              {% else %}
+                <span class="tag tag--line tag--xs">{{ _("разовая запись") }}</span>
+              {% endif %}
+              {% if sp %}
+                <div>
+                  <span class="tag {{ 'tag--ok' if sp.status == 'active' and (sp.lessons_remaining is none or sp.lessons_remaining > 2) else ('tag--warn' if sp.status == 'active' else 'tag--bad') }} tag--xs">
+                    {% if sp.lessons_total is not none %}{{ sp.lessons_remaining }}/{{ sp.lessons_total }} {{ _("ур.") }}{% else %}{{ _("безлимит") }}{% endif %}
+                  </span>
+                  {% if sp.debt_amount %}<span class="tag tag--bad tag--xs num">{{ _("Долг") }} {{ sp.debt_amount }}</span>{% endif %}
+                </div>
+              {% endif %}
+              {% if stat and stat.total %}
+                <div class="muted num">{{ _("Был") }}: {{ stat.present + stat.late }}/{{ stat.total }}{% if stat.absent %} · {{ _("Нет") }}: {{ stat.absent }}{% endif %}</div>
+              {% endif %}
+            </td>
+            <td>
+              {% if att %}
+                <span class="tag {{ 'tag--ok' if att.status == 'present' else ('tag--warn' if att.status in ('late', 'excused') else 'tag--bad') }} tag--xs">
+                  {{ ATTENDANCE_LABELS.get(att.status, att.status) }}
+                </span>
+              {% else %}
+                <span class="small muted">{{ _("не отмечен") }}</span>
+              {% endif %}
+            </td>
+            <td class="small">{{ att.note if att and att.note else '—' }}</td>
+            {% if can_mark %}
+            <td>
+              <form method="post" action="{{ url_for('academic.lesson_mark_attendance', lesson_id=lesson.id) }}" class="row" style="gap:6px;flex-wrap:wrap">
+                {{ ui.csrf() }}
+                <input type="hidden" name="student_user_id" value="{{ st.id }}">
+                <div class="att-pills">
+                  {% for s in LESSON_ATTENDANCE_STATUSES %}
+                    <label class="att-pill att-pill--{{ s }}">
+                      <input type="radio" name="status" value="{{ s }}" {{ 'checked' if (att and att.status == s) or (not att and s == 'present') }} required>
+                      <span>{{ ATTENDANCE_LABELS[s] }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+                <input class="input input--sm" name="note" value="{{ att.note if att else '' }}" placeholder="{{ _('Заметка') }}" style="width:130px;min-height:32px">
+                {% if att and is_retro_window_passed %}
+                  <input class="input input--sm" name="reason" required placeholder="{{ _('Причина ретро-правки *') }}" style="width:170px;min-height:32px">
+                {% endif %}
+                <button class="btn btn--primary btn--min" type="submit" style="min-height:32px;padding:0 12px">{{ _("Сохранить") }}</button>
+              </form>
+            </td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><h3>{{ _("В группе пока нет зачисленных учеников") }}</h3></div>
+  {% endif %}
 </div>
-{% else %}
-<div class="empty"><h3>{{ _("В группе пока нет зачисленных учеников") }}</h3></div>
-{% endif %}
 {% endblock %}

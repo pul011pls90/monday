@@ -184,3 +184,64 @@ def test_phase_a_schedule_multiview_conflicts_and_lesson_register():
     assert "Aliya" in reg
     assert "active" in reg
     assert "att-pills" in reg
+
+
+def test_crm_workspace_headers_wide_grids_csrf_and_rail_badges():
+    import re
+    app = _make_isolated_app()
+    m1_id = _seed(app, "m1@example.com", "Mgr", "sales_manager")
+    sup_id = _seed(app, "sup@example.com", "Supervisor", "supervisor")
+    t_id = _seed(app, "t@example.com", "Teacher", "teacher")
+    s1_id = _seed(app, "s1@example.com", "Stu", "student", pw="StudentPw1!")
+
+    now = utcnow()
+    with app.app_context():
+        l1 = Lead(full_name="Unanswered Lead", phone="+996500999", assigned_manager_id=m1_id, converted_student_id=s1_id, status="new")
+        db.session.add(l1)
+        db.session.flush()
+        db.session.add(LeadTask(lead_id=l1.id, assignee_id=m1_id, due_at=now + timedelta(hours=1), note="Call now"))
+        course = AcademicCourse(code="C1", name="Course 1", exam="SAT")
+        db.session.add(course)
+        db.session.flush()
+        grp = StudyGroup(name="G1", course_id=course.id, teacher_id=t_id)
+        db.session.add(grp)
+        db.session.flush()
+        les = Lesson(group_id=grp.id, teacher_id=t_id, starts_at=now, lesson_mode="online")
+        db.session.add(les)
+        db.session.commit()
+        lead_id, les_id = l1.id, les.id
+
+    # Verify manager sees live .rail__count badges
+    c_mgr = app.test_client()
+    _login(c_mgr, "m1@example.com")
+    dash_mgr = c_mgr.get("/manager").data.decode()
+    assert 'class="rail__count"' in dash_mgr
+
+    # Verify supervisor renders all upgraded CRM & Academic pages with .crm-workspace + .t-hero-bar + valid CSRF on every POST form
+    c_sup = app.test_client()
+    _login(c_sup, "sup@example.com")
+    wide_routes = ("/manager", "/manager/leads", "/manager/pipeline", "/manager/finance", "/academic/schedule")
+    all_routes = wide_routes + (
+        "/manager/pipeline?mode=students",
+        f"/manager/leads/{lead_id}",
+        f"/manager/students/{s1_id}",
+        "/manager/audit",
+        "/manager/account",
+        f"/academic/lessons/{les_id}",
+    )
+    for route in all_routes:
+        resp = c_sup.get(route)
+        assert resp.status_code == 200, f"{route} -> {resp.status_code}"
+        html = resp.data.decode()
+        assert 'class="crm-workspace"' in html, f"Missing .crm-workspace on {route}"
+        assert 'class="t-hero-bar"' in html, f"Missing .t-hero-bar on {route}"
+        if route in wide_routes:
+            assert "page--wide" in html, f"Missing .page--wide on {route}"
+        for form_match in re.finditer(r'<form[^>]*method="post"[^>]*>([\s\S]*?)</form>', html, flags=re.IGNORECASE):
+            assert 'name="csrf_token"' in form_match.group(1), f"Missing csrf_token in POST form on {route}"
+
+    leads_html = c_sup.get("/manager/leads").data.decode()
+    assert "t-add-card" not in leads_html
+    assert "data-lead-drawer-open" in leads_html
+    assert "crm-filter-grid" in leads_html
+    assert "crm-drawer" in leads_html

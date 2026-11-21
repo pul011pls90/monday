@@ -2,198 +2,216 @@
 {% block title %}{{ student.name }} · {{ _("Профиль ученика") }}{% endblock %}
 {% block context %}{{ _("Ученик") }} #{{ student.id }}{% endblock %}
 {% block content %}
-<div class="page-head">
-  <div class="page-head__text">
-    <div class="row" style="gap:10px;align-items:center">
-      <a class="small muted" href="{{ url_for('manager.pipeline', mode='students') }}">← {{ _("Активные ученики") }}</a>
-      {% if lead %}
-        <a class="tag tag--soft tag--xs" href="{{ url_for('manager.lead_detail', lead_id=lead.id) }}">{{ _("Лид") }} #{{ lead.id }}</a>
-      {% endif %}
-      {% if total_debt %}
-        <span class="tag tag--bad tag--xs num">{{ _("Долг") }}: {{ total_debt }} KGS</span>
-      {% endif %}
+<div class="crm-workspace">
+  <div class="t-hero-bar">
+    <div class="t-hero-bar__title">
+      <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
+        <a class="small muted" href="{{ url_for('manager.pipeline', mode='students') }}">← {{ _("Активные ученики") }}</a>
+        {% if lead %}
+          <a class="tag tag--soft tag--xs" href="{{ url_for('manager.lead_detail', lead_id=lead.id) }}">{{ _("Лид") }} #{{ lead.id }}</a>
+        {% endif %}
+        {% if total_debt %}
+          <span class="tag tag--bad tag--xs num">{{ _("Долг") }}: {{ total_debt }} KGS</span>
+        {% endif %}
+      </div>
+      <h1>{{ student.name }}</h1>
+      <p>{{ student.email }}{% if student.profile and student.profile.exam %} · {{ student.profile.exam }}{% endif %}{% if lead and lead.phone %} · {{ lead.phone }}{% endif %}</p>
     </div>
-    <h1>{{ student.name }}</h1>
-    <p>{{ student.email }}{% if student.profile and student.profile.exam %} · {{ student.profile.exam }}{% endif %}{% if lead and lead.phone %} · {{ lead.phone }}{% endif %}</p>
-  </div>
-</div>
-
-<div class="crm-split">
-  <div class="stack">
-    <section class="card card--tight">
-      <div class="card__head">
-        <h2 style="font-size:16px">{{ _("Группы и зачисления") }}</h2>
-        <span class="small muted num">{{ enrollments|length }}</span>
-      </div>
-      {% if enrollments %}
-      <div class="table-wrap" style="border:0;border-radius:0;box-shadow:none">
-        <table class="table crm-table">
-          <thead>
-            <tr>
-              <th>{{ _("Группа / курс") }}</th>
-              <th>{{ _("Статус") }}</th>
-              <th>{{ _("Период") }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for enr in enrollments %}
-            <tr>
-              <td>
-                <div class="t-strong">{{ enr.group.name if enr.group else ('#' ~ enr.group_id) }}</div>
-                <div class="small muted">{{ enr.course.name if enr.course else '' }}</div>
-              </td>
-              <td>
-                <span class="tag {{ 'tag--ok' if enr.left_at is none else 'tag--line' }} tag--xs">{{ enr.status }}</span>
-              </td>
-              <td class="small muted num">{{ enr.enrolled_at|d('d MMM y') }}{% if enr.left_at %} — {{ enr.left_at|d('d MMM y') }}{% endif %}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% else %}
-        <p class="small text-2">{{ _("Ученик ещё не зачислен ни в одну группу.") }}</p>
-      {% endif %}
-    </section>
-
-    <section class="card card--tight">
-      <div class="card__head">
-        <h2 style="font-size:16px">{{ _("Единая история") }}</h2>
-        <span class="small muted num">{{ timeline_counts[active_tab] }}</span>
-      </div>
-      <div class="admin-tabs" style="margin-bottom:12px">
-        <a class="{{ 'is-active' if active_tab == 'all' }}" href="{{ url_for('manager.student_detail', student_id=student.id, tab='all') }}">{{ _("Все") }} <span class="admin-tabs__n num">{{ timeline_counts.all }}</span></a>
-        <a class="{{ 'is-active' if active_tab == 'academic' }}" href="{{ url_for('manager.student_detail', student_id=student.id, tab='academic') }}">{{ _("Учёба") }} <span class="admin-tabs__n num">{{ timeline_counts.academic }}</span></a>
-        <a class="{{ 'is-active' if active_tab == 'finance' }}" href="{{ url_for('manager.student_detail', student_id=student.id, tab='finance') }}">{{ _("Оплаты") }} <span class="admin-tabs__n num">{{ timeline_counts.finance }}</span></a>
-        <a class="{{ 'is-active' if active_tab == 'comms' }}" href="{{ url_for('manager.student_detail', student_id=student.id, tab='comms') }}">{{ _("Переписка") }} <span class="admin-tabs__n num">{{ timeline_counts.comms }}</span></a>
-        <a class="{{ 'is-active' if active_tab == 'system' }}" href="{{ url_for('manager.student_detail', student_id=student.id, tab='system') }}">{{ _("Аудит") }} <span class="admin-tabs__n num">{{ timeline_counts.system }}</span></a>
-      </div>
-      {% if timeline %}
-      <ul class="crm-timeline">
-        {% for ev in timeline %}
-          <li class="crm-timeline__item">
-            <span class="crm-timeline__badge">{{ ev.badge }}</span>
-            <div>
-              <div class="crm-timeline__body">{{ ev.body }}</div>
-              <div class="crm-timeline__meta">{{ ev.actor_name }} · {{ ev.ts|d('d MMM y, HH:mm') }}</div>
-            </div>
-          </li>
-        {% endfor %}
-      </ul>
-      {% else %}
-        <p class="small text-2">{{ _("Событий пока нет.") }}</p>
-      {% endif %}
-    </section>
+    <div class="t-hero-actions">
+      <a class="btn btn--secondary btn--min" href="{{ url_for('manager.finance') }}">{{ ui.icon('bank', 15) }}<span>{{ _("Финансы") }}</span></a>
+    </div>
   </div>
 
-  <div class="stack">
-    <section class="card card--tight">
-      <h2 style="font-size:16px">{{ _("Абонементы и оплаты") }}</h2>
-      {% if passes %}
-        <div class="stack-sm">
-          {% for sp in passes %}
-            {% set rem_pct = ((sp.lessons_remaining / sp.lessons_total) * 100)|round|int if sp.lessons_total else 100 %}
-            <div class="crm-task" style="flex-direction:column;gap:8px;align-items:stretch">
-              <div class="row row--between" style="gap:8px">
-                <span class="t-strong small">{{ sp.plan.name if sp.plan else ('Тариф #' ~ sp.plan_id) }}</span>
-                <span class="tag {{ 'tag--ok' if sp.status == 'active' else ('tag--warn' if sp.status == 'frozen' else 'tag--bad') }} tag--xs">{{ PASS_STATUS_LABELS.get(sp.status, sp.status) }}</span>
-              </div>
-              <div class="row row--between small muted num">
-                <span>
-                  {% if sp.lessons_total is not none %}{{ _("Занятий") }}: {{ sp.lessons_remaining }} / {{ sp.lessons_total }}{% else %}{{ _("Безлимит по датам") }}{% endif %}
-                </span>
-                <span>{{ _("До") }} {{ sp.expires_at|d('d MMM y') if sp.expires_at else '—' }}</span>
-              </div>
-              {% if sp.lessons_total %}
-                <div class="crm-meter{{ ' crm-meter--bad' if sp.lessons_remaining <= 1 else (' crm-meter--warn' if sp.lessons_remaining <= 2) }}">
-                  <span style="width:{{ rem_pct }}%"></span>
-                </div>
-              {% endif %}
-              <div class="row row--between small num">
-                <span>{{ _("Оплачено") }}: <b>{{ sp.paid_amount }}</b> / {{ sp.agreed_price }} KGS</span>
-                {% if sp.debt_amount %}<span style="color:var(--bad);font-weight:700">{{ _("Долг") }}: {{ sp.debt_amount }}</span>{% endif %}
-              </div>
-              {% if current_user.has_perm('crm.finance.manage') %}
-              <form method="post" action="{{ url_for('manager.pass_update_status', pass_id=sp.id) }}" class="row" style="gap:6px">
-                {{ ui.csrf() }}
-                <select class="select crm-inline-select" name="status">
-                  {% for st_k, st_lbl in PASS_STATUS_LABELS.items() %}<option value="{{ st_k }}" {{ 'selected' if sp.status == st_k }}>{{ st_lbl }}</option>{% endfor %}
-                </select>
-                <button class="btn btn--secondary btn--sm" type="submit" style="min-height:30px;padding:0 10px">{{ _("Статус") }}</button>
-              </form>
-              {% endif %}
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="small text-2">{{ _("Активных абонементов пока нет.") }}</p>
-      {% endif %}
-
-      {% if current_user.has_perm('crm.finance.record') %}
-      <hr style="border:0;border-top:1px solid var(--line);margin:10px 0">
-      <form method="post" action="{{ url_for('manager.student_pass_create', student_id=student.id) }}" class="stack-sm">
-        {{ ui.csrf() }}
-        <div class="eyebrow">{{ _("Выдать абонемент") }}</div>
-        {% if plans %}
-          <select class="select input--sm" name="plan_id" required>
-            <option value="">{{ _("Выберите тариф...") }}</option>
-            {% for pl in plans %}<option value="{{ pl.id }}">{{ pl.name }} · {{ pl.price_amount }} {{ pl.currency }} ({% if pl.total_lessons %}{{ pl.total_lessons }} {{ _('ур.') }}{% else %}{{ pl.duration_days }} {{ _('дн.') }}{% endif %})</option>{% endfor %}
-          </select>
-          <div class="row" style="gap:6px">
-            <input class="input input--sm" type="number" name="agreed_price" min="0" placeholder="{{ _('Цена (если скидка)') }}" style="flex:1">
-            <input class="input input--sm" type="number" name="initial_payment" min="0" placeholder="{{ _('Предоплата, KGS') }}" style="flex:1">
+  <div class="crm-split">
+    <div class="stack">
+      <section class="card">
+        <div class="card__head">
+          <div class="hc__head">
+            <span class="hc__ic">{{ ui.icon('calendar', 17) }}</span>
+            <h2>{{ _("Группы и зачисления") }}</h2>
+            <span class="hc__pill num">{{ enrollments|length }}</span>
           </div>
+        </div>
+        {% if enrollments %}
+        <div class="table-wrap" style="border:0;border-radius:0;box-shadow:none">
+          <table class="table crm-table">
+            <thead>
+              <tr>
+                <th>{{ _("Группа / курс") }}</th>
+                <th>{{ _("Статус") }}</th>
+                <th>{{ _("Период") }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for enr in enrollments %}
+              <tr>
+                <td>
+                  <div class="t-strong">{{ enr.group.name if enr.group else ('#' ~ enr.group_id) }}</div>
+                  <div class="small muted">{{ enr.course.name if enr.course else '' }}</div>
+                </td>
+                <td>
+                  <span class="tag {{ 'tag--ok' if enr.left_at is none else 'tag--line' }} tag--xs">{{ enr.status }}</span>
+                </td>
+                <td class="small muted num">{{ enr.enrolled_at|d('d MMM y') }}{% if enr.left_at %} — {{ enr.left_at|d('d MMM y') }}{% endif %}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+          <p class="small text-2">{{ _("Ученик ещё не зачислен ни в одну группу.") }}</p>
+        {% endif %}
+      </section>
+
+      <section class="card">
+        <div class="card__head">
+          <div class="hc__head">
+            <span class="hc__ic">{{ ui.icon('list', 17) }}</span>
+            <h2>{{ _("Единая история") }}</h2>
+            <span class="hc__pill num">{{ timeline_counts[active_tab] }}</span>
+          </div>
+        </div>
+        <div class="admin-tabs">
+          <a class="{{ 'is-active' if active_tab == 'all' }}" href="{{ url_for('manager.student_detail', student_id=student.id, tab='all') }}">{{ _("Все") }} <span class="admin-tabs__n num">{{ timeline_counts.all }}</span></a>
+          <a class="{{ 'is-active' if active_tab == 'academic' }}" href="{{ url_for('manager.student_detail', student_id=student.id, tab='academic') }}">{{ _("Учёба") }} <span class="admin-tabs__n num">{{ timeline_counts.academic }}</span></a>
+          <a class="{{ 'is-active' if active_tab == 'finance' }}" href="{{ url_for('manager.student_detail', student_id=student.id, tab='finance') }}">{{ _("Оплаты") }} <span class="admin-tabs__n num">{{ timeline_counts.finance }}</span></a>
+          <a class="{{ 'is-active' if active_tab == 'comms' }}" href="{{ url_for('manager.student_detail', student_id=student.id, tab='comms') }}">{{ _("Переписка") }} <span class="admin-tabs__n num">{{ timeline_counts.comms }}</span></a>
+          <a class="{{ 'is-active' if active_tab == 'system' }}" href="{{ url_for('manager.student_detail', student_id=student.id, tab='system') }}">{{ _("Аудит") }} <span class="admin-tabs__n num">{{ timeline_counts.system }}</span></a>
+        </div>
+        {% if timeline %}
+        <ul class="crm-timeline">
+          {% for ev in timeline %}
+            <li class="crm-timeline__item">
+              <span class="crm-timeline__badge">{{ ev.badge }}</span>
+              <div>
+                <div class="crm-timeline__body">{{ ev.body }}</div>
+                <div class="crm-timeline__meta">{{ ev.actor_name }} · {{ ev.ts|d('d MMM y, HH:mm') }}</div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+          <p class="small text-2">{{ _("Событий пока нет.") }}</p>
+        {% endif %}
+      </section>
+    </div>
+
+    <div class="stack">
+      <section class="card">
+        <div class="hc__head">
+          <span class="hc__ic">{{ ui.icon('bank', 17) }}</span>
+          <h2>{{ _("Абонементы и оплаты") }}</h2>
+        </div>
+        {% if passes %}
+          <div class="stack-sm">
+            {% for sp in passes %}
+              {% set rem_pct = ((sp.lessons_remaining / sp.lessons_total) * 100)|round|int if sp.lessons_total else 100 %}
+              <div class="crm-task" style="flex-direction:column;gap:8px;align-items:stretch">
+                <div class="row row--between" style="gap:8px">
+                  <span class="t-strong small">{{ sp.plan.name if sp.plan else ('Тариф #' ~ sp.plan_id) }}</span>
+                  <span class="tag {{ 'tag--ok' if sp.status == 'active' else ('tag--warn' if sp.status == 'frozen' else 'tag--bad') }} tag--xs">{{ PASS_STATUS_LABELS.get(sp.status, sp.status) }}</span>
+                </div>
+                <div class="row row--between small muted num">
+                  <span>
+                    {% if sp.lessons_total is not none %}{{ _("Занятий") }}: {{ sp.lessons_remaining }} / {{ sp.lessons_total }}{% else %}{{ _("Безлимит по датам") }}{% endif %}
+                  </span>
+                  <span>{{ _("До") }} {{ sp.expires_at|d('d MMM y') if sp.expires_at else '—' }}</span>
+                </div>
+                {% if sp.lessons_total %}
+                  <div class="crm-meter{{ ' crm-meter--bad' if sp.lessons_remaining <= 1 else (' crm-meter--warn' if sp.lessons_remaining <= 2) }}">
+                    <span style="width:{{ rem_pct }}%"></span>
+                  </div>
+                {% endif %}
+                <div class="row row--between small num">
+                  <span>{{ _("Оплачено") }}: <b>{{ sp.paid_amount }}</b> / {{ sp.agreed_price }} KGS</span>
+                  {% if sp.debt_amount %}<span style="color:var(--bad);font-weight:700">{{ _("Долг") }}: {{ sp.debt_amount }}</span>{% endif %}
+                </div>
+                {% if current_user.has_perm('crm.finance.manage') %}
+                <form method="post" action="{{ url_for('manager.pass_update_status', pass_id=sp.id) }}" class="row" style="gap:6px">
+                  {{ ui.csrf() }}
+                  <select class="select crm-inline-select" name="status">
+                    {% for st_k, st_lbl in PASS_STATUS_LABELS.items() %}<option value="{{ st_k }}" {{ 'selected' if sp.status == st_k }}>{{ st_lbl }}</option>{% endfor %}
+                  </select>
+                  <button class="btn btn--secondary btn--min" type="submit" style="min-height:30px;padding:0 10px">{{ _("Статус") }}</button>
+                </form>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="small text-2">{{ _("Активных абонементов пока нет.") }}</p>
+        {% endif %}
+
+        {% if current_user.has_perm('crm.finance.record') %}
+        <hr style="border:0;border-top:1px solid var(--line);margin:4px 0">
+        <form method="post" action="{{ url_for('manager.student_pass_create', student_id=student.id) }}" class="stack-sm">
+          {{ ui.csrf() }}
+          <div class="eyebrow">{{ _("Выдать абонемент") }}</div>
+          {% if plans %}
+            <select class="select input--sm" name="plan_id" required>
+              <option value="">{{ _("Выберите тариф...") }}</option>
+              {% for pl in plans %}<option value="{{ pl.id }}">{{ pl.name }} · {{ pl.price_amount }} {{ pl.currency }} ({% if pl.total_lessons %}{{ pl.total_lessons }} {{ _('ур.') }}{% else %}{{ pl.duration_days }} {{ _('дн.') }}{% endif %})</option>{% endfor %}
+            </select>
+            <div class="row" style="gap:6px">
+              <input class="input input--sm" type="number" name="agreed_price" min="0" placeholder="{{ _('Цена (если скидка)') }}" style="flex:1">
+              <input class="input input--sm" type="number" name="initial_payment" min="0" placeholder="{{ _('Предоплата, KGS') }}" style="flex:1">
+            </div>
+            <div class="row" style="gap:6px">
+              <select class="select input--sm" name="method" style="width:auto">
+                {% for m in PAYMENT_METHODS %}<option value="{{ m }}">{{ METHOD_LABELS[m] }}</option>{% endfor %}
+              </select>
+              <input class="input input--sm" name="note" placeholder="{{ _('Комментарий') }}" style="flex:1">
+              <button class="btn btn--primary btn--min" type="submit">{{ _("Выдать") }}</button>
+            </div>
+          {% else %}
+            <p class="small muted">{{ _("Сначала супервайзер должен создать тарифы в разделе Финансы.") }}</p>
+          {% endif %}
+        </form>
+
+        <hr style="border:0;border-top:1px solid var(--line);margin:4px 0">
+        <form method="post" action="{{ url_for('manager.student_payment_create', student_id=student.id) }}" class="stack-sm">
+          {{ ui.csrf() }}
+          <div class="eyebrow">{{ _("Принять оплату / доплату") }}</div>
           <div class="row" style="gap:6px">
+            <input class="input input--sm" type="number" name="amount" min="1" required placeholder="{{ _('Сумма, KGS') }}" style="flex:1">
             <select class="select input--sm" name="method" style="width:auto">
               {% for m in PAYMENT_METHODS %}<option value="{{ m }}">{{ METHOD_LABELS[m] }}</option>{% endfor %}
             </select>
-            <input class="input input--sm" name="note" placeholder="{{ _('Комментарий') }}" style="flex:1">
-            <button class="btn btn--primary btn--sm" type="submit">{{ _("Выдать") }}</button>
           </div>
-        {% else %}
-          <p class="small muted">{{ _("Сначала супервайзер должен создать тарифы в разделе Финансы.") }}</p>
+          <div class="row" style="gap:6px">
+            {% if passes %}
+            <select class="select input--sm" name="pass_id" style="flex:1">
+              <option value="">{{ _("Без привязки к абонементу") }}</option>
+              {% for sp in passes %}<option value="{{ sp.id }}">#{{ sp.id }} · {{ sp.plan.name if sp.plan else sp.plan_id }} (долг {{ sp.debt_amount }})</option>{% endfor %}
+            </select>
+            {% endif %}
+            {% if current_user.has_perm('crm.finance.manage') %}
+            <select class="select input--sm" name="kind" style="width:auto">
+              <option value="payment">{{ _("Оплата") }}</option>
+              <option value="refund">{{ _("Возврат") }}</option>
+            </select>
+            {% endif %}
+            <button class="btn btn--secondary btn--min" type="submit">{{ _("Провести") }}</button>
+          </div>
+        </form>
         {% endif %}
-      </form>
+      </section>
 
-      <hr style="border:0;border-top:1px solid var(--line);margin:10px 0">
-      <form method="post" action="{{ url_for('manager.student_payment_create', student_id=student.id) }}" class="stack-sm">
-        {{ ui.csrf() }}
-        <div class="eyebrow">{{ _("Принять оплату / доплату") }}</div>
-        <div class="row" style="gap:6px">
-          <input class="input input--sm" type="number" name="amount" min="1" required placeholder="{{ _('Сумма, KGS') }}" style="flex:1">
-          <select class="select input--sm" name="method" style="width:auto">
-            {% for m in PAYMENT_METHODS %}<option value="{{ m }}">{{ METHOD_LABELS[m] }}</option>{% endfor %}
-          </select>
+      <section class="card">
+        <div class="hc__head">
+          <span class="hc__ic">{{ ui.icon('check', 17) }}</span>
+          <h2>{{ _("Посещаемость (всего)") }}</h2>
+          <span class="hc__pill num">{{ att_total }}</span>
         </div>
-        <div class="row" style="gap:6px">
-          {% if passes %}
-          <select class="select input--sm" name="pass_id" style="flex:1">
-            <option value="">{{ _("Без привязки к абонементу") }}</option>
-            {% for sp in passes %}<option value="{{ sp.id }}">#{{ sp.id }} · {{ sp.plan.name if sp.plan else sp.plan_id }} (долг {{ sp.debt_amount }})</option>{% endfor %}
-          </select>
-          {% endif %}
-          {% if current_user.has_perm('crm.finance.manage') %}
-          <select class="select input--sm" name="kind" style="width:auto">
-            <option value="payment">{{ _("Оплата") }}</option>
-            <option value="refund">{{ _("Возврат") }}</option>
-          </select>
-          {% endif %}
-          <button class="btn btn--secondary btn--sm" type="submit">{{ _("Провести") }}</button>
-        </div>
-      </form>
-      {% endif %}
-    </section>
-
-    <section class="card card--tight">
-      <h2 style="font-size:16px">{{ _("Посещаемость (всего)") }}</h2>
-      <dl class="kv small">
-        <dt>{{ _("Всего отметок") }}</dt><dd class="num">{{ att_total }}</dd>
-        <dt>{{ _("Был") }}</dt><dd class="num">{{ att_counts.get('present', 0) }}</dd>
-        <dt>{{ _("Опоздал") }}</dt><dd class="num">{{ att_counts.get('late', 0) }}</dd>
-        <dt>{{ _("Отсутствовал") }}</dt><dd class="num">{{ att_counts.get('absent', 0) }}</dd>
-        <dt>{{ _("Уважит. причина") }}</dt><dd class="num">{{ att_counts.get('excused', 0) }}</dd>
-      </dl>
-    </section>
+        <dl class="kv small">
+          <dt>{{ _("Всего отметок") }}</dt><dd class="num">{{ att_total }}</dd>
+          <dt>{{ _("Был") }}</dt><dd class="num">{{ att_counts.get('present', 0) }}</dd>
+          <dt>{{ _("Опоздал") }}</dt><dd class="num">{{ att_counts.get('late', 0) }}</dd>
+          <dt>{{ _("Отсутствовал") }}</dt><dd class="num">{{ att_counts.get('absent', 0) }}</dd>
+          <dt>{{ _("Уважит. причина") }}</dt><dd class="num">{{ att_counts.get('excused', 0) }}</dd>
+        </dl>
+      </section>
+    </div>
   </div>
 </div>
 {% endblock %}

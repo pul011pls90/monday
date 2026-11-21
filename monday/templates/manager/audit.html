@@ -2,66 +2,71 @@
 {% block title %}{{ _("Журнал аудита") }}{% endblock %}
 {% block context %}{{ _("Журнал аудита") }}{% endblock %}
 {% block content %}
-<div class="page-head">
-  <div class="page-head__text">
-    <h1>{{ _("Журнал аудита") }}</h1>
-    <p>{{ _("Смены ролей, переназначения и удаления лидов, конверсии и ретро-правки.") }}</p>
+<div class="crm-workspace">
+  <div class="t-hero-bar">
+    <div class="t-hero-bar__title">
+      <h1>{{ _("Журнал аудита") }}</h1>
+      <p>{{ _("Смены ролей, переназначения и удаления лидов, конверсии, оплаты и ретро-правки.") }}</p>
+    </div>
+    <div class="t-hero-actions">
+      <a class="btn btn--secondary btn--min" href="{{ url_for('manager.dashboard') }}">{{ ui.icon('home', 15) }}<span>{{ _("CRM · Сегодня") }}</span></a>
+    </div>
   </div>
-</div>
 
-<form method="get" action="{{ url_for('manager.audit') }}" class="card card--tight">
-  <div class="crm-filters">
-    <select class="select select--sm" name="action">
-      <option value="">{{ _("Все действия") }}</option>
-      {% for a in actions %}<option value="{{ a }}" {{ 'selected' if filters.action == a }}>{{ a }}</option>{% endfor %}
-    </select>
-    <select class="select select--sm" name="entity_type">
-      <option value="">{{ _("Все сущности") }}</option>
-      {% for e in entity_types %}<option value="{{ e }}" {{ 'selected' if filters.entity_type == e }}>{{ e }}</option>{% endfor %}
-    </select>
-    <select class="select select--sm" name="actor_id">
-      <option value="">{{ _("Все авторы") }}</option>
-      {% for u in actors %}<option value="{{ u.id }}" {{ 'selected' if filters.actor_id == u.id }}>{{ u.name }}</option>{% endfor %}
-    </select>
-    <button class="btn btn--primary btn--sm" type="submit">{{ _("Фильтр") }}</button>
-    <a class="btn btn--ghost btn--sm" href="{{ url_for('manager.audit') }}">{{ _("Сброс") }}</a>
-  </div>
-</form>
+  <form method="get" action="{{ url_for('manager.audit') }}" class="crm-filter-bar">
+    <div class="crm-filter-grid">
+      <select class="select input--sm" name="action">
+        <option value="">{{ _("Все действия") }}</option>
+        {% for a in actions %}<option value="{{ a }}" {{ 'selected' if filters.action == a }}>{{ a }}</option>{% endfor %}
+      </select>
+      <select class="select input--sm" name="entity_type">
+        <option value="">{{ _("Все сущности") }}</option>
+        {% for e in entity_types %}<option value="{{ e }}" {{ 'selected' if filters.entity_type == e }}>{{ e }}</option>{% endfor %}
+      </select>
+      <select class="select input--sm" name="actor_id">
+        <option value="">{{ _("Все авторы") }}</option>
+        {% for u in actors %}<option value="{{ u.id }}" {{ 'selected' if filters.actor_id == u.id }}>{{ u.name }}</option>{% endfor %}
+      </select>
+      <button class="btn btn--primary btn--min" type="submit">{{ _("Фильтр") }}</button>
+      <a class="btn btn--secondary btn--min" href="{{ url_for('manager.audit') }}">{{ _("Сброс") }}</a>
+    </div>
+  </form>
 
-{% if logs %}
-<div class="table-wrap">
-  <table class="table crm-table">
-    <thead>
-      <tr>
-        <th>{{ _("Время") }}</th>
-        <th>{{ _("Автор") }}</th>
-        <th>{{ _("Действие") }}</th>
-        <th>{{ _("Объект") }}</th>
-        <th>{{ _("Было → Стало") }}</th>
-        <th>{{ _("Причина") }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in logs %}
+  {% if logs %}
+  <div class="table-wrap">
+    <table class="table crm-table">
+      <thead>
         <tr>
-          <td class="small muted nowrap num">{{ row.timestamp|d('d MMM y, HH:mm') }}</td>
-          <td class="small">{{ row.actor.name if row.actor else _('Система') }}</td>
-          <td><span class="tag tag--soft tag--xs">{{ row.action }}</span></td>
-          <td class="small nowrap">{{ row.entity_type }}{% if row.entity_id %} #{{ row.entity_id }}{% endif %}</td>
-          <td class="small">
-            {% if row.old_value is not none %}<span class="crm-code">{{ row.old_value|tojson }}</span>{% else %}<span class="muted">—</span>{% endif %}
-            →
-            {% if row.new_value is not none %}<span class="crm-code">{{ row.new_value|tojson }}</span>{% else %}<span class="muted">—</span>{% endif %}
-          </td>
-          <td class="small">{{ row.reason or '—' }}</td>
+          <th>{{ _("Время") }}</th>
+          <th>{{ _("Автор") }}</th>
+          <th>{{ _("Действие") }}</th>
+          <th>{{ _("Объект") }}</th>
+          <th>{{ _("Было → Стало") }}</th>
+          <th>{{ _("Причина") }}</th>
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for row in logs %}
+          <tr>
+            <td class="small muted nowrap num">{{ row.timestamp|d('d MMM y, HH:mm') }}</td>
+            <td class="small">{{ row.actor.name if row.actor else _('Система') }}</td>
+            <td><span class="tag tag--soft tag--xs">{{ row.action }}</span></td>
+            <td class="small nowrap">{{ row.entity_type }}{% if row.entity_id %} #{{ row.entity_id }}{% endif %}</td>
+            <td class="small">
+              {% if row.old_value is not none %}<span class="crm-code">{{ row.old_value|tojson }}</span>{% else %}<span class="muted">—</span>{% endif %}
+              →
+              {% if row.new_value is not none %}<span class="crm-code">{{ row.new_value|tojson }}</span>{% else %}<span class="muted">—</span>{% endif %}
+            </td>
+            <td class="small">{{ row.reason or '—' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <h3>{{ _("Записей аудита пока нет") }}</h3>
+  </div>
+  {% endif %}
 </div>
-{% else %}
-<div class="empty">
-  <h3>{{ _("Записей аудита пока нет") }}</h3>
-</div>
-{% endif %}
 {% endblock %}

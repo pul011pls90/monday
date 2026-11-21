@@ -363,6 +363,26 @@ def _register_template_helpers(app):
         except Exception:
             return 0
 
+    def _crm_badges():
+        cached = getattr(g, "_crm_badges_cache", None)
+        if cached is not None:
+            return cached
+        empty = {"unanswered": 0, "tasks": 0}
+        if not current_user.is_authenticated or current_user.role not in ("sales_manager", "supervisor", "admin"):
+            g._crm_badges_cache = empty
+            return empty
+        try:
+            from .models import Lead, LeadTask
+            lq = Lead.query.filter(Lead.first_contact_at.is_(None), Lead.status.notin_(("won", "lost")))
+            if not current_user.has_perm("crm.leads.view_all"):
+                lq = lq.filter(Lead.assigned_manager_id == current_user.id)
+            tq = LeadTask.query.filter(LeadTask.done_at.is_(None), LeadTask.assignee_id == current_user.id)
+            res = {"unanswered": lq.count(), "tasks": tq.count()}
+        except Exception:
+            res = empty
+        g._crm_badges_cache = res
+        return res
+
     @app.context_processor
     def inject_globals():
         if current_user.is_authenticated:
@@ -391,6 +411,7 @@ def _register_template_helpers(app):
             "MISTAKE_REASONS": MISTAKE_REASONS,
             "REPORT_KINDS": REPORT_KINDS,
             "open_reports": _open_reports,
+            "crm_badges": _crm_badges,
             "HOMEWORK_STATES": HOMEWORK_STATES,
             "WEEKDAYS": WEEKDAYS,
             "CONTACTS": CONTACTS,

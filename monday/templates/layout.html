@@ -67,9 +67,10 @@
       {% if not SHOW_JOURNAL %}{% set items = items|rejectattr(0, 'equalto', 'student.journal')|list %}{% endif %}
       {% set primary = ['student.monday', 'student.home', 'student.sessions', 'bank.index', 'student.homework'] %}
     {% endif %}
+    {% set cb = crm_badges() if current_user.role in ('sales_manager', 'supervisor', 'admin') else {'unanswered': 0, 'tasks': 0} %}
     {% for endpoint, ic, label, active in items %}{% set on = (nav_active == endpoint) if nav_active is defined else (ep in active) %}
       <a class="rail__item{{ ' is-active' if on }}{{ ' rail__item--extra' if endpoint not in primary }}{{ ' rail__item--key' if endpoint == 'student.monday' }}" href="{{ url_for(endpoint) }}" title="{{ label }}" aria-label="{{ label }}"{{ ' aria-current=page' if on }}>
-        {{ ui.icon(ic, 22) }}<span class="rail__label">{{ label }}</span>{% if endpoint == 'student.monday' and monday_live() %}<i class="rail__live" title="{{ _('Тест идёт сейчас') }}"></i>{% endif %}{% if endpoint == 'reports.inbox' %}{% set nr = open_reports() %}{% if nr %}<i class="rail__count">{{ nr }}</i>{% endif %}{% endif %}
+        {{ ui.icon(ic, 22) }}<span class="rail__label">{{ label }}</span>{% if endpoint == 'student.monday' and monday_live() %}<i class="rail__live" title="{{ _('Тест идёт сейчас') }}"></i>{% endif %}{% if endpoint == 'reports.inbox' %}{% set nr = open_reports() %}{% if nr %}<i class="rail__count">{{ nr }}</i>{% endif %}{% elif endpoint == 'manager.leads' and cb.unanswered %}<i class="rail__count">{{ cb.unanswered }}</i>{% elif endpoint == 'manager.dashboard' and cb.tasks %}<i class="rail__count">{{ cb.tasks }}</i>{% endif %}
       </a>
     {% endfor %}
     <div class="spacer"></div>
