@@ -1,30 +1,28 @@
 {% extends "layout.html" %}
+{% import "manager/_ui.html" as mui with context %}
 {% block title %}{{ _("Расписание и посещаемость") }}{% endblock %}
 {% block context %}{{ _("Учебное расписание") }}{% endblock %}
 {% block page_class %}page--wide{% endblock %}
 {% block content %}
-  <div class="t-hero-bar">
-    <div class="t-hero-bar__title">
-      <h1>{{ _("Расписание занятий") }}</h1>
-      <p>{{ _("Локации, группы, уроки (Онлайн / Офлайн), конфликты и посещаемость.") }}</p>
+  {% call mui.page_header(
+    _("Расписание занятий"),
+    _("Локации, группы, уроки (Онлайн / Офлайн), конфликты и посещаемость.")
+  ) %}
+    {{ mui.filter_tabs([
+      {'label': _("Список"), 'href': url_for('academic.schedule', view='list', lesson_mode=filters.lesson_mode or None, group_id=filters.group_id or None, location_id=filters.location_id or None), 'active': view == 'list'},
+      {'label': _("Неделя"), 'href': url_for('academic.schedule', view='week', week=filters.week, lesson_mode=filters.lesson_mode or None, group_id=filters.group_id or None, location_id=filters.location_id or None), 'active': view == 'week'},
+      {'label': _("Кабинеты"), 'href': url_for('academic.schedule', view='rooms', week=filters.week, lesson_mode=filters.lesson_mode or None, group_id=filters.group_id or None, location_id=filters.location_id or None), 'active': view == 'rooms'},
+      {'label': _("Учителя"), 'href': url_for('academic.schedule', view='teachers', week=filters.week, lesson_mode=filters.lesson_mode or None, group_id=filters.group_id or None, location_id=filters.location_id or None), 'active': view == 'teachers'},
+    ], aria_label=_("Режим расписания")) }}
+    {% if view in ('week', 'rooms', 'teachers') %}
+    <div class="row" style="gap:6px;align-items:center">
+      <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('academic.schedule', view=view, week=prev_week, lesson_mode=filters.lesson_mode or None, group_id=filters.group_id or None, location_id=filters.location_id or None) }}">←</a>
+      <span class="small t-strong num">{{ week_days[0]|d('d MMM') }} – {{ week_days[-1]|d('d MMM y') }}</span>
+      <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('academic.schedule', view=view, lesson_mode=filters.lesson_mode or None, group_id=filters.group_id or None, location_id=filters.location_id or None) }}">{{ _("Эта неделя") }}</a>
+      <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('academic.schedule', view=view, week=next_week, lesson_mode=filters.lesson_mode or None, group_id=filters.group_id or None, location_id=filters.location_id or None) }}">→</a>
     </div>
-    <div class="t-hero-actions">
-      <div class="admin-tabs">
-        <a class="{{ 'is-active' if view == 'list' }}" href="{{ url_for('academic.schedule', view='list', lesson_mode=filters.lesson_mode or None, group_id=filters.group_id or None, location_id=filters.location_id or None) }}">{{ _("Список") }}</a>
-        <a class="{{ 'is-active' if view == 'week' }}" href="{{ url_for('academic.schedule', view='week', week=filters.week, lesson_mode=filters.lesson_mode or None, group_id=filters.group_id or None, location_id=filters.location_id or None) }}">{{ _("Неделя") }}</a>
-        <a class="{{ 'is-active' if view == 'rooms' }}" href="{{ url_for('academic.schedule', view='rooms', week=filters.week, lesson_mode=filters.lesson_mode or None, group_id=filters.group_id or None, location_id=filters.location_id or None) }}">{{ _("Кабинеты") }}</a>
-        <a class="{{ 'is-active' if view == 'teachers' }}" href="{{ url_for('academic.schedule', view='teachers', week=filters.week, lesson_mode=filters.lesson_mode or None, group_id=filters.group_id or None, location_id=filters.location_id or None) }}">{{ _("Учителя") }}</a>
-      </div>
-      {% if view in ('week', 'rooms', 'teachers') %}
-      <div class="row" style="gap:6px;align-items:center">
-        <a class="btn btn--secondary btn--min" href="{{ url_for('academic.schedule', view=view, week=prev_week, lesson_mode=filters.lesson_mode or None, group_id=filters.group_id or None, location_id=filters.location_id or None) }}">←</a>
-        <span class="small t-strong num">{{ week_days[0]|d('d MMM') }} – {{ week_days[-1]|d('d MMM y') }}</span>
-        <a class="btn btn--secondary btn--min" href="{{ url_for('academic.schedule', view=view, lesson_mode=filters.lesson_mode or None, group_id=filters.group_id or None, location_id=filters.location_id or None) }}">{{ _("Эта неделя") }}</a>
-        <a class="btn btn--secondary btn--min" href="{{ url_for('academic.schedule', view=view, week=next_week, lesson_mode=filters.lesson_mode or None, group_id=filters.group_id or None, location_id=filters.location_id or None) }}">→</a>
-      </div>
-      {% endif %}
-    </div>
-  </div>
+    {% endif %}
+  {% endcall %}
 
   {% if conflict_ids %}
   <div class="flash flash--error">
@@ -32,67 +30,53 @@
   </div>
   {% endif %}
 
-  {# Online vs Offline Summary #}
-  <div class="crm-kpis">
-    <a class="card crm-kpi" href="{{ url_for('academic.schedule', lesson_mode='online') }}">
-      <span class="eyebrow">{{ _("Онлайн-уроки") }}</span>
-      <span class="stat-value num">{{ mode_counts.get('online', 0) }}</span>
-      <span class="stat-label">{{ _("отметок: %(n)s (был: %(p)s)", n=att_by_mode.online.values()|sum, p=att_by_mode.online.get('present', 0)) }}</span>
-    </a>
-    <a class="card crm-kpi" href="{{ url_for('academic.schedule', lesson_mode='offline') }}">
-      <span class="eyebrow">{{ _("Офлайн-уроки") }}</span>
-      <span class="stat-value num">{{ mode_counts.get('offline', 0) }}</span>
-      <span class="stat-label">{{ _("отметок: %(n)s (был: %(p)s)", n=att_by_mode.offline.values()|sum, p=att_by_mode.offline.get('present', 0)) }}</span>
-    </a>
-    <div class="card crm-kpi">
-      <span class="eyebrow">{{ _("Групп") }}</span>
-      <span class="stat-value num">{{ groups|length }}</span>
-      <span class="stat-label">{{ _("курсов: %(n)s", n=courses|length) }}</span>
-    </div>
-    <div class="card crm-kpi">
-      <span class="eyebrow">{{ _("Локаций") }}</span>
-      <span class="stat-value num">{{ locations|length }}</span>
-      <span class="stat-label">{{ _("активных кабинетов") }}</span>
-    </div>
+  <div class="mgr-kpi-grid">
+    {{ mui.kpi(_("Онлайн-уроки"), mode_counts.get('online', 0), _("отметок: %(n)s (был: %(p)s)", n=att_by_mode.online.values()|sum, p=att_by_mode.online.get('present', 0)), tone='accent', href=url_for('academic.schedule', lesson_mode='online')) }}
+    {{ mui.kpi(_("Офлайн-уроки"), mode_counts.get('offline', 0), _("отметок: %(n)s (был: %(p)s)", n=att_by_mode.offline.values()|sum, p=att_by_mode.offline.get('present', 0)), tone='ok', href=url_for('academic.schedule', lesson_mode='offline')) }}
+    {{ mui.kpi(_("Групп"), groups|length, _("курсов: %(n)s", n=courses|length), tone='neutral') }}
+    {{ mui.kpi(_("Локаций"), locations|length, _("активных кабинетов"), tone='neutral') }}
   </div>
 
-  {# Compact Filter Bar #}
-  <form method="get" action="{{ url_for('academic.schedule') }}" class="crm-filter-bar">
+  <form method="get" action="{{ url_for('academic.schedule') }}" class="mgr-filter-row crm-filter-grid" role="search">
     <input type="hidden" name="view" value="{{ view }}">
     <input type="hidden" name="week" value="{{ filters.week }}">
-    <div class="crm-filter-grid">
-      <select class="select input--sm" name="lesson_mode">
-        <option value="">{{ _("Все форматы") }}</option>
-        {% for m in LESSON_MODES %}<option value="{{ m }}" {{ 'selected' if filters.lesson_mode == m }}>{{ LESSON_MODE_LABELS[m] }}</option>{% endfor %}
-      </select>
-      <select class="select input--sm" name="group_id">
-        <option value="">{{ _("Все группы") }}</option>
-        {% for g in groups %}<option value="{{ g.id }}" {{ 'selected' if filters.group_id == g.id }}>{{ g.name }}</option>{% endfor %}
-      </select>
-      <select class="select input--sm" name="location_id">
-        <option value="">{{ _("Все локации") }}</option>
-        {% for loc in locations %}<option value="{{ loc.id }}" {{ 'selected' if filters.location_id == loc.id }}>{{ loc.name }}</option>{% endfor %}
-      </select>
-      <input class="input input--sm" type="date" name="date_from" value="{{ filters.date_from }}">
-      <input class="input input--sm" type="date" name="date_to" value="{{ filters.date_to }}">
-      <button class="btn btn--primary btn--min" type="submit">{{ _("Показать") }}</button>
-      <a class="btn btn--secondary btn--min" href="{{ url_for('academic.schedule') }}">{{ _("Сброс") }}</a>
-    </div>
+    <select class="select input--sm" name="lesson_mode" aria-label="{{ _('Формат') }}">
+      <option value="">{{ _("Все форматы") }}</option>
+      {% for m in LESSON_MODES %}<option value="{{ m }}" {{ 'selected' if filters.lesson_mode == m }}>{{ LESSON_MODE_LABELS[m] }}</option>{% endfor %}
+    </select>
+    <select class="select input--sm" name="group_id" aria-label="{{ _('Группа') }}">
+      <option value="">{{ _("Все группы") }}</option>
+      {% for g in groups %}<option value="{{ g.id }}" {{ 'selected' if filters.group_id == g.id }}>{{ g.name }}</option>{% endfor %}
+    </select>
+    <select class="select input--sm" name="location_id" aria-label="{{ _('Локация') }}">
+      <option value="">{{ _("Все локации") }}</option>
+      {% for loc in locations %}<option value="{{ loc.id }}" {{ 'selected' if filters.location_id == loc.id }}>{{ loc.name }}</option>{% endfor %}
+    </select>
+    <input class="input input--sm" type="date" name="date_from" value="{{ filters.date_from }}" aria-label="{{ _('С даты') }}">
+    <input class="input input--sm" type="date" name="date_to" value="{{ filters.date_to }}" aria-label="{{ _('По дату') }}">
+    <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Показать") }}</button>
+    <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('academic.schedule') }}">{{ _("Сброс") }}</a>
   </form>
 
-  {# Supervisor / Admin Management Forms #}
   {% if current_user.has_perm('academic.schedule.manage') %}
-  <div class="crm-bento">
-    <details class="card crm-span-6">
+  <div class="mgr-detail-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+    <details class="mgr-card">
       <summary class="t-add-card__sum" style="justify-content:flex-start;padding:0">{{ _("Добавить урок") }}</summary>
-      <form method="post" action="{{ url_for('academic.lesson_create') }}" class="stack-sm" style="margin-top:10px">
+      <form method="post" action="{{ url_for('academic.lesson_create') }}" class="stack-sm" style="margin-top:10px" data-lesson-form>
         {{ ui.csrf() }}
+        <input type="hidden" name="starts_at" data-lesson-combined>
         <select class="select input--sm" name="group_id" required>
           <option value="">{{ _("Выберите группу...") }}</option>
           {% for g in groups %}<option value="{{ g.id }}">{{ g.name }} ({{ g.course.name }})</option>{% endfor %}
         </select>
-        <div class="row" style="gap:8px">
-          <input class="input input--sm" type="datetime-local" name="starts_at" required style="flex:1">
+        <div class="mgr-due-row">
+          <input class="input input--sm" type="date" data-lesson-date required aria-label="{{ _('Дата урока') }}">
+          <select class="select input--sm" data-lesson-time aria-label="{{ _('Время урока') }}" style="width:auto;min-width:104px;min-height:38px">
+            {% for hh in range(8, 22) %}
+              <option value="{{ '%02d:00'|format(hh) }}" {{ 'selected' if hh == 18 }}>{{ '%02d:00'|format(hh) }}</option>
+              <option value="{{ '%02d:30'|format(hh) }}">{{ '%02d:30'|format(hh) }}</option>
+            {% endfor %}
+          </select>
           <select class="select input--sm" name="lesson_mode" style="width:auto">
             <option value="offline">{{ _("Офлайн") }}</option>
             <option value="online">{{ _("Онлайн") }}</option>
@@ -106,24 +90,24 @@
           <input class="input input--sm" name="meeting_url" placeholder="https://meet.google.com/..." style="flex:1">
         </div>
         <input class="input input--sm" name="topic" placeholder="{{ _('Тема занятия') }}">
-        <button class="btn btn--primary btn--min" type="submit">{{ _("Создать урок") }}</button>
+        <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Создать урок") }}</button>
       </form>
     </details>
 
-    <details class="card crm-span-6">
+    <details class="mgr-card">
       <summary class="t-add-card__sum" style="justify-content:flex-start;padding:0">{{ _("Локации, курсы и группы") }}</summary>
       <div class="stack" style="margin-top:10px">
         <form method="post" action="{{ url_for('academic.location_create') }}" class="row" style="gap:6px">
           {{ ui.csrf() }}
           <input class="input input--sm" name="name" required placeholder="{{ _('Новая локация') }}" style="flex:1">
           <input class="input input--sm" name="room" placeholder="{{ _('Кабинет') }}" style="width:110px">
-          <button class="btn btn--secondary btn--min" type="submit">+</button>
+          <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">+</button>
         </form>
         <form method="post" action="{{ url_for('academic.course_create') }}" class="row" style="gap:6px">
           {{ ui.csrf() }}
           <input class="input input--sm" name="code" required placeholder="SAT-MATH" style="width:110px">
           <input class="input input--sm" name="name" required placeholder="{{ _('Название курса') }}" style="flex:1">
-          <button class="btn btn--secondary btn--min" type="submit">+</button>
+          <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">+</button>
         </form>
         <form method="post" action="{{ url_for('academic.group_create') }}" class="stack-sm">
           {{ ui.csrf() }}
@@ -143,21 +127,21 @@
               <option value="">{{ _("Локация...") }}</option>
               {% for loc in locations %}<option value="{{ loc.id }}">{{ loc.name }}</option>{% endfor %}
             </select>
-            <button class="btn btn--primary btn--min" type="submit">{{ _("Создать группу") }}</button>
+            <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Создать группу") }}</button>
           </div>
         </form>
       </div>
     </details>
 
     {% if groups %}
-    <details class="card crm-span-12">
+    <details class="mgr-card" style="grid-column:1 / -1">
       <summary class="t-add-card__sum" style="justify-content:flex-start;padding:0">{{ _("Состав учебных групп (зачисление и отчисление)") }}</summary>
       <div class="stack" style="margin-top:10px">
         {% for g in groups %}
-          <div class="card" style="padding:10px 12px">
-            <div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+          <div class="mgr-kanban-card">
+            <div class="row row--between" style="gap:8px;flex-wrap:wrap">
               <div>
-                <span class="t-strong">{{ g.name }}</span>
+                <span style="font-weight:700">{{ g.name }}</span>
                 <span class="small muted"> · {{ g.course.name }}</span>
               </div>
               <form method="post" action="{{ url_for('academic.group_enroll', group_id=g.id) }}" class="row" style="gap:6px">
@@ -166,25 +150,25 @@
                   <option value="">{{ _("Зачислить ученика...") }}</option>
                   {% for st in students %}<option value="{{ st.id }}">{{ st.name }}</option>{% endfor %}
                 </select>
-                <button class="btn btn--secondary btn--min" type="submit">{{ _("Добавить") }}</button>
+                <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">{{ _("Добавить") }}</button>
               </form>
             </div>
             {% set active_enrs = g.enrollments | selectattr('left_at', 'none') | list %}
             {% if active_enrs %}
-              <div class="stack-sm" style="margin-top:8px">
+              <div class="stack-sm" style="margin-top:6px">
                 {% for enr in active_enrs %}
-                  <div class="row" style="justify-content:space-between;align-items:center;gap:8px">
+                  <div class="row row--between" style="gap:8px">
                     <span class="small">{{ enr.student.name if enr.student else ('#' ~ enr.student_user_id) }}</span>
-                    <form method="post" action="{{ url_for('academic.enrollment_close', enrollment_id=enr.id) }}" class="row" style="gap:4px">
+                    <form method="post" action="{{ url_for('academic.enrollment_close', enrollment_id=enr.id) }}">
                       {{ ui.csrf() }}
                       <input type="hidden" name="status" value="completed">
-                      <button class="btn btn--secondary btn--min" type="submit" style="min-height:30px">{{ _("Закрыть зачисление") }}</button>
+                      <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit" style="min-height:30px">{{ _("Закрыть зачисление") }}</button>
                     </form>
                   </div>
                 {% endfor %}
               </div>
             {% else %}
-              <div class="small muted" style="margin-top:6px">{{ _("Нет активных зачислений") }}</div>
+              <div class="small muted">{{ _("Нет активных зачислений") }}</div>
             {% endif %}
           </div>
         {% endfor %}
@@ -194,7 +178,6 @@
   </div>
   {% endif %}
 
-  {# Multi-View Schedule Display #}
   {% if view == 'week' %}
   <div class="acad-week-grid">
     {% for d in week_days %}
@@ -216,117 +199,134 @@
     {% endfor %}
   </div>
   {% elif view == 'rooms' %}
-  <div class="table-wrap">
-    <table class="table crm-table acad-matrix">
-      <thead>
-        <tr>
-          <th class="is-sticky">{{ _("Кабинет / Онлайн") }}</th>
-          {% for d in week_days %}<th class="num">{{ d|d('EEE d.MM') }}</th>{% endfor %}
-        </tr>
-      </thead>
-      <tbody>
-        {% for lane in room_lanes %}
-        <tr>
-          <td class="is-sticky t-strong">{{ lane.label }}</td>
-          {% for d in week_days %}
-            <td>
-              <div class="stack-sm">
-                {% for l in lane.by_day.get(d, []) %}
-                  <a class="acad-event acad-event--{{ l.lesson_mode }}{{ ' acad-event--conflict' if l.id in conflict_ids }}" href="{{ url_for('academic.lesson_detail', lesson_id=l.id) }}">
-                    <span class="t-strong num">{{ l.starts_at|d('HH:mm') }}</span>
-                    <span>{{ l.group.name }}</span>
-                    {% if l.teacher %}<span class="small muted">{{ l.teacher.name }}</span>{% endif %}
-                  </a>
-                {% else %}
-                  <span class="small muted">—</span>
-                {% endfor %}
-              </div>
-            </td>
+    {% call mui.table_wrap() %}
+      <table class="mgr-table acad-matrix">
+        <thead>
+          <tr>
+            <th class="is-sticky">{{ _("Кабинет / Онлайн") }}</th>
+            {% for d in week_days %}<th class="num">{{ d|d('EEE d.MM') }}</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for lane in room_lanes %}
+          <tr>
+            <td class="is-sticky" style="font-weight:700">{{ lane.label }}</td>
+            {% for d in week_days %}
+              <td>
+                <div class="stack-sm">
+                  {% for l in lane.by_day.get(d, []) %}
+                    <a class="acad-event acad-event--{{ l.lesson_mode }}{{ ' acad-event--conflict' if l.id in conflict_ids }}" href="{{ url_for('academic.lesson_detail', lesson_id=l.id) }}">
+                      <span class="t-strong num">{{ l.starts_at|d('HH:mm') }}</span>
+                      <span>{{ l.group.name }}</span>
+                      {% if l.teacher %}<span class="small muted">{{ l.teacher.name }}</span>{% endif %}
+                    </a>
+                  {% else %}
+                    <span class="muted">—</span>
+                  {% endfor %}
+                </div>
+              </td>
+            {% endfor %}
+          </tr>
           {% endfor %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+        </tbody>
+      </table>
+    {% endcall %}
   {% elif view == 'teachers' %}
-  {% if teacher_lanes %}
-  <div class="table-wrap">
-    <table class="table crm-table acad-matrix">
-      <thead>
-        <tr>
-          <th class="is-sticky">{{ _("Учитель (ч/нед)") }}</th>
-          {% for d in week_days %}<th class="num">{{ d|d('EEE d.MM') }}</th>{% endfor %}
-        </tr>
-      </thead>
-      <tbody>
-        {% for lane in teacher_lanes %}
-        <tr>
-          <td class="is-sticky">
-            <div class="t-strong">{{ lane.teacher.name }}</div>
-            <div class="small muted num">{{ lane.hours }} {{ _("ч") }}{% if lane.est_pay is not none %} · {{ lane.est_pay }} KGS{% endif %}</div>
-          </td>
-          {% for d in week_days %}
-            <td>
-              <div class="stack-sm">
-                {% for l in lane.by_day.get(d, []) %}
-                  <a class="acad-event acad-event--{{ l.lesson_mode }}{{ ' acad-event--conflict' if l.id in conflict_ids }}" href="{{ url_for('academic.lesson_detail', lesson_id=l.id) }}">
-                    <span class="t-strong num">{{ l.starts_at|d('HH:mm') }}</span>
-                    <span>{{ l.group.name }}</span>
-                    <span class="small muted">{{ l.location.name if l.location else _('Онлайн') }}</span>
-                  </a>
-                {% else %}
-                  <span class="small muted">—</span>
-                {% endfor %}
-              </div>
-            </td>
-          {% endfor %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <div class="empty"><h3>{{ _("Нет активных учителей для отображения") }}</h3></div>
-  {% endif %}
+    {% if teacher_lanes %}
+      {% call mui.table_wrap() %}
+        <table class="mgr-table acad-matrix">
+          <thead>
+            <tr>
+              <th class="is-sticky">{{ _("Учитель (ч/нед)") }}</th>
+              {% for d in week_days %}<th class="num">{{ d|d('EEE d.MM') }}</th>{% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for lane in teacher_lanes %}
+            <tr>
+              <td class="is-sticky">
+                <div style="font-weight:700">{{ lane.teacher.name }}</div>
+                <div class="mgr-subcell num">{{ lane.hours }} {{ _("ч") }}{% if lane.est_pay is not none %} · {{ lane.est_pay }} KGS{% endif %}</div>
+              </td>
+              {% for d in week_days %}
+                <td>
+                  <div class="stack-sm">
+                    {% for l in lane.by_day.get(d, []) %}
+                      <a class="acad-event acad-event--{{ l.lesson_mode }}{{ ' acad-event--conflict' if l.id in conflict_ids }}" href="{{ url_for('academic.lesson_detail', lesson_id=l.id) }}">
+                        <span class="t-strong num">{{ l.starts_at|d('HH:mm') }}</span>
+                        <span>{{ l.group.name }}</span>
+                        <span class="small muted">{{ l.location.name if l.location else _('Онлайн') }}</span>
+                      </a>
+                    {% else %}
+                      <span class="muted">—</span>
+                    {% endfor %}
+                  </div>
+                </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endcall %}
+    {% else %}
+      {{ mui.empty(_("Нет активных учителей для отображения"), "", icon_name='users') }}
+    {% endif %}
   {% elif lessons %}
-  <div class="table-wrap">
-    <table class="table crm-table">
-      <thead>
-        <tr>
-          <th>{{ _("Дата / время") }}</th>
-          <th>{{ _("Группа / курс") }}</th>
-          <th>{{ _("Формат") }}</th>
-          <th>{{ _("Локация / ссылка") }}</th>
-          <th>{{ _("Учитель") }}</th>
-          <th>{{ _("Посещаемость") }}</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for l in lessons %}
-        <tr>
-          <td class="small nowrap num">{{ l.starts_at|d('d MMM y, HH:mm') }}</td>
-          <td>
-            <div class="t-strong">{{ l.group.name }}{% if l.id in conflict_ids %} <span class="tag tag--bad tag--xs">{{ _("Конфликт") }}</span>{% endif %}</div>
-            <div class="small muted">{{ l.group.course.name }}{% if l.topic %} · {{ l.topic }}{% endif %}</div>
-          </td>
-          <td><span class="tag {{ 'tag--soft' if l.lesson_mode == 'online' else 'tag--line' }} tag--xs">{{ LESSON_MODE_LABELS.get(l.lesson_mode, l.lesson_mode) }}</span></td>
-          <td class="small">
-            {% if l.lesson_mode == 'online' %}
-              {% if l.meeting_url and l.meeting_url.startswith(('http://', 'https://')) %}<a href="{{ l.meeting_url }}" target="_blank" rel="noopener noreferrer">{{ _("Ссылка на урок") }}</a>{% else %}<span class="muted">—</span>{% endif %}
-            {% else %}
-              {{ l.location.name if l.location else '—' }}{% if l.location and l.location.room %} · {{ l.location.room }}{% endif %}
-            {% endif %}
-          </td>
-          <td class="small">{{ l.teacher.name if l.teacher else '—' }}</td>
-          <td class="small num">{{ l.attendances|length }}</td>
-          <td><a class="btn btn--secondary btn--min" href="{{ url_for('academic.lesson_detail', lesson_id=l.id) }}">{{ _("Открыть") }}</a></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+    {% call mui.table_wrap() %}
+      <table class="mgr-table">
+        <thead>
+          <tr>
+            <th>{{ _("Дата / время") }}</th>
+            <th>{{ _("Группа / курс") }}</th>
+            <th>{{ _("Формат") }}</th>
+            <th>{{ _("Локация / ссылка") }}</th>
+            <th>{{ _("Учитель") }}</th>
+            <th>{{ _("Посещаемость") }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in lessons %}
+          <tr>
+            <td class="nowrap num">{{ l.starts_at|d('d MMM y, HH:mm') }}</td>
+            <td>
+              <div style="font-weight:700">{{ l.group.name }}{% if l.id in conflict_ids %} {{ mui.badge(_("Конфликт"), tone='bad') }}{% endif %}</div>
+              <div class="mgr-subcell">{{ l.group.course.name }}{% if l.topic %} · {{ l.topic }}{% endif %}</div>
+            </td>
+            <td>{{ mui.badge(LESSON_MODE_LABELS.get(l.lesson_mode, l.lesson_mode), tone='accent' if l.lesson_mode == 'online' else 'neutral') }}</td>
+            <td>
+              {% if l.lesson_mode == 'online' %}
+                {% if l.meeting_url and l.meeting_url.startswith(('http://', 'https://')) %}<a href="{{ l.meeting_url }}" target="_blank" rel="noopener noreferrer">{{ _("Ссылка на урок") }}</a>{% else %}<span class="muted">—</span>{% endif %}
+              {% else %}
+                {{ l.location.name if l.location else '—' }}{% if l.location and l.location.room %} · {{ l.location.room }}{% endif %}
+              {% endif %}
+            </td>
+            <td>{{ l.teacher.name if l.teacher else '—' }}</td>
+            <td class="num">{{ l.attendances|length }}</td>
+            <td>{{ mui.btn(_("Открыть"), href=url_for('academic.lesson_detail', lesson_id=l.id), variant='secondary', size='sm') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endcall %}
   {% else %}
-  <div class="empty"><h3>{{ _("Занятий пока нет") }}</h3></div>
+    {{ mui.empty(_("Занятий пока нет"), _("Создайте урок или измените фильтры расписания."), icon_name='calendar') }}
   {% endif %}
+
+<script>
+(function(){
+  const f = document.querySelector('[data-lesson-form]');
+  if (!f) return;
+  const sync = () => {
+    const d = f.querySelector('[data-lesson-date]');
+    const t = f.querySelector('[data-lesson-time]');
+    const out = f.querySelector('[data-lesson-combined]');
+    if (out && d && d.value) {
+      out.value = d.value + 'T' + (t && t.value ? t.value : '18:00');
+    }
+  };
+  f.addEventListener('submit', sync);
+  f.addEventListener('change', sync);
+})();
+</script>
 {% endblock %}

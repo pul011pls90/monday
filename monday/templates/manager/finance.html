@@ -1,120 +1,90 @@
 {% extends "layout.html" %}
+{% import "manager/_ui.html" as mui with context %}
 {% block title %}{{ _("CRM · Финансы и абонементы") }}{% endblock %}
 {% block context %}{{ _("Финансы и тарифы") }}{% endblock %}
 {% block page_class %}page--wide{% endblock %}
 {% block content %}
-  <div class="t-hero-bar">
-    <div class="t-hero-bar__title">
-      <h1>{{ _("Финансы и абонементы") }}</h1>
-      <p>{{ _("Выручка, задолженности по абонементам, тарифы и начисления учителям.") }}</p>
-    </div>
-    <div class="t-hero-actions">
-      <a class="btn btn--secondary btn--min" href="{{ url_for('manager.pipeline', mode='students') }}">{{ ui.icon('users', 15) }}<span>{{ _("Активные ученики") }}</span></a>
-      <a class="btn btn--secondary btn--min" href="{{ url_for('academic.schedule') }}">{{ ui.icon('calendar', 15) }}<span>{{ _("Расписание") }}</span></a>
-    </div>
+  {% call mui.page_header(
+    _("Финансы и абонементы"),
+    _("Выручка, задолженности по абонементам, тарифы и начисления учителям.")
+  ) %}
+    {{ mui.btn(_("Активные ученики"), href=url_for('manager.pipeline', mode='students'), variant='secondary', size='sm', icon_name='users') }}
+    {{ mui.btn(_("Расписание"), href=url_for('academic.schedule'), variant='secondary', size='sm', icon_name='calendar') }}
+  {% endcall %}
+
+  <div class="mgr-kpi-grid">
+    {{ mui.kpi(_("Выручка (30 дней)"), rev_30d ~ " KGS", _("за вычетом возвратов"), tone='ok') }}
+    {{ mui.kpi(_("Общий долг"), total_debt ~ " KGS", _("абонементов с долгом: %(n)s", n=debt_passes|length), tone='bad' if total_debt else 'ok') }}
+    {{ mui.kpi(_("Активные абонементы"), active_passes_count, _("действующих сейчас"), tone='accent') }}
+    {{ mui.kpi(_("Скоро продление"), expiring_passes|length, _("<= 2 уроков или <= 7 дней"), tone='warn' if expiring_passes else 'ok') }}
   </div>
 
-  <div class="crm-kpis">
-    <div class="card crm-kpi crm-kpi--ok">
-      <span class="eyebrow">{{ _("Выручка (30 дней)") }}</span>
-      <span class="stat-value num">{{ rev_30d }} <span class="small">KGS</span></span>
-      <span class="stat-label">{{ _("за вычетом возвратов") }}</span>
-    </div>
-    <div class="card crm-kpi {{ 'crm-kpi--hot' if total_debt else 'crm-kpi--ok' }}">
-      <span class="eyebrow">{{ _("Общий долг") }}</span>
-      <span class="stat-value num">{{ total_debt }} <span class="small">KGS</span></span>
-      <span class="stat-label">{{ _("абонементов с долгом: %(n)s", n=debt_passes|length) }}</span>
-    </div>
-    <div class="card crm-kpi crm-kpi--accent">
-      <span class="eyebrow">{{ _("Активные абонементы") }}</span>
-      <span class="stat-value num">{{ active_passes_count }}</span>
-      <span class="stat-label">{{ _("действующих сейчас") }}</span>
-    </div>
-    <div class="card crm-kpi {{ 'crm-kpi--warn' if expiring_passes else 'crm-kpi--ok' }}">
-      <span class="eyebrow">{{ _("Скоро продление") }}</span>
-      <span class="stat-value num">{{ expiring_passes|length }}</span>
-      <span class="stat-label">{{ _("<= 2 уроков или <= 7 дней") }}</span>
-    </div>
-  </div>
-
-  <div class="crm-bento">
-    <div class="stack crm-span-8">
-      <section class="card">
-        <div class="card__head">
-          <div class="hc__head">
-            <span class="hc__ic">{{ ui.icon('bank', 17) }}</span>
-            <h2>{{ _("Журнал операций") }}</h2>
-            <span class="hc__pill num">{{ recent_tx|length }}</span>
-          </div>
-        </div>
+  <div class="mgr-detail-grid">
+    <div class="stack">
+      {% call mui.card() %}
+        {{ mui.section_head('bank', _("Журнал операций"), count=recent_tx|length) }}
         {% if recent_tx %}
-        <div class="table-wrap" style="border:0;border-radius:0;box-shadow:none">
-          <table class="table crm-table">
-            <thead>
-              <tr>
-                <th>{{ _("Дата") }}</th>
-                <th>{{ _("Ученик") }}</th>
-                <th>{{ _("Сумма") }}</th>
-                <th>{{ _("Способ") }}</th>
-                <th>{{ _("Абонемент") }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for tx in recent_tx %}
-              <tr>
-                <td class="small muted num nowrap">{{ tx.paid_at|d('d MMM, HH:mm') }}</td>
-                <td><a class="t-strong" href="{{ url_for('manager.student_detail', student_id=tx.student_user_id) }}">{{ tx.student.name if tx.student else ('#' ~ tx.student_user_id) }}</a></td>
-                <td class="num t-strong" style="color:{{ 'var(--bad)' if tx.kind == 'refund' else 'var(--ok)' }}">{{ '-' if tx.kind == 'refund' else '+' }}{{ tx.amount }}</td>
-                <td class="small">{{ METHOD_LABELS.get(tx.method, tx.method) }}</td>
-                <td class="small muted">{{ tx.student_pass.plan.name if (tx.student_pass and tx.student_pass.plan) else '—' }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+          {% call mui.table_wrap() %}
+            <table class="mgr-table">
+              <thead>
+                <tr>
+                  <th>{{ _("Дата") }}</th>
+                  <th>{{ _("Ученик") }}</th>
+                  <th>{{ _("Сумма") }}</th>
+                  <th>{{ _("Способ") }}</th>
+                  <th>{{ _("Абонемент") }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for tx in recent_tx %}
+                <tr>
+                  <td class="muted num nowrap">{{ tx.paid_at|d('d MMM, HH:mm') }}</td>
+                  <td><a class="mgr-lead-link" href="{{ url_for('manager.student_detail', student_id=tx.student_user_id) }}">{{ tx.student.name if tx.student else ('#' ~ tx.student_user_id) }}</a></td>
+                  <td class="num" style="font-weight:700;color:{{ 'var(--bad)' if tx.kind == 'refund' else 'var(--ok)' }}">{{ '-' if tx.kind == 'refund' else '+' }}{{ tx.amount }} KGS</td>
+                  <td>{{ METHOD_LABELS.get(tx.method, tx.method) }}</td>
+                  <td class="muted">{{ tx.student_pass.plan.name if (tx.student_pass and tx.student_pass.plan) else '—' }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% endcall %}
         {% else %}
-          <p class="small text-2">{{ _("Операций пока нет.") }}</p>
+          {{ mui.empty(_("Операций пока нет"), _("Принятые оплаты и возвраты по абонементам появятся здесь."), icon_name='bank') }}
         {% endif %}
-      </section>
+      {% endcall %}
 
       {% if current_user.has_perm('academic.payroll.read') %}
-      <section class="card">
-        <div class="card__head">
-          <div class="hc__head">
-            <span class="hc__ic">{{ ui.icon('users', 17) }}</span>
-            <h2>{{ _("Начисления учителям (30 дней)") }}</h2>
-            <span class="hc__pill num">{{ payroll_rows|length }}</span>
-          </div>
-        </div>
+      {% call mui.card() %}
+        {{ mui.section_head('users', _("Начисления учителям (30 дней)"), count=payroll_rows|length) }}
         {% if payroll_rows %}
-        <div class="table-wrap" style="border:0;border-radius:0;box-shadow:none">
-          <table class="table crm-table">
-            <thead>
-              <tr>
-                <th>{{ _("Учитель") }}</th>
-                <th>{{ _("Ставка") }}</th>
-                <th>{{ _("Уроков (30д)") }}</th>
-                <th>{{ _("К начислению") }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for pr in payroll_rows %}
-              <tr>
-                <td class="t-strong">{{ pr.teacher.name }}</td>
-                <td class="small">
-                  {% for r in pr.rates %}
-                    <div>{{ RATE_TYPE_LABELS.get(r.rate_type, r.rate_type) }} · <b>{{ r.rate_amount }} {{ r.currency }}</b>{% if r.course %} ({{ r.course.name }}){% endif %}</div>
-                  {% else %}
-                    <span class="muted">{{ _("не задана") }}</span>
-                  {% endfor %}
-                </td>
-                <td class="num">{{ pr.lesson_count }}</td>
-                <td class="num t-strong">{{ pr.accrued }} KGS</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+          {% call mui.table_wrap() %}
+            <table class="mgr-table">
+              <thead>
+                <tr>
+                  <th>{{ _("Учитель") }}</th>
+                  <th>{{ _("Ставка") }}</th>
+                  <th>{{ _("Уроков (30д)") }}</th>
+                  <th>{{ _("К начислению") }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for pr in payroll_rows %}
+                <tr>
+                  <td style="font-weight:700">{{ pr.teacher.name }}</td>
+                  <td>
+                    {% for r in pr.rates %}
+                      <div>{{ RATE_TYPE_LABELS.get(r.rate_type, r.rate_type) }} · <b>{{ r.rate_amount }} {{ r.currency }}</b>{% if r.course %} ({{ r.course.name }}){% endif %}</div>
+                    {% else %}
+                      <span class="muted">{{ _("не задана") }}</span>
+                    {% endfor %}
+                  </td>
+                  <td class="num">{{ pr.lesson_count }}</td>
+                  <td class="num" style="font-weight:700">{{ pr.accrued }} KGS</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% endcall %}
         {% else %}
           <p class="small text-2">{{ _("Учителей пока нет.") }}</p>
         {% endif %}
@@ -137,38 +107,39 @@
               {% for rt in PAY_RATE_TYPES %}<option value="{{ rt }}">{{ RATE_TYPE_LABELS[rt] }}</option>{% endfor %}
             </select>
             <input class="input input--sm" type="number" name="rate_amount" min="1" required placeholder="KGS" style="width:110px">
-            <button class="btn btn--secondary btn--min" type="submit">{{ _("Сохранить") }}</button>
+            <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">{{ _("Сохранить") }}</button>
           </div>
         </form>
         {% endif %}
-      </section>
+      {% endcall %}
       {% endif %}
     </div>
 
-    <div class="stack crm-span-4">
-      <section class="card">
-        <div class="card__head">
-          <div class="hc__head">
-            <span class="hc__ic">{{ ui.icon('clock', 17) }}</span>
-            <h2>{{ _("Долги и продления") }}</h2>
-            <span class="hc__pill num">{{ debt_passes|length + expiring_passes|length }}</span>
-          </div>
-        </div>
+    <div class="stack">
+      {% call mui.card() %}
+        {{ mui.section_head('clock', _("Долги и продления"), count=debt_passes|length + expiring_passes|length) }}
         {% if debt_passes or expiring_passes %}
-          <div class="stack-sm">
+          <div class="mgr-queue">
             {% for sp in debt_passes %}
-              <div class="crm-task crm-task--overdue">
-                <div class="crm-task__main">
-                  <a class="t-strong small" href="{{ url_for('manager.student_detail', student_id=sp.student_user_id) }}">{{ sp.student.name if sp.student else ('#' ~ sp.student_user_id) }}</a>
-                  <span class="small">{{ sp.plan.name if sp.plan else sp.plan_id }} · <b style="color:var(--bad)">{{ _("Долг") }} {{ sp.debt_amount }} KGS</b></span>
+              <div class="mgr-queue__item">
+                <span class="mgr-dot mgr-dot--bad" aria-hidden="true"></span>
+                <div class="mgr-queue__main">
+                  <div class="mgr-queue__title">
+                    <a href="{{ url_for('manager.student_detail', student_id=sp.student_user_id) }}">{{ sp.student.name if sp.student else ('#' ~ sp.student_user_id) }}</a>
+                    {{ mui.badge(_("Долг") ~ " " ~ sp.debt_amount ~ " KGS", tone='bad') }}
+                  </div>
+                  <div class="mgr-queue__meta">{{ sp.plan.name if sp.plan else sp.plan_id }}</div>
                 </div>
               </div>
             {% endfor %}
             {% for sp in expiring_passes %}
-              <div class="crm-task">
-                <div class="crm-task__main">
-                  <a class="t-strong small" href="{{ url_for('manager.student_detail', student_id=sp.student_user_id) }}">{{ sp.student.name if sp.student else ('#' ~ sp.student_user_id) }}</a>
-                  <span class="small muted">{{ sp.plan.name if sp.plan else sp.plan_id }} · {% if sp.lessons_remaining is not none %}{{ _("осталось") }} {{ sp.lessons_remaining }} {{ _("ур.") }}{% else %}{{ _("до") }} {{ sp.expires_at|d('d MMM') }}{% endif %}</span>
+              <div class="mgr-queue__item">
+                <span class="mgr-dot mgr-dot--warn" aria-hidden="true"></span>
+                <div class="mgr-queue__main">
+                  <div class="mgr-queue__title">
+                    <a href="{{ url_for('manager.student_detail', student_id=sp.student_user_id) }}">{{ sp.student.name if sp.student else ('#' ~ sp.student_user_id) }}</a>
+                  </div>
+                  <div class="mgr-queue__meta">{{ sp.plan.name if sp.plan else sp.plan_id }} · {% if sp.lessons_remaining is not none %}{{ _("осталось") }} {{ sp.lessons_remaining }} {{ _("ур.") }}{% else %}{{ _("до") }} {{ sp.expires_at|d('d MMM') }}{% endif %}</div>
                 </div>
               </div>
             {% endfor %}
@@ -176,23 +147,17 @@
         {% else %}
           <p class="small text-2">{{ _("Долгов и срочных продлений нет.") }}</p>
         {% endif %}
-      </section>
+      {% endcall %}
 
-      <section class="card">
-        <div class="card__head">
-          <div class="hc__head">
-            <span class="hc__ic">{{ ui.icon('list', 17) }}</span>
-            <h2>{{ _("Тарифы (абонементы)") }}</h2>
-            <span class="hc__pill num">{{ plans|length }}</span>
-          </div>
-        </div>
+      {% call mui.card() %}
+        {{ mui.section_head('list', _("Тарифы (абонементы)"), count=plans|length) }}
         {% if plans %}
-          <div class="stack-sm">
+          <div class="mgr-queue">
             {% for pl in plans %}
-              <div class="crm-task">
-                <div class="crm-task__main">
-                  <span class="t-strong small">{{ pl.name }}</span>
-                  <span class="small muted">{{ pl.price_amount }} {{ pl.currency }} · {% if pl.total_lessons %}{{ pl.total_lessons }} {{ _("уроков") }}{% else %}{{ _("безлимит") }}{% endif %} · {{ pl.duration_days }} {{ _("дн.") }}{% if pl.course %} · {{ pl.course.name }}{% endif %}</span>
+              <div class="mgr-queue__item">
+                <div class="mgr-queue__main">
+                  <div class="mgr-queue__title">{{ pl.name }}</div>
+                  <div class="mgr-queue__meta num">{{ pl.price_amount }} {{ pl.currency }} · {% if pl.total_lessons %}{{ pl.total_lessons }} {{ _("уроков") }}{% else %}{{ _("безлимит") }}{% endif %} · {{ pl.duration_days }} {{ _("дн.") }}{% if pl.course %} · {{ pl.course.name }}{% endif %}</div>
                 </div>
               </div>
             {% endfor %}
@@ -217,11 +182,11 @@
               <option value="">{{ _("Любой курс") }}</option>
               {% for c in courses %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
             </select>
-            <button class="btn btn--primary btn--min" type="submit">{{ _("Создать") }}</button>
+            <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Создать") }}</button>
           </div>
         </form>
         {% endif %}
-      </section>
+      {% endcall %}
     </div>
   </div>
 {% endblock %}

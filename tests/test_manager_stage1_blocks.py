@@ -133,3 +133,44 @@ def test_stage1_macros_render_all_shared_building_blocks():
         'Изменить',
     ):
         assert marker in rendered, f"Missing expected markup: {marker}"
+
+
+def test_stage3_pages_render_pipeline_audit_diff_and_account_row_cards():
+    from monday.audit import write_audit_log
+    from monday.models import Lead
+
+    app = _make_app()
+    sup_id = _seed(app, "sup3@example.com", "Sup Three", "supervisor")
+    with app.app_context():
+        l1 = Lead(full_name="Pipeline Lead", phone="+996555010203", source="instagram", interest="SAT", status="new", assigned_manager_id=sup_id)
+        db.session.add(l1)
+        db.session.flush()
+        write_audit_log(
+            actor_id=sup_id,
+            action="lead_status_override",
+            entity_type="lead",
+            entity_id=l1.id,
+            old_value={"status": "new"},
+            new_value={"status": "contacted"},
+            reason="Verified call",
+        )
+        db.session.commit()
+
+    c = app.test_client()
+    _login(c, "sup3@example.com")
+
+    pipe_html = c.get("/manager/pipeline").get_data(as_text=True)
+    assert "mgr-board" in pipe_html
+    assert "mgr-stage-menu" in pipe_html
+    assert "→ Связались" in pipe_html
+
+    audit_html = c.get("/manager/audit").get_data(as_text=True)
+    assert "mgr-diff-list" in audit_html
+    assert "Статус:" in audit_html
+    assert '{"status":' not in audit_html
+
+    acct_html = c.get("/manager/account").get_data(as_text=True)
+    assert "set-hero" in acct_html
+    assert "mgr-row-stack" in acct_html
+    assert "mgr-row-edit" in acct_html
+    assert "Изменить" in acct_html

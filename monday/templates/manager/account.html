@@ -1,136 +1,102 @@
 {% extends "layout.html" %}
+{% import "manager/_ui.html" as mui with context %}
 {% block title %}{{ _("Настройки · CRM") }}{% endblock %}
 {% block context %}{{ _("Настройки аккаунта") }}{% endblock %}
-{% block page_class %}page--wide{% endblock %}
 {% block content %}
-  <div class="t-hero-bar">
-    <div class="t-hero-bar__title">
-      <h1>{{ _("Настройки") }}</h1>
-      <p>{{ current_user.name }} · {{ current_user.email }} · {{ role_label }}</p>
+  {# Top Identity Hero Banner matching Student /profile .set-hero #}
+  <section class="set-hero">
+    <div class="set-hero__photo">
+      {{ ui.avatar(current_user, 'avatar--lg') }}
     </div>
-    <div class="t-hero-actions">
-      <a class="btn btn--secondary btn--min" href="{{ url_for('manager.dashboard') }}">{{ ui.icon('list', 15) }}<span>{{ _("На главную CRM") }}</span></a>
+    <div class="set-hero__who">
+      <h1>{{ current_user.name }}</h1>
+      <span>{{ current_user.email }} · {{ role_label }}</span>
     </div>
-  </div>
+    <span class="set-hero__badge">
+      {{ ui.icon('clock', 16) }}
+      <span>{{ _("На смене") if current_user.is_on_shift else _("Не на смене") }}</span>
+    </span>
+    {{ mui.btn(_("CRM · Сегодня"), href=url_for('manager.dashboard'), variant='secondary', size='sm', icon_name='home') }}
+  </section>
 
-  <div class="crm-account-grid">
-    {# LEFT COLUMN: Profile & Permissions + Interface & Density Preferences #}
-    <div class="stack">
-      <section class="card">
-        <div class="hc__head">
-          <span class="hc__ic">{{ ui.icon('users', 17) }}</span>
-          <h2>{{ _("Профиль и права") }}</h2>
-          <span class="hc__pill">{{ role_label }}</span>
-        </div>
-
-        <div class="crm-profile-meta">
-          {{ ui.avatar(current_user) }}
-          <div style="min-width:0;flex:1">
-            <div class="t-strong">{{ current_user.name }}</div>
-            <div class="small muted">{{ current_user.email }}</div>
-          </div>
-          <span class="tag {{ 'tag--ok' if current_user.is_on_shift else 'tag--soft' }} tag--xs">
-            {{ _("На смене") if current_user.is_on_shift else _("Не на смене") }}
-          </span>
-        </div>
-
-        <form method="post" action="{{ url_for('manager.account') }}" class="stack-sm">
-          {{ ui.csrf() }}
-          <input type="hidden" name="action" value="profile">
-          <div class="field">
-            <label for="acct-name">{{ _("Отображаемое имя") }}</label>
-            <div class="row" style="gap:8px;flex-wrap:nowrap">
-              <input class="input input--sm" id="acct-name" name="name" value="{{ current_user.name }}" minlength="2" maxlength="120" required style="flex:1">
-              <button class="btn btn--primary btn--min" type="submit">{{ _("Сохранить имя") }}</button>
-            </div>
-          </div>
-        </form>
-
-        <hr style="border:0;border-top:1px solid var(--line);margin:2px 0">
-        <div class="eyebrow">{{ _("Ваши права в CRM") }}</div>
+  {# Stacked Row-Cards matching Student /profile with collapsible «Изменить» actions #}
+  <div class="mgr-row-stack">
+    {% call mui.row_card('users', _("Профиль и права"), _("Имя отображается в карточках лидов, задачах и журнале аудита.")) %}
+      {% call mui.row_edit(current_user.name, label=_("Изменить"), action_url=url_for('manager.account')) %}
+        <input type="hidden" name="action" value="profile">
+        <input class="input" name="name" value="{{ current_user.name }}" minlength="2" maxlength="120" required aria-label="{{ _('Отображаемое имя') }}">
+        <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Сохранить") }}</button>
+      {% endcall %}
+      {{ mui.row_line(current_user.email ~ ' · ' ~ role_label) }}
+      <div style="margin-top:8px">
+        <div class="eyebrow" style="margin-bottom:6px">{{ _("Ваши права в CRM") }}</div>
         <ul class="crm-perm-list">
           {% for perm_text in role_perms %}
             <li>{{ ui.icon('check', 15) }}<span>{{ perm_text }}</span></li>
           {% endfor %}
         </ul>
-      </section>
+      </div>
+    {% endcall %}
 
-      <section class="card">
-        <div class="hc__head">
-          <span class="hc__ic">{{ ui.icon('settings', 17) }}</span>
-          <h2>{{ _("Интерфейс и плотность") }}</h2>
+    {% call mui.row_card('settings', _("Интерфейс и плотность"), _("Тема оформления и компактное отображение таблиц и карточек.")) %}
+      <div class="mgr-row-line">
+        <div>
+          <div class="mgr-row-val">{{ _("Тёмная тема") if current_user.theme == 'dark' else (_("Системная тема") if current_user.theme == 'system' else _("Светлая тема")) }}</div>
+          <div class="small muted">{{ _("Тема синхронизируется для всех ваших разделов.") }}</div>
         </div>
-
-        <div class="row row--between" style="gap:12px;flex-wrap:wrap">
-          <div>
-            <div class="t-strong small">{{ _("Тема оформления") }}</div>
-            <div class="small muted">{{ _("Текущая") }}: {{ _("тёмная") if current_user.theme == 'dark' else (_("системная") if current_user.theme == 'system' else _("светлая")) }}</div>
-          </div>
-          <div class="row" style="gap:6px">
-            <form method="post" action="{{ url_for('auth.toggle_theme') }}">
-              {{ ui.csrf() }}
-              <input type="hidden" name="theme" value="light">
-              <input type="hidden" name="next" value="{{ request.full_path }}">
-              <button class="btn {{ 'btn--primary' if current_user.theme != 'dark' else 'btn--secondary' }} btn--min" type="submit">{{ ui.icon('sun', 14) }}<span>{{ _("Светлая") }}</span></button>
-            </form>
-            <form method="post" action="{{ url_for('auth.toggle_theme') }}">
-              {{ ui.csrf() }}
-              <input type="hidden" name="theme" value="dark">
-              <input type="hidden" name="next" value="{{ request.full_path }}">
-              <button class="btn {{ 'btn--primary' if current_user.theme == 'dark' else 'btn--secondary' }} btn--min" type="submit">{{ ui.icon('moon', 14) }}<span>{{ _("Тёмная") }}</span></button>
-            </form>
-          </div>
+        <div class="row" style="gap:8px">
+          <form method="post" action="{{ url_for('auth.toggle_theme') }}">
+            {{ ui.csrf() }}
+            <input type="hidden" name="theme" value="light">
+            <input type="hidden" name="next" value="{{ request.full_path }}">
+            <button class="mgr-btn {{ 'mgr-btn--primary' if current_user.theme != 'dark' else 'mgr-btn--secondary' }} mgr-btn--sm" type="submit">{{ ui.icon('sun', 14) }}<span>{{ _("Светлая") }}</span></button>
+          </form>
+          <form method="post" action="{{ url_for('auth.toggle_theme') }}">
+            {{ ui.csrf() }}
+            <input type="hidden" name="theme" value="dark">
+            <input type="hidden" name="next" value="{{ request.full_path }}">
+            <button class="mgr-btn {{ 'mgr-btn--primary' if current_user.theme == 'dark' else 'mgr-btn--secondary' }} mgr-btn--sm" type="submit">{{ ui.icon('moon', 14) }}<span>{{ _("Тёмная") }}</span></button>
+          </form>
         </div>
+      </div>
 
-        <hr style="border:0;border-top:1px solid var(--line);margin:2px 0">
-
-        <label class="row row--between" style="gap:12px;cursor:pointer">
-          <div>
-            <div class="t-strong small">{{ _("Компактный режим") }}</div>
-            <div class="small muted">{{ _("Уменьшает отступы в таблицах, карточках и панели фильтров CRM.") }}</div>
-          </div>
-          <input type="checkbox" id="crm-compact-toggle" style="width:18px;height:18px;accent-color:var(--accent)">
+      <div class="mgr-row-line">
+        <div>
+          <div class="mgr-row-val">{{ _("Компактный режим") }}</div>
+          <div class="small muted">{{ _("Уменьшает отступы в таблицах, карточках и панели фильтров CRM.") }}</div>
+        </div>
+        <label class="set-switch" aria-label="{{ _('Компактный режим') }}">
+          <input type="checkbox" id="crm-compact-toggle">
+          <span></span>
         </label>
-      </section>
-    </div>
+      </div>
+    {% endcall %}
 
-    {# RIGHT COLUMN: Password Security + Quick Links & SLA Guide #}
-    <div class="stack">
-      <section class="card">
-        <div class="hc__head">
-          <span class="hc__ic">{{ ui.icon('shield', 17) }}</span>
-          <h2>{{ _("Смена пароля") }}</h2>
-        </div>
-        <form method="post" action="{{ url_for('manager.account') }}" class="stack">
-          {{ ui.csrf() }}
-          <input type="hidden" name="action" value="password">
-          <div class="field"><label for="pw-cur">{{ _("Текущий пароль") }}</label><input class="input input--sm" id="pw-cur" type="password" name="current" required></div>
-          <div class="field"><label for="pw-new">{{ _("Новый пароль (от %(n)s символов)", n=min_pw_len|default(12)) }}</label><input class="input input--sm" id="pw-new" type="password" name="new" minlength="{{ min_pw_len|default(12) }}" required></div>
-          <div><button class="btn btn--primary btn--min" type="submit">{{ _("Обновить пароль") }}</button></div>
-        </form>
-      </section>
+    {% call mui.row_card('shield', _("Безопасность и пароль"), _("Для сотрудников CRM требуется пароль от %(n)s символов.", n=min_pw_len|default(12))) %}
+      {% call mui.row_edit(_("Пароль защищён · смена завершает старые сессии"), label=_("Изменить"), action_url=url_for('manager.account')) %}
+        <input type="hidden" name="action" value="password">
+        <input class="input" type="password" name="current" required placeholder="{{ _('Текущий пароль') }}" aria-label="{{ _('Текущий пароль') }}">
+        <input class="input" type="password" name="new" minlength="{{ min_pw_len|default(12) }}" required placeholder="{{ _('Новый пароль (от %(n)s символов)', n=min_pw_len|default(12)) }}" aria-label="{{ _('Новый пароль') }}">
+        <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Обновить пароль") }}</button>
+      {% endcall %}
+    {% endcall %}
 
-      <section class="card">
-        <div class="hc__head">
-          <span class="hc__ic">{{ ui.icon('clock', 17) }}</span>
-          <h2>{{ _("Горячие переходы и справка SLA") }}</h2>
-        </div>
-        <div class="crm-shortcut-grid">
-          <a class="btn btn--secondary btn--min" href="{{ url_for('manager.leads') }}">{{ ui.icon('users', 14) }}<span>{{ _("Список лидов") }}</span></a>
-          <a class="btn btn--secondary btn--min" href="{{ url_for('manager.pipeline') }}">{{ ui.icon('list', 14) }}<span>{{ _("Воронка продаж") }}</span></a>
-          <a class="btn btn--secondary btn--min" href="{{ url_for('manager.finance') }}">{{ ui.icon('bank', 14) }}<span>{{ _("Финансы") }}</span></a>
-          <a class="btn btn--secondary btn--min" href="{{ url_for('academic.schedule') }}">{{ ui.icon('calendar', 14) }}<span>{{ _("Расписание") }}</span></a>
+    {% call mui.row_card('clock', _("Быстрые переходы и памятка SLA"), _("Основные разделы CRM и правило первого ответа.")) %}
+      <div class="mgr-row-line">
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          {{ mui.btn(_("Список лидов"), href=url_for('manager.leads'), variant='secondary', size='sm', icon_name='users') }}
+          {{ mui.btn(_("Воронка продаж"), href=url_for('manager.pipeline'), variant='secondary', size='sm', icon_name='list') }}
+          {{ mui.btn(_("Финансы"), href=url_for('manager.finance'), variant='secondary', size='sm', icon_name='bank') }}
+          {{ mui.btn(_("Расписание"), href=url_for('academic.schedule'), variant='secondary', size='sm', icon_name='calendar') }}
           {% if current_user.is_crm_supervisor %}
-            <a class="btn btn--secondary btn--min" href="{{ url_for('manager.audit') }}">{{ ui.icon('shield', 14) }}<span>{{ _("Журнал аудита") }}</span></a>
+            {{ mui.btn(_("Журнал аудита"), href=url_for('manager.audit'), variant='secondary', size='sm', icon_name='shield') }}
           {% endif %}
         </div>
-        <hr style="border:0;border-top:1px solid var(--line);margin:2px 0">
-        <div class="small text-2 stack-sm">
-          <div><b>{{ _("Порог SLA первого контакта:") }}</b> {{ sla_threshold }} {{ _("мин с момента создания лида.") }}</div>
-          <div><b>{{ _("Фиксация контакта:") }}</b> {{ _("активность типа «Звонок» или «Сообщение» (либо перевод в следующий этап) автоматически закрывает таймер SLA.") }}</div>
-        </div>
-      </section>
-    </div>
+      </div>
+      <div class="small muted" style="margin-top:8px">
+        <b>{{ _("Порог SLA:") }}</b> {{ sla_threshold }} {{ _("мин с момента создания лида · активность «Звонок» или «Сообщение» автоматически закрывает таймер SLA.") }}
+      </div>
+    {% endcall %}
   </div>
 
 <script>

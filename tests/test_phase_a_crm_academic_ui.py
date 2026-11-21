@@ -235,7 +235,7 @@ def test_crm_workspace_headers_wide_grids_csrf_and_rail_badges():
         html = resp.data.decode()
         assert '<body class="mgr"' in html, f"Missing body.mgr on {route}"
         assert 'class="crm-workspace"' not in html, f"Legacy wrapper card .crm-workspace still present on {route}"
-        assert ('class="mgr-head"' in html or 'class="t-hero-bar"' in html), f"Missing page header on {route}"
+        assert ('class="mgr-head' in html or 'class="set-hero"' in html or 'class="t-hero-bar"' in html), f"Missing page header on {route}"
         if route in wide_routes:
             assert "page--wide" in html, f"Missing .page--wide on {route}"
         for form_match in re.finditer(r'<form[^>]*method="post"[^>]*>([\s\S]*?)</form>', html, flags=re.IGNORECASE):

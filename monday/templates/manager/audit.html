@@ -1,70 +1,82 @@
 {% extends "layout.html" %}
+{% import "manager/_ui.html" as mui with context %}
 {% block title %}{{ _("Журнал аудита") }}{% endblock %}
 {% block context %}{{ _("Журнал аудита") }}{% endblock %}
 {% block content %}
-  <div class="t-hero-bar">
-    <div class="t-hero-bar__title">
-      <h1>{{ _("Журнал аудита") }}</h1>
-      <p>{{ _("Смены ролей, переназначения и удаления лидов, конверсии, оплаты и ретро-правки.") }}</p>
-    </div>
-    <div class="t-hero-actions">
-      <a class="btn btn--secondary btn--min" href="{{ url_for('manager.dashboard') }}">{{ ui.icon('home', 15) }}<span>{{ _("CRM · Сегодня") }}</span></a>
-    </div>
-  </div>
+  {% call mui.page_header(
+    _("Журнал аудита"),
+    _("Смены ролей, переназначения и удаления лидов, конверсии, оплаты и ретро-правки.")
+  ) %}
+    {{ mui.btn(_("CRM · Сегодня"), href=url_for('manager.dashboard'), variant='secondary', size='sm', icon_name='home') }}
+  {% endcall %}
 
-  <form method="get" action="{{ url_for('manager.audit') }}" class="crm-filter-bar">
-    <div class="crm-filter-grid">
-      <select class="select input--sm" name="action">
-        <option value="">{{ _("Все действия") }}</option>
-        {% for a in actions %}<option value="{{ a }}" {{ 'selected' if filters.action == a }}>{{ a }}</option>{% endfor %}
-      </select>
-      <select class="select input--sm" name="entity_type">
-        <option value="">{{ _("Все сущности") }}</option>
-        {% for e in entity_types %}<option value="{{ e }}" {{ 'selected' if filters.entity_type == e }}>{{ e }}</option>{% endfor %}
-      </select>
-      <select class="select input--sm" name="actor_id">
-        <option value="">{{ _("Все авторы") }}</option>
-        {% for u in actors %}<option value="{{ u.id }}" {{ 'selected' if filters.actor_id == u.id }}>{{ u.name }}</option>{% endfor %}
-      </select>
-      <button class="btn btn--primary btn--min" type="submit">{{ _("Фильтр") }}</button>
-      <a class="btn btn--secondary btn--min" href="{{ url_for('manager.audit') }}">{{ _("Сброс") }}</a>
-    </div>
+  <form method="get" action="{{ url_for('manager.audit') }}" class="mgr-filter-row crm-filter-grid" role="search">
+    <select class="select input--sm" name="action" aria-label="{{ _('Действие') }}">
+      <option value="">{{ _("Все действия") }}</option>
+      {% for a in actions %}<option value="{{ a }}" {{ 'selected' if filters.action == a }}>{{ a }}</option>{% endfor %}
+    </select>
+    <select class="select input--sm" name="entity_type" aria-label="{{ _('Сущность') }}">
+      <option value="">{{ _("Все сущности") }}</option>
+      {% for e in entity_types %}<option value="{{ e }}" {{ 'selected' if filters.entity_type == e }}>{{ e }}</option>{% endfor %}
+    </select>
+    <select class="select input--sm" name="actor_id" aria-label="{{ _('Автор') }}">
+      <option value="">{{ _("Все авторы") }}</option>
+      {% for u in actors %}<option value="{{ u.id }}" {{ 'selected' if filters.actor_id == u.id }}>{{ u.name }}</option>{% endfor %}
+    </select>
+    <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Фильтр") }}</button>
+    <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.audit') }}">{{ _("Сброс") }}</a>
   </form>
 
-  {% if logs %}
-  <div class="table-wrap">
-    <table class="table crm-table">
-      <thead>
-        <tr>
-          <th>{{ _("Время") }}</th>
-          <th>{{ _("Автор") }}</th>
-          <th>{{ _("Действие") }}</th>
-          <th>{{ _("Объект") }}</th>
-          <th>{{ _("Было → Стало") }}</th>
-          <th>{{ _("Причина") }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in logs %}
+  {% if log_rows %}
+    {% call mui.table_wrap() %}
+      <table class="mgr-table">
+        <thead>
           <tr>
-            <td class="small muted nowrap num">{{ row.timestamp|d('d MMM y, HH:mm') }}</td>
-            <td class="small">{{ row.actor.name if row.actor else _('Система') }}</td>
-            <td><span class="tag tag--soft tag--xs">{{ row.action }}</span></td>
-            <td class="small nowrap">{{ row.entity_type }}{% if row.entity_id %} #{{ row.entity_id }}{% endif %}</td>
-            <td class="small">
-              {% if row.old_value is not none %}<span class="crm-code">{{ row.old_value|tojson }}</span>{% else %}<span class="muted">—</span>{% endif %}
-              →
-              {% if row.new_value is not none %}<span class="crm-code">{{ row.new_value|tojson }}</span>{% else %}<span class="muted">—</span>{% endif %}
-            </td>
-            <td class="small">{{ row.reason or '—' }}</td>
+            <th>{{ _("Время") }}</th>
+            <th>{{ _("Автор") }}</th>
+            <th>{{ _("Действие") }}</th>
+            <th>{{ _("Объект") }}</th>
+            <th>{{ _("Было → Стало") }}</th>
+            <th>{{ _("Причина") }}</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody>
+          {% for item in log_rows %}
+            {% set row = item.row %}
+            <tr>
+              <td class="muted nowrap num">{{ row.timestamp|d('d MMM y, HH:mm') }}</td>
+              <td>{{ row.actor.name if row.actor else _('Система') }}</td>
+              <td>{{ mui.badge(item.action_label, tone='accent') }}</td>
+              <td class="nowrap">{{ row.entity_type }}{% if row.entity_id %} #{{ row.entity_id }}{% endif %}</td>
+              <td>
+                {% if item.changes %}
+                  <div class="mgr-diff-list">
+                    {% for ch in item.changes %}
+                      <div class="mgr-diff-row">
+                        <span class="mgr-diff-key">{{ ch.label }}:</span>
+                        {% if ch.kind == 'change' %}
+                          <span class="mgr-diff-old">{{ ch.old }}</span>
+                          <span>→</span>
+                          <span class="mgr-diff-new">{{ ch.new }}</span>
+                        {% elif ch.kind == 'set' %}
+                          <span class="mgr-diff-new">{{ ch.new }}</span>
+                        {% else %}
+                          <span class="mgr-diff-old">{{ ch.old }}</span>
+                        {% endif %}
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <span class="muted">—</span>
+                {% endif %}
+              </td>
+              <td>{{ row.reason or '—' }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endcall %}
   {% else %}
-  <div class="empty">
-    <h3>{{ _("Записей аудита пока нет") }}</h3>
-  </div>
+    {{ mui.empty(_("Записей аудита пока нет"), _("Здесь будут фиксироваться критичные изменения CRM, финансов и прав."), icon_name='shield') }}
   {% endif %}
 {% endblock %}

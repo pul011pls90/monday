@@ -104,11 +104,12 @@ def test_manager_pages_200_hierarchy_and_csrf_tokens():
     assert "mgr-filter-row" in leads_html
     assert "mgr-inline-status" in leads_html
 
-    # /manager/leads/<id> pill back button + expandable note + collapsible convert details
+    # /manager/leads/<id> sticky header + pill back button + expandable note + collapsible convert details
     detail_html = c.get(f"/manager/leads/{lead_id}").get_data(as_text=True)
+    assert "mgr-sticky-head" in detail_html
     assert "crm-back-btn" in detail_html
     assert "crm-activity-note" in detail_html
-    assert 'class="card crm-convert-details"' in detail_html
+    assert "crm-convert-details" in detail_html
 
     # /manager/audit reachable for supervisor (GET page)
     assert c.get("/manager/audit").status_code == 200
@@ -126,7 +127,8 @@ def test_manager_account_profile_password_and_csrf_enforcement():
     assert no_csrf.status_code == 400
 
     acct_html = c.get("/manager/account").get_data(as_text=True)
-    assert "crm-account-grid" in acct_html
+    assert "mgr-row-stack" in acct_html
+    assert "Изменить" in acct_html
     # sales_manager must NOT see admin/audit links on /manager/account
     assert "/manager/audit" not in acct_html
     assert "/admin/" not in acct_html

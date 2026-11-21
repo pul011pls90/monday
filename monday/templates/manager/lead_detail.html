@@ -1,74 +1,57 @@
 {% extends "layout.html" %}
+{% import "manager/_ui.html" as mui with context %}
 {% block title %}{{ lead.full_name }} · CRM{% endblock %}
 {% block context %}{{ _("Карточка лида") }} #{{ lead.id }}{% endblock %}
 {% block page_class %}crm-detail-page{% endblock %}
 {% block content %}
-  <div class="t-hero-bar">
-    <div class="t-hero-bar__title">
-      <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
-        <a class="btn btn--secondary crm-back-btn" href="{{ url_for('manager.leads') }}">{{ ui.icon('arrow-left', 14) }}<span>{{ _("К лидам") }}</span></a>
-        <span class="crm-status crm-status--{{ lead.status }}">{{ STATUS_LABELS.get(lead.status, lead.status) }}</span>
+  {% set status_tone = 'ok' if lead.status == 'won' else ('bad' if lead.status == 'lost' else ('warn' if lead.status in ('trial_scheduled', 'trial_done') else 'accent')) %}
+
+  {# Sticky Header: Name, Status Badge, SLA Badge, Back Link & Primary CTA #}
+  <header class="mgr-head mgr-sticky-head">
+    <div class="mgr-head__title">
+      <div class="mgr-head__top">
+        <a class="mgr-btn mgr-btn--secondary mgr-btn--sm crm-back-btn" href="{{ url_for('manager.leads') }}">{{ ui.icon('arrow-left', 14) }}<span>{{ _("К лидам") }}</span></a>
+        {{ mui.badge(STATUS_LABELS.get(lead.status, lead.status), tone=status_tone, dot=true) }}
         {% if sla.unanswered %}
-          <span class="crm-sla{{ ' crm-sla--hot' if sla.overdue }}" data-sla-badge="{{ 'overdue' if sla.overdue else 'waiting' }}">
-            {{ ui.icon('clock', 13) }}{{ _("Без ответа: %(t)s", t=sla.label) }}
+          <span class="mgr-badge {{ 'mgr-badge--bad' if sla.overdue else 'mgr-badge--accent' }}" data-sla-badge="{{ 'overdue' if sla.overdue else 'waiting' }}">
+            {{ ui.icon('clock', 13) }}<span>{{ _("Без ответа: %(t)s", t=sla.label) }}</span>
           </span>
         {% elif lead.first_contact_at %}
-          <span class="crm-sla crm-sla--ok">{{ ui.icon('check', 13) }}{{ _("Первый ответ: %(t)s", t=sla.label) }}</span>
+          <span class="mgr-badge mgr-badge--ok">{{ ui.icon('check', 13) }}<span>{{ _("Первый ответ: %(t)s", t=sla.label) }}</span></span>
         {% endif %}
         {% if lead.converted_student_id %}
-          <span class="tag tag--ok tag--xs">{{ _("Конвертирован в ученика") }} #{{ lead.converted_student_id }}</span>
+          {{ mui.badge(_("Ученик") ~ " #" ~ lead.converted_student_id, tone='ok') }}
         {% endif %}
-        <span class="tag {{ 'tag--bad' if lead.temperature == 'hot' else ('tag--warn' if lead.temperature == 'warm' else 'tag--soft') }} tag--xs">{{ TEMPERATURE_LABELS.get(lead.temperature or 'cold', lead.temperature) }}</span>
+        {{ mui.badge(TEMPERATURE_LABELS.get(lead.temperature or 'cold', lead.temperature), tone='bad' if lead.temperature == 'hot' else ('warn' if lead.temperature == 'warm' else 'neutral'), dot=true) }}
         {% if lead.previous_lead_id %}
-          <a class="tag tag--line tag--xs" href="{{ url_for('manager.lead_detail', lead_id=lead.previous_lead_id) }}">{{ _("Повтор от") }} #{{ lead.previous_lead_id }}</a>
+          <a class="mgr-badge" href="{{ url_for('manager.lead_detail', lead_id=lead.previous_lead_id) }}">{{ _("Повтор от") }} #{{ lead.previous_lead_id }}</a>
         {% endif %}
       </div>
       <h1>{{ lead.full_name }}</h1>
-      <p>{{ lead.phone_e164 or lead.phone or '—' }}{% if lead.messenger_handle %} · {{ lead.messenger_handle }}{% endif %} · {{ SOURCE_LABELS.get(lead.source, lead.source) }}{% if lead.interest %} · {{ lead.interest }}{% endif %}</p>
-      {% if lead.ai_summary %}<p class="small muted">{{ _("Сводка") }}: {{ lead.ai_summary }}</p>{% endif %}
+      <p class="mgr-head__sub">
+        {{ lead.phone_e164 or lead.phone or '—' }}{% if lead.messenger_handle %} · {{ lead.messenger_handle }}{% endif %} · {{ SOURCE_LABELS.get(lead.source, lead.source) }}{% if lead.interest %} · {{ lead.interest }}{% endif %}
+      </p>
+      {% if lead.ai_summary %}<p class="mgr-head__sub">{{ _("Сводка") }}: {{ lead.ai_summary }}</p>{% endif %}
     </div>
-    <div class="t-hero-actions">
+    <div class="mgr-head__actions">
       {% if lead.converted_student_id %}
-        <a class="btn btn--secondary btn--min" href="{{ url_for('manager.student_detail', student_id=lead.converted_student_id) }}">{{ ui.icon('users', 15) }}<span>{{ _("Профиль ученика") }} #{{ lead.converted_student_id }}</span></a>
+        {{ mui.btn(_("Профиль ученика") ~ " #" ~ lead.converted_student_id, href=url_for('manager.student_detail', student_id=lead.converted_student_id), variant='secondary', size='sm', icon_name='users') }}
       {% else %}
-        <a class="btn btn--primary btn--min" href="#convert-lead" data-open-convert>{{ ui.icon('check', 15) }}<span>{{ _("Конвертировать в ученика") }}</span></a>
+        <a class="mgr-btn mgr-btn--primary mgr-btn--sm" href="#convert-lead" data-open-convert>{{ ui.icon('check', 15) }}<span>{{ _("Конвертировать в ученика") }}</span></a>
       {% endif %}
     </div>
-  </div>
+  </header>
 
-  {# Compact Inline Status Bar #}
-  <section class="card">
-    <form method="post" action="{{ url_for('manager.lead_status', lead_id=lead.id) }}" class="stack-sm">
-      {{ ui.csrf() }}
-      <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
-        <span class="eyebrow" style="margin-right:4px">{{ _("Этап") }}</span>
-        <select class="select input--sm" name="status" style="width:auto;min-width:190px">
-          {% for s in LEAD_STATUSES %}<option value="{{ s }}" {{ 'selected' if lead.status == s }}>{{ STATUS_LABELS[s] }}</option>{% endfor %}
-        </select>
-        <input class="input input--sm" name="lost_reason" value="{{ lead.lost_reason }}" placeholder="{{ _('Причина отказа (обязательна для Отказ)') }}" style="flex:1;min-width:200px">
-        <button class="btn btn--primary btn--min" type="submit">{{ _("Сохранить статус") }}</button>
-      </div>
-      {% if lead.status == 'won' and current_user.is_crm_supervisor %}
-      <div class="row" style="gap:8px;flex-wrap:wrap">
-        <label class="check small"><input type="checkbox" name="supervisor_override" value="1"> {{ _("Переопределение супервайзера") }}</label>
-        <input class="input input--sm" name="override_reason" placeholder="{{ _('Причина отката статуса (в аудит)') }}" style="flex:1">
-      </div>
-      {% endif %}
-    </form>
-  </section>
-
-  <div class="crm-split">
+  {# Two-Column Workspace: Timeline & Activity Left | Details, Tasks & Conversion Right #}
+  <div class="mgr-detail-grid">
     {# LEFT COLUMN: Activity composer + Unified Timeline + Edit Details #}
     <div class="stack">
-      <section class="card">
-        <div class="hc__head">
-          <span class="hc__ic">{{ ui.icon('chat', 17) }}</span>
-          <h2>{{ _("Добавить активность") }}</h2>
-        </div>
+      {% call mui.card() %}
+        {{ mui.section_head('chat', _("Добавить активность")) }}
         <form method="post" action="{{ url_for('manager.lead_add_activity', lead_id=lead.id) }}" class="stack-sm">
           {{ ui.csrf() }}
-          <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
-            <select class="select input--sm" name="type" style="width:auto">
+          <div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">
+            <select class="select input--sm" name="type" style="width:auto;min-height:38px">
               <option value="call">{{ _("Звонок") }}</option>
               <option value="message">{{ _("Сообщение") }}</option>
               <option value="note">{{ _("Заметка") }}</option>
@@ -76,42 +59,36 @@
             <span class="small muted">{{ _("Звонок или сообщение фиксирует первый контакт (SLA).") }}</span>
           </div>
           <textarea class="textarea crm-activity-note" name="body" rows="2" required placeholder="{{ _('Итог звонка, договорённости, переписка...') }}"></textarea>
-          <div><button class="btn btn--primary btn--min" type="submit">{{ ui.icon('send', 15) }}<span>{{ _("Записать") }}</span></button></div>
+          <div><button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ ui.icon('send', 15) }}<span>{{ _("Записать") }}</span></button></div>
         </form>
-      </section>
+      {% endcall %}
 
-      <section class="card">
-        <div class="card__head">
-          <div class="hc__head">
-            <span class="hc__ic">{{ ui.icon('list', 17) }}</span>
-            <h2>{{ _("Единая лента событий") }}</h2>
-            <span class="hc__pill num">{{ timeline_counts[active_tab] }}</span>
-          </div>
-        </div>
-        <div class="admin-tabs">
-          <a class="{{ 'is-active' if active_tab == 'all' }}" href="{{ url_for('manager.lead_detail', lead_id=lead.id, tab='all') }}">{{ _("Все") }} <span class="admin-tabs__n num">{{ timeline_counts.all }}</span></a>
-          <a class="{{ 'is-active' if active_tab == 'comms' }}" href="{{ url_for('manager.lead_detail', lead_id=lead.id, tab='comms') }}">{{ _("Контакты") }} <span class="admin-tabs__n num">{{ timeline_counts.comms }}</span></a>
-          <a class="{{ 'is-active' if active_tab == 'system' }}" href="{{ url_for('manager.lead_detail', lead_id=lead.id, tab='system') }}">{{ _("Статусы и аудит") }} <span class="admin-tabs__n num">{{ timeline_counts.system }}</span></a>
-          <a class="{{ 'is-active' if active_tab == 'academic' }}" href="{{ url_for('manager.lead_detail', lead_id=lead.id, tab='academic') }}">{{ _("Учёба") }} <span class="admin-tabs__n num">{{ timeline_counts.academic }}</span></a>
-        </div>
+      {% call mui.card() %}
+        {{ mui.section_head('list', _("Единая лента событий"), count=timeline_counts[active_tab]) }}
+        {{ mui.filter_tabs([
+          {'label': _("Все"), 'href': url_for('manager.lead_detail', lead_id=lead.id, tab='all'), 'active': active_tab == 'all', 'count': timeline_counts.all},
+          {'label': _("Контакты"), 'href': url_for('manager.lead_detail', lead_id=lead.id, tab='comms'), 'active': active_tab == 'comms', 'count': timeline_counts.comms},
+          {'label': _("Статусы и аудит"), 'href': url_for('manager.lead_detail', lead_id=lead.id, tab='system'), 'active': active_tab == 'system', 'count': timeline_counts.system},
+          {'label': _("Учёба"), 'href': url_for('manager.lead_detail', lead_id=lead.id, tab='academic'), 'active': active_tab == 'academic', 'count': timeline_counts.academic},
+        ], aria_label=_("Фильтр ленты событий")) }}
         {% if timeline %}
-        <ul class="crm-timeline">
+        <ul class="mgr-timeline">
           {% for ev in timeline %}
-            <li class="crm-timeline__item">
-              <span class="crm-timeline__badge">{{ ev.badge }}</span>
+            <li class="mgr-timeline__item">
+              {{ mui.badge(ev.badge, tone='accent' if ev.cat == 'comms' else ('ok' if ev.cat == 'academic' else 'neutral')) }}
               <div>
-                <div class="crm-timeline__body">{{ ev.body }}</div>
-                <div class="crm-timeline__meta">{{ ev.actor_name }} · {{ ev.ts|d('d MMM y, HH:mm') }}</div>
+                <div class="mgr-timeline__body">{{ ev.body }}</div>
+                <div class="mgr-timeline__meta">{{ ev.actor_name }} · {{ ev.ts|d('d MMM y, HH:mm') }}</div>
               </div>
             </li>
           {% endfor %}
         </ul>
         {% else %}
-          <p class="small text-2">{{ _("В этой вкладке пока нет событий.") }}</p>
+          {{ mui.empty(_("Событий пока нет"), _("В этой вкладке появятся звонки, переписка, смены статусов и уроки."), icon_name='list') }}
         {% endif %}
-      </section>
+      {% endcall %}
 
-      <details class="card">
+      <details class="mgr-card">
         <summary class="t-add-card__sum" style="justify-content:flex-start;padding:0">{{ _("Редактировать данные лида") }}</summary>
         <form method="post" action="{{ url_for('manager.lead_edit', lead_id=lead.id) }}" class="stack-sm" style="margin-top:8px">
           {{ ui.csrf() }}
@@ -139,19 +116,33 @@
               </select>
             </div>
           </div>
-          <div><button class="btn btn--secondary btn--min" type="submit">{{ _("Сохранить изменения") }}</button></div>
+          <div><button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">{{ _("Сохранить изменения") }}</button></div>
         </form>
       </details>
     </div>
 
-    {# RIGHT COLUMN: Lead Info + Convert + Tasks + Supervisor Reassign / Delete #}
+    {# RIGHT COLUMN: Status & Details + Conversion + Tasks + Supervisor Controls #}
     <div class="stack">
-      <section class="card">
-        <div class="hc__head">
-          <span class="hc__ic">{{ ui.icon('info', 17) }}</span>
-          <h2>{{ _("Сведения") }}</h2>
-        </div>
-        <dl class="kv small">
+      {% call mui.card() %}
+        {{ mui.section_head('info', _("Сведения и этап")) }}
+        <form method="post" action="{{ url_for('manager.lead_status', lead_id=lead.id) }}" class="stack-sm">
+          {{ ui.csrf() }}
+          <div class="row" style="gap:8px;flex-wrap:wrap">
+            <select class="select input--sm" name="status" aria-label="{{ _('Этап лида') }}" style="flex:1;min-width:170px;min-height:38px">
+              {% for s in LEAD_STATUSES %}<option value="{{ s }}" {{ 'selected' if lead.status == s }}>{{ STATUS_LABELS[s] }}</option>{% endfor %}
+            </select>
+            <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Обновить этап") }}</button>
+          </div>
+          <input class="input input--sm" name="lost_reason" value="{{ lead.lost_reason }}" placeholder="{{ _('Причина отказа (если выбран «Отказ»)') }}">
+          {% if lead.status == 'won' and current_user.is_crm_supervisor %}
+          <div class="stack-sm">
+            <label class="check small"><input type="checkbox" name="supervisor_override" value="1"> {{ _("Переопределение супервайзера") }}</label>
+            <input class="input input--sm" name="override_reason" placeholder="{{ _('Причина отката статуса (в аудит)') }}">
+          </div>
+          {% endif %}
+        </form>
+        <hr style="border:0;border-top:1px solid var(--line);margin:2px 0">
+        <dl class="mgr-kv">
           <dt>{{ _("Менеджер") }}</dt><dd>{{ lead.assigned_manager.name if lead.assigned_manager else '—' }}</dd>
           <dt>{{ _("Создан") }}</dt><dd class="num">{{ lead.created_at|d('d MMM y, HH:mm') }}</dd>
           <dt>{{ _("Первый контакт") }}</dt><dd class="num">{{ lead.first_contact_at|d('d MMM y, HH:mm') if lead.first_contact_at else _('ещё не было') }}</dd>
@@ -159,25 +150,21 @@
           <dt>{{ _("Формат") }}</dt><dd>{{ MODE_PREF_LABELS.get(lead.mode_preference, lead.mode_preference or '—') }}</dd>
           {% if lead.lost_reason %}<dt>{{ _("Причина отказа") }}</dt><dd>{{ lead.lost_reason }}</dd>{% endif %}
         </dl>
-      </section>
+      {% endcall %}
 
       {% if lead.converted_student_id %}
-      <section class="card" id="convert-lead">
-        <div class="hc__head">
-          <span class="hc__ic">{{ ui.icon('users', 17) }}</span>
-          <h2>{{ _("Конвертация в ученика") }}</h2>
+      {% call mui.card() %}
+        <div id="convert-lead">
+          {{ mui.section_head('users', _("Конвертация в ученика")) }}
+          <p class="small" style="color:var(--ok);font-weight:700;margin-top:8px">
+            {{ ui.icon('check', 14) }} {{ _("Привязан к ученику") }} #{{ lead.converted_student_id }}{% if lead.converted_student %} ({{ lead.converted_student.name }} · {{ lead.converted_student.email }}){% endif %}
+          </p>
         </div>
-        <p class="small" style="color:var(--ok);font-weight:700">
-          {{ ui.icon('check', 14) }} {{ _("Привязан к ученику") }} #{{ lead.converted_student_id }}{% if lead.converted_student %} ({{ lead.converted_student.name }} · {{ lead.converted_student.email }}){% endif %}
-        </p>
-      </section>
+      {% endcall %}
       {% else %}
-      <details class="card crm-convert-details" id="convert-lead">
+      <details class="mgr-card crm-convert-details" id="convert-lead">
         <summary>
-          <span class="hc__head">
-            <span class="hc__ic">{{ ui.icon('users', 17) }}</span>
-            <h2>{{ _("Конвертация в ученика") }}</h2>
-          </span>
+          {{ mui.section_head('users', _("Конвертация в ученика")) }}
         </summary>
         <form method="post" action="{{ url_for('manager.lead_convert', lead_id=lead.id) }}" class="stack-sm">
           {{ ui.csrf() }}
@@ -194,7 +181,7 @@
               {% for t in teachers %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
             </select>
           </div>
-          <button class="btn btn--primary btn--min" type="submit">{{ _("Создать ученика и закрыть лид") }}</button>
+          <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Создать ученика и закрыть лид") }}</button>
         </form>
 
         {% if existing_students %}
@@ -211,40 +198,45 @@
             <option value="">{{ _("Учитель (необязательно)") }}</option>
             {% for t in teachers %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
           </select>
-          <button class="btn btn--secondary btn--min" type="submit">{{ _("Привязать существующего ученика") }}</button>
+          <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">{{ _("Привязать существующего ученика") }}</button>
         </form>
         {% endif %}
       </details>
       {% endif %}
 
-      <section class="card">
-        <div class="card__head">
-          <div class="hc__head">
-            <span class="hc__ic">{{ ui.icon('clock', 17) }}</span>
-            <h2>{{ _("Задачи по лиду") }}</h2>
-            <span class="hc__pill num">{{ tasks|length }}</span>
-          </div>
-        </div>
-        <form method="post" action="{{ url_for('manager.lead_add_task', lead_id=lead.id) }}" class="stack-sm">
+      {% call mui.card() %}
+        {{ mui.section_head('clock', _("Задачи по лиду"), count=tasks|length) }}
+        <form method="post" action="{{ url_for('manager.lead_add_task', lead_id=lead.id) }}" class="stack-sm" data-task-form>
           {{ ui.csrf() }}
+          <input type="hidden" name="due_at" data-due-combined>
           <input class="input input--sm" name="note" required placeholder="{{ _('Позвонить, отправить расписание...') }}">
-          <div class="row" style="gap:8px">
-            <input class="input input--sm" type="datetime-local" name="due_at" style="flex:1">
-            <button class="btn btn--primary btn--min" type="submit">{{ ui.icon('plus', 15) }}<span>{{ _("Добавить") }}</span></button>
+          <div class="mgr-due-row">
+            <input class="input input--sm" type="date" data-due-date aria-label="{{ _('Дата задачи') }}">
+            <select class="select input--sm" data-due-time aria-label="{{ _('Время задачи') }}" style="width:auto;min-width:104px;min-height:38px">
+              <option value="">{{ _("Время") }}</option>
+              {% for hh in range(8, 22) %}
+                <option value="{{ '%02d:00'|format(hh) }}">{{ '%02d:00'|format(hh) }}</option>
+                <option value="{{ '%02d:30'|format(hh) }}">{{ '%02d:30'|format(hh) }}</option>
+              {% endfor %}
+            </select>
+            <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ ui.icon('plus', 15) }}<span>{{ _("Добавить") }}</span></button>
           </div>
         </form>
         {% if tasks %}
-          <div class="stack-sm">
+          <div class="mgr-queue">
             {% for t in tasks %}
               {% set is_overdue = (not t.done_at) and t.due_at and (t.due_at < now_utc) %}
-              <div class="crm-task{{ ' crm-task--done' if t.done_at else (' crm-task--overdue' if is_overdue) }}">
+              <div class="mgr-queue__item"{{ ' style="opacity:.6"' if t.done_at }}>
                 <form method="post" action="{{ url_for('manager.task_toggle', task_id=t.id) }}">
                   {{ ui.csrf() }}
-                  <button class="icon-btn icon-btn--sm" type="submit" title="{{ _('Переключить статус') }}">{{ ui.icon('check', 15) }}</button>
+                  <button class="mgr-check-btn" type="submit" title="{{ _('Переключить статус') }}" aria-label="{{ _('Переключить статус задачи') }}">{{ ui.icon('check', 15) }}</button>
                 </form>
-                <div class="crm-task__main">
-                  <span class="small" style="font-weight:600">{{ t.note }}</span>
-                  <span class="small muted">{{ t.due_at|d('d MMM, HH:mm') }}{% if t.assignee %} · {{ t.assignee.name }}{% endif %}{% if t.done_at %} · {{ _("выполнено") }}{% endif %}</span>
+                <div class="mgr-queue__main">
+                  <div class="mgr-queue__title">
+                    <span>{{ t.note }}</span>
+                    {% if is_overdue %}{{ mui.badge(_("Просрочено"), tone='bad') }}{% elif t.done_at %}{{ mui.badge(_("Выполнено"), tone='ok') }}{% endif %}
+                  </div>
+                  <div class="mgr-queue__meta num">{{ t.due_at|d('d MMM, HH:mm') }}{% if t.assignee %} · {{ t.assignee.name }}{% endif %}</div>
                 </div>
               </div>
             {% endfor %}
@@ -252,30 +244,24 @@
         {% else %}
           <p class="small text-2">{{ _("Задач пока нет.") }}</p>
         {% endif %}
-      </section>
+      {% endcall %}
 
       {% if current_user.has_perm('crm.leads.reassign') %}
-      <section class="card">
-        <div class="hc__head">
-          <span class="hc__ic">{{ ui.icon('users', 17) }}</span>
-          <h2>{{ _("Переназначить менеджера") }}</h2>
-        </div>
+      {% call mui.card() %}
+        {{ mui.section_head('users', _("Переназначить менеджера")) }}
         <form method="post" action="{{ url_for('manager.lead_reassign', lead_id=lead.id) }}" class="stack-sm">
           {{ ui.csrf() }}
           <select class="select input--sm" name="assigned_manager_id">
             {% for m in managers %}<option value="{{ m.id }}" {{ 'selected' if lead.assigned_manager_id == m.id }}>{{ m.name }}</option>{% endfor %}
           </select>
           <input class="input input--sm" name="reason" placeholder="{{ _('Причина переназначения (в аудит)') }}">
-          <button class="btn btn--secondary btn--min" type="submit">{{ _("Переназначить") }}</button>
+          <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">{{ _("Переназначить") }}</button>
         </form>
-      </section>
+      {% endcall %}
 
       {% if lead.status not in ('won', 'lost') %}
-      <section class="card">
-        <div class="hc__head">
-          <span class="hc__ic">{{ ui.icon('link', 17) }}</span>
-          <h2>{{ _("Объединить дубликат") }}</h2>
-        </div>
+      {% call mui.card() %}
+        {{ mui.section_head('link', _("Объединить дубликат")) }}
         <form method="post" action="{{ url_for('manager.lead_merge', lead_id=lead.id) }}" class="stack-sm">
           {{ ui.csrf() }}
           {% if duplicate_candidates %}
@@ -287,24 +273,21 @@
           <input class="input input--sm" type="number" min="1" name="duplicate_lead_id" required placeholder="{{ _('ID дубликата для слияния') }}">
           {% endif %}
           <input class="input input--sm" name="reason" placeholder="{{ _('Причина объединения (в аудит)') }}">
-          <button class="btn btn--secondary btn--min" type="submit">{{ _("Объединить в этот лид") }}</button>
+          <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">{{ _("Объединить в этот лид") }}</button>
         </form>
-      </section>
+      {% endcall %}
       {% endif %}
       {% endif %}
 
       {% if current_user.has_perm('crm.leads.delete') %}
-      <section class="card">
-        <div class="hc__head">
-          <span class="hc__ic" style="background:var(--bad-soft);color:var(--bad)">{{ ui.icon('trash', 17) }}</span>
-          <h2 style="color:var(--bad)">{{ _("Удаление лида") }}</h2>
-        </div>
+      {% call mui.card() %}
+        {{ mui.section_head('trash', _("Удаление лида")) }}
         <form method="post" action="{{ url_for('manager.lead_delete', lead_id=lead.id) }}" class="stack-sm" data-confirm="{{ _('Удалить лида? Действие запишется в журнал аудита.') }}">
           {{ ui.csrf() }}
           <input class="input input--sm" name="reason" placeholder="{{ _('Причина удаления (в аудит)') }}">
-          <button class="btn btn--danger btn--min" type="submit">{{ ui.icon('trash', 15) }}<span>{{ _("Удалить лид") }}</span></button>
+          <button class="mgr-btn mgr-btn--danger mgr-btn--sm" type="submit">{{ ui.icon('trash', 15) }}<span>{{ _("Удалить лид") }}</span></button>
         </form>
-      </section>
+      {% endcall %}
       {% endif %}
     </div>
   </div>
@@ -318,6 +301,21 @@
       const inp = document.getElementById('convert-student-email');
       if (inp) setTimeout(() => inp.focus(), 60);
     });
+  }
+  const taskForm = document.querySelector('[data-task-form]');
+  if (taskForm) {
+    const syncDue = () => {
+      const d = taskForm.querySelector('[data-due-date]');
+      const t = taskForm.querySelector('[data-due-time]');
+      const out = taskForm.querySelector('[data-due-combined]');
+      if (out && d && d.value) {
+        out.value = d.value + 'T' + (t && t.value ? t.value : '18:00');
+      } else if (out) {
+        out.value = '';
+      }
+    };
+    taskForm.addEventListener('submit', syncDue);
+    taskForm.addEventListener('change', syncDue);
   }
 })();
 </script>

@@ -1217,6 +1217,7 @@ def pipeline():
         mode="leads",
         columns=columns,
         next_status_map=next_status_map,
+        allowed_transitions=ALLOWED_LEAD_TRANSITIONS,
         managers=_crm_managers(),
         filters={"source": source, "manager": manager_id or ""},
     )
@@ -1631,6 +1632,93 @@ def payroll_rate_create():
 
 # --------------------------------------------------------------------------- Supervisor / Admin Audit Log
 
+_AUDIT_ACTION_LABELS = {
+    "manager_create": "Создание менеджера",
+    "manager_profile_update": "Обновление профиля",
+    "role_change": "Смена роли",
+    "enrollment_close": "Завершение зачисления",
+    "attendance_retro_edit": "Ретро-правка посещаемости",
+    "lead_convert": "Конвертация лида",
+    "lead_status_override": "Откат статуса лида",
+    "lead_reassign": "Переназначение лида",
+    "lead_delete": "Удаление лида",
+    "lead_merge": "Объединение дубликата",
+    "manager_shift_toggle": "Статус смены",
+    "pass_issue": "Выдача абонемента",
+    "pass_status": "Статус абонемента",
+    "payment_record": "Оплата / возврат",
+    "payroll_rate_set": "Ставка учителя",
+}
+
+_AUDIT_KEY_LABELS = {
+    "status": "Статус",
+    "name": "Имя",
+    "role": "Роль",
+    "assigned_manager_id": "Менеджер",
+    "converted_student_id": "Ученик",
+    "is_on_shift": "На смене",
+    "student_id": "Ученик",
+    "plan": "Тариф",
+    "agreed_price": "Цена",
+    "initial_pay": "Предоплата",
+    "amount": "Сумма",
+    "method": "Способ",
+    "kind": "Тип",
+    "rate_type": "Тип ставки",
+    "rate_amount": "Ставка",
+    "teacher_id": "Учитель",
+    "course_id": "Курс",
+    "pass_id": "Абонемент",
+    "full_name": "Лид",
+    "phone": "Телефон",
+    "source": "Источник",
+    "merged_into": "Объединён с",
+    "lost_reason": "Причина отказа",
+}
+
+
+def _fmt_audit_val(key: str, val) -> str:
+    if val is None or val == "":
+        return "—"
+    if isinstance(val, bool):
+        return "Да" if val else "Нет"
+    if key == "status":
+        return STATUS_LABELS.get(val, PASS_STATUS_LABELS.get(val, str(val)))
+    if key == "method":
+        return PAYMENT_METHODS and METHOD_LABELS.get(val, str(val))
+    if key == "rate_type":
+        return RATE_TYPE_LABELS.get(val, str(val))
+    if key == "source":
+        return SOURCE_LABELS.get(val, str(val))
+    if key in ("assigned_manager_id", "teacher_id", "student_id", "converted_student_id", "merged_into", "course_id", "pass_id"):
+        return f"#{val}"
+    return str(val)
+
+
+def _format_audit_diff(row: AuditLog) -> dict:
+    """Turn raw JSON old_value / new_value dicts into readable Russian 'было → стало' items."""
+    old_d = row.old_value if isinstance(row.old_value, dict) else ({"val": row.old_value} if row.old_value is not None else {})
+    new_d = row.new_value if isinstance(row.new_value, dict) else ({"val": row.new_value} if row.new_value is not None else {})
+    keys = list(dict.fromkeys([*old_d.keys(), *new_d.keys()]))
+    changes = []
+    for k in keys:
+        ov = old_d.get(k)
+        nv = new_d.get(k)
+        label = _AUDIT_KEY_LABELS.get(k, k if k != "val" else "Значение")
+        o_txt = _fmt_audit_val(k, ov) if k in old_d else None
+        n_txt = _fmt_audit_val(k, nv) if k in new_d else None
+        if o_txt is not None and n_txt is not None and o_txt != n_txt:
+            changes.append({"label": label, "old": o_txt, "new": n_txt, "kind": "change"})
+        elif n_txt is not None and o_txt is None:
+            changes.append({"label": label, "old": None, "new": n_txt, "kind": "set"})
+        elif o_txt is not None and n_txt is None:
+            changes.append({"label": label, "old": o_txt, "new": None, "kind": "removed"})
+    return {
+        "row": row,
+        "action_label": _AUDIT_ACTION_LABELS.get(row.action, row.action),
+        "changes": changes,
+    }
+
 
 @bp.route("/audit")
 @supervisor_required
@@ -1649,6 +1737,7 @@ def audit():
         query = query.filter(AuditLog.actor_id == actor_id)
 
     logs = query.order_by(AuditLog.timestamp.desc(), AuditLog.id.desc()).limit(200).all()
+    log_rows = [_format_audit_diff(r) for r in logs]
     actions = [a for (a,) in db.session.query(AuditLog.action).distinct().order_by(AuditLog.action).all() if a]
     entity_types = [e for (e,) in db.session.query(AuditLog.entity_type).distinct().order_by(AuditLog.entity_type).all() if e]
     actors = User.query.filter(User.role.in_(("sales_manager", "supervisor", "admin", "teacher"))).order_by(User.name).all()
@@ -1656,6 +1745,7 @@ def audit():
     return render_template(
         "manager/audit.html",
         logs=logs,
+        log_rows=log_rows,
         actions=actions,
         entity_types=entity_types,
         actors=actors,

@@ -1,114 +1,94 @@
 {% extends "layout.html" %}
+{% import "manager/_ui.html" as mui with context %}
 {% block title %}{{ student.name }} · {{ _("Профиль ученика") }}{% endblock %}
 {% block context %}{{ _("Ученик") }} #{{ student.id }}{% endblock %}
 {% block content %}
-  <div class="t-hero-bar">
-    <div class="t-hero-bar__title">
-      <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
-        <a class="btn btn--secondary crm-back-btn" href="{{ url_for('manager.pipeline', mode='students') }}">{{ ui.icon('arrow-left', 14) }}<span>{{ _("К ученикам") }}</span></a>
-        {% if lead %}
-          <a class="tag tag--soft tag--xs" href="{{ url_for('manager.lead_detail', lead_id=lead.id) }}">{{ _("Лид") }} #{{ lead.id }}</a>
-        {% endif %}
-        {% if total_debt %}
-          <span class="tag tag--bad tag--xs num">{{ _("Долг") }}: {{ total_debt }} KGS</span>
-        {% endif %}
-      </div>
-      <h1>{{ student.name }}</h1>
-      <p>{{ student.email }}{% if student.profile and student.profile.exam %} · {{ student.profile.exam }}{% endif %}{% if lead and lead.phone %} · {{ lead.phone }}{% endif %}</p>
-    </div>
-    <div class="t-hero-actions">
-      <a class="btn btn--secondary btn--min" href="{{ url_for('manager.finance') }}">{{ ui.icon('bank', 15) }}<span>{{ _("Финансы") }}</span></a>
-    </div>
-  </div>
+  {% call mui.page_header(
+    student.name,
+    student.email ~ (' · ' ~ student.profile.exam if student.profile and student.profile.exam else '') ~ (' · ' ~ lead.phone if lead and lead.phone else ''),
+    back_href=url_for('manager.pipeline', mode='students'),
+    back_label=_("К ученикам")
+  ) %}
+    {% if lead %}
+      {{ mui.btn(_("Лид") ~ " #" ~ lead.id, href=url_for('manager.lead_detail', lead_id=lead.id), variant='secondary', size='sm') }}
+    {% endif %}
+    {% if total_debt %}
+      {{ mui.badge(_("Долг") ~ ": " ~ total_debt ~ " KGS", tone='bad', dot=true) }}
+    {% endif %}
+    {{ mui.btn(_("Финансы"), href=url_for('manager.finance'), variant='secondary', size='sm', icon_name='bank') }}
+  {% endcall %}
 
-  <div class="crm-split">
+  <div class="mgr-detail-grid">
     <div class="stack">
-      <section class="card">
-        <div class="card__head">
-          <div class="hc__head">
-            <span class="hc__ic">{{ ui.icon('calendar', 17) }}</span>
-            <h2>{{ _("Группы и зачисления") }}</h2>
-            <span class="hc__pill num">{{ enrollments|length }}</span>
-          </div>
-        </div>
+      {% call mui.card() %}
+        {{ mui.section_head('calendar', _("Группы и зачисления"), count=enrollments|length) }}
         {% if enrollments %}
-        <div class="table-wrap" style="border:0;border-radius:0;box-shadow:none">
-          <table class="table crm-table">
-            <thead>
-              <tr>
-                <th>{{ _("Группа / курс") }}</th>
-                <th>{{ _("Статус") }}</th>
-                <th>{{ _("Период") }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for enr in enrollments %}
-              <tr>
-                <td>
-                  <div class="t-strong">{{ enr.group.name if enr.group else ('#' ~ enr.group_id) }}</div>
-                  <div class="small muted">{{ enr.course.name if enr.course else '' }}</div>
-                </td>
-                <td>
-                  <span class="tag {{ 'tag--ok' if enr.left_at is none else 'tag--line' }} tag--xs">{{ enr.status }}</span>
-                </td>
-                <td class="small muted num">{{ enr.enrolled_at|d('d MMM y') }}{% if enr.left_at %} — {{ enr.left_at|d('d MMM y') }}{% endif %}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+          {% call mui.table_wrap() %}
+            <table class="mgr-table">
+              <thead>
+                <tr>
+                  <th>{{ _("Группа / курс") }}</th>
+                  <th>{{ _("Статус") }}</th>
+                  <th>{{ _("Период") }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for enr in enrollments %}
+                <tr>
+                  <td>
+                    <div style="font-weight:700">{{ enr.group.name if enr.group else ('#' ~ enr.group_id) }}</div>
+                    <div class="mgr-subcell">{{ enr.course.name if enr.course else '' }}</div>
+                  </td>
+                  <td>{{ mui.badge(enr.status, tone='ok' if enr.left_at is none else 'neutral', dot=true) }}</td>
+                  <td class="muted num">{{ enr.enrolled_at|d('d MMM y') }}{% if enr.left_at %} — {{ enr.left_at|d('d MMM y') }}{% endif %}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% endcall %}
         {% else %}
-          <p class="small text-2">{{ _("Ученик ещё не зачислен ни в одну группу.") }}</p>
+          {{ mui.empty(_("Групп пока нет"), _("Ученик ещё не зачислен ни в одну учебную группу."), icon_name='calendar') }}
         {% endif %}
-      </section>
+      {% endcall %}
 
-      <section class="card">
-        <div class="card__head">
-          <div class="hc__head">
-            <span class="hc__ic">{{ ui.icon('list', 17) }}</span>
-            <h2>{{ _("Единая история") }}</h2>
-            <span class="hc__pill num">{{ timeline_counts[active_tab] }}</span>
-          </div>
-        </div>
-        <div class="admin-tabs">
-          <a class="{{ 'is-active' if active_tab == 'all' }}" href="{{ url_for('manager.student_detail', student_id=student.id, tab='all') }}">{{ _("Все") }} <span class="admin-tabs__n num">{{ timeline_counts.all }}</span></a>
-          <a class="{{ 'is-active' if active_tab == 'academic' }}" href="{{ url_for('manager.student_detail', student_id=student.id, tab='academic') }}">{{ _("Учёба") }} <span class="admin-tabs__n num">{{ timeline_counts.academic }}</span></a>
-          <a class="{{ 'is-active' if active_tab == 'finance' }}" href="{{ url_for('manager.student_detail', student_id=student.id, tab='finance') }}">{{ _("Оплаты") }} <span class="admin-tabs__n num">{{ timeline_counts.finance }}</span></a>
-          <a class="{{ 'is-active' if active_tab == 'comms' }}" href="{{ url_for('manager.student_detail', student_id=student.id, tab='comms') }}">{{ _("Переписка") }} <span class="admin-tabs__n num">{{ timeline_counts.comms }}</span></a>
-          <a class="{{ 'is-active' if active_tab == 'system' }}" href="{{ url_for('manager.student_detail', student_id=student.id, tab='system') }}">{{ _("Аудит") }} <span class="admin-tabs__n num">{{ timeline_counts.system }}</span></a>
-        </div>
+      {% call mui.card() %}
+        {{ mui.section_head('list', _("Единая история"), count=timeline_counts[active_tab]) }}
+        {{ mui.filter_tabs([
+          {'label': _("Все"), 'href': url_for('manager.student_detail', student_id=student.id, tab='all'), 'active': active_tab == 'all', 'count': timeline_counts.all},
+          {'label': _("Учёба"), 'href': url_for('manager.student_detail', student_id=student.id, tab='academic'), 'active': active_tab == 'academic', 'count': timeline_counts.academic},
+          {'label': _("Оплаты"), 'href': url_for('manager.student_detail', student_id=student.id, tab='finance'), 'active': active_tab == 'finance', 'count': timeline_counts.finance},
+          {'label': _("Переписка"), 'href': url_for('manager.student_detail', student_id=student.id, tab='comms'), 'active': active_tab == 'comms', 'count': timeline_counts.comms},
+          {'label': _("Аудит"), 'href': url_for('manager.student_detail', student_id=student.id, tab='system'), 'active': active_tab == 'system', 'count': timeline_counts.system},
+        ], aria_label=_("Фильтр истории")) }}
         {% if timeline %}
-        <ul class="crm-timeline">
+        <ul class="mgr-timeline">
           {% for ev in timeline %}
-            <li class="crm-timeline__item">
-              <span class="crm-timeline__badge">{{ ev.badge }}</span>
+            <li class="mgr-timeline__item">
+              {{ mui.badge(ev.badge, tone='accent' if ev.cat == 'comms' else ('ok' if ev.cat == 'academic' else 'neutral')) }}
               <div>
-                <div class="crm-timeline__body">{{ ev.body }}</div>
-                <div class="crm-timeline__meta">{{ ev.actor_name }} · {{ ev.ts|d('d MMM y, HH:mm') }}</div>
+                <div class="mgr-timeline__body">{{ ev.body }}</div>
+                <div class="mgr-timeline__meta">{{ ev.actor_name }} · {{ ev.ts|d('d MMM y, HH:mm') }}</div>
               </div>
             </li>
           {% endfor %}
         </ul>
         {% else %}
-          <p class="small text-2">{{ _("Событий пока нет.") }}</p>
+          {{ mui.empty(_("Событий пока нет"), _("История оплат, посещаемости и переписки появится здесь."), icon_name='list') }}
         {% endif %}
-      </section>
+      {% endcall %}
     </div>
 
     <div class="stack">
-      <section class="card">
-        <div class="hc__head">
-          <span class="hc__ic">{{ ui.icon('bank', 17) }}</span>
-          <h2>{{ _("Абонементы и оплаты") }}</h2>
-        </div>
+      {% call mui.card() %}
+        {{ mui.section_head('bank', _("Абонементы и оплаты"), count=passes|length) }}
         {% if passes %}
           <div class="stack-sm">
             {% for sp in passes %}
               {% set rem_pct = ((sp.lessons_remaining / sp.lessons_total) * 100)|round|int if sp.lessons_total else 100 %}
-              <div class="crm-task" style="flex-direction:column;gap:8px;align-items:stretch">
+              <div class="mgr-kanban-card">
                 <div class="row row--between" style="gap:8px">
-                  <span class="t-strong small">{{ sp.plan.name if sp.plan else ('Тариф #' ~ sp.plan_id) }}</span>
-                  <span class="tag {{ 'tag--ok' if sp.status == 'active' else ('tag--warn' if sp.status == 'frozen' else 'tag--bad') }} tag--xs">{{ PASS_STATUS_LABELS.get(sp.status, sp.status) }}</span>
+                  <span style="font-weight:700;font-size:14px">{{ sp.plan.name if sp.plan else ('Тариф #' ~ sp.plan_id) }}</span>
+                  {{ mui.badge(PASS_STATUS_LABELS.get(sp.status, sp.status), tone='ok' if sp.status == 'active' else ('warn' if sp.status == 'frozen' else 'bad'), dot=true) }}
                 </div>
                 <div class="row row--between small muted num">
                   <span>
@@ -117,21 +97,21 @@
                   <span>{{ _("До") }} {{ sp.expires_at|d('d MMM y') if sp.expires_at else '—' }}</span>
                 </div>
                 {% if sp.lessons_total %}
-                  <div class="crm-meter{{ ' crm-meter--bad' if sp.lessons_remaining <= 1 else (' crm-meter--warn' if sp.lessons_remaining <= 2) }}">
+                  <div class="mgr-bar {{ 'mgr-bar--bad' if sp.lessons_remaining <= 1 else ('mgr-bar--warn' if sp.lessons_remaining <= 2 else 'mgr-bar--ok') }}">
                     <span style="width:{{ rem_pct }}%"></span>
                   </div>
                 {% endif %}
                 <div class="row row--between small num">
                   <span>{{ _("Оплачено") }}: <b>{{ sp.paid_amount }}</b> / {{ sp.agreed_price }} KGS</span>
-                  {% if sp.debt_amount %}<span style="color:var(--bad);font-weight:700">{{ _("Долг") }}: {{ sp.debt_amount }}</span>{% endif %}
+                  {% if sp.debt_amount %}{{ mui.badge(_("Долг") ~ ": " ~ sp.debt_amount, tone='bad') }}{% endif %}
                 </div>
                 {% if current_user.has_perm('crm.finance.manage') %}
-                <form method="post" action="{{ url_for('manager.pass_update_status', pass_id=sp.id) }}" class="row" style="gap:6px">
+                <form method="post" action="{{ url_for('manager.pass_update_status', pass_id=sp.id) }}" class="row" style="gap:6px;margin-top:4px">
                   {{ ui.csrf() }}
-                  <select class="select crm-inline-select" name="status">
+                  <select class="select mgr-inline-select" name="status">
                     {% for st_k, st_lbl in PASS_STATUS_LABELS.items() %}<option value="{{ st_k }}" {{ 'selected' if sp.status == st_k }}>{{ st_lbl }}</option>{% endfor %}
                   </select>
-                  <button class="btn btn--secondary btn--min" type="submit" style="min-height:30px;padding:0 10px">{{ _("Статус") }}</button>
+                  <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit" style="min-height:34px">{{ _("Статус") }}</button>
                 </form>
                 {% endif %}
               </div>
@@ -160,7 +140,7 @@
                 {% for m in PAYMENT_METHODS %}<option value="{{ m }}">{{ METHOD_LABELS[m] }}</option>{% endfor %}
               </select>
               <input class="input input--sm" name="note" placeholder="{{ _('Комментарий') }}" style="flex:1">
-              <button class="btn btn--primary btn--min" type="submit">{{ _("Выдать") }}</button>
+              <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Выдать") }}</button>
             </div>
           {% else %}
             <p class="small muted">{{ _("Сначала супервайзер должен создать тарифы в разделе Финансы.") }}</p>
@@ -190,26 +170,22 @@
               <option value="refund">{{ _("Возврат") }}</option>
             </select>
             {% endif %}
-            <button class="btn btn--secondary btn--min" type="submit">{{ _("Провести") }}</button>
+            <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">{{ _("Провести") }}</button>
           </div>
         </form>
         {% endif %}
-      </section>
+      {% endcall %}
 
-      <section class="card">
-        <div class="hc__head">
-          <span class="hc__ic">{{ ui.icon('check', 17) }}</span>
-          <h2>{{ _("Посещаемость (всего)") }}</h2>
-          <span class="hc__pill num">{{ att_total }}</span>
-        </div>
-        <dl class="kv small">
+      {% call mui.card() %}
+        {{ mui.section_head('check', _("Посещаемость (всего)"), count=att_total) }}
+        <dl class="mgr-kv">
           <dt>{{ _("Всего отметок") }}</dt><dd class="num">{{ att_total }}</dd>
           <dt>{{ _("Был") }}</dt><dd class="num">{{ att_counts.get('present', 0) }}</dd>
           <dt>{{ _("Опоздал") }}</dt><dd class="num">{{ att_counts.get('late', 0) }}</dd>
           <dt>{{ _("Отсутствовал") }}</dt><dd class="num">{{ att_counts.get('absent', 0) }}</dd>
           <dt>{{ _("Уважит. причина") }}</dt><dd class="num">{{ att_counts.get('excused', 0) }}</dd>
         </dl>
-      </section>
+      {% endcall %}
     </div>
   </div>
 {% endblock %}

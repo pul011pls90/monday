@@ -1,121 +1,133 @@
 {% extends "layout.html" %}
+{% import "manager/_ui.html" as mui with context %}
 {% block title %}{{ _("CRM · Воронка") }}{% endblock %}
 {% block context %}{{ _("Воронка продаж") }}{% endblock %}
 {% block page_class %}page--wide{% endblock %}
 {% block content %}
-  <div class="t-hero-bar">
-    <div class="t-hero-bar__title">
-      <h1>{{ _("Воронка и активные ученики") if mode == 'students' else _("Воронка продаж") }}</h1>
-      <p>{{ _("Статус зачисления, абонементы и 30-дневная посещаемость активных учеников.") if mode == 'students' else _("7 этапов лида · быстрый перевод на следующий этап и контроль SLA.") }}</p>
+  {% call mui.page_header(
+    _("Воронка и активные ученики") if mode == 'students' else _("Воронка продаж"),
+    _("Статус зачисления, абонементы и 30-дневная посещаемость активных учеников.") if mode == 'students' else _("7 этапов лида · перевод через меню карточки и контроль SLA.")
+  ) %}
+    <div class="segmented">
+      <a class="{{ 'is-active' if mode != 'students' }}" href="{{ url_for('manager.pipeline', mode='leads') }}">{{ _("Воронка лидов") }}</a>
+      <a class="{{ 'is-active' if mode == 'students' }}" href="{{ url_for('manager.pipeline', mode='students') }}">{{ _("Активные ученики") }}</a>
     </div>
-    <div class="t-hero-actions">
-      <div class="segmented">
-        <a class="{{ 'is-active' if mode != 'students' }}" href="{{ url_for('manager.pipeline', mode='leads') }}">{{ _("Воронка лидов") }}</a>
-        <a class="{{ 'is-active' if mode == 'students' }}" href="{{ url_for('manager.pipeline', mode='students') }}">{{ _("Активные ученики") }}</a>
-      </div>
-      {% if mode != 'students' %}
-      <form method="get" action="{{ url_for('manager.pipeline') }}" class="row" style="gap:6px">
-        <input type="hidden" name="mode" value="leads">
-        <select class="select input--sm" name="source" style="width:auto;min-height:38px">
-          <option value="">{{ _("Все источники") }}</option>
-          {% for s in LEAD_SOURCES %}<option value="{{ s }}" {{ 'selected' if filters.source == s }}>{{ SOURCE_LABELS[s] }}</option>{% endfor %}
-        </select>
-        {% if current_user.has_perm('crm.leads.view_all') %}
-        <select class="select input--sm" name="manager" style="width:auto;min-height:38px">
-          <option value="">{{ _("Все менеджеры") }}</option>
-          {% for m in managers %}<option value="{{ m.id }}" {{ 'selected' if filters.manager == m.id }}>{{ m.name }}</option>{% endfor %}
-        </select>
-        {% endif %}
-        <button class="btn btn--secondary btn--min" type="submit">{{ _("Показать") }}</button>
-      </form>
+    {% if mode != 'students' %}
+    <form method="get" action="{{ url_for('manager.pipeline') }}" class="row" style="gap:6px">
+      <input type="hidden" name="mode" value="leads">
+      <select class="select input--sm" name="source" aria-label="{{ _('Источник') }}" style="width:auto;min-height:36px">
+        <option value="">{{ _("Все источники") }}</option>
+        {% for s in LEAD_SOURCES %}<option value="{{ s }}" {{ 'selected' if filters.source == s }}>{{ SOURCE_LABELS[s] }}</option>{% endfor %}
+      </select>
+      {% if current_user.has_perm('crm.leads.view_all') %}
+      <select class="select input--sm" name="manager" aria-label="{{ _('Менеджер') }}" style="width:auto;min-height:36px">
+        <option value="">{{ _("Все менеджеры") }}</option>
+        {% for m in managers %}<option value="{{ m.id }}" {{ 'selected' if filters.manager == m.id }}>{{ m.name }}</option>{% endfor %}
+      </select>
       {% endif %}
-      <a class="btn btn--primary btn--min" href="{{ url_for('manager.leads') }}#new-lead">{{ ui.icon('plus', 15) }}<span>{{ _("Новый лид") }}</span></a>
-    </div>
-  </div>
+      <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">{{ _("Показать") }}</button>
+    </form>
+    {% endif %}
+    {{ mui.btn(_("Новый лид"), href=url_for('manager.leads') ~ '#new-lead', variant='primary', size='sm', icon_name='plus') }}
+  {% endcall %}
 
   {% if mode == 'students' %}
-  <div class="crm-board crm-board--4">
+  <div class="mgr-board mgr-board--4">
     {% for key in ('unassigned', 'at_risk', 'healthy', 'paused') %}
       {% set items = health_cols[key] %}
-      <section class="crm-col">
-        <div class="crm-col__head">
-          <span class="tag {{ 'tag--bad' if key == 'at_risk' else ('tag--ok' if key == 'healthy' else ('tag--warn' if key == 'unassigned' else 'tag--line')) }} tag--xs">{{ health_labels[key] }}</span>
-          <span class="small muted num" style="font-weight:700">{{ items|length }}</span>
+      {% set h_tone = 'bad' if key == 'at_risk' else ('ok' if key == 'healthy' else ('warn' if key == 'unassigned' else 'neutral')) %}
+      <section class="mgr-col">
+        <div class="mgr-col__head">
+          {{ mui.badge(health_labels[key], tone=h_tone, dot=true) }}
+          <span class="mgr-pill num">{{ items|length }}</span>
         </div>
-        <div class="crm-col__cards">
+        <div class="mgr-col__cards">
           {% for card in items %}
-            <article class="crm-lead-card{{ ' crm-lead-card--hot' if key == 'at_risk' }}">
-              <a class="crm-lead-card__name" href="{{ url_for('manager.student_detail', student_id=card.student.id) }}">{{ card.student.name }}</a>
+            <article class="mgr-kanban-card">
+              <div class="mgr-kanban-card__top">
+                <a class="mgr-lead-link" href="{{ url_for('manager.student_detail', student_id=card.student.id) }}">{{ card.student.name }}</a>
+                {% if card.total_debt %}{{ mui.badge(_("Долг") ~ " " ~ card.total_debt, tone='bad') }}{% endif %}
+              </div>
               <div class="small muted">{{ card.active_groups|join(', ') if card.active_groups else _('Нет активной группы') }}</div>
               {% if card.total_att %}
                 <div class="row row--between small" style="gap:6px">
-                  <span>{{ _("Посещаемость (30д)") }}</span>
+                  <span class="muted">{{ _("Посещаемость (30д)") }}</span>
                   <span class="num t-strong">{{ card.att_pct }}% ({{ card.present_cnt }}/{{ card.total_att }})</span>
                 </div>
-                <div class="crm-meter{{ ' crm-meter--bad' if card.absent_cnt >= 2 else (' crm-meter--warn' if card.att_pct < 80) }}">
+                <div class="mgr-bar {{ 'mgr-bar--bad' if card.absent_cnt >= 2 else ('mgr-bar--warn' if card.att_pct < 80 else 'mgr-bar--ok') }}">
                   <span style="width:{{ card.att_pct }}%"></span>
                 </div>
               {% else %}
                 <div class="small muted">{{ _("Уроков за 30д пока не отмечено") }}</div>
               {% endif %}
-              {% if card.active_pass or card.total_debt %}
-                <div class="row" style="gap:4px;flex-wrap:wrap">
-                  {% if card.active_pass %}
-                    <span class="tag {{ 'tag--warn' if card.active_pass.lessons_remaining is not none and card.active_pass.lessons_remaining <= 2 else 'tag--soft' }} tag--xs num">
-                      {% if card.active_pass.lessons_total is not none %}{{ card.active_pass.lessons_remaining }}/{{ card.active_pass.lessons_total }} {{ _("ур.") }}{% else %}{{ _("безлимит") }}{% endif %}
-                    </span>
-                  {% endif %}
-                  {% if card.total_debt %}<span class="tag tag--bad tag--xs num">{{ _("Долг") }} {{ card.total_debt }}</span>{% endif %}
-                </div>
-              {% endif %}
-              {% if card.lead %}
-                <a class="small muted" href="{{ url_for('manager.lead_detail', lead_id=card.lead.id) }}">{{ _("Лид") }} #{{ card.lead.id }}</a>
-              {% endif %}
+              <div class="row row--between" style="gap:6px;flex-wrap:wrap;margin-top:2px">
+                {% if card.active_pass %}
+                  {% set rem_txt = (card.active_pass.lessons_remaining ~ '/' ~ card.active_pass.lessons_total ~ ' ' ~ _('ур.')) if card.active_pass.lessons_total is not none else _('безлимит') %}
+                  {{ mui.badge(rem_txt, tone='warn' if card.active_pass.lessons_remaining is not none and card.active_pass.lessons_remaining <= 2 else 'accent') }}
+                {% endif %}
+                {% if card.lead %}
+                  <a class="small muted" href="{{ url_for('manager.lead_detail', lead_id=card.lead.id) }}">{{ _("Лид") }} #{{ card.lead.id }}</a>
+                {% endif %}
+              </div>
             </article>
           {% else %}
-            <p class="small muted" style="text-align:center;padding:12px 0">{{ _("Пусто") }}</p>
+            <p class="small muted" style="text-align:center;padding:16px 0">{{ _("Пусто") }}</p>
           {% endfor %}
         </div>
       </section>
     {% endfor %}
   </div>
   {% else %}
-  <div class="crm-board">
+  <div class="mgr-board">
     {% for st in LEAD_STATUSES %}
       {% set items = columns[st] %}
-      <section class="crm-col">
-        <div class="crm-col__head">
-          <span class="crm-status crm-status--{{ st }}">{{ STATUS_LABELS[st] }}</span>
-          <span class="small muted num" style="font-weight:700">{{ items|length }}</span>
+      {% set st_tone = 'ok' if st == 'won' else ('bad' if st == 'lost' else ('warn' if st in ('trial_scheduled', 'trial_done') else 'accent')) %}
+      {% set moves = allowed_transitions.get(st, []) if allowed_transitions is defined else ([next_status_map[st]] if st in next_status_map else []) %}
+      <section class="mgr-col">
+        <div class="mgr-col__head">
+          {{ mui.badge(STATUS_LABELS[st], tone=st_tone, dot=true) }}
+          <span class="mgr-pill num">{{ items|length }}</span>
         </div>
-        <div class="crm-col__cards">
+        <div class="mgr-col__cards">
           {% for lead in items %}
             {% set sla = lead_sla(lead, now_utc) %}
-            <article class="crm-lead-card{{ ' crm-lead-card--hot' if sla.overdue }}">
-              <a class="crm-lead-card__name" href="{{ url_for('manager.lead_detail', lead_id=lead.id) }}">{{ lead.full_name }}</a>
-              <div class="small muted">{{ lead.phone or lead.messenger_handle or '—' }}</div>
-              {% if lead.interest %}<div class="small">{{ lead.interest }}</div>{% endif %}
-              <div class="row row--between" style="gap:6px">
-                <span class="tag tag--soft tag--xs">{{ SOURCE_LABELS.get(lead.source, lead.source) }}</span>
+            <article class="mgr-kanban-card">
+              <div class="mgr-kanban-card__top">
+                <a class="mgr-lead-link" href="{{ url_for('manager.lead_detail', lead_id=lead.id) }}">{{ lead.full_name }}</a>
+                {% if moves %}
+                <details class="mgr-stage-menu">
+                  <summary title="{{ _('Перенести в другой этап') }}" aria-label="{{ _('Перенести этап для %(n)s', n=lead.full_name) }}">{{ ui.icon('chevron-down', 15) }}</summary>
+                  <div class="mgr-stage-menu__pop" role="menu">
+                    {% for tgt in LEAD_STATUSES %}
+                      {% if tgt != 'lost' and tgt in moves %}
+                        <form method="post" action="{{ url_for('manager.lead_status', lead_id=lead.id) }}">
+                          {{ ui.csrf() }}
+                          <input type="hidden" name="status" value="{{ tgt }}">
+                          <input type="hidden" name="next" value="{{ request.full_path }}">
+                          <button class="mgr-stage-menu__item" type="submit" role="menuitem">→ {{ STATUS_LABELS[tgt] }}</button>
+                        </form>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </details>
+                {% endif %}
+              </div>
+              {% if lead.interest %}<div class="small" style="font-weight:600;color:var(--text-2)">{{ lead.interest }}</div>{% endif %}
+              <div class="small muted">{{ lead.phone_e164 or lead.phone or lead.messenger_handle or '—' }}</div>
+              <div class="row row--between" style="gap:6px;flex-wrap:wrap">
+                {{ mui.badge(SOURCE_LABELS.get(lead.source, lead.source), tone='neutral') }}
                 {% if sla.unanswered %}
-                  <span class="crm-sla{{ ' crm-sla--hot' if sla.overdue }}" data-sla-badge="{{ 'overdue' if sla.overdue else 'waiting' }}">{{ sla.label }}</span>
+                  <span class="mgr-badge {{ 'mgr-badge--bad' if sla.overdue else 'mgr-badge--accent' }}" data-sla-badge="{{ 'overdue' if sla.overdue else 'waiting' }}">
+                    {{ ui.icon('clock', 12) }}<span>{{ sla.label }}</span>
+                  </span>
                 {% endif %}
               </div>
               {% if current_user.has_perm('crm.leads.view_all') and lead.assigned_manager %}
                 <div class="small muted">{{ lead.assigned_manager.name }}</div>
               {% endif %}
-              {% if st in next_status_map %}
-                {% set nxt = next_status_map[st] %}
-                <form method="post" action="{{ url_for('manager.lead_status', lead_id=lead.id) }}" style="margin-top:4px">
-                  {{ ui.csrf() }}
-                  <input type="hidden" name="status" value="{{ nxt }}">
-                  <input type="hidden" name="next" value="{{ request.full_path }}">
-                  <button class="btn btn--secondary btn--min btn--block" type="submit" style="min-height:30px;font-size:12px">→ {{ STATUS_LABELS[nxt] }}</button>
-                </form>
-              {% endif %}
             </article>
           {% else %}
-            <p class="small muted" style="text-align:center;padding:12px 0">{{ _("Пусто") }}</p>
+            <p class="small muted" style="text-align:center;padding:16px 0">{{ _("Пусто") }}</p>
           {% endfor %}
         </div>
       </section>

@@ -1016,3 +1016,322 @@ body.mgr .hc__head h2 {
   border-left-color: rgba(255, 255, 255, .18);
 }
 
+/* Stage 3.3 — Lead Detail (/manager/leads/<id>): Sticky Header + 2-Column Workspace */
+.mgr .mgr-sticky-head {
+  position: sticky;
+  top: calc(var(--topbar, 72px) + 12px);
+  z-index: 12;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 18px 22px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 20px;
+  flex-wrap: wrap;
+}
+[data-theme="dark"] .mgr .mgr-sticky-head {
+  background: var(--surface-2);
+  border-color: rgba(255, 255, 255, .18);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .55);
+}
+@media (max-width: 900px) {
+  .mgr .mgr-sticky-head { position: static; }
+}
+.mgr .mgr-sticky-head h1 {
+  margin: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, var(--font);
+  font-size: clamp(22px, 2vw, 26px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -.02em;
+}
+.mgr .mgr-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 980px) {
+  .mgr .mgr-detail-grid { grid-template-columns: minmax(0, 1fr); }
+}
+.mgr .mgr-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.mgr .mgr-timeline__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+}
+.mgr .mgr-timeline__item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.mgr .mgr-timeline__body {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+  white-space: pre-line;
+}
+.mgr .mgr-timeline__meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.mgr .mgr-kv {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 16px;
+  font-size: 13.5px;
+}
+.mgr .mgr-kv dt {
+  color: var(--muted);
+  font-weight: 600;
+}
+.mgr .mgr-kv dd {
+  margin: 0;
+  color: var(--text);
+  font-weight: 500;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.mgr .mgr-due-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.mgr .mgr-due-row .date-field {
+  flex: 1 1 170px;
+  min-height: 38px;
+  height: 38px;
+  font-size: 13.5px;
+  padding: 0 12px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.mgr .mgr-due-row .date-field svg {
+  width: 15px;
+  height: 15px;
+  color: var(--muted);
+  flex: none;
+}
+[data-theme="dark"] .mgr .mgr-due-row .date-field {
+  border-color: rgba(255, 255, 255, .20);
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+/* Stage 3.4 & 3.5 — Pipeline Wider Columns, Clean White Cards, Stage Action Menu & Student Progress Bar */
+.mgr .mgr-board {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(265px, 1fr));
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  align-items: start;
+}
+.mgr .mgr-board--4 {
+  grid-template-columns: repeat(4, minmax(260px, 1fr));
+}
+@media (max-width: 1120px) {
+  .mgr .mgr-board--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); overflow-x: visible; }
+}
+@media (max-width: 640px) {
+  .mgr .mgr-board,
+  .mgr .mgr-board--4 { grid-template-columns: minmax(0, 1fr); overflow-x: visible; }
+}
+.mgr .mgr-col {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 14px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 220px;
+}
+[data-theme="dark"] .mgr .mgr-col {
+  background: var(--surface-2);
+  border-color: rgba(255, 255, 255, .16);
+  box-shadow: none;
+}
+.mgr .mgr-col__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.mgr .mgr-col__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mgr .mgr-kanban-card {
+  position: relative;
+  padding: 13px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  transition: border-color .14s ease, box-shadow .14s ease;
+}
+.mgr .mgr-kanban-card:hover {
+  border-color: var(--accent);
+}
+[data-theme="dark"] .mgr .mgr-kanban-card {
+  background: var(--surface-3);
+  border-color: rgba(255, 255, 255, .14);
+}
+.mgr .mgr-kanban-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.mgr .mgr-stage-menu {
+  position: relative;
+  flex: none;
+}
+.mgr .mgr-stage-menu > summary {
+  list-style: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-2);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.mgr .mgr-stage-menu > summary::-webkit-details-marker { display: none; }
+.mgr .mgr-stage-menu[open] > summary,
+.mgr .mgr-stage-menu > summary:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.mgr .mgr-stage-menu__pop {
+  position: absolute;
+  right: 0;
+  top: 34px;
+  z-index: 25;
+  min-width: 196px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+[data-theme="dark"] .mgr .mgr-stage-menu__pop {
+  background: var(--surface-2);
+  border-color: rgba(255, 255, 255, .20);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .65);
+}
+.mgr .mgr-stage-menu__item {
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  font: 600 13px/1.25 var(--font);
+  cursor: pointer;
+}
+.mgr .mgr-stage-menu__item:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.mgr .mgr-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.mgr .mgr-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--pulse);
+}
+.mgr .mgr-bar--ok > span { background: var(--ok); }
+.mgr .mgr-bar--warn > span { background: var(--warn); }
+.mgr .mgr-bar--bad > span { background: var(--bad); }
+
+/* Stage 3.6 — Audit Diff Chips & Finance/Schedule Shared Layout */
+.mgr .mgr-diff-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mgr .mgr-diff-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.mgr .mgr-diff-key {
+  font-weight: 700;
+  color: var(--text-2);
+}
+.mgr .mgr-diff-old {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.mgr .mgr-diff-new {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Stage 4 — Dark Mode Polish (Manager-Scoped Only, AA contrast & subtle borders) */
+[data-theme="dark"] body.mgr {
+  --muted: #B0B7C6;
+  --text-2: #E2E6F0;
+  --line: rgba(255, 255, 255, .16);
+  --line-strong: rgba(255, 255, 255, .24);
+}
+[data-theme="dark"] body.mgr :is(.btn, .icon-btn, .chip, .segmented, .admin-tabs, .set-hero, .set-row, .acad-day-col, .acad-event, .att-pill span, .dp) {
+  border-color: rgba(255, 255, 255, .18);
+  border-width: 1px;
+}
+[data-theme="dark"] body.mgr .input,
+[data-theme="dark"] body.mgr .select,
+[data-theme="dark"] body.mgr .textarea,
+[data-theme="dark"] body.mgr .search,
+[data-theme="dark"] body.mgr .date-field {
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, .20);
+  background-color: var(--surface-3);
+  color: var(--text);
+}
+[data-theme="dark"] body.mgr .select option {
+  background: #141821;
+  color: #FFFFFF;
+}
+
