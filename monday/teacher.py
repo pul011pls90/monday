@@ -1479,13 +1479,19 @@ def account():
             db.session.commit()
             flash(_("Сохранено."), "success")
         elif action == "password":
+            from flask_login import login_user
+            from .access import min_password_length
+            min_len = min_password_length(current_user.role)
             if not current_user.check_password(request.form.get("current", "")):
                 flash(_("Текущий пароль неверный."), "error")
-            elif len(request.form.get("new", "")) < 8:
-                flash(_("Новый пароль должен быть не короче 8 символов."), "error")
+            elif len(request.form.get("new", "")) < min_len:
+                flash(_("Новый пароль должен быть не короче %(n)s символов.", n=min_len), "error")
             else:
-                current_user.set_password(request.form["new"])
+                user_obj = current_user._get_current_object()
+                user_obj.set_password(request.form["new"])
+                user_obj.must_change_password = False
                 db.session.commit()
+                login_user(user_obj)
                 flash(_("Пароль изменён."), "success")
         return redirect(url_for("teacher.account"))
     stats = {

@@ -10,7 +10,7 @@ from flask_login import current_user, login_user
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 
-from .access import CRM_ROLES, manager_required, permission_required, supervisor_required
+from .access import CRM_ROLES, manager_required, min_password_length, permission_required, supervisor_required
 from .audit import write_audit_log
 from .auth import _safe_next
 from .extensions import db
@@ -777,6 +777,7 @@ def audit():
 @manager_required
 def account():
     """Password change & preferences for sales managers and supervisors."""
+    min_len = min_password_length(current_user.role)
     if request.method == "POST":
         action = request.form.get("action")
         if action == "password":
@@ -784,12 +785,14 @@ def account():
             new_pw = request.form.get("new", "")
             if not current_user.check_password(cur_pw):
                 flash(_("Текущий пароль неверный."), "error")
-            elif len(new_pw) < 8:
-                flash(_("Новый пароль должен быть не короче 8 символов."), "error")
+            elif len(new_pw) < min_len:
+                flash(_("Новый пароль должен быть не короче %(n)s символов.", n=min_len), "error")
             else:
-                current_user.set_password(new_pw)
+                user_obj = current_user._get_current_object()
+                user_obj.set_password(new_pw)
+                user_obj.must_change_password = False
                 db.session.commit()
-                login_user(current_user._get_current_object())
+                login_user(user_obj)
                 flash(_("Пароль изменён."), "success")
         return redirect(url_for("manager.account"))
-    return render_template("manager/account.html")
+    return render_template("manager/account.html", min_pw_len=min_len)

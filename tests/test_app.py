@@ -181,7 +181,7 @@ def test_register_student_with_invite_code_and_onboarding():
 
 def test_register_teacher_needs_approval():
     c = client()
-    r = c.post("/register", data={"name": "Учитель Тест", "email": "t.test@mail.com", "password": "password1",
+    r = c.post("/register", data={"name": "Учитель Тест", "email": "t.test@mail.com", "password": "teacherpass12",
                                   "role": "teacher"})
     assert "/pending" in r.headers["Location"]
     ok(c, "/pending", contains="Заявка учителя")

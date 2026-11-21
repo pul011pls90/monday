@@ -15,7 +15,7 @@
     {{ ui.csrf() }}
     <input type="hidden" name="action" value="password">
     <div class="field"><label for="pw-cur">{{ _("Текущий пароль") }}</label><input class="input" id="pw-cur" type="password" name="current" required></div>
-    <div class="field"><label for="pw-new">{{ _("Новый пароль (от 8 символов)") }}</label><input class="input" id="pw-new" type="password" name="new" minlength="8" required></div>
+    <div class="field"><label for="pw-new">{{ _("Новый пароль (от %(n)s символов)", n=min_pw_len|default(12)) }}</label><input class="input" id="pw-new" type="password" name="new" minlength="{{ min_pw_len|default(12) }}" required></div>
     <div><button class="btn btn--primary" type="submit">{{ _("Обновить пароль") }}</button></div>
   </form>
 </section>
