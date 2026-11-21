@@ -4,11 +4,17 @@
 {% block content %}
 <div class="page-head">
   <div class="page-head__text">
-    <h1>{{ _("Воронка продаж") }}</h1>
-    <p>{{ _("7 этапов лида · быстрый перевод на следующий этап и контроль SLA.") }}</p>
+    <h1>{{ _("Воронка и активные ученики") if mode == 'students' else _("Воронка продаж") }}</h1>
+    <p>{{ _("Статус зачисления и 30-дневная посещаемость активных учеников.") if mode == 'students' else _("7 этапов лида · быстрый перевод на следующий этап и контроль SLA.") }}</p>
   </div>
   <div class="row" style="gap:8px;flex-wrap:wrap">
+    <div class="segmented">
+      <a class="{{ 'is-active' if mode != 'students' }}" href="{{ url_for('manager.pipeline', mode='leads') }}">{{ _("Воронка лидов") }}</a>
+      <a class="{{ 'is-active' if mode == 'students' }}" href="{{ url_for('manager.pipeline', mode='students') }}">{{ _("Активные ученики") }}</a>
+    </div>
+    {% if mode != 'students' %}
     <form method="get" action="{{ url_for('manager.pipeline') }}" class="row" style="gap:8px">
+      <input type="hidden" name="mode" value="leads">
       <select class="select input--sm" name="source" style="width:auto">
         <option value="">{{ _("Все источники") }}</option>
         {% for s in LEAD_SOURCES %}<option value="{{ s }}" {{ 'selected' if filters.source == s }}>{{ SOURCE_LABELS[s] }}</option>{% endfor %}
@@ -21,10 +27,58 @@
       {% endif %}
       <button class="btn btn--secondary btn--sm" type="submit">{{ _("Показать") }}</button>
     </form>
+    {% endif %}
     <a class="btn btn--primary btn--sm" href="{{ url_for('manager.leads') }}#new-lead">{{ ui.icon('plus', 15) }}{{ _("Новый лид") }}</a>
   </div>
 </div>
 
+{% if mode == 'students' %}
+<div class="crm-board crm-board--4">
+  {% for key in ('unassigned', 'at_risk', 'healthy', 'paused') %}
+    {% set items = health_cols[key] %}
+    <section class="crm-col">
+      <div class="crm-col__head">
+        <span class="tag {{ 'tag--bad' if key == 'at_risk' else ('tag--ok' if key == 'healthy' else ('tag--warn' if key == 'unassigned' else 'tag--line')) }} tag--xs">{{ health_labels[key] }}</span>
+        <span class="small muted num" style="font-weight:700">{{ items|length }}</span>
+      </div>
+      <div class="crm-col__cards">
+        {% for card in items %}
+          <article class="crm-lead-card{{ ' crm-lead-card--hot' if key == 'at_risk' }}">
+            <a class="crm-lead-card__name" href="{{ url_for('manager.student_detail', student_id=card.student.id) }}">{{ card.student.name }}</a>
+            <div class="small muted">{{ card.active_groups|join(', ') if card.active_groups else _('Нет активной группы') }}</div>
+            {% if card.total_att %}
+              <div class="row row--between small" style="gap:6px">
+                <span>{{ _("Посещаемость (30д)") }}</span>
+                <span class="num t-strong">{{ card.att_pct }}% ({{ card.present_cnt }}/{{ card.total_att }})</span>
+              </div>
+              <div class="crm-meter{{ ' crm-meter--bad' if card.absent_cnt >= 2 else (' crm-meter--warn' if card.att_pct < 80) }}">
+                <span style="width:{{ card.att_pct }}%"></span>
+              </div>
+            {% else %}
+              <div class="small muted">{{ _("Уроков за 30д пока не отмечено") }}</div>
+            {% endif %}
+            {% if card.active_pass or card.total_debt %}
+              <div class="row" style="gap:4px;flex-wrap:wrap">
+                {% if card.active_pass %}
+                  <span class="tag {{ 'tag--warn' if card.active_pass.lessons_remaining is not none and card.active_pass.lessons_remaining <= 2 else 'tag--soft' }} tag--xs num">
+                    {% if card.active_pass.lessons_total is not none %}{{ card.active_pass.lessons_remaining }}/{{ card.active_pass.lessons_total }} {{ _("ур.") }}{% else %}{{ _("безлимит") }}{% endif %}
+                  </span>
+                {% endif %}
+                {% if card.total_debt %}<span class="tag tag--bad tag--xs num">{{ _("Долг") }} {{ card.total_debt }}</span>{% endif %}
+              </div>
+            {% endif %}
+            {% if card.lead %}
+              <a class="small muted" href="{{ url_for('manager.lead_detail', lead_id=card.lead.id) }}">{{ _("Лид") }} #{{ card.lead.id }}</a>
+            {% endif %}
+          </article>
+        {% else %}
+          <p class="small muted" style="text-align:center;padding:12px 0">{{ _("Пусто") }}</p>
+        {% endfor %}
+      </div>
+    </section>
+  {% endfor %}
+</div>
+{% else %}
 <div class="crm-board">
   {% for st in LEAD_STATUSES %}
     {% set items = columns[st] %}
@@ -66,4 +120,5 @@
     </section>
   {% endfor %}
 </div>
+{% endif %}
 {% endblock %}

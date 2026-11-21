@@ -243,12 +243,15 @@ def create_app(config_object=Config, *, seed_if_empty=True):
             "auth.force_password_change",
             "auth.logout",
             "auth.toggle_theme",
-            "auth.set_lang",
+            "auth.set_language",
             "static",
             "deploy_safety.api_version",
             "deploy_safety.api_site_status",
         ):
             return None
+        if request.path.startswith("/api/") or request.is_json:
+            from flask import jsonify
+            return jsonify({"ok": False, "error": "password_change_required"}), 403
         return redirect(url_for("auth.force_password_change"))
 
     with app.app_context():
@@ -304,7 +307,7 @@ def _register_security_headers(app):
         "script-src 'self' 'unsafe-inline' https://www.desmos.com https://cdn.jsdelivr.net; "
         "style-src 'self' 'unsafe-inline'; "
         f"img-src 'self' data: blob: https://www.desmos.com{supabase_origin}; "
-        "font-src 'self' data:; "
+        "font-src 'self' data: https://www.desmos.com; "
         f"connect-src 'self' https://www.desmos.com https://cdn.jsdelivr.net{supabase_origin}; "
         "worker-src 'self' blob:; "
         "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; "
@@ -467,6 +470,20 @@ def _register_template_helpers(app):
 
 def _register_errors(app):
     from flask import jsonify, make_response, render_template, request
+    from flask_wtf.csrf import CSRFError
+
+    @app.errorhandler(CSRFError)
+    def csrf_error(e):
+        if request.path.startswith("/api/") or request.is_json:
+            return jsonify({"ok": False, "error": "csrf_error"}), 400
+        return (
+            render_template(
+                "errors/error.html",
+                code=400,
+                message=_("Сессия формы устарела или отсутствует CSRF-токен. Обновите страницу и попробуйте снова."),
+            ),
+            400,
+        )
 
     @app.errorhandler(403)
     def forbidden(e):

@@ -1,0 +1,208 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("CRM · Финансы и абонементы") }}{% endblock %}
+{% block context %}{{ _("Финансы и тарифы") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="page-head__text">
+    <h1>{{ _("Финансы и абонементы") }}</h1>
+    <p>{{ _("Выручка, задолженности по абонементам, тарифы и начисления учителям.") }}</p>
+  </div>
+</div>
+
+<div class="crm-kpis">
+  <div class="card crm-kpi">
+    <span class="eyebrow">{{ _("Выручка (30 дней)") }}</span>
+    <span class="stat-value num">{{ rev_30d }} <span class="small">KGS</span></span>
+    <span class="stat-label">{{ _("за вычетом возвратов") }}</span>
+  </div>
+  <div class="card crm-kpi{{ ' crm-kpi--hot' if total_debt }}">
+    <span class="eyebrow">{{ _("Общий долг") }}</span>
+    <span class="stat-value num">{{ total_debt }} <span class="small">KGS</span></span>
+    <span class="stat-label">{{ _("абонементов с долгом: %(n)s", n=debt_passes|length) }}</span>
+  </div>
+  <div class="card crm-kpi">
+    <span class="eyebrow">{{ _("Активные абонементы") }}</span>
+    <span class="stat-value num">{{ active_passes_count }}</span>
+    <span class="stat-label">{{ _("действующих сейчас") }}</span>
+  </div>
+  <div class="card crm-kpi{{ ' crm-kpi--hot' if expiring_passes }}">
+    <span class="eyebrow">{{ _("Скоро продление") }}</span>
+    <span class="stat-value num">{{ expiring_passes|length }}</span>
+    <span class="stat-label">{{ _("<= 2 уроков или <= 7 дней") }}</span>
+  </div>
+</div>
+
+<div class="crm-split">
+  <div class="stack">
+    <section class="card card--tight">
+      <div class="card__head">
+        <h2 style="font-size:17px">{{ _("Журнал операций") }}</h2>
+        <span class="small muted num">{{ recent_tx|length }}</span>
+      </div>
+      {% if recent_tx %}
+      <div class="table-wrap" style="border:0;border-radius:0;box-shadow:none">
+        <table class="table crm-table">
+          <thead>
+            <tr>
+              <th>{{ _("Дата") }}</th>
+              <th>{{ _("Ученик") }}</th>
+              <th>{{ _("Сумма") }}</th>
+              <th>{{ _("Способ") }}</th>
+              <th>{{ _("Абонемент") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tx in recent_tx %}
+            <tr>
+              <td class="small muted num nowrap">{{ tx.paid_at|d('d MMM, HH:mm') }}</td>
+              <td><a class="t-strong" href="{{ url_for('manager.student_detail', student_id=tx.student_user_id) }}">{{ tx.student.name if tx.student else ('#' ~ tx.student_user_id) }}</a></td>
+              <td class="num t-strong" style="color:{{ 'var(--bad)' if tx.kind == 'refund' else 'var(--ok)' }}">{{ '-' if tx.kind == 'refund' else '+' }}{{ tx.amount }}</td>
+              <td class="small">{{ METHOD_LABELS.get(tx.method, tx.method) }}</td>
+              <td class="small muted">{{ tx.student_pass.plan.name if (tx.student_pass and tx.student_pass.plan) else '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p class="small text-2">{{ _("Операций пока нет.") }}</p>
+      {% endif %}
+    </section>
+
+    {% if current_user.has_perm('academic.payroll.read') %}
+    <section class="card card--tight">
+      <div class="card__head">
+        <h2 style="font-size:17px">{{ _("Начисления учителям (30 дней)") }}</h2>
+      </div>
+      {% if payroll_rows %}
+      <div class="table-wrap" style="border:0;border-radius:0;box-shadow:none">
+        <table class="table crm-table">
+          <thead>
+            <tr>
+              <th>{{ _("Учитель") }}</th>
+              <th>{{ _("Ставка") }}</th>
+              <th>{{ _("Уроков (30д)") }}</th>
+              <th>{{ _("К начислению") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pr in payroll_rows %}
+            <tr>
+              <td class="t-strong">{{ pr.teacher.name }}</td>
+              <td class="small">
+                {% for r in pr.rates %}
+                  <div>{{ RATE_TYPE_LABELS.get(r.rate_type, r.rate_type) }} · <b>{{ r.rate_amount }} {{ r.currency }}</b>{% if r.course %} ({{ r.course.name }}){% endif %}</div>
+                {% else %}
+                  <span class="muted">{{ _("не задана") }}</span>
+                {% endfor %}
+              </td>
+              <td class="num">{{ pr.lesson_count }}</td>
+              <td class="num t-strong">{{ pr.accrued }} KGS</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p class="small text-2">{{ _("Учителей пока нет.") }}</p>
+      {% endif %}
+
+      {% if current_user.has_perm('academic.payroll.manage') and teachers %}
+      <hr style="border:0;border-top:1px solid var(--line);margin:10px 0">
+      <form method="post" action="{{ url_for('manager.payroll_rate_create') }}" class="stack-sm">
+        {{ ui.csrf() }}
+        <div class="eyebrow">{{ _("Задать ставку учителя") }}</div>
+        <div class="row" style="gap:6px;flex-wrap:wrap">
+          <select class="select input--sm" name="teacher_id" required style="flex:1">
+            <option value="">{{ _("Учитель...") }}</option>
+            {% for t in teachers %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
+          </select>
+          <select class="select input--sm" name="course_id" style="flex:1">
+            <option value="">{{ _("Все курсы") }}</option>
+            {% for c in courses %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+          </select>
+          <select class="select input--sm" name="rate_type" style="width:auto">
+            {% for rt in PAY_RATE_TYPES %}<option value="{{ rt }}">{{ RATE_TYPE_LABELS[rt] }}</option>{% endfor %}
+          </select>
+          <input class="input input--sm" type="number" name="rate_amount" min="1" required placeholder="KGS" style="width:110px">
+          <button class="btn btn--secondary btn--sm" type="submit">{{ _("Сохранить") }}</button>
+        </div>
+      </form>
+      {% endif %}
+    </section>
+    {% endif %}
+  </div>
+
+  <div class="stack">
+    <section class="card card--tight">
+      <div class="card__head">
+        <h2 style="font-size:17px">{{ _("Долги и продления") }}</h2>
+      </div>
+      {% if debt_passes or expiring_passes %}
+        <div class="stack-sm">
+          {% for sp in debt_passes %}
+            <div class="crm-task crm-task--overdue">
+              <div class="crm-task__main">
+                <a class="t-strong small" href="{{ url_for('manager.student_detail', student_id=sp.student_user_id) }}">{{ sp.student.name if sp.student else ('#' ~ sp.student_user_id) }}</a>
+                <span class="small">{{ sp.plan.name if sp.plan else sp.plan_id }} · <b style="color:var(--bad)">{{ _("Долг") }} {{ sp.debt_amount }} KGS</b></span>
+              </div>
+            </div>
+          {% endfor %}
+          {% for sp in expiring_passes %}
+            <div class="crm-task">
+              <div class="crm-task__main">
+                <a class="t-strong small" href="{{ url_for('manager.student_detail', student_id=sp.student_user_id) }}">{{ sp.student.name if sp.student else ('#' ~ sp.student_user_id) }}</a>
+                <span class="small muted">{{ sp.plan.name if sp.plan else sp.plan_id }} · {% if sp.lessons_remaining is not none %}{{ _("осталось") }} {{ sp.lessons_remaining }} {{ _("ур.") }}{% else %}{{ _("до") }} {{ sp.expires_at|d('d MMM') }}{% endif %}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="small text-2">{{ _("Долгов и срочных продлений нет.") }}</p>
+      {% endif %}
+    </section>
+
+    <section class="card card--tight">
+      <div class="card__head">
+        <h2 style="font-size:17px">{{ _("Тарифы (абонементы)") }}</h2>
+        <span class="small muted num">{{ plans|length }}</span>
+      </div>
+      {% if plans %}
+        <div class="stack-sm">
+          {% for pl in plans %}
+            <div class="crm-task">
+              <div class="crm-task__main">
+                <span class="t-strong small">{{ pl.name }}</span>
+                <span class="small muted">{{ pl.price_amount }} {{ pl.currency }} · {% if pl.total_lessons %}{{ pl.total_lessons }} {{ _("уроков") }}{% else %}{{ _("безлимит") }}{% endif %} · {{ pl.duration_days }} {{ _("дн.") }}{% if pl.course %} · {{ pl.course.name }}{% endif %}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="small text-2">{{ _("Тарифы ещё не созданы.") }}</p>
+      {% endif %}
+
+      {% if current_user.has_perm('crm.finance.manage') %}
+      <hr style="border:0;border-top:1px solid var(--line);margin:10px 0">
+      <form method="post" action="{{ url_for('manager.plan_create') }}" class="stack-sm">
+        {{ ui.csrf() }}
+        <div class="eyebrow">{{ _("Новый тариф") }}</div>
+        <input class="input input--sm" name="name" required placeholder="{{ _('Например: SAT 8 уроков / мес') }}">
+        <div class="row" style="gap:6px">
+          <input class="input input--sm" type="number" name="total_lessons" min="0" placeholder="{{ _('Уроков (пусто=безлимит)') }}" style="flex:1">
+          <input class="input input--sm" type="number" name="duration_days" min="1" value="30" placeholder="{{ _('Дней') }}" style="width:90px">
+        </div>
+        <div class="row" style="gap:6px">
+          <input class="input input--sm" type="number" name="price_amount" min="0" required placeholder="{{ _('Цена, KGS') }}" style="flex:1">
+          <select class="select input--sm" name="course_id" style="flex:1">
+            <option value="">{{ _("Любой курс") }}</option>
+            {% for c in courses %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+          </select>
+          <button class="btn btn--primary btn--sm" type="submit">{{ _("Создать") }}</button>
+        </div>
+      </form>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}
