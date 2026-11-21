@@ -1612,6 +1612,7 @@ def _delete_account(user):
     if user.profile:
         user.profile.grade = user.profile.region = user.profile.school = user.profile.country = None
     for rec in StudentRecord.query.filter_by(student_user_id=user.id).all():
+        rec.previous_student_user_id = user.id
         rec.student_user_id = None
         rec.linked_at = None
         rec.revoke_invite_code()

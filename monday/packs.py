@@ -56,7 +56,12 @@ def _foreign_questions(ids, own_pack, publish, author):
             continue
         import_pack(other, publish=publish, author=author)
         for k in wanted:
-            q = Question.query.filter_by(text=items[k]["text"], correct=items[k]["correct"]).order_by(Question.id).first()
+            pid = f"{other}:{k}"
+            q = Question.query.filter_by(pack_item_id=pid).order_by(Question.id).first()
+            if q is None:
+                q = Question.query.filter_by(text=items[k]["text"], correct=items[k]["correct"]).order_by(Question.id).first()
+                if q and not q.pack_item_id:
+                    q.pack_item_id = pid
             if q:
                 found[k] = q
     lost = [k for k in ids if k not in found]
@@ -86,22 +91,25 @@ def import_pack(pack_id, publish=True, author=None):
                      weight=int(item.get("weight") or 1), rubric=item.get("rubric") or None,
                      answer_type=item["answer_type"], options=item.get("options") or [],
                      correct=item["correct"], explanation=item.get("explanation", ""),
-                     tags=item.get("tags") or [], status=question_status, source=pack_id)
+                     tags=item.get("tags") or [], status=question_status, source=pack_id,
+                     pack_item_id=f"{pack_id}:{item['id']}"[:120])
         db.session.add(q)
         by_key[item["id"]] = q
     db.session.flush()
     from .services import publish_work
     works = 0
-    for c in pack.get("collections", []):
+    for idx, c in enumerate(pack.get("collections", [])):
         missing = [k for k in c["questions"] if k not in by_key]
         if missing:
             by_key.update(_foreign_questions(missing, pack_id, publish, author))
         minutes = c.get("minutes_per_module", 32) * (2 if c.get("module_split") else 1)
         category = c.get("category") if c.get("category") in WORK_CATEGORIES else "full"
+        col_key = f"{pack_id}:{c.get('id') or f'col-{idx}'}"[:120]
         w = Work(author=author, kind="collection", category=category, exam=exam, title=c["title"][:160],
                  description=c.get("description", ""), time_limit_min=minutes, status="draft",
                  draft_question_ids=[by_key[k].id for k in c["questions"]], format=c.get("format", "sat"),
-                 calculator=bool(c.get("calculator", True)), module_split=c.get("module_split"))
+                 calculator=bool(c.get("calculator", True)), module_split=c.get("module_split"),
+                 pack_item_id=col_key)
         db.session.add(w)
         db.session.flush()
         if publish:
@@ -123,26 +131,43 @@ def sync_pack(pack_id, publish=True):
         pack = json.load(f)
     author = User.query.filter_by(role="admin").order_by(User.id).first()
     nodes = {n.code: n for n in ContentNode.query.filter(ContentNode.code.isnot(None)).all()}
-    have = {(q.explanation, q.correct): q for q in Question.query.filter_by(source=pack_id).all()}
+    existing_qs = Question.query.filter_by(source=pack_id).all()
+    have_by_pid = {q.pack_item_id: q for q in existing_qs if q.pack_item_id}
+    have_legacy = {(q.explanation, q.correct): q for q in existing_qs if not q.pack_item_id}
+    matched_ids = set()
     by_key = {}
     for item in pack["questions"]:
-        q = have.pop((item.get("explanation", ""), item["correct"]), None)
+        pid = f"{pack_id}:{item['id']}"[:120]
+        q = have_by_pid.pop(pid, None)
         if q is None:
-            q = Question(author=author, source=pack_id, status="published" if publish and pack.get("bank", True) else "draft", exams=item.get("exams") or [pack.get("exam", "SAT")],
+            q = have_legacy.pop((item.get("explanation", ""), item["correct"]), None)
+        if q is None:
+            q = Question(author=author, source=pack_id, pack_item_id=pid,
+                         status="published" if publish and pack.get("bank", True) else "draft",
+                         exams=item.get("exams") or [pack.get("exam", "SAT")],
                          language=item.get("language") or pack.get("language", "en"), answer_type=item["answer_type"],
                          correct=item["correct"], explanation=item.get("explanation", ""), tags=item.get("tags") or [])
             db.session.add(q)
+        else:
+            q.pack_item_id = pid
+        matched_ids.add(id(q))
         q.skill = nodes.get(item["skill"]) or q.skill
         q.text, q.difficulty, q.options = item["text"], item.get("difficulty", 2), item.get("options") or []
         q.material = item.get("material") or []
         q.image_path = f"packs/{pack_id}/{item['image']}" if item.get("image") else None
         by_key[item["id"]] = q
-    for q in have.values():
-        q.status = "draft"
+    for q in list(have_by_pid.values()) + list(have_legacy.values()):
+        if id(q) not in matched_ids:
+            q.status = "draft"
     db.session.flush()
-    for c in pack.get("collections", []):
+    for idx, c in enumerate(pack.get("collections", [])):
         ids = [by_key[k].id for k in c["questions"]]
-        w = Work.query.filter_by(kind="collection", title=c["title"][:160]).order_by(Work.id.desc()).first()
+        col_key = f"{pack_id}:{c.get('id') or f'col-{idx}'}"[:120]
+        w = Work.query.filter_by(kind="collection", pack_item_id=col_key).order_by(Work.id.desc()).first()
+        if w is None:
+            w = Work.query.filter_by(kind="collection", title=c["title"][:160]).order_by(Work.id.desc()).first()
+            if w is not None and not w.pack_item_id:
+                w.pack_item_id = col_key
         if w is None or w.draft_question_ids == ids:
             continue
         w.draft_question_ids = ids

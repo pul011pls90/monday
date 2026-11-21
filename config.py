@@ -14,7 +14,8 @@ def _secret_key():
     os.makedirs(INSTANCE_DIR, exist_ok=True)
     path = os.path.join(INSTANCE_DIR, "secret_key")
     if not os.path.exists(path):
-        with open(path, "w") as f:
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "w") as f:
             f.write(secrets.token_hex(32))
     with open(path) as f:
         return f.read().strip()
@@ -128,3 +129,5 @@ class Config:
     REMEMBER_COOKIE_DURATION = timedelta(days=14)
     RATELIMIT_STORAGE_URI = os.environ.get("RATELIMIT_STORAGE_URI", "memory://")
     RATELIMIT_HEADERS_ENABLED = True
+    ANALYTICS_IP_SALT = os.environ.get("ANALYTICS_IP_SALT", "").strip()
+    TRUST_PROXY_GEO_HEADERS = os.environ.get("TRUST_PROXY_GEO_HEADERS", "1") == "1"

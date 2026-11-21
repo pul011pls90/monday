@@ -76,6 +76,7 @@ def _update_maintenance(
             message=row.message,
             expected_minutes=expected_minutes,
             starts_at=starts_at,
+            actor_id=actor_id,
             actor=row.updated_by_name,
             source=source,
         )
