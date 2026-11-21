@@ -7,6 +7,15 @@ from flask_login import current_user
 ROLES = ("student", "teacher", "assistant", "sales_manager", "supervisor", "admin")
 CRM_ROLES = ("sales_manager", "supervisor", "admin")
 SUPERVISOR_ROLES = ("supervisor", "admin")
+STAFF_ROLES = frozenset({"teacher", "assistant", "sales_manager", "supervisor", "admin"})
+
+MIN_PASSWORD_LEN_STUDENT = 8
+MIN_PASSWORD_LEN_STAFF = 12
+
+
+def min_password_length(role: str | None) -> int:
+    """Minimum password length: 12 chars for staff/manager/admin accounts, 8 for students."""
+    return MIN_PASSWORD_LEN_STAFF if role in STAFF_ROLES else MIN_PASSWORD_LEN_STUDENT
 
 # Central server-side permission map: permission key -> set of allowed roles.
 PERMISSIONS = {

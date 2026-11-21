@@ -11,6 +11,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 
 from config import Config
 
+from .access import min_password_length
 from .extensions import db, limiter
 from .models import utcnow
 from .models import Assignment, StudentProfile, StudentRecord, User
@@ -293,8 +294,9 @@ def register():
             errors.append(_("Напиши имя."))
         if "@" not in email or "." not in email.split("@")[-1]:
             errors.append(_("Проверь email: в нём ошибка."))
-        if len(password) < 8:
-            errors.append(_("Пароль должен быть не короче 8 символов."))
+        min_len = min_password_length(role)
+        if len(password) < min_len:
+            errors.append(_("Пароль должен быть не короче %(n)s символов.", n=min_len))
         if User.query.filter_by(email=email).first():
             errors.append(_("Этот email уже зарегистрирован."))
         if errors:
@@ -354,8 +356,10 @@ def pending():
 
 @bp.route("/change-password", methods=["GET", "POST"])
 @login_required
+@limiter.limit("5 per minute; 20 per hour", methods=["POST"])
 def force_password_change():
-    """Mandatory password change screen when `must_change_password` is True."""
+    """Mandatory password change screen when `must_change_password` is True (CSRF + rate-limited)."""
+    min_len = min_password_length(current_user.role)
     if request.method == "POST":
         cur_pw = request.form.get("current", "")
         new_pw = request.form.get("new", "")
@@ -363,8 +367,8 @@ def force_password_change():
         errors = []
         if not current_user.check_password(cur_pw):
             errors.append(_("Текущий пароль неверный."))
-        if len(new_pw) < 8:
-            errors.append(_("Новый пароль должен быть не короче 8 символов."))
+        if len(new_pw) < min_len:
+            errors.append(_("Новый пароль должен быть не короче %(n)s символов.", n=min_len))
         if new_pw and new_pw == cur_pw:
             errors.append(_("Новый пароль должен отличаться от временного."))
         if confirm_pw and confirm_pw != new_pw:
@@ -372,7 +376,7 @@ def force_password_change():
         if errors:
             for e in errors:
                 flash(e, "error")
-            return render_template("auth/change_password.html"), 400
+            return render_template("auth/change_password.html", min_pw_len=min_len), 400
 
         user_obj = current_user._get_current_object()
         user_obj.set_password(new_pw)  # increments session_version -> revokes other sessions
@@ -382,7 +386,7 @@ def force_password_change():
         login_user(user_obj, remember=False)
         flash(_("Пароль успешно обновлён."), "success")
         return redirect(_home_for(user_obj))
-    return render_template("auth/change_password.html")
+    return render_template("auth/change_password.html", min_pw_len=min_len)
 
 
 @bp.route("/prefs/theme", methods=["POST"])
