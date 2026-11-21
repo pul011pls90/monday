@@ -253,6 +253,8 @@ def remove_extra_teachers():
     )
 
     keep_teacher = User.query.filter_by(email="aibek@monday.kg", role="teacher").first()
+    if not current_app.config.get("SEED_DEMO", False):
+        raise RuntimeError("remove_extra_teachers() is a demo-only helper and cannot run when SEED_DEMO=0.")
     if not keep_teacher:
         keep_teacher = User.query.filter_by(role="teacher", is_approved=True).order_by(User.id).first()
 
@@ -324,6 +326,8 @@ def remove_extra_teachers():
 
 def ensure_showcase_student():
     """Ensure the main showcase student account (student@monday.kg / student123) exists for demos/reviews."""
+    if not current_app.config.get("SEED_DEMO", False):
+        raise RuntimeError("ensure_showcase_student() is a demo-only helper and cannot run when SEED_DEMO=0.")
     from datetime import timedelta
     from .models import StudentProfile, utcnow
 
@@ -378,5 +382,5 @@ def run_fixes():
     _once("csca-fitting-questions", csca_only_fitting_questions)
     _once("ort-monday-word-mix-retagged-2", retag_ort_monday_word_mix)
     _once("demo-students-removed-1", remove_demo_students)
-    _once("demo-extra-teachers-removed-1", remove_extra_teachers)
-    _once("showcase-student-restored-1", ensure_showcase_student)
+    # Disabled from startup (P0 security fix): remove_extra_teachers and ensure_showcase_student
+    # must never run automatically in production (they delete teachers / create hardcoded demo credentials).

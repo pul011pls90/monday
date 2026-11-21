@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 from datetime import datetime, timedelta
 
@@ -348,14 +349,16 @@ def admin_maintenance():
 # Exempt from automatic form CSRF so the CLI script can authenticate with Bearer ADMIN_API_TOKEN;
 # browser requests using session auth still validate X-CSRFToken explicitly below.
 from . import csrf  # noqa: E402
+from .extensions import limiter  # noqa: E402
 
 
 @csrf.exempt
+@limiter.limit("20 per minute")
 @bp.post("/api/admin/maintenance")
 def api_admin_maintenance():
     auth_header = request.headers.get("Authorization", "")
     token = current_app.config.get("ADMIN_API_TOKEN", "")
-    is_token_auth = bool(token and auth_header == f"Bearer {token}")
+    is_token_auth = bool(token and hmac.compare_digest(auth_header, f"Bearer {token}"))
 
     if is_token_auth:
         actor_id = None

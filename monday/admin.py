@@ -2,7 +2,7 @@
 from collections import Counter, defaultdict
 from datetime import timedelta
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, make_response, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_login import current_user
 from sqlalchemy import func
@@ -227,8 +227,19 @@ def reset_password(user_id):
         return _back()
     raw = temporary_password(u)
     db.session.commit()
-    flash(_("Временный пароль для %(name)s: %(password)s. Он показан один раз.", name=u.name, password=raw), "success")
-    return _back()
+    notice = _("Временный пароль для %(name)s: %(password)s. Он показан один раз.", name=u.name, password=raw)
+    pending_teachers = User.query.filter_by(role="teacher", is_approved=False).order_by(User.created_at).all()
+    pending_works = Work.query.filter_by(status="pending").order_by(Work.updated_at).all()
+    counts = {r: User.query.filter_by(role=r).count() for r in ("student", "teacher", "assistant", "admin")}
+    pending_questions = Question.query.filter_by(status="pending").count()
+    resp = make_response(render_template(
+        "admin/index.html", tab="overview", ov=_overview(), pending_teachers=pending_teachers,
+        pending_works=pending_works, counts=counts, pending_questions=pending_questions,
+        args=request.args, teachers_all=User.query.filter_by(role="teacher").order_by(User.name).all(),
+        panel=_panel(u.id), one_time_notice=notice,
+    ))
+    resp.headers["Cache-Control"] = "no-store, max-age=0"
+    return resp
 
 
 @bp.route("/users/<int:user_id>/block", methods=["POST"])
@@ -239,6 +250,8 @@ def block(user_id):
         flash(_("Нельзя заблокировать себя."), "error")
         return _back()
     u.is_blocked = request.form.get("on") == "1"
+    if u.is_blocked:
+        u.invalidate_sessions()
     db.session.commit()
     flash(_("%(name)s заблокирован.", name=u.name) if u.is_blocked else _("%(name)s разблокирован.", name=u.name),
           "info" if u.is_blocked else "success")

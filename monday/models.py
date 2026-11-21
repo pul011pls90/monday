@@ -61,6 +61,8 @@ class User(UserMixin, db.Model):
     is_blocked = db.Column(db.Boolean, nullable=False, default=False)  # admin can block an account
     is_methodist = db.Column(db.Boolean, nullable=False, default=False)  # teacher who reviews assistants' questions
     auth_provider = db.Column(db.String(16), nullable=False, default="password")  # password | google
+    google_sub = db.Column(db.String(64), unique=True, nullable=True, index=True)  # immutable Google OIDC subject ID
+    session_version = db.Column(db.Integer, nullable=False, default=1)  # bumped on password change/reset or block
     login_count = db.Column(db.Integer, nullable=False, default=0)  # total successful sign-ins
     last_seen_at = db.Column(db.DateTime)  # updated at most every few minutes
     total_visits = db.Column(db.Integer, nullable=False, default=0)  # cached by daily analytics job
@@ -78,7 +80,15 @@ class User(UserMixin, db.Model):
         prefs.update(values)
         self.prefs = prefs  # reassign so the JSON column is saved
 
+    def get_id(self):
+        return f"{self.id}:{self.session_version or 1}"
+
+    def invalidate_sessions(self):
+        self.session_version = (self.session_version or 1) + 1
+
     def set_password(self, raw):
+        if self.password_hash:
+            self.invalidate_sessions()
         self.password_hash = generate_password_hash(raw)
 
     def check_password(self, raw):
@@ -363,11 +373,31 @@ class WorkVersion(db.Model):
 # --------------------------------------------------------------------------- teacher ↔ student
 
 
-INVITE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # no 0/O/1/I
+INVITE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # 32 chars (5 bits/char), no 0/O/1/I
+INVITE_CODE_LEN = 12  # 60 bits of entropy (32^12 ≈ 1.15e18)
+INVITE_TTL_DAYS = 14
+
+
+def default_invite_expiry(ttl_days=None):
+    if ttl_days is None:
+        try:
+            from flask import current_app
+            ttl_days = int(current_app.config.get("INVITE_CODE_TTL_DAYS", INVITE_TTL_DAYS) or INVITE_TTL_DAYS)
+        except RuntimeError:
+            ttl_days = INVITE_TTL_DAYS
+    return utcnow() + timedelta(days=max(1, ttl_days))
 
 
 def new_invite_code():
-    return "MND-" + "".join(secrets.choice(INVITE_ALPHABET) for _ in range(4))
+    """Generate a high-entropy (60-bit) invite code with DB collision retry when in an app context."""
+    from flask import has_app_context
+    for _attempt in range(16):
+        code = "MND-" + "".join(secrets.choice(INVITE_ALPHABET) for _ in range(INVITE_CODE_LEN))
+        if not has_app_context():
+            return code
+        if StudentRecord.query.filter_by(invite_code=code).first() is None:
+            return code
+    raise RuntimeError("Failed to generate a unique invite code after 16 attempts.")
 
 
 class StudentRecord(db.Model):
@@ -386,12 +416,32 @@ class StudentRecord(db.Model):
     manual_progress = db.Column(db.Integer, default=0)  # used until the student links
     notes = db.Column(db.Text, default="")
     extra = db.Column(JSONText, default=dict)  # room for future columns
-    invite_code = db.Column(db.String(16), unique=True, nullable=False, default=new_invite_code)
+    invite_code = db.Column(db.String(32), unique=True, nullable=True, default=new_invite_code)
+    invite_expires_at = db.Column(db.DateTime, nullable=True, default=default_invite_expiry)
+    invite_revoked_at = db.Column(db.DateTime, nullable=True)
     linked_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=utcnow)
 
     teacher = db.relationship("User", foreign_keys=[teacher_id])
     student = db.relationship("User", foreign_keys=[student_user_id])
+
+    @property
+    def invite_is_expired(self):
+        return bool(self.invite_expires_at and self.invite_expires_at <= utcnow())
+
+    @property
+    def invite_is_active(self):
+        return bool(self.invite_code and not self.student_user_id and not self.invite_revoked_at and not self.invite_is_expired)
+
+    def rotate_invite_code(self, ttl_days=None):
+        self.invite_code = new_invite_code()
+        self.invite_expires_at = default_invite_expiry(ttl_days)
+        self.invite_revoked_at = None
+        return self.invite_code
+
+    def revoke_invite_code(self):
+        self.invite_code = None
+        self.invite_revoked_at = utcnow()
 
     @property
     def goal_label(self):

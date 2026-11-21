@@ -106,5 +106,7 @@ def api_user_block(user_id: int):
         u.is_blocked = bool(payload["blocked"])
     else:
         u.is_blocked = not bool(u.is_blocked)
+    if u.is_blocked:
+        u.invalidate_sessions()
     db.session.commit()
     return jsonify({"user_id": u.id, "is_blocked": bool(u.is_blocked)})

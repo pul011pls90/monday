@@ -11,12 +11,14 @@ from test_app import APP, client, ok
 @pytest.fixture
 def google(monkeypatch):
     """A stand-in for Google: the person who picks their account on Google's page."""
-    person = {"email": "aidana.google@gmail.com", "email_verified": True, "name": "Айдана Google"}
+    person = {"sub": "google-sub-aidana", "email": "aidana.google@gmail.com", "email_verified": True, "name": "Айдана Google"}
     seen = {}
 
     def post(url, fields):
         assert url == auth.GOOGLE_TOKEN and fields["code"] == "good-code" and fields["client_secret"] == "secret"
+        assert fields.get("code_verifier")
         seen["redirect_uri"] = fields["redirect_uri"]
+        seen["code_verifier"] = fields["code_verifier"]
         return {"access_token": "tok"}
 
     def get(url, token):
@@ -35,6 +37,7 @@ def sign_in(c, code="good-code", **headers):
     assert r.status_code == 302 and r.headers["Location"].startswith(auth.GOOGLE_AUTH)
     q = parse_qs(urlparse(r.headers["Location"]).query)
     assert q["client_id"] == ["client-id"] and q["scope"] == ["openid email profile"]
+    assert q.get("code_challenge") and q.get("code_challenge_method") == ["S256"] and q.get("nonce")
     return c.get(f"/login/google/callback?state={q['state'][0]}&code={code}", headers=headers), q
 
 
@@ -80,10 +83,10 @@ def test_new_google_student_gets_first_steps_and_keeps_progress(google):
 
 def test_existing_email_signs_into_that_account_and_nobody_else_gets_in(google):
     person, _ = google
-    person.update(email="Student@Monday.kg")             # the demo student, written in other letters
+    person.update(sub="google-sub-demo-student", email="Student@Monday.kg")  # the demo student, written in other letters
     r, _ = sign_in(client())
     assert r.headers["Location"].endswith("/home")
-    person.update(email="new.unverified@gmail.com", email_verified=False)
+    person.update(sub="google-sub-unverified", email="new.unverified@gmail.com", email_verified=False)
     c = client()
     r, _ = sign_in(c)
     assert r.headers["Location"].endswith("/login")

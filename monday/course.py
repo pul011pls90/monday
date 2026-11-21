@@ -5,7 +5,7 @@ import json
 import re
 from fractions import Fraction
 
-from flask import Blueprint, abort, jsonify, render_template, request, url_for
+from flask import Blueprint, abort, jsonify, render_template, request, session, url_for
 from flask_login import current_user
 from markupsafe import Markup, escape
 
@@ -171,8 +171,6 @@ def _answers_match(given: str, expected: str, q_type: str) -> bool:
 def build_course(user_id: int, exam: str = "SAT", q: str = "") -> dict:
     """Return Khan-style course overview + Continue card + 4-tier mastery for SAT or CSCA."""
     exam_code = (exam or "SAT").upper()
-    for model in (CourseUnit, CourseLesson, CourseMastery):
-        model.__table__.create(bind=db.engine, checkfirst=True)
     units_db = CourseUnit.query.filter_by(exam=exam_code).order_by(CourseUnit.number.asc()).all()
     if not units_db:
         from scripts.seed_course import seed_course
@@ -279,6 +277,7 @@ def player(exam: str, unit_slug: str, lesson_slug: str):
     lesson = next((x for x in lessons if x.slug == lesson_slug), None)
     if lesson is None:
         abort(404)
+    session["course_run"] = {"key": f"{exam.upper()}:{unit.slug}:{lesson.slug}", "results": {}}
 
     mastery_map = {
         r.lesson_key: r.level
@@ -387,6 +386,29 @@ def player(exam: str, unit_slug: str, lesson_slug: str):
     )
 
 
+def _lesson_question_ids(les) -> list[str]:
+    try:
+        iq = json.loads(les.inline_quiz_json or "[]")
+    except Exception:
+        iq = []
+    if iq:
+        return [str(x.get("id") or f"iq_{i}") for i, x in enumerate(iq)]
+    try:
+        return [str(int(x)) for x in json.loads(les.question_ids_json or "[]")]
+    except Exception:
+        return []
+
+
+def _record_course_check(run_key: str, qid_str: str, is_correct: bool) -> None:
+    """Persist server-graded answer result in the signed session (first answer per question in a run wins)."""
+    run = session.get("course_run")
+    if not isinstance(run, dict) or run.get("key") != run_key:
+        run = {"key": run_key, "results": {}}
+    results = dict(run.get("results") or {})
+    results.setdefault(qid_str, bool(is_correct))
+    session["course_run"] = {"key": run_key, "results": results}
+
+
 @bp.post("/api/course/check")
 @student_required
 def api_check_question():
@@ -405,6 +427,7 @@ def api_check_question():
     is_correct = False
     explain = ""
     correct_display = ""
+    qid_str = ""
 
     # Check inline quiz first
     try:
@@ -413,16 +436,24 @@ def api_check_question():
         inline_q = []
 
     if inline_q:
-        item = next((x for x in inline_q if str(x.get("id")) == str(qid)), None)
+        item = next(
+            (x for idx, x in enumerate(inline_q) if str(x.get("id") or f"iq_{idx}") == str(qid)),
+            None,
+        )
         if not item:
             return jsonify({"ok": False, "error": "question_not_found"}), 404
+        qid_str = str(qid)
         is_correct = _answers_match(given, str(item.get("answer") or ""), item.get("type", "choice"))
         explain = item.get("explain", "")
         correct_display = str(item.get("answer") or "")
     else:
-        qobj = db.session.get(Question, int(qid)) if str(qid).isdigit() else None
+        allowed_qids = set(_lesson_question_ids(lesson))
+        if not str(qid).isdigit() or str(int(qid)) not in allowed_qids:
+            return jsonify({"ok": False, "error": "question_not_found"}), 404
+        qobj = db.session.get(Question, int(qid))
         if not qobj:
             return jsonify({"ok": False, "error": "question_not_found"}), 404
+        qid_str = str(qobj.id)
         snap = qobj.snapshot()
         opts = snap.get("options") or []
         qtype = "choice" if (snap.get("answer_type") == "choice" and opts) else "number"
@@ -469,6 +500,8 @@ def api_check_question():
             ))
             db.session.commit()
 
+    _record_course_check(f"{exam}:{unit.slug}:{lesson.slug}", qid_str, is_correct)
+
     return jsonify({
         "ok": True,
         "is_correct": is_correct,
@@ -484,8 +517,6 @@ def api_complete_lesson():
     exam = str(data.get("exam") or "SAT").upper()
     unit_slug = str(data.get("unit_slug") or "")
     lesson_slug = str(data.get("lesson_slug") or "")
-    score = int(data.get("score") or 0)
-    total = int(data.get("total") or 0)
 
     unit = CourseUnit.query.filter_by(exam=exam, slug=unit_slug).first()
     lesson = CourseLesson.query.filter_by(unit_id=unit.id, slug=lesson_slug).first() if unit else None
@@ -493,19 +524,26 @@ def api_complete_lesson():
         return jsonify({"ok": False, "error": "not_found"}), 404
 
     if lesson.kind == "article":
+        score, total = 1, 1
         new_lvl = "familiar"
-    elif lesson.kind == "quiz":
-        pct = (score / total) if total > 0 else 0
-        new_lvl = "mastered" if pct >= 0.80 else ("proficient" if pct >= 0.50 else "familiar")
     else:
-        if total > 0 and score >= total:
-            new_lvl = "proficient"
-        elif total > 0 and (score / total) >= 0.60:
-            new_lvl = "proficient"
-        elif score >= 1 or total == 0:
-            new_lvl = "familiar"
+        # Derive score and total strictly from server-graded answers recorded by /api/course/check
+        expected_qids = _lesson_question_ids(lesson)
+        total = len(expected_qids)
+        run_key = f"{exam}:{unit.slug}:{lesson.slug}"
+        run = session.pop("course_run", None)
+        results = (run.get("results") or {}) if isinstance(run, dict) and run.get("key") == run_key else {}
+        if total > 0 and not results:
+            return jsonify({"ok": False, "error": "no_graded_answers"}), 400
+        score = sum(1 for qid in expected_qids if results.get(str(qid)) is True)
+        if lesson.kind == "quiz":
+            pct = (score / total) if total > 0 else 0
+            new_lvl = "mastered" if pct >= 0.80 else ("proficient" if pct >= 0.50 else "familiar")
         else:
-            new_lvl = "familiar"
+            if total > 0 and (score / total) >= 0.60:
+                new_lvl = "proficient"
+            else:
+                new_lvl = "familiar"
 
     lkey = f"{unit.slug}:{lesson.slug}"
     row = CourseMastery.query.filter_by(user_id=current_user.id, lesson_key=lkey).first()
@@ -538,6 +576,8 @@ def api_complete_lesson():
     db.session.commit()
     return jsonify({
         "ok": True,
+        "score": score,
+        "total": total,
         "level": row.level,
         "level_label": MASTERY_LABELS.get(row.level, "Знаком"),
     })

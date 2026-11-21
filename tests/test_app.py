@@ -1132,22 +1132,28 @@ def test_profile_photo_and_name():
 
 
 def test_old_database_gets_new_columns():
-    import pytest
-    if os.environ.get("TEST_DATABASE_URL"):
-        pytest.skip("edits the SQLite file directly")
-    import sqlite3
+    """Schema upgrades are managed by Alembic migrations (replaces legacy ad-hoc _check_schema)."""
+    from flask_migrate import downgrade, upgrade
     from sqlalchemy import inspect
+    from monday import MIGRATIONS_DIR, create_app
     from monday.extensions import db
-    with APP.app_context():
-        path = db.engine.url.database
-    con = sqlite3.connect(path)
-    con.execute('ALTER TABLE "user" DROP COLUMN avatar_path')
-    con.commit(); con.close()
-    with APP.app_context():
-        db.engine.dispose()
-        from monday import _check_schema
-        _check_schema()
-        assert "avatar_path" in {c["name"] for c in inspect(db.engine).get_columns("user")}
+
+    tmp = tempfile.mkdtemp()
+
+    class MigConfig(Config):
+        TESTING = True
+        SEED_DEMO = False
+        DATA_FIXES = False
+        IMPORT_PACKS = False
+        SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(tmp, "mig.db")
+        UPLOAD_FOLDER = os.path.join(tmp, "uploads")
+
+    mig_app = create_app(MigConfig, seed_if_empty=False)
+    with mig_app.app_context():
+        downgrade(directory=MIGRATIONS_DIR, revision="868bb7177ced")
+        assert "google_sub" not in {c["name"] for c in inspect(db.engine).get_columns("user")}
+        upgrade(directory=MIGRATIONS_DIR)
+        assert "google_sub" in {c["name"] for c in inspect(db.engine).get_columns("user")}
 
 
 def test_question_bank_filters_and_play():

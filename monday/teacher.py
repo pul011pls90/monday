@@ -6,7 +6,7 @@ import re
 import uuid
 from datetime import date, datetime, timedelta
 
-from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, flash, make_response, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_login import current_user
 from werkzeug.utils import secure_filename
@@ -401,7 +401,8 @@ def _fill_record(r, form):
 @bp.route("/students/new", methods=["POST"])
 @teacher_required
 def student_new():
-    r = StudentRecord(teacher_id=current_user.id, invite_code=new_invite_code())
+    r = StudentRecord(teacher_id=current_user.id)
+    r.rotate_invite_code()
     errors = _fill_record(r, request.form)
     if errors:
         for e in errors:
@@ -414,10 +415,7 @@ def student_new():
     return redirect(url_for("teacher.student_detail", record_id=r.id))
 
 
-@bp.route("/students/<int:record_id>")
-@teacher_required
-def student_detail(record_id):
-    r = _own_record(record_id)
+def _render_student_detail(r, one_time_notice=None):
     data = {}
     if r.student_user_id:
         exam = r.exam or (r.student.profile.exam if r.student.profile else None)
@@ -429,7 +427,7 @@ def student_detail(record_id):
     assignments = [(a, homework_state(a, r.student_user_id) if r.student_user_id else "new",
                     latest_attempt(a, r.student_user_id) if r.student_user_id else None)
                    for a in sorted(r.assignments, key=lambda a: a.created_at, reverse=True)]
-    join_url = url_for("auth.join", code=r.invite_code, _external=True)
+    join_url = url_for("auth.join", code=r.invite_code, _external=True) if r.invite_code else ""
     from .insights import attendance_summary, score_trend
     from .models import Attendance
     from .services import open_mistakes
@@ -444,7 +442,14 @@ def student_detail(record_id):
     today_mark = Attendance.query.filter_by(record_id=r.id, day=local_today()).first()
     return render_template("teacher/student_detail.html", r=r, data=data, assignments=assignments,
                            join_url=join_url, progress=progress, att=att, overdue=overdue, penalty=penalty,
-                           standing=max(0, progress - penalty), today_mark=today_mark.status if today_mark else None)
+                           standing=max(0, progress - penalty), today_mark=today_mark.status if today_mark else None,
+                           one_time_notice=one_time_notice)
+
+
+@bp.route("/students/<int:record_id>")
+@teacher_required
+def student_detail(record_id):
+    return _render_student_detail(_own_record(record_id))
 
 
 @bp.route("/attempts/<int:attempt_id>/written", methods=["GET", "POST"])
@@ -495,9 +500,22 @@ def student_new_code(record_id):
     if r.student_user_id:
         flash(_("Ученик уже подключён — новый код не нужен."), "info")
     else:
-        r.invite_code = new_invite_code()
+        r.rotate_invite_code()
         db.session.commit()
         flash(_("Новый код: %(code)s. Старый больше не работает.", code=r.invite_code), "success")
+    return redirect(url_for("teacher.student_detail", record_id=r.id))
+
+
+@bp.route("/students/<int:record_id>/code/revoke", methods=["POST"])
+@teacher_required
+def student_revoke_code(record_id):
+    r = _own_record(record_id)
+    if r.student_user_id:
+        flash(_("Ученик уже подключён — код больше не активен."), "info")
+    else:
+        r.revoke_invite_code()
+        db.session.commit()
+        flash(_("Код приглашения отозван. Чтобы подключить ученика позже, создайте новый код."), "success")
     return redirect(url_for("teacher.student_detail", record_id=r.id))
 
 
@@ -510,9 +528,11 @@ def student_reset_password(record_id):
         abort(404)
     raw = temporary_password(student)
     db.session.commit()
-    flash(_("Временный пароль для %(name)s: %(password)s. Он показан один раз. Передайте его ученику, пусть сменит его в настройках.",
-            name=student.name, password=raw), "success")
-    return redirect(url_for("teacher.student_detail", record_id=r.id))
+    notice = _("Временный пароль для %(name)s: %(password)s. Он показан один раз. Передайте его ученику, пусть сменит его в настройках.",
+               name=student.name, password=raw)
+    resp = make_response(_render_student_detail(r, one_time_notice=notice))
+    resp.headers["Cache-Control"] = "no-store, max-age=0"
+    return resp
 
 
 @bp.route("/students/<int:record_id>/unlink", methods=["POST"])
@@ -521,7 +541,7 @@ def student_unlink(record_id):
     r = _own_record(record_id)
     r.student_user_id = None
     r.linked_at = None
-    r.invite_code = new_invite_code()
+    r.rotate_invite_code()
     db.session.commit()
     flash(_("Аккаунт отвязан. Строка в таблице сохранена."), "success")
     return redirect(url_for("teacher.student_detail", record_id=r.id))
@@ -1318,6 +1338,14 @@ def question_redact(question_id):
     from .math_plain import latex_to_plain, plain_to_latex
 
     orig = db.session.get(Question, question_id) or abort(404)
+    can_view = (
+        orig.status == "published"
+        or orig.author_id == current_user.id
+        or current_user.is_admin
+        or (current_user.can_review and orig.status == "pending")
+    )
+    if not can_view:
+        abort(404)
     if request.method == "POST":
         raw_text = (request.form.get("text") or "").strip()
         if not raw_text and not orig.image_path:

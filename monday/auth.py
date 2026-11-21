@@ -1,4 +1,7 @@
 """Login, registration, invite codes, theme and language switches."""
+import base64
+import hashlib
+import hmac
 from datetime import datetime
 from urllib.parse import urlparse
 
@@ -8,7 +11,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 
 from config import Config
 
-from .extensions import db
+from .extensions import db, limiter
 from .models import utcnow
 from .models import StudentProfile, StudentRecord, User
 
@@ -26,20 +29,30 @@ def _home_for(user):
 
 
 def _safe_next(target):
-    if target and urlparse(target).netloc == "" and target.startswith("/"):
-        return target
-    return None
+    if not target or "\\" in target or not target.startswith("/") or target.startswith("//"):
+        return None
+    parsed = urlparse(target)
+    if parsed.scheme or parsed.netloc:
+        return None
+    return target
+
+
+def _normalize_invite_code(code):
+    code = (code or "").strip().upper()
+    if not code:
+        return ""
+    if not code.startswith("MND-"):
+        code = "MND-" + code
+    return code
 
 
 def link_invite_code(user, code):
     """Attach a student account to a teacher's table row. Returns (ok, message)."""
-    code = (code or "").strip().upper()
+    code = _normalize_invite_code(code)
     if not code:
         return False, _("Введи код.")
-    if not code.startswith("MND-"):
-        code = "MND-" + code
     record = StudentRecord.query.filter_by(invite_code=code).first()
-    if not record:
+    if not record or record.invite_revoked_at is not None or record.invite_is_expired:
         return False, _("Такого кода нет. Уточни его у учителя.")
     if record.student_user_id and record.student_user_id != user.id:
         return False, _("Этот код уже использован другим учеником.")
@@ -62,6 +75,7 @@ def index():
 
 
 @bp.route("/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute; 40 per hour", methods=["POST"])
 def login():
     if current_user.is_authenticated:
         return redirect(_home_for(current_user))
@@ -77,8 +91,9 @@ def login():
         if user.auth_provider != "password":
             user.auth_provider = "password"
             db.session.commit()
-        login_user(user, remember=bool(request.form.get("remember")))
         pending_code = session.pop("invite_code", None)
+        session.clear()
+        login_user(user, remember=bool(request.form.get("remember")))
         if pending_code and user.role == "student":
             ok, msg = link_invite_code(user, pending_code)
             flash(msg, "success" if ok else "error")
@@ -89,6 +104,40 @@ def login():
 GOOGLE_AUTH = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN = "https://oauth2.googleapis.com/token"
 GOOGLE_USER = "https://openidconnect.googleapis.com/v1/userinfo"
+GOOGLE_ISSUERS = ("https://accounts.google.com", "accounts.google.com")
+
+
+def _pkce_challenge(verifier):
+    digest = hashlib.sha256(verifier.encode("ascii")).digest()
+    return base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
+
+
+def _parse_and_verify_id_token(id_token, expected_aud, expected_nonce):
+    """Validate OIDC claims on an id_token returned directly by Google's HTTPS token endpoint."""
+    import json
+    import time
+    parts = (id_token or "").split(".")
+    if len(parts) != 3:
+        raise ValueError("Malformed id_token")
+    payload_b64 = parts[1] + "=" * (-len(parts[1]) % 4)
+    claims = json.loads(base64.urlsafe_b64decode(payload_b64.encode("ascii")).decode("utf-8"))
+    if claims.get("iss") not in GOOGLE_ISSUERS:
+        raise ValueError("Invalid id_token issuer")
+    aud = claims.get("aud")
+    if isinstance(aud, list):
+        if expected_aud not in aud:
+            raise ValueError("Invalid id_token audience")
+    elif aud != expected_aud:
+        raise ValueError("Invalid id_token audience")
+    exp = claims.get("exp")
+    if not isinstance(exp, (int, float)) or exp < time.time() - 60:
+        raise ValueError("Expired id_token")
+    tok_nonce = claims.get("nonce") or ""
+    if not expected_nonce or not hmac.compare_digest(str(tok_nonce), str(expected_nonce)):
+        raise ValueError("Invalid id_token nonce")
+    if not (claims.get("sub") or "").strip():
+        raise ValueError("Missing id_token sub")
+    return claims
 
 
 def _google_post(url, fields):
@@ -110,75 +159,115 @@ def _google_get(url, token):
 
 
 @bp.route("/login/google")
+@limiter.limit("15 per minute")
 def google_login():
-    """Sign in with Google (OAuth 2 / OpenID Connect, only name and email). Needs GOOGLE_CLIENT_ID and _SECRET."""
+    """Sign in with Google (OAuth 2 / OpenID Connect with PKCE + nonce). Needs GOOGLE_CLIENT_ID and _SECRET."""
     import secrets
     import urllib.parse
     from flask import current_app
     if current_user.is_authenticated:
         return redirect(_home_for(current_user))
-    if not current_app.config.get("GOOGLE_CLIENT_ID"):
+    if not current_app.config.get("GOOGLE_CLIENT_ID") or not current_app.config.get("GOOGLE_CLIENT_SECRET"):
         flash(_("Вход через Google заработает после подключения ключей Google. Пока войдите по email."), "info")
         return redirect(url_for("auth.login"))
     session["google_state"] = state = secrets.token_urlsafe(24)
+    session["google_verifier"] = verifier = secrets.token_urlsafe(48)
+    session["google_nonce"] = nonce = secrets.token_urlsafe(24)
     session["google_next"] = _safe_next(request.args.get("next"))
     return redirect(GOOGLE_AUTH + "?" + urllib.parse.urlencode({
         "client_id": current_app.config["GOOGLE_CLIENT_ID"],
         "redirect_uri": url_for("auth.google_callback", _external=True),
-        "response_type": "code", "scope": "openid email profile", "state": state, "prompt": "select_account"}))
+        "response_type": "code",
+        "scope": "openid email profile",
+        "state": state,
+        "nonce": nonce,
+        "code_challenge": _pkce_challenge(verifier),
+        "code_challenge_method": "S256",
+        "prompt": "select_account",
+    }))
 
 
 @bp.route("/login/google/callback")
 def google_callback():
-    """Google sends the student back here. The same email = the same Monday account; a new email = a new student,
-    who then goes through the usual first steps (exam, goal). Teachers and admins are never created here."""
+    """Google sends the student back here. Identity is bound to immutable google_sub (OIDC sub).
+    Staff/admin password accounts cannot be silently linked by email; new emails create student accounts only."""
     import secrets
     from flask import current_app
     state = session.pop("google_state", None)
-    if not state or request.args.get("state") != state or not request.args.get("code"):
+    verifier = session.pop("google_verifier", None)
+    nonce = session.pop("google_nonce", None)
+    got_state = request.args.get("state") or ""
+    if not state or not verifier or not hmac.compare_digest(str(got_state), str(state)) or not request.args.get("code"):
         if request.args.get("error") != "access_denied":   # «Отмена» on Google's page needs no message
             flash(_("Не получилось войти через Google. Попробуй ещё раз."), "error")
         return redirect(url_for("auth.login"))
     try:
         token = _google_post(GOOGLE_TOKEN, {
-            "code": request.args["code"], "client_id": current_app.config["GOOGLE_CLIENT_ID"],
+            "code": request.args["code"],
+            "client_id": current_app.config["GOOGLE_CLIENT_ID"],
             "client_secret": current_app.config.get("GOOGLE_CLIENT_SECRET") or "",
-            "redirect_uri": url_for("auth.google_callback", _external=True), "grant_type": "authorization_code"})
+            "redirect_uri": url_for("auth.google_callback", _external=True),
+            "grant_type": "authorization_code",
+            "code_verifier": verifier,
+        })
+        id_claims = {}
+        if token.get("id_token"):
+            id_claims = _parse_and_verify_id_token(token["id_token"], current_app.config["GOOGLE_CLIENT_ID"], nonce)
         info = _google_get(GOOGLE_USER, token["access_token"])
-    except Exception as e:   # Google unreachable or the code was refused
+        if id_claims and info.get("sub") and str(info["sub"]) != str(id_claims["sub"]):
+            raise ValueError("Mismatched OIDC sub between id_token and userinfo")
+    except Exception as e:   # Google unreachable, invalid OIDC claims, or code refused
         current_app.logger.warning("Google sign-in failed: %s", e)
         flash(_("Не получилось войти через Google. Попробуй ещё раз."), "error")
         return redirect(url_for("auth.login"))
-    email = (info.get("email") or "").strip().lower()
-    if not email or not info.get("email_verified"):
+    sub = str(id_claims.get("sub") or info.get("sub") or "").strip()[:64]
+    email = (info.get("email") or id_claims.get("email") or "").strip().lower()
+    email_verified = info.get("email_verified") if "email_verified" in info else id_claims.get("email_verified")
+    if not sub or not email or not email_verified:
         flash(_("Google не подтвердил почту этого аккаунта. Войди по почте и паролю."), "error")
         return redirect(url_for("auth.login"))
-    user = User.query.filter_by(email=email).first()
-    if user and user.is_blocked:
+    user = User.query.filter_by(google_sub=sub).first()
+    if user is None:
+        existing = User.query.filter_by(email=email).first()
+        if existing is not None:
+            if existing.is_blocked:
+                flash(_("Аккаунт заблокирован. Напиши администратору."), "error")
+                return redirect(url_for("auth.login"))
+            if existing.role != "student":
+                flash(_("Вход через Google для аккаунтов преподавателей и администраторов недоступен. Войдите по email и паролю."), "error")
+                return redirect(url_for("auth.login"))
+            if existing.google_sub and existing.google_sub != sub:
+                flash(_("Этот email уже привязан к другому аккаунту Google. Войди по почте и паролю."), "error")
+                return redirect(url_for("auth.login"))
+            existing.google_sub = sub
+            existing.auth_provider = "google"
+            db.session.commit()
+            user = existing
+        else:
+            lang = request.cookies.get("lang")
+            user = User(name=(info.get("name") or email.split("@")[0]).strip()[:120], email=email, role="student",
+                        is_approved=True, auth_provider="google", google_sub=sub,
+                        language=lang if lang in Config.LANGUAGES else "ru",
+                        theme=request.cookies.get("theme") if request.cookies.get("theme") in ("light", "dark") else "light")
+            user.set_password(secrets.token_urlsafe(32))   # nobody knows it; a teacher or admin can give a temporary one
+            user.profile = StudentProfile()
+            db.session.add(user)
+            db.session.commit()
+    elif user.is_blocked:
         flash(_("Аккаунт заблокирован. Напиши администратору."), "error")
         return redirect(url_for("auth.login"))
-    if not user:
-        lang = request.cookies.get("lang")
-        user = User(name=(info.get("name") or email.split("@")[0]).strip()[:120], email=email, role="student",
-                    is_approved=True, auth_provider="google",
-                    language=lang if lang in Config.LANGUAGES else "ru",
-                    theme=request.cookies.get("theme") if request.cookies.get("theme") in ("light", "dark") else "light")
-        user.set_password(secrets.token_urlsafe(32))   # nobody knows it; a teacher or admin can give a temporary one
-        user.profile = StudentProfile()
-        db.session.add(user)
-        db.session.commit()
-    elif user.auth_provider != "google":
-        user.auth_provider = "google"
-        db.session.commit()
-    login_user(user, remember=True)
     code = session.pop("invite_code", None)
+    next_url = _safe_next(session.pop("google_next", None))
+    session.clear()
+    login_user(user, remember=False)
     if code and user.role == "student":
         ok, msg = link_invite_code(user, code)
         flash(msg, "success" if ok else "error")
-    return redirect(session.pop("google_next", None) or _home_for(user))
+    return redirect(next_url or _home_for(user))
 
 
 @bp.route("/register", methods=["GET", "POST"])
+@limiter.limit("5 per minute; 20 per hour", methods=["POST"])
 def register():
     if current_user.is_authenticated:
         return redirect(_home_for(current_user))
@@ -209,9 +298,9 @@ def register():
             user.profile = StudentProfile()
         db.session.add(user)
         db.session.commit()
-        login_user(user)
         code = form.get("invite_code", "").strip() or session.pop("invite_code", None)
-        session.pop("invite_code", None)
+        session.clear()
+        login_user(user)
         if code and role == "student":
             ok, msg = link_invite_code(user, code)
             flash(msg, "success" if ok else "error")
@@ -220,22 +309,20 @@ def register():
 
 
 @bp.route("/join/<code>")
+@limiter.limit("15 per minute")
 def join(code):
-    """Link a teacher sends: /join/MND-4K7Q."""
-    record = StudentRecord.query.filter_by(invite_code=code.upper()).first()
-    if not record:
-        flash(_("Код приглашения не найден."), "error")
-        return redirect(url_for("auth.login"))
+    """Link a teacher sends: /join/MND-XXXXXXXXXXXX. Does not reveal code validity or teacher names unauthenticated."""
+    norm = _normalize_invite_code(code)
     if current_user.is_authenticated:
         if current_user.role != "student":
             flash(_("Код приглашения предназначен для ученика."), "error")
             return redirect(_home_for(current_user))
-        ok, msg = link_invite_code(current_user, code)
+        ok, msg = link_invite_code(current_user, norm)
         flash(msg, "success" if ok else "error")
         return redirect(_home_for(current_user))
-    session["invite_code"] = record.invite_code
-    flash(_("%(name)s зовёт тебя в Monday. Зарегистрируйся или войди, и код подключится сам.",
-            name=record.teacher.name), "info")
+    if norm:
+        session["invite_code"] = norm
+    flash(_("Зарегистрируйся или войди, и код подключения сработает автоматически."), "info")
     return redirect(url_for("auth.register"))
 
 

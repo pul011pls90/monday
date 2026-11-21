@@ -1,0 +1,59 @@
+# Isolated Staging on Render (Frankfurt, separate PostgreSQL DB and disk — never shared with production).
+# Render → New → Blueprint → this repository → Blueprint path: render.staging.yaml
+services:
+  - type: web
+    name: monday-staging
+    runtime: python
+    region: frankfurt
+    plan: 0.5c-512mb
+    buildCommand: pip install -r requirements.txt && pybabel compile -d translations
+    preDeployCommand: flask --app app db upgrade
+    startCommand: gunicorn app:app -c gunicorn.conf.py
+    healthCheckPath: /login
+    disk:
+      name: staging-uploads
+      mountPath: /var/data
+      sizeGB: 2
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: monday-staging-db
+          property: connectionString
+      - key: UPLOAD_FOLDER
+        value: /var/data/uploads
+      - key: MONDAY_SECRET_KEY
+        generateValue: true
+      - key: MONDAY_DEBUG
+        value: "0"
+      - key: COOKIE_SECURE
+        value: "1"
+      - key: SEED_DEMO
+        value: "0"
+      - key: DATA_FIXES
+        value: "0"
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_API_TOKEN
+        sync: false
+      - key: DESMOS_API_KEY
+        sync: false
+      - key: ANALYTICS_IP_SALT
+        sync: false
+      - key: RATELIMIT_STORAGE_URI
+        sync: false
+      - key: MONDAY_TEST_ALWAYS_OPEN
+        value: "1"
+      - key: WEB_CONCURRENCY
+        value: "1"
+
+databases:
+  - name: monday-staging-db
+    region: frankfurt
+    plan: 0.1c-256mb
+    databaseName: monday_staging
+    user: monday_staging
+    ipAllowList: []
