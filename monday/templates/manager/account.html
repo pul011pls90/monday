@@ -21,7 +21,7 @@
 
   {# Stacked Row-Cards matching Student /profile with collapsible «Изменить» actions #}
   <div class="mgr-row-stack">
-    {% call mui.row_card('users', _("Профиль и права"), _("Имя отображается в карточках лидов, задачах и журнале аудита.")) %}
+    {% call mui.row_card('users', _("Профиль и права"), _("Это имя видят коллеги в карточках лидов, задачах и журнале.")) %}
       {% call mui.row_edit(current_user.name, label=_("Изменить"), action_url=url_for('manager.account')) %}
         <input type="hidden" name="action" value="profile">
         <input class="input" name="name" value="{{ current_user.name }}" minlength="2" maxlength="120" required aria-label="{{ _('Отображаемое имя') }}">
@@ -38,11 +38,11 @@
       </div>
     {% endcall %}
 
-    {% call mui.row_card('settings', _("Интерфейс и плотность"), _("Тема оформления и компактное отображение таблиц и карточек.")) %}
+    {% call mui.row_card('settings', _("Интерфейс и отображение"), _("Настройте тему, прозрачность подложки, валюту и плотность экрана под себя.")) %}
       <div class="mgr-row-line">
         <div>
           <div class="mgr-row-val">{{ _("Тёмная тема") if current_user.theme == 'dark' else (_("Системная тема") if current_user.theme == 'system' else _("Светлая тема")) }}</div>
-          <div class="small muted">{{ _("Тема синхронизируется для всех ваших разделов.") }}</div>
+          <div class="small muted">{{ _("Выбранная тема сохраняется для всех ваших разделов.") }}</div>
         </div>
         <div class="row" style="gap:8px">
           <form method="post" action="{{ url_for('auth.toggle_theme') }}">
@@ -62,8 +62,33 @@
 
       <div class="mgr-row-line">
         <div>
+          <div class="mgr-row-val">{{ _("Прозрачность подложки") }}</div>
+          <div class="small muted">{{ _("Насколько заметно фон просвечивает через основную панель.") }}</div>
+        </div>
+        <div class="mgr-alpha-ctrl">
+          <input class="mgr-range" type="range" id="shell-alpha-slider" min="60" max="100" step="5" value="80" aria-label="{{ _('Прозрачность подложки') }}">
+          <span class="mgr-alpha-val num" id="shell-alpha-value">80%</span>
+        </div>
+      </div>
+
+      <div class="mgr-row-line">
+        <div>
+          <div class="mgr-row-val">{{ _("Валюта отображения") }}</div>
+          <div class="small muted">{{ _("Пересчитывает суммы на странице финансов по курсу НБКР. В базе всё остаётся в сомах (KGS).") }}</div>
+        </div>
+        <select class="select input--sm" id="crm-currency-select" aria-label="{{ _('Валюта отображения') }}" style="width:auto;min-width:165px">
+          <option value="KGS">KGS — Кыргызский сом</option>
+          <option value="USD">USD — Доллар США ($)</option>
+          <option value="EUR">EUR — Евро (€)</option>
+          <option value="KZT">KZT — Тенге (₸)</option>
+          <option value="RUB">RUB — Российский рубль (₽)</option>
+        </select>
+      </div>
+
+      <div class="mgr-row-line">
+        <div>
           <div class="mgr-row-val">{{ _("Компактный режим") }}</div>
-          <div class="small muted">{{ _("Уменьшает отступы в таблицах, карточках и панели фильтров CRM.") }}</div>
+          <div class="small muted">{{ _("Делает таблицы и карточки компактнее, чтобы на экране помещалось больше.") }}</div>
         </div>
         <label class="set-switch" aria-label="{{ _('Компактный режим') }}">
           <input type="checkbox" id="crm-compact-toggle">
@@ -72,8 +97,8 @@
       </div>
     {% endcall %}
 
-    {% call mui.row_card('shield', _("Безопасность и пароль"), _("Для сотрудников CRM требуется пароль от %(n)s символов.", n=min_pw_len|default(12))) %}
-      {% call mui.row_edit(_("Пароль защищён · смена завершает старые сессии"), label=_("Изменить"), action_url=url_for('manager.account')) %}
+    {% call mui.row_card('shield', _("Безопасность и пароль"), _("Для защиты данных используйте пароль не короче %(n)s символов.", n=min_pw_len|default(12))) %}
+      {% call mui.row_edit(_("Надёжно защищён (после смены нужно войти заново на других устройствах)"), label=_("Изменить"), action_url=url_for('manager.account')) %}
         <input type="hidden" name="action" value="password">
         <input class="input" type="password" name="current" required placeholder="{{ _('Текущий пароль') }}" aria-label="{{ _('Текущий пароль') }}">
         <input class="input" type="password" name="new" minlength="{{ min_pw_len|default(12) }}" required placeholder="{{ _('Новый пароль (от %(n)s символов)', n=min_pw_len|default(12)) }}" aria-label="{{ _('Новый пароль') }}">
@@ -81,7 +106,7 @@
       {% endcall %}
     {% endcall %}
 
-    {% call mui.row_card('clock', _("Быстрые переходы и памятка SLA"), _("Основные разделы CRM и правило первого ответа.")) %}
+    {% call mui.row_card('clock', _("Нужные разделы и норма ответа"), _("Быстрый доступ к работе и напоминание о первом контакте.")) %}
       <div class="mgr-row-line">
         <div class="row" style="gap:8px;flex-wrap:wrap">
           {{ mui.btn(_("Список лидов"), href=url_for('manager.leads'), variant='secondary', size='sm', icon_name='users') }}
@@ -94,7 +119,7 @@
         </div>
       </div>
       <div class="small muted" style="margin-top:8px">
-        <b>{{ _("Порог SLA:") }}</b> {{ sla_threshold }} {{ _("мин с момента создания лида · активность «Звонок» или «Сообщение» автоматически закрывает таймер SLA.") }}
+        <b>{{ _("Порог SLA:") }}</b> {{ _("старайтесь ответить на новую заявку за %(m)s мин — звонок или сообщение автоматически остановят таймер.", m=sla_threshold) }}
       </div>
     {% endcall %}
   </div>
@@ -102,18 +127,44 @@
 <script>
 (function(){
   const cb = document.getElementById('crm-compact-toggle');
-  if (!cb) return;
-  const apply = (on) => {
-    document.body.classList.toggle('is-compact', on);
-  };
-  const saved = localStorage.getItem('monday_crm_compact') === '1';
-  cb.checked = saved;
-  apply(saved);
-  cb.addEventListener('change', () => {
-    const on = cb.checked;
-    localStorage.setItem('monday_crm_compact', on ? '1' : '0');
-    apply(on);
-  });
+  if (cb) {
+    const applyCompact = (on) => document.body.classList.toggle('is-compact', on);
+    const saved = localStorage.getItem('monday_crm_compact') === '1';
+    cb.checked = saved;
+    applyCompact(saved);
+    cb.addEventListener('change', () => {
+      const on = cb.checked;
+      localStorage.setItem('monday_crm_compact', on ? '1' : '0');
+      applyCompact(on);
+    });
+  }
+
+  const alphaSlider = document.getElementById('shell-alpha-slider');
+  const alphaOut = document.getElementById('shell-alpha-value');
+  if (alphaSlider && alphaOut) {
+    const applyAlpha = (raw) => {
+      const v = Math.min(100, Math.max(60, parseInt(raw, 10) || 80));
+      alphaSlider.value = String(v);
+      alphaOut.textContent = v + '%';
+      document.documentElement.style.setProperty('--shell-alpha', String(v));
+      return v;
+    };
+    applyAlpha(localStorage.getItem('monday_shell_alpha') || '80');
+    alphaSlider.addEventListener('input', () => {
+      const v = applyAlpha(alphaSlider.value);
+      try { localStorage.setItem('monday_shell_alpha', String(v)); } catch (_) {}
+    });
+  }
+
+  const curSel = document.getElementById('crm-currency-select');
+  if (curSel) {
+    const allowed = ['KGS', 'USD', 'EUR', 'KZT', 'RUB'];
+    const savedCur = (localStorage.getItem('monday_display_currency') || 'KGS').toUpperCase();
+    curSel.value = allowed.includes(savedCur) ? savedCur : 'KGS';
+    curSel.addEventListener('change', () => {
+      try { localStorage.setItem('monday_display_currency', curSel.value); } catch (_) {}
+    });
+  }
 })();
 </script>
 {% endblock %}

@@ -6,7 +6,7 @@
 {% block content %}
   {% call mui.page_header(
     _("CRM · Сегодня"),
-    _("Приоритетные обращения, просроченные ответы (SLA %(m)s мин), задачи и воронка.", m=sla_threshold)
+    _("Главные заявки и дела на сегодня (норма ответа — %(m)s мин).", m=sla_threshold)
   ) %}
     <form method="post" action="{{ url_for('manager.toggle_shift') }}">
       {{ ui.csrf() }}
@@ -34,21 +34,21 @@
     {{ mui.kpi(
       _("Без ответа > %(m)s мин", m=sla_threshold),
       sla_overdue_count,
-      _("требуют срочного контакта") if sla_overdue_count else _("всё в пределах SLA"),
+      _("ждут вашего звонка") if sla_overdue_count else _("все получили ответ вовремя"),
       tone='bad' if sla_overdue_count else 'ok',
       href=url_for('manager.leads', sla='overdue')
     ) }}
     {{ mui.kpi(
       _("Просроченные задачи"),
       overdue_tasks|length,
-      _("нужно закрыть сейчас") if overdue_tasks else _("просрочек нет"),
+      _("стоит разобрать в первую очередь") if overdue_tasks else _("все задачи в срок"),
       tone='bad' if overdue_tasks else 'ok',
       href="#action-queue"
     ) }}
     {{ mui.kpi(
       _("Задачи на сегодня"),
       today_tasks|length,
-      _("запланировано до конца дня") if today_tasks else _("на сегодня задач нет"),
+      _("в плане на сегодня") if today_tasks else _("на сегодня пока свободно"),
       tone='warn' if today_tasks else 'neutral',
       href="#tasks-schedule"
     ) }}
@@ -161,7 +161,7 @@
           {% endfor %}
         </div>
       {% else %}
-        {% call mui.empty(_("Срочных действий нет"), _("Все просроченные задачи закрыты, а входящие лиды уже получили первый ответ."), icon_name='check') %}
+        {% call mui.empty(_("Срочных действий нет"), _("Все просроченные задачи закрыты, а новым заявкам уже ответили — так держать!"), icon_name='check') %}
           {{ mui.btn(_("Открыть всех лидов"), href=url_for('manager.leads'), variant='secondary', size='sm') }}
         {% endcall %}
       {% endif %}
@@ -211,7 +211,7 @@
           {% endif %}
         {% endfor %}
       {% else %}
-        {{ mui.empty(_("Запланированных задач нет"), _("Добавляйте напоминания о звонках и встречах прямо из карточки лида."), icon_name='clock') }}
+        {{ mui.empty(_("Запланированных задач нет"), _("Здесь появятся ваши звонки и встречи — запланировать их можно в карточке лида."), icon_name='clock') }}
       {% endif %}
     </section>
   </div>

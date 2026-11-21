@@ -6,7 +6,7 @@
 {% block content %}
   {% call mui.page_header(
     _("Воронка и активные ученики") if mode == 'students' else _("Воронка продаж"),
-    _("Статус зачисления, абонементы и 30-дневная посещаемость активных учеников.") if mode == 'students' else _("7 этапов лида · перевод через меню карточки и контроль SLA.")
+    _("Как учатся текущие ученики: группы, абонементы и посещаемость.") if mode == 'students' else _("Путь каждого обращения — от первой заявки до оплаты.")
   ) %}
     <div class="segmented">
       <a class="{{ 'is-active' if mode != 'students' }}" href="{{ url_for('manager.pipeline', mode='leads') }}">{{ _("Воронка лидов") }}</a>

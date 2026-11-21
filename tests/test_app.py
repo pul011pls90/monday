@@ -193,21 +193,25 @@ def test_register_teacher_needs_approval():
 
 def test_student_pages_render():
     c = login(client(), "student@monday.kg", "student123")
-    ok(c, "/home", contains=["Привет, Тима", "data-countdown", "Сегодня", "Целевой балл", "Ты в точках", "Журнал ошибок", "Разобрать ошибки"])
-    ok(c, "/home?t=30")
-    ok(c, "/skills?show=list", contains=["Карта навыков", "Свойства логарифмов"])
-    body = ok(c, "/skills").data.decode()  # the list choice is remembered
-    assert "sp-level" in body and "metro-data" not in body
-    body = ok(c, "/skills?show=map", contains=["data-metro", "metro-data", "mt-start", "Продолжить"]).data.decode()
-    assert "sp-level" not in body
-    ok(c, "/skills?scope=all&q=лог")
+    home_body = ok(c, "/home", contains=["Привет, Тима", "data-countdown", "Сегодня", "Целевой балл", "Ты в точках"]).data.decode()
+    assert "Журнал ошибок" not in home_body  # hidden while SHOW_JOURNAL is False
+    assert c.get("/journal").status_code == 404
+    body = ok(c, "/skills", contains=["Маршрут", "Навыки и темы", "Свойства логарифмов", "kc-unit"]).data.decode()
+    assert "sp-level" not in body and "metro-data" not in body
+    ok(c, "/skills?exam=SAT", contains=["Маршрут", "kc-units", "kc-lesson"])
+    ok(c, "/skills?scope=all&q=лог", contains="Свойства логарифмов")
     ok(c, "/sessions", contains="Недавние сессии")
     ok(c, "/collections", contains=["Сборники", "Рекомендуем тебе", "ОРТ Май 2026"])
     ok(c, "/collections?exam=SAT&cat=full&sort=short", contains="SAT April 2024")
     ok(c, "/collections?q=Геометрия", contains="Геометрия: площади")
     ok(c, "/homework", contains=["Нужно сделать", "Свойства логарифмов", "hwcal__day", "Проверено"])
-    ok(c, "/journal", contains=["Журнал ошибок", "Где теряешь баллы", "Записи", "Начать работу над ошибками"])
-    ok(c, "/journal?show=resolved")
+    APP.config["SHOW_JOURNAL"] = True
+    try:
+        ok(c, "/home", contains=["Журнал ошибок", "Разобрать ошибки"])
+        ok(c, "/journal", contains=["Журнал ошибок", "Где теряешь баллы", "Записи", "Начать работу над ошибками"])
+        ok(c, "/journal?show=resolved")
+    finally:
+        APP.config["SHOW_JOURNAL"] = False
     body = ok(c, "/monday", contains="Тест").data.decode()
     assert "Рейтинг прошлой недели" not in body and "Дуэль школ" not in body and "Твой прошлый тест" not in body   # off by default
     APP.config["MONDAY_RANKINGS"] = True
@@ -342,8 +346,13 @@ def test_journal_update_and_monday_test():
         ans = (AttemptAnswer.query.join(Attempt).filter(Attempt.user_id == u.id, AttemptAnswer.is_correct.is_(False),
                                                         AttemptAnswer.resolved.is_(False)).first())
         aid = ans.id
-    c.post(f"/journal/{aid}", data={"reason": "gap"})
-    c.post(f"/journal/{aid}", data={"resolve": "1"})
+    assert c.post(f"/journal/{aid}", data={"reason": "gap"}).status_code == 404
+    APP.config["SHOW_JOURNAL"] = True
+    try:
+        assert c.post(f"/journal/{aid}", data={"reason": "gap"}).status_code == 302
+        assert c.post(f"/journal/{aid}", data={"resolve": "1"}).status_code == 302
+    finally:
+        APP.config["SHOW_JOURNAL"] = False
     with APP.app_context():
         from monday.extensions import db
         a = db.session.get(AttemptAnswer, aid)
@@ -934,11 +943,13 @@ def test_journal_with_more_days_than_shown():
         for k, r in enumerate(rows):
             r.answered_at = utcnow() - timedelta(days=k)
         db.session.commit()
+    APP.config["SHOW_JOURNAL"] = True
     try:
         c = login(client(), "student@monday.kg", "student123")
         assert len(saved) > 7
         ok(c, "/journal?days=7")
     finally:
+        APP.config["SHOW_JOURNAL"] = False
         with APP.app_context():
             for rid, t in saved:
                 db.session.get(AttemptAnswer, rid).answered_at = t
@@ -948,7 +959,11 @@ def test_journal_with_more_days_than_shown():
 def test_journal_mistakes_session_has_one_question_per_open_record():
     from monday.models import Attempt
     c = login(client(), "student@monday.kg", "student123")
-    body = ok(c, "/journal").data.decode()
+    APP.config["SHOW_JOURNAL"] = True
+    try:
+        body = ok(c, "/journal").data.decode()
+    finally:
+        APP.config["SHOW_JOURNAL"] = False
     n = int(re.search(r'name="count" value="(\d+)"', body).group(1))
     assert 1 <= n <= 30 and "ИИ" not in body
     r = c.post("/sessions/start/darwin", data={"count": str(n)})
@@ -964,7 +979,7 @@ def test_ort_trig_comparisons_pack():
         assert len(qs) == 15 and all(q.exams == ["ORT"] and q.skill.code == "right_trig" for q in qs)
         assert all(q.material[0]["type"] == "columns" and len(q.options) == 4 for q in qs)
     c = login(client(), "student@monday.kg", "student123")
-    ok(c, "/skills?exam=ORT&show=list", contains=["Таблица", "Карта"])
+    ok(c, "/skills?exam=ORT", contains=["Маршрут", "Навыки и темы", "Синус, косинус, тангенс острого угла"])
 
 
 def test_admin_name_platform_author_and_moderation_count():
@@ -1499,8 +1514,9 @@ def test_data_fixes_remove_demo_collections_and_rename_student():
     c = app.test_client()
     login(c, "student@monday.kg", "student123")
     assert "ОРТ Май 2026" not in c.get("/collections").data.decode()
-    for path in ("/home", "/skills", "/sessions", "/collections?exam=SAT", "/homework", "/journal", "/monday", "/profile", "/bank/"):
+    for path in ("/home", "/skills", "/sessions", "/collections?exam=SAT", "/homework", "/monday", "/profile", "/bank/"):
         assert c.get(path).status_code in (200, 302), path
+    assert c.get("/journal").status_code == 404
 
 
 def test_ort_sheet_allows_one_correction():
@@ -1552,21 +1568,26 @@ def test_mistakes_review_page():
                                                         AttemptAnswer.is_correct.is_(False)).first())
         att_id = att.id
         wrong = [a.id for a in att.answers if a.is_correct is False]
-    ok(c, "/journal", contains=f"/journal/attempt/{att_id}")
-    page = f"/journal/attempt/{att_id}"
-    ok(c, page, contains=["Разбор ошибок", "Понял, дальше", "Потренировать эти темы"])
-    for tab in ("wrong", "blank", "all"):
-        assert c.get(page + f"?tab={tab}").status_code == 200
-    # «Понял, дальше» closes the mistake and goes to the next one on the same page
-    r = c.post(f"/journal/{wrong[0]}", data={"reason": "careless", "resolve": "1", "next": page + "?tab=all&i=1"})
-    assert page + "?tab=all&i=1" in r.headers["Location"]
-    r = c.post(f"/journal/{wrong[0]}", data={"resolve": "1", "next": "https://evil.example/"})
-    assert "/journal" in r.headers["Location"] and "evil" not in r.headers["Location"]
-    c.post(page + "/blank-reason", data={"tab": "blank"})
-    r = c.post(page + "/practice")
-    assert "/bank/" in r.headers["Location"]
-    other = login(client(), "student2@monday.kg", "student123")
-    assert other.get(page).status_code == 404
+    assert c.get("/journal").status_code == 404
+    APP.config["SHOW_JOURNAL"] = True
+    try:
+        ok(c, "/journal", contains=f"/journal/attempt/{att_id}")
+        page = f"/journal/attempt/{att_id}"
+        ok(c, page, contains=["Разбор ошибок", "Понял, дальше", "Потренировать эти темы"])
+        for tab in ("wrong", "blank", "all"):
+            assert c.get(page + f"?tab={tab}").status_code == 200
+        # «Понял, дальше» closes the mistake and goes to the next one on the same page
+        r = c.post(f"/journal/{wrong[0]}", data={"reason": "careless", "resolve": "1", "next": page + "?tab=all&i=1"})
+        assert page + "?tab=all&i=1" in r.headers["Location"]
+        r = c.post(f"/journal/{wrong[0]}", data={"resolve": "1", "next": "https://evil.example/"})
+        assert "/journal" in r.headers["Location"] and "evil" not in r.headers["Location"]
+        c.post(page + "/blank-reason", data={"tab": "blank"})
+        r = c.post(page + "/practice")
+        assert "/bank/" in r.headers["Location"]
+        other = login(client(), "student2@monday.kg", "student123")
+        assert other.get(page).status_code == 404
+    finally:
+        APP.config["SHOW_JOURNAL"] = False
 
 
 def test_scan_fixes_goal_time_skills():
@@ -1586,7 +1607,7 @@ def test_scan_fixes_goal_time_skills():
         own = [q for q in student_pool("ORT") if "ORT" in (q.exams or [])]
         assert len(student_pool("ORT")) > len(own)
         assert all(q.answer_type != "written" for q in student_pool("ORT"))
-    ok(c, "/skills?show=list", contains=["sp-level", "sp-dot", "Глава 1"])
+    ok(c, "/skills", contains=["Маршрут", "Навыки и темы", "kc-unit", "kc-lesson"])
 
 
 def test_practice_pack_answers_are_consistent():
@@ -1636,7 +1657,7 @@ def test_custom_session_builder_ladder_hint_retry():
     """«Своя сессия»: ladder picks the next question as you go, hints count as half, retry repeats the mistakes."""
     from monday.models import Attempt, User
     s = login(client(), "student11@monday.kg", "student123")
-    ok(s, "/sessions", contains=["Своя сессия", "Лестница", "Сохранить как мой режим"])
+    ok(s, "/sessions", contains=["Сессии", "Собери свою сессию", "Лестница", "Выбор по темам", "Начать сессию"])
     r = s.post("/sessions/custom", data={"minutes": "10", "count": "4", "level": "ladder", "topics": "all", "explain": "now"})
     assert r.status_code == 302 and "/sessions/" in r.headers["Location"]
     url = r.headers["Location"]
@@ -1667,8 +1688,12 @@ def test_custom_session_builder_ladder_hint_retry():
     assert "/done" in r.headers["Location"]
     # presets and the daily goal
     s.post("/sessions/presets", data={"name": "Утро", "minutes": "5", "count": "3", "level": "easy", "topics": "all"})
-    ok(s, "/sessions", contains=["Утро"])
+    ok(s, "/sessions", contains=['id="preset-del-0"'])
+    with APP.app_context():
+        saved_presets = User.query.filter_by(email="student11@monday.kg").first().profile.session_presets or []
+        assert any(p.get("name") == "Утро" for p in saved_presets)
     s.post("/sessions/presets", data={"action": "delete", "index": "0"})
+    assert 'id="preset-del-0"' not in s.get("/sessions").data.decode()
     s.post("/goal", data={"minutes": "30", "next": "/home"})
     assert 'name="daily_goal" value="30" checked' in s.get("/profile").data.decode()
 

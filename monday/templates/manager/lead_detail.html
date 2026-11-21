@@ -56,7 +56,7 @@
               <option value="message">{{ _("Сообщение") }}</option>
               <option value="note">{{ _("Заметка") }}</option>
             </select>
-            <span class="small muted">{{ _("Звонок или сообщение фиксирует первый контакт (SLA).") }}</span>
+            <span class="small muted">{{ _("Звонок или сообщение отметят, что вы уже связались с клиентом.") }}</span>
           </div>
           <textarea class="textarea crm-activity-note" name="body" rows="2" required placeholder="{{ _('Итог звонка, договорённости, переписка...') }}"></textarea>
           <div><button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ ui.icon('send', 15) }}<span>{{ _("Записать") }}</span></button></div>
@@ -84,7 +84,7 @@
           {% endfor %}
         </ul>
         {% else %}
-          {{ mui.empty(_("Событий пока нет"), _("В этой вкладке появятся звонки, переписка, смены статусов и уроки."), icon_name='list') }}
+          {{ mui.empty(_("Пока тихо"), _("Здесь соберутся все звонки, заметки, смены этапов и посещённые уроки."), icon_name='list') }}
         {% endif %}
       {% endcall %}
 
@@ -242,7 +242,7 @@
             {% endfor %}
           </div>
         {% else %}
-          <p class="small text-2">{{ _("Задач пока нет.") }}</p>
+          <p class="small text-2">{{ _("Напоминаний пока нет — поставьте первое выше.") }}</p>
         {% endif %}
       {% endcall %}
 

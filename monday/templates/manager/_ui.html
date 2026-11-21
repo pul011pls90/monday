@@ -38,16 +38,25 @@
 </div>
 {%- endmacro %}
 
-{# 4. KPI Card: white neutral card; numeral turns amber/red + dot ONLY when tone is warn/bad #}
-{% macro kpi(label, value, hint='', tone='neutral', href='') -%}
+{# 4. KPI Card: white neutral card (or colored money variant); optional icon badge & KGS FX hook #}
+{% macro kpi(label, value, hint='', tone='neutral', href='', icon_name='', cls='', kgs_amount=None) -%}
 {% set tone_cls = ' is-bad' if tone == 'bad' else (' is-warn' if tone == 'warn' else '') %}
 {% set dot_cls = 'mgr-dot--' ~ (tone if tone in ('accent', 'ok', 'warn', 'bad') else 'neutral') %}
-{% if href %}<a class="mgr-kpi{{ tone_cls }}" href="{{ href }}">{% else %}<div class="mgr-kpi{{ tone_cls }}">{% endif %}
+{% set ic_cls = 'mgr-kpi__ic--' ~ (tone if tone in ('accent', 'ok', 'warn', 'bad') else 'neutral') %}
+{% if href %}<a class="mgr-kpi{{ tone_cls }}{{ ' ' ~ cls if cls }}" href="{{ href }}">{% else %}<div class="mgr-kpi{{ tone_cls }}{{ ' ' ~ cls if cls }}">{% endif %}
   <div class="mgr-kpi__top">
     <span class="mgr-kpi__label">{{ label }}</span>
-    <span class="mgr-dot {{ dot_cls }}" aria-hidden="true"></span>
+    {% if icon_name %}
+      <span class="mgr-kpi__ic {{ ic_cls }}" aria-hidden="true">{{ ui.icon(icon_name, 17) }}</span>
+    {% else %}
+      <span class="mgr-dot {{ dot_cls }}" aria-hidden="true"></span>
+    {% endif %}
   </div>
-  <span class="mgr-kpi__val num">{{ value }}</span>
+  {% if kgs_amount is not none %}
+    <span class="mgr-kpi__val num"><span data-kgs-amount="{{ kgs_amount }}">{{ value }}</span></span>
+  {% else %}
+    <span class="mgr-kpi__val num">{{ value }}</span>
+  {% endif %}
   {% if hint %}<span class="mgr-kpi__hint">{{ hint }}</span>{% endif %}
 {% if href %}</a>{% else %}</div>{% endif %}
 {%- endmacro %}

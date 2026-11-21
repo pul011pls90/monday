@@ -6,7 +6,7 @@
 {% block content %}
   {% call mui.page_header(
     _("Расписание занятий"),
-    _("Локации, группы, уроки (Онлайн / Офлайн), конфликты и посещаемость.")
+    _("Кабинеты, группы и уроки — всё на одном экране.")
   ) %}
     {{ mui.filter_tabs([
       {'label': _("Список"), 'href': url_for('academic.schedule', view='list', lesson_mode=filters.lesson_mode or None, group_id=filters.group_id or None, location_id=filters.location_id or None), 'active': view == 'list'},
@@ -310,7 +310,7 @@
       </table>
     {% endcall %}
   {% else %}
-    {{ mui.empty(_("Занятий пока нет"), _("Создайте урок или измените фильтры расписания."), icon_name='calendar') }}
+    {{ mui.empty(_("Занятий пока не запланировано"), _("Добавьте первый урок или сбросьте фильтры."), icon_name='calendar') }}
   {% endif %}
 
 <script>

@@ -104,6 +104,8 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     app.register_blueprint(roadmap.bp)
     from . import course
     app.register_blueprint(course.bp)
+    from . import fx
+    app.register_blueprint(fx.bp)
     from .trig_formulas import init_trig_block
     init_trig_block(app)
 

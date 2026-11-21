@@ -6,21 +6,29 @@
 {% block content %}
   {% call mui.page_header(
     _("Финансы и абонементы"),
-    _("Выручка, задолженности по абонементам, тарифы и начисления учителям.")
+    _("Оплаты, абонементы и расчёты с преподавателями.")
   ) %}
+    <div class="fx-bar">
+      <div class="fx-switcher" role="group" aria-label="{{ _('Валюта отображения') }}" data-fx-switcher data-fx-endpoint="{{ url_for('fx.api_fx_rates') }}">
+        {% for cur in ('KGS', 'USD', 'EUR', 'KZT', 'RUB') %}
+          <button type="button" class="fx-switcher__btn{{ ' is-active' if cur == 'KGS' }}" data-fx-currency="{{ cur }}" aria-pressed="{{ 'true' if cur == 'KGS' else 'false' }}">{{ cur }}</button>
+        {% endfor %}
+      </div>
+      <span class="fx-rate-badge" data-fx-badge hidden></span>
+    </div>
     {{ mui.btn(_("Активные ученики"), href=url_for('manager.pipeline', mode='students'), variant='secondary', size='sm', icon_name='users') }}
     {{ mui.btn(_("Расписание"), href=url_for('academic.schedule'), variant='secondary', size='sm', icon_name='calendar') }}
   {% endcall %}
 
   <div class="mgr-kpi-grid">
-    {{ mui.kpi(_("Выручка (30 дней)"), rev_30d ~ " KGS", _("за вычетом возвратов"), tone='ok') }}
-    {{ mui.kpi(_("Общий долг"), total_debt ~ " KGS", _("абонементов с долгом: %(n)s", n=debt_passes|length), tone='bad' if total_debt else 'ok') }}
-    {{ mui.kpi(_("Активные абонементы"), active_passes_count, _("действующих сейчас"), tone='accent') }}
-    {{ mui.kpi(_("Скоро продление"), expiring_passes|length, _("<= 2 уроков или <= 7 дней"), tone='warn' if expiring_passes else 'ok') }}
+    {{ mui.kpi(_("Выручка (30 дней)"), rev_30d ~ " KGS", _("за вычетом возвратов"), tone='ok', icon_name='bank', cls='mgr-kpi--money-ok', kgs_amount=rev_30d) }}
+    {{ mui.kpi(_("Общий долг"), total_debt ~ " KGS", _("абонементов с долгом: %(n)s", n=debt_passes|length) if total_debt else _("все оплаты закрыты"), tone='bad' if total_debt else 'ok', icon_name='flag' if total_debt else 'check', cls='mgr-kpi--money-bad' if total_debt else 'mgr-kpi--money-slate', kgs_amount=total_debt) }}
+    {{ mui.kpi(_("Активные абонементы"), active_passes_count, _("действуют прямо сейчас"), tone='accent', icon_name='bookmark', cls='mgr-kpi--money-accent') }}
+    {{ mui.kpi(_("Скоро продление"), expiring_passes|length, _("осталось 1–2 урока или до 7 дней") if expiring_passes else _("срочных продлений нет"), tone='warn' if expiring_passes else 'ok', icon_name='bell' if expiring_passes else 'clock', cls='mgr-kpi--money-warn') }}
   </div>
 
-  <div class="mgr-detail-grid">
-    <div class="stack">
+  <div class="mgr-detail-grid mgr-finance-grid">
+    <div class="mgr-finance-col">
       {% call mui.card() %}
         {{ mui.section_head('bank', _("Журнал операций"), count=recent_tx|length) }}
         {% if recent_tx %}
@@ -40,7 +48,7 @@
                 <tr>
                   <td class="muted num nowrap">{{ tx.paid_at|d('d MMM, HH:mm') }}</td>
                   <td><a class="mgr-lead-link" href="{{ url_for('manager.student_detail', student_id=tx.student_user_id) }}">{{ tx.student.name if tx.student else ('#' ~ tx.student_user_id) }}</a></td>
-                  <td class="num" style="font-weight:700;color:{{ 'var(--bad)' if tx.kind == 'refund' else 'var(--ok)' }}">{{ '-' if tx.kind == 'refund' else '+' }}{{ tx.amount }} KGS</td>
+                  <td class="num" style="font-weight:700;color:{{ 'var(--bad)' if tx.kind == 'refund' else 'var(--ok)' }}"><span data-kgs-amount="{{ tx.amount }}" data-kgs-prefix="{{ '-' if tx.kind == 'refund' else '+' }}">{{ '-' if tx.kind == 'refund' else '+' }}{{ tx.amount }} KGS</span></td>
                   <td>{{ METHOD_LABELS.get(tx.method, tx.method) }}</td>
                   <td class="muted">{{ tx.student_pass.plan.name if (tx.student_pass and tx.student_pass.plan) else '—' }}</td>
                 </tr>
@@ -49,7 +57,7 @@
             </table>
           {% endcall %}
         {% else %}
-          {{ mui.empty(_("Операций пока нет"), _("Принятые оплаты и возвраты по абонементам появятся здесь."), icon_name='bank') }}
+          {{ mui.empty(_("Операций пока нет"), _("Когда вы примете первую оплату, она сразу появится в этом списке."), icon_name='bank') }}
         {% endif %}
       {% endcall %}
 
@@ -73,24 +81,24 @@
                   <td style="font-weight:700">{{ pr.teacher.name }}</td>
                   <td>
                     {% for r in pr.rates %}
-                      <div>{{ RATE_TYPE_LABELS.get(r.rate_type, r.rate_type) }} · <b>{{ r.rate_amount }} {{ r.currency }}</b>{% if r.course %} ({{ r.course.name }}){% endif %}</div>
+                      <div>{{ RATE_TYPE_LABELS.get(r.rate_type, r.rate_type) }} · <b{% if r.currency == 'KGS' %} data-kgs-amount="{{ r.rate_amount }}"{% endif %}>{{ r.rate_amount }} {{ r.currency }}</b>{% if r.course %} ({{ r.course.name }}){% endif %}</div>
                     {% else %}
                       <span class="muted">{{ _("не задана") }}</span>
                     {% endfor %}
                   </td>
                   <td class="num">{{ pr.lesson_count }}</td>
-                  <td class="num" style="font-weight:700">{{ pr.accrued }} KGS</td>
+                  <td class="num" style="font-weight:700"><span data-kgs-amount="{{ pr.accrued }}">{{ pr.accrued }} KGS</span></td>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
           {% endcall %}
         {% else %}
-          <p class="small text-2">{{ _("Учителей пока нет.") }}</p>
+          <p class="small text-2">{{ _("Преподавателей в расписании пока нет.") }}</p>
         {% endif %}
 
         {% if current_user.has_perm('academic.payroll.manage') and teachers %}
-        <hr style="border:0;border-top:1px solid var(--line);margin:4px 0">
+        <hr class="mgr-finance-push" style="border:0;border-top:1px solid var(--line);margin-bottom:4px">
         <form method="post" action="{{ url_for('manager.payroll_rate_create') }}" class="stack-sm">
           {{ ui.csrf() }}
           <div class="eyebrow">{{ _("Задать ставку учителя") }}</div>
@@ -115,7 +123,7 @@
       {% endif %}
     </div>
 
-    <div class="stack">
+    <div class="mgr-finance-col">
       {% call mui.card() %}
         {{ mui.section_head('clock', _("Долги и продления"), count=debt_passes|length + expiring_passes|length) }}
         {% if debt_passes or expiring_passes %}
@@ -126,7 +134,7 @@
                 <div class="mgr-queue__main">
                   <div class="mgr-queue__title">
                     <a href="{{ url_for('manager.student_detail', student_id=sp.student_user_id) }}">{{ sp.student.name if sp.student else ('#' ~ sp.student_user_id) }}</a>
-                    {{ mui.badge(_("Долг") ~ " " ~ sp.debt_amount ~ " KGS", tone='bad') }}
+                    <span class="mgr-badge mgr-badge--bad">{{ _("Долг") }} <span class="num" data-kgs-amount="{{ sp.debt_amount }}">{{ sp.debt_amount }} KGS</span></span>
                   </div>
                   <div class="mgr-queue__meta">{{ sp.plan.name if sp.plan else sp.plan_id }}</div>
                 </div>
@@ -145,7 +153,7 @@
             {% endfor %}
           </div>
         {% else %}
-          <p class="small text-2">{{ _("Долгов и срочных продлений нет.") }}</p>
+          <p class="small text-2">{{ _("Все абонементы оплачены, а срочных продлений пока нет.") }}</p>
         {% endif %}
       {% endcall %}
 
@@ -157,17 +165,17 @@
               <div class="mgr-queue__item">
                 <div class="mgr-queue__main">
                   <div class="mgr-queue__title">{{ pl.name }}</div>
-                  <div class="mgr-queue__meta num">{{ pl.price_amount }} {{ pl.currency }} · {% if pl.total_lessons %}{{ pl.total_lessons }} {{ _("уроков") }}{% else %}{{ _("безлимит") }}{% endif %} · {{ pl.duration_days }} {{ _("дн.") }}{% if pl.course %} · {{ pl.course.name }}{% endif %}</div>
+                  <div class="mgr-queue__meta num"><span{% if pl.currency == 'KGS' %} data-kgs-amount="{{ pl.price_amount }}"{% endif %}>{{ pl.price_amount }} {{ pl.currency }}</span> · {% if pl.total_lessons %}{{ pl.total_lessons }} {{ _("уроков") }}{% else %}{{ _("безлимит") }}{% endif %} · {{ pl.duration_days }} {{ _("дн.") }}{% if pl.course %} · {{ pl.course.name }}{% endif %}</div>
                 </div>
               </div>
             {% endfor %}
           </div>
         {% else %}
-          <p class="small text-2">{{ _("Тарифы ещё не созданы.") }}</p>
+          <p class="small text-2">{{ _("Тарифов пока нет — добавьте первый, чтобы выдавать абонементы.") }}</p>
         {% endif %}
 
         {% if current_user.has_perm('crm.finance.manage') %}
-        <hr style="border:0;border-top:1px solid var(--line);margin:4px 0">
+        <hr class="mgr-finance-push" style="border:0;border-top:1px solid var(--line);margin-bottom:4px">
         <form method="post" action="{{ url_for('manager.plan_create') }}" class="stack-sm">
           {{ ui.csrf() }}
           <div class="eyebrow">{{ _("Новый тариф") }}</div>
@@ -189,4 +197,7 @@
       {% endcall %}
     </div>
   </div>
+{% endblock %}
+{% block scripts %}
+<script defer src="{{ url_for('static', filename='js/fx.js') }}"></script>
 {% endblock %}

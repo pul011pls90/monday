@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   {% if THEME_AUTO %}<script>(function(){var d=document.documentElement,m=window.matchMedia&&matchMedia("(prefers-color-scheme: dark)");function f(){if(d.hasAttribute("data-theme-auto"))d.setAttribute("data-theme",m&&m.matches?"dark":"light")}f();m&&m.addEventListener&&m.addEventListener("change",f)})();</script>{% endif %}
+  <script>(function(){try{var a=parseInt(localStorage.getItem("monday_shell_alpha"),10);if(a>=60&&a<=100){document.documentElement.style.setProperty("--shell-alpha",String(a));}}catch(_){}})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{% block title %}Monday{% endblock %} · Monday</title>

@@ -1335,3 +1335,178 @@ body.mgr .hc__head h2 {
   color: #FFFFFF;
 }
 
+/* Compact Mode Workspace Shell */
+body.mgr.is-compact .app-shell-panel {
+  padding: 18px 20px;
+  gap: 14px;
+}
+
+/* Finance — Colorful Semantic Money KPI Cards, Equal-Height Bottom Grid & FX Switcher */
+.mgr .mgr-kpi--money-ok {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--ok-soft) 92%, var(--surface)), var(--surface));
+  border-color: color-mix(in srgb, var(--ok) 28%, var(--line));
+  border-left: 4px solid var(--ok);
+}
+.mgr .mgr-kpi--money-bad {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--bad-soft) 92%, var(--surface)), var(--surface));
+  border-color: color-mix(in srgb, var(--bad) 32%, var(--line));
+  border-left: 4px solid var(--bad);
+}
+.mgr .mgr-kpi--money-slate {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--ok-soft) 45%, var(--surface-2)), var(--surface));
+  border-color: color-mix(in srgb, var(--ok) 20%, var(--line));
+  border-left: 4px solid var(--ok);
+}
+.mgr .mgr-kpi--money-accent {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--accent-soft) 92%, var(--surface)), var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+  border-left: 4px solid var(--accent);
+}
+.mgr .mgr-kpi--money-warn {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--warn-soft) 95%, var(--surface)), var(--surface));
+  border-color: color-mix(in srgb, var(--warn) 30%, var(--line));
+  border-left: 4px solid var(--warn);
+}
+[data-theme="dark"] .mgr .mgr-kpi--money-ok {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--ok-soft) 72%, var(--surface-2)), var(--surface-2));
+  border-color: color-mix(in srgb, var(--ok) 38%, rgba(255, 255, 255, .14));
+  border-left: 4px solid var(--ok);
+}
+[data-theme="dark"] .mgr .mgr-kpi--money-bad {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--bad-soft) 75%, var(--surface-2)), var(--surface-2));
+  border-color: color-mix(in srgb, var(--bad) 42%, rgba(255, 255, 255, .14));
+  border-left: 4px solid var(--bad);
+}
+[data-theme="dark"] .mgr .mgr-kpi--money-slate {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--ok-soft) 45%, var(--surface-2)), var(--surface-2));
+  border-color: rgba(255, 255, 255, .16);
+  border-left: 4px solid var(--ok);
+}
+[data-theme="dark"] .mgr .mgr-kpi--money-accent {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--accent-soft) 78%, var(--surface-2)), var(--surface-2));
+  border-color: color-mix(in srgb, var(--accent) 42%, rgba(255, 255, 255, .14));
+  border-left: 4px solid var(--accent);
+}
+[data-theme="dark"] .mgr .mgr-kpi--money-warn {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--warn-soft) 78%, var(--surface-2)), var(--surface-2));
+  border-color: color-mix(in srgb, var(--warn) 42%, rgba(255, 255, 255, .14));
+  border-left: 4px solid var(--warn);
+}
+.mgr .mgr-kpi--money-ok .mgr-kpi__val { color: var(--ok); }
+.mgr .mgr-kpi--money-bad .mgr-kpi__val { color: var(--bad); }
+.mgr .mgr-kpi--money-accent .mgr-kpi__val { color: var(--accent-ink); }
+.mgr .mgr-kpi--money-warn .mgr-kpi__val { color: var(--warn); }
+
+.mgr .mgr-kpi__ic {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+.mgr .mgr-kpi__ic--ok { background: var(--ok-soft); color: var(--ok); }
+.mgr .mgr-kpi__ic--bad { background: var(--bad-soft); color: var(--bad); }
+.mgr .mgr-kpi__ic--accent { background: var(--accent-soft); color: var(--accent); }
+.mgr .mgr-kpi__ic--warn { background: var(--warn-soft); color: var(--warn); }
+
+.mgr .mgr-finance-grid {
+  align-items: stretch;
+}
+.mgr .mgr-finance-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+  min-width: 0;
+}
+.mgr .mgr-finance-col > .mgr-card:last-child {
+  flex: 1;
+}
+.mgr .mgr-finance-col > .mgr-card:last-child > .mgr-finance-push {
+  margin-top: auto;
+}
+
+.mgr .fx-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mgr .fx-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+[data-theme="dark"] .mgr .fx-switcher {
+  background: var(--surface-2);
+  border-color: rgba(255, 255, 255, .18);
+}
+.mgr .fx-switcher__btn {
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  font: 700 12.5px/1 var(--font);
+  padding: 7px 10px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background .12s ease, color .12s ease;
+}
+.mgr .fx-switcher__btn:hover {
+  color: var(--accent);
+}
+.mgr .fx-switcher__btn.is-active {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+}
+.mgr .fx-rate-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+}
+.mgr .fx-kgs-hint {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.25;
+  margin-top: 2px;
+}
+.mgr .mgr-badge .fx-kgs-hint,
+.mgr .mgr-queue__meta .fx-kgs-hint {
+  display: inline;
+  margin-left: 5px;
+  margin-top: 0;
+}
+
+/* Transparency Range Slider on Account Settings */
+.mgr .mgr-alpha-ctrl {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.mgr .mgr-range {
+  width: 170px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.mgr .mgr-alpha-val {
+  min-width: 44px;
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+

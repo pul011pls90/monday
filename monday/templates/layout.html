@@ -176,15 +176,19 @@
     {% endblock %}
 
     {% block page %}
+    {% set _use_shell = current_user.is_authenticated and request.blueprint in ('manager', 'academic') %}
     <main class="page {% block page_class %}{% endblock %}">
       {% if one_time_notice %}<div class="flash flash--success" role="status">{{ one_time_notice }}</div>{% endif %}
       {{ ui.flashes() }}
+      {% if _use_shell %}<div class="app-shell-panel">{% endif %}
       {% block content %}{% endblock %}
+      {% if _use_shell %}</div>{% endif %}
     </main>
     {% endblock %}
     {% block footer %}{% endblock %}{# site footer: off until it is redesigned (partials/site_footer.html) #}
   </div>
 </div>
+{% block body_end %}{% endblock %}
 {% if current_user.is_authenticated and current_user.role in ('sales_manager', 'supervisor', 'admin') %}
 <script>(function(){if(localStorage.getItem('monday_crm_compact')==='1'){document.body.classList.add('is-compact');}})();</script>
 {% endif %}

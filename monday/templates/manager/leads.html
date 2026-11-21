@@ -6,7 +6,7 @@
 {% block content %}
   {% call mui.page_header(
     _("Лиды"),
-    _("Поиск, фильтрация по статусу, источнику и датам · быстрая смена статуса.")
+    _("Все обращения и заявки в одном месте.")
   ) %}
     <button type="button" class="mgr-btn mgr-btn--primary mgr-btn--sm" data-lead-drawer-open>{{ ui.icon('plus', 15) }}<span>{{ _("Новый лид") }}</span></button>
     {{ mui.btn(_("Воронка"), href=url_for('manager.pipeline'), variant='secondary', size='sm', icon_name='list') }}
@@ -141,12 +141,14 @@
     </div>
     {% endif %}
   {% else %}
-    {% call mui.empty(_("Лидов не найдено"), _("Попробуйте изменить параметры фильтра или добавьте нового лида."), icon_name='users') %}
+    {% call mui.empty(_("Здесь пока пусто"), _("Никого не нашлось — сбросьте фильтры или добавьте первого лида."), icon_name='users') %}
       <button type="button" class="mgr-btn mgr-btn--primary mgr-btn--sm" data-lead-drawer-open>{{ ui.icon('plus', 15) }}<span>{{ _("Новый лид") }}</span></button>
     {% endcall %}
   {% endif %}
+{% endblock %}
 
-{# Slide-Over Drawer for Creating a Lead #}
+{% block body_end %}
+{# Slide-Over Drawer for Creating a Lead (kept outside frosted shell so fixed overlay covers viewport) #}
 <div class="crm-drawer-backdrop" id="new-lead" hidden role="dialog" aria-modal="true" aria-labelledby="new-lead-title">
   <aside class="crm-drawer">
     <div class="crm-drawer__head">
