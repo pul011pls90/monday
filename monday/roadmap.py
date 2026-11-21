@@ -181,11 +181,10 @@ def build_sat_roadmap(user_id: int, topics: list[dict], q: str = "", lang: str =
             if cn:
                 weak_journal.append({"skill_id": sid, "name": cn.name, "errors": err_counts[sid]})
 
-    # Saved RoadmapProgress completions
-    prog_rows = {
-        r.node_key: r.status
-        for r in RoadmapProgress.query.filter_by(user_id=user_id).all()
-    }
+    # Saved RoadmapProgress completions (prefer stable node_id FK, fallback to legacy node_key)
+    prog_all = RoadmapProgress.query.filter_by(user_id=user_id).all()
+    prog_by_id = {r.node_id: r.status for r in prog_all if r.node_id is not None}
+    prog_by_key = {r.node_key: r.status for r in prog_all if r.node_key}
 
     # Diagnostic placement
     weakest_domain, strong_domains = _domain_diagnostic_stats(user_id, milestones_db)
@@ -246,7 +245,7 @@ def build_sat_roadmap(user_id: int, topics: list[dict], q: str = "", lang: str =
 
             if errors > 0:
                 status = "needs_review"
-            elif prog_rows.get(n.key) == "completed":
+            elif prog_by_id.get(n.id) == "completed" or prog_by_key.get(n.key) == "completed":
                 status = "completed"
             elif any_mastered or (m.key in strong_domains and n.tier == "foundation" and n.kind == "topic"):
                 status = "mastered"
@@ -347,12 +346,26 @@ def build_sat_roadmap(user_id: int, topics: list[dict], q: str = "", lang: str =
 def api_complete_node(node_key: str):
     data = request.get_json(silent=True) or {}
     done = bool(data.get("done", True))
-    row = RoadmapProgress.query.filter_by(user_id=current_user.id, node_key=node_key).first()
+    node = RoadmapNode.query.filter_by(key=node_key).first()
+    row = None
+    if node is not None:
+        row = RoadmapProgress.query.filter_by(user_id=current_user.id, node_id=node.id).first()
+    if row is None:
+        row = RoadmapProgress.query.filter_by(user_id=current_user.id, node_key=node_key).first()
     if done:
         if row is None:
-            row = RoadmapProgress(user_id=current_user.id, node_key=node_key, status="completed", updated_at=utcnow())
+            row = RoadmapProgress(
+                user_id=current_user.id,
+                node_id=node.id if node else None,
+                node_key=node_key,
+                status="completed",
+                updated_at=utcnow(),
+            )
             db.session.add(row)
         else:
+            if node is not None:
+                row.node_id = node.id
+            row.node_key = node_key
             row.status = "completed"
             row.updated_at = utcnow()
     else:

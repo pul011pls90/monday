@@ -539,11 +539,19 @@ def student_reset_password(record_id):
 @teacher_required
 def student_unlink(record_id):
     r = _own_record(record_id)
+    if r.student_user_id:
+        r.previous_student_user_id = r.student_user_id
     r.student_user_id = None
     r.linked_at = None
-    r.rotate_invite_code()
-    db.session.commit()
-    flash(_("Аккаунт отвязан. Строка в таблице сохранена."), "success")
+    has_assignments = Assignment.query.filter_by(record_id=r.id).first() is not None
+    if has_assignments:
+        r.revoke_invite_code()
+        db.session.commit()
+        flash(_("Аккаунт отвязан, код приглашения отозван: в этой строке уже есть задания. Для другого ученика создайте новую строку."), "success")
+    else:
+        r.rotate_invite_code()
+        db.session.commit()
+        flash(_("Аккаунт отвязан. Строка в таблице сохранена."), "success")
     return redirect(url_for("teacher.student_detail", record_id=r.id))
 
 

@@ -29,10 +29,10 @@ def select_locale():
 def create_app(config_object=Config, *, seed_if_empty=True):
     app = Flask(__name__, instance_path=os.path.join(os.path.dirname(os.path.dirname(__file__)), "instance"))
     app.config.from_object(config_object)
-    # Render (and most hosts) end HTTPS in front of the app: trust their X-Forwarded-Proto/Host once, so links
-    # built with _external (Google's return address, invite links) start with https://.
+    # Render (and most hosts) end HTTPS in front of the app: trust their X-Forwarded-For/Proto/Host for one hop so
+    # request.remote_addr reflects the real client IP and _external links start with https://.
     from werkzeug.middleware.proxy_fix import ProxyFix
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
     db.init_app(app)
@@ -41,6 +41,7 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     app.config.setdefault("RATELIMIT_ENABLED", not app.config.get("TESTING", False))
     limiter.init_app(app)
     _register_speed(app)
+    _register_security_headers(app)
     babel.init_app(app, locale_selector=select_locale)
 
     # names of the shared skill map are stored in Russian; show them in the page's language
@@ -263,6 +264,44 @@ def create_app(config_object=Config, *, seed_if_empty=True):
         start_daily_maintenance_if_due(app)
 
     return app
+
+
+def _register_security_headers(app):
+    """Attach baseline HTTP security headers (and HSTS when running behind HTTPS)."""
+    from urllib.parse import urlparse
+
+    supabase_origin = ""
+    raw_sb = (app.config.get("SUPABASE_URL") or "").strip()
+    if raw_sb:
+        parsed = urlparse(raw_sb)
+        if parsed.scheme and parsed.netloc:
+            supabase_origin = f" {parsed.scheme}://{parsed.netloc}"
+
+    csp = app.config.get("CONTENT_SECURITY_POLICY") or (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://www.desmos.com https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline'; "
+        f"img-src 'self' data: blob: https://www.desmos.com{supabase_origin}; "
+        "font-src 'self' data:; "
+        f"connect-src 'self' https://www.desmos.com https://cdn.jsdelivr.net{supabase_origin}; "
+        "worker-src 'self' blob:; "
+        "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; "
+        "frame-ancestors 'self'; "
+        "object-src 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self' https://accounts.google.com"
+    )
+
+    @app.after_request
+    def _set_security_headers(response):
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+        response.headers.setdefault("Content-Security-Policy", csp)
+        if app.config.get("SESSION_COOKIE_SECURE"):
+            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        return response
 
 
 def _lock_supabase_api():

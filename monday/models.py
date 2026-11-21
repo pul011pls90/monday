@@ -258,6 +258,7 @@ class Question(db.Model):
     explanation = db.Column(db.Text, default="")
     video_url = db.Column(db.String(255))
     source = db.Column(db.String(40))  # content pack id for questions from compilations (None = made by a teacher)
+    pack_item_id = db.Column(db.String(120), nullable=True, index=True)  # stable "<pack_id>:<item_id>" key for idempotent pack sync
     rubric = db.Column(JSONText)  # written: [{"points": 2, "text": "…"}, …] — scoring criteria, best first
     tags = db.Column(JSONText)  # kinds of question: word, graph, nocalc, compare (see taxonomy.TAGS)
     status = db.Column(db.String(12), default="published")  # draft | pending (assistant's, waits for review) | published
@@ -319,6 +320,7 @@ class Work(db.Model):
     calculator = db.Column(db.Boolean, nullable=False, default=False)  # Desmos in the test
     module_split = db.Column(db.Integer)  # SAT: how many questions are in module 1
     per_page = db.Column(db.Integer, nullable=False, default=4)  # ORT: questions per page
+    pack_item_id = db.Column(db.String(120), nullable=True, index=True)  # stable "<pack_id>:<collection_id>" key for idempotent pack sync
     created_at = db.Column(db.DateTime, default=utcnow)
     updated_at = db.Column(db.DateTime, default=utcnow, onupdate=utcnow)
 
@@ -406,6 +408,7 @@ class StudentRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     teacher_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
     student_user_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
+    previous_student_user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
     name = db.Column(db.String(120), nullable=False)
     grade = db.Column(db.String(16))
     lesson_time = db.Column(db.String(5))  # "16:00"
@@ -819,6 +822,7 @@ class MaintenanceLog(db.Model):
     message = db.Column(db.String(500), nullable=False, default="")
     expected_minutes = db.Column(db.Integer, nullable=False, default=15)
     starts_at = db.Column(db.DateTime, nullable=True)
+    actor_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
     actor = db.Column(db.String(120), nullable=False, default="")
     source = db.Column(db.String(40), nullable=False, default="admin")  # admin | cli
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -886,9 +890,12 @@ class RoadmapProgress(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    node_id = db.Column(db.Integer, db.ForeignKey("roadmap_node.id", ondelete="CASCADE"), nullable=True, index=True)
     node_key = db.Column(db.String(80), nullable=False)
     status = db.Column(db.String(24), nullable=False, default="completed")
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    node = db.relationship("RoadmapNode")
 
 
 class CourseUnit(db.Model):
@@ -943,11 +950,14 @@ class CourseMastery(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    lesson_id = db.Column(db.Integer, db.ForeignKey("course_lesson.id", ondelete="CASCADE"), nullable=True, index=True)
     lesson_key = db.Column(db.String(160), nullable=False)
     level = db.Column(db.String(24), nullable=False, default="not_started")
     best_score = db.Column(db.Integer, nullable=False, default=0)
     total_q = db.Column(db.Integer, nullable=False, default=0)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    lesson = db.relationship("CourseLesson")
 
 
 # --------------------------------------------------------------------------- analytics

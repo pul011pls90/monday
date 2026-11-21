@@ -177,10 +177,9 @@ def build_course(user_id: int, exam: str = "SAT", q: str = "") -> dict:
         seed_course(dry_run=False)
         units_db = CourseUnit.query.filter_by(exam=exam_code).order_by(CourseUnit.number.asc()).all()
 
-    mastery_map = {
-        r.lesson_key: r
-        for r in CourseMastery.query.filter_by(user_id=user_id).all()
-    }
+    mastery_all = CourseMastery.query.filter_by(user_id=user_id).all()
+    mastery_by_id = {r.lesson_id: r for r in mastery_all if r.lesson_id is not None}
+    mastery_by_key = {r.lesson_key: r for r in mastery_all if r.lesson_key}
     q_norm = (q or "").strip().lower()
 
     units_out = []
@@ -198,7 +197,7 @@ def build_course(user_id: int, exam: str = "SAT", q: str = "") -> dict:
             lkey = f"{u.slug}:{l.slug}"
             if q_norm and q_norm not in (l.title_ru + " " + u.title_ru).lower():
                 continue
-            m_row = mastery_map.get(lkey)
+            m_row = mastery_by_id.get(l.id) or mastery_by_key.get(lkey)
             level = m_row.level if m_row else "not_started"
             total_lessons += 1
             if level == "mastered":
@@ -279,16 +278,15 @@ def player(exam: str, unit_slug: str, lesson_slug: str):
         abort(404)
     session["course_run"] = {"key": f"{exam.upper()}:{unit.slug}:{lesson.slug}", "results": {}}
 
-    mastery_map = {
-        r.lesson_key: r.level
-        for r in CourseMastery.query.filter_by(user_id=current_user.id).all()
-    }
+    mastery_all = CourseMastery.query.filter_by(user_id=current_user.id).all()
+    mastery_by_id = {r.lesson_id: r.level for r in mastery_all if r.lesson_id is not None}
+    mastery_by_key = {r.lesson_key: r.level for r in mastery_all if r.lesson_key}
     sidebar_lessons = []
     next_url = None
     found_cur = False
     for l in lessons:
         lkey = f"{unit.slug}:{l.slug}"
-        lvl = mastery_map.get(lkey, "not_started")
+        lvl = mastery_by_id.get(l.id) or mastery_by_key.get(lkey, "not_started")
         url = url_for("course.player", exam=exam.upper(), unit_slug=unit.slug, lesson_slug=l.slug)
         if found_cur and next_url is None:
             next_url = url
@@ -367,7 +365,7 @@ def player(exam: str, unit_slug: str, lesson_slug: str):
     except Exception:
         desmos_preset = None
 
-    cur_level = mastery_map.get(f"{unit.slug}:{lesson.slug}", "not_started")
+    cur_level = mastery_by_id.get(lesson.id) or mastery_by_key.get(f"{unit.slug}:{lesson.slug}", "not_started")
 
     return render_template(
         "student/course_player.html",
@@ -546,10 +544,14 @@ def api_complete_lesson():
                 new_lvl = "familiar"
 
     lkey = f"{unit.slug}:{lesson.slug}"
-    row = CourseMastery.query.filter_by(user_id=current_user.id, lesson_key=lkey).first()
+    row = (
+        CourseMastery.query.filter_by(user_id=current_user.id, lesson_id=lesson.id).first()
+        or CourseMastery.query.filter_by(user_id=current_user.id, lesson_key=lkey).first()
+    )
     if row is None:
         row = CourseMastery(
             user_id=current_user.id,
+            lesson_id=lesson.id,
             lesson_key=lkey,
             level=new_lvl,
             best_score=score,
@@ -558,6 +560,8 @@ def api_complete_lesson():
         )
         db.session.add(row)
     else:
+        row.lesson_id = lesson.id
+        row.lesson_key = lkey
         if MASTERY_ORDER.get(new_lvl, 0) > MASTERY_ORDER.get(row.level, 0):
             row.level = new_lvl
         row.best_score = max(row.best_score or 0, score)
@@ -568,8 +572,13 @@ def api_complete_lesson():
     if lesson.kind == "quiz" and new_lvl == "mastered":
         for sibling in unit.lessons.all():
             skey = f"{unit.slug}:{sibling.slug}"
-            srow = CourseMastery.query.filter_by(user_id=current_user.id, lesson_key=skey).first()
+            srow = (
+                CourseMastery.query.filter_by(user_id=current_user.id, lesson_id=sibling.id).first()
+                or CourseMastery.query.filter_by(user_id=current_user.id, lesson_key=skey).first()
+            )
             if srow and srow.level == "proficient":
+                srow.lesson_id = sibling.id
+                srow.lesson_key = skey
                 srow.level = "mastered"
                 srow.updated_at = utcnow()
 

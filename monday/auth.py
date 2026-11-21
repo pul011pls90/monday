@@ -13,7 +13,7 @@ from config import Config
 
 from .extensions import db, limiter
 from .models import utcnow
-from .models import StudentProfile, StudentRecord, User
+from .models import Assignment, StudentProfile, StudentRecord, User
 
 bp = Blueprint("auth", __name__)
 
@@ -56,10 +56,17 @@ def link_invite_code(user, code):
         return False, _("Такого кода нет. Уточни его у учителя.")
     if record.student_user_id and record.student_user_id != user.id:
         return False, _("Этот код уже использован другим учеником.")
+    if (
+        record.previous_student_user_id
+        and record.previous_student_user_id != user.id
+        and Assignment.query.filter_by(record_id=record.id).first() is not None
+    ):
+        return False, _("Эта строка уже содержит задания другого ученика. Попроси учителя создать новую строку.")
     if StudentRecord.query.filter_by(teacher_id=record.teacher_id, student_user_id=user.id).filter(
             StudentRecord.id != record.id).first():
         return False, _("Ты уже подключён к этому учителю.")
     record.student_user_id = user.id
+    record.previous_student_user_id = user.id
     record.linked_at = utcnow()
     if user.profile and not user.profile.exam and record.exam:
         user.profile.exam = record.exam

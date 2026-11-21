@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import ipaddress
 import logging
 import os
@@ -45,28 +46,31 @@ _UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f
 
 _GEOIP_READER = None
 _GEOIP_PATH_TRIED = None
+_WARNED_MISSING_SALT = False
 
 
 def get_client_ip() -> str:
-    """Return the probable client IP from headers/remote_addr (never stored raw)."""
-    xff = request.headers.get("X-Forwarded-For", "")
-    if xff:
-        for part in xff.split(","):
-            candidate = part.strip()
-            if candidate:
-                return candidate
-    real_ip = (request.headers.get("X-Real-IP") or "").strip()
-    if real_ip:
-        return real_ip
+    """Return the trusted client IP resolved by ProxyFix into request.remote_addr (never stored raw)."""
     return (request.remote_addr or "").strip()
 
 
 def hash_ip(raw_ip: str, salt: str = "") -> str | None:
-    """Hash a raw IP address with SHA-256 + salt; return None if IP is empty."""
+    """Hash a raw IP address with SHA-256 + dedicated salt; return None if IP is empty."""
+    global _WARNED_MISSING_SALT
     if not raw_ip:
         return None
     if not salt:
-        salt = os.environ.get("ANALYTICS_IP_SALT") or current_app.config.get("SECRET_KEY", "monday-salt")
+        salt = (
+            os.environ.get("ANALYTICS_IP_SALT")
+            or current_app.config.get("ANALYTICS_IP_SALT")
+            or ""
+        ).strip()
+        if not salt:
+            if not _WARNED_MISSING_SALT and not current_app.config.get("TESTING"):
+                _WARNED_MISSING_SALT = True
+                log.warning("ANALYTICS_IP_SALT is not set; using a domain-separated fallback derived from SECRET_KEY.")
+            secret = str(current_app.config.get("SECRET_KEY") or "").encode("utf-8")
+            salt = hmac.new(secret, b"monday:analytics-ip-salt:v1", hashlib.sha256).hexdigest()
     payload = f"{salt}:{raw_ip}".encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
 
@@ -108,25 +112,25 @@ def _get_geoip_reader():
 
 
 def resolve_geoip(raw_ip: str) -> tuple[str | None, str | None]:
-    """Resolve (country, city) via optional GeoLite2 MMDB or reverse-proxy headers."""
-    # 1. Reverse-proxy Geo headers (Cloudflare / Vercel / Render / Nginx GeoIP)
-    hdr_country = (
-        request.headers.get("CF-IPCountry")
-        or request.headers.get("X-Vercel-IP-Country")
-        or request.headers.get("X-Country-Code")
-        or request.headers.get("X-AppEngine-Country")
-        or ""
-    ).strip().upper()
-    hdr_city = (
-        request.headers.get("CF-IPCity")
-        or request.headers.get("X-Vercel-IP-City")
-        or request.headers.get("X-AppEngine-City")
-        or ""
-    ).strip()
-    if hdr_city:
-        hdr_city = unquote(hdr_city)[:120]
-    if hdr_country and hdr_country not in ("XX", "T1"):
-        return hdr_country[:80], (hdr_city or None)
+    """Resolve (country, city) via optional GeoLite2 MMDB or trusted reverse-proxy headers."""
+    # 1. Trusted reverse-proxy Geo headers (Cloudflare / Vercel / AppEngine), gated by TRUST_PROXY_GEO_HEADERS
+    if current_app.config.get("TRUST_PROXY_GEO_HEADERS", True):
+        hdr_country = (
+            request.headers.get("CF-IPCountry")
+            or request.headers.get("X-Vercel-IP-Country")
+            or request.headers.get("X-AppEngine-Country")
+            or ""
+        ).strip().upper()
+        hdr_city = (
+            request.headers.get("CF-IPCity")
+            or request.headers.get("X-Vercel-IP-City")
+            or request.headers.get("X-AppEngine-City")
+            or ""
+        ).strip()
+        if hdr_city:
+            hdr_city = unquote(hdr_city)[:120]
+        if hdr_country and hdr_country not in ("XX", "T1"):
+            return hdr_country[:80], (hdr_city or None)
 
     if not raw_ip:
         return None, None
