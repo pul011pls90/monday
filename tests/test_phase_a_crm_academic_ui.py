@@ -217,7 +217,7 @@ def test_crm_workspace_headers_wide_grids_csrf_and_rail_badges():
     dash_mgr = c_mgr.get("/manager").data.decode()
     assert 'class="rail__count"' in dash_mgr
 
-    # Verify supervisor renders all upgraded CRM & Academic pages with .crm-workspace + .t-hero-bar + valid CSRF on every POST form
+    # Verify supervisor renders all upgraded CRM & Academic pages with body.mgr + free-standing layout (no wrapper card) + valid CSRF on every POST form
     c_sup = app.test_client()
     _login(c_sup, "sup@example.com")
     wide_routes = ("/manager", "/manager/leads", "/manager/pipeline", "/manager/finance", "/academic/schedule")
@@ -233,8 +233,9 @@ def test_crm_workspace_headers_wide_grids_csrf_and_rail_badges():
         resp = c_sup.get(route)
         assert resp.status_code == 200, f"{route} -> {resp.status_code}"
         html = resp.data.decode()
-        assert 'class="crm-workspace"' in html, f"Missing .crm-workspace on {route}"
-        assert 'class="t-hero-bar"' in html, f"Missing .t-hero-bar on {route}"
+        assert '<body class="mgr"' in html, f"Missing body.mgr on {route}"
+        assert 'class="crm-workspace"' not in html, f"Legacy wrapper card .crm-workspace still present on {route}"
+        assert ('class="mgr-head"' in html or 'class="t-hero-bar"' in html), f"Missing page header on {route}"
         if route in wide_routes:
             assert "page--wide" in html, f"Missing .page--wide on {route}"
         for form_match in re.finditer(r'<form[^>]*method="post"[^>]*>([\s\S]*?)</form>', html, flags=re.IGNORECASE):

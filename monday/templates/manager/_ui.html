@@ -1,0 +1,140 @@
+{# Stage 1 Manager-Scoped UI Macros — matches Student components while remaining fast and dense.
+   Import with: {% import "manager/_ui.html" as mui with context %} #}
+{% import "partials/macros.html" as ui with context %}
+
+{# 1. Page Header: display title + short subtitle + optional back pill & right actions via caller() #}
+{% macro page_header(title, subtitle='', back_href='', back_label='Назад') -%}
+<header class="mgr-head">
+  <div class="mgr-head__title">
+    {% if back_href %}
+    <div class="mgr-head__top">
+      <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ back_href }}">{{ ui.icon('arrow-left', 15) }}<span>{{ back_label }}</span></a>
+    </div>
+    {% endif %}
+    <h1>{{ title }}</h1>
+    {% if subtitle %}<p class="mgr-head__sub">{{ subtitle }}</p>{% endif %}
+  </div>
+  {% if caller is defined %}<div class="mgr-head__actions">{{ caller() }}</div>{% endif %}
+</header>
+{%- endmacro %}
+
+{# 2. Card Container #}
+{% macro card(cls='', tight=false) -%}
+<section class="mgr-card{{ ' mgr-card--tight' if tight }}{{ ' ' ~ cls if cls }}">
+  {{ caller() }}
+</section>
+{%- endmacro %}
+
+{# 3. Section Header: inline icon + 20px title + optional counter pill / link #}
+{% macro section_head(icon_name, title, count=None, right_href='', right_label='') -%}
+<div class="mgr-section-head">
+  {% if icon_name %}<span class="mgr-section-head__ic" aria-hidden="true">{{ ui.icon(icon_name, 20) }}</span>{% endif %}
+  <h2 class="mgr-section-head__title">{{ title }}</h2>
+  {% if right_href and right_label %}
+    <a class="mgr-pill" href="{{ right_href }}">{{ right_label }}</a>
+  {% elif count is not none %}
+    <span class="mgr-pill num">{{ count }}</span>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{# 4. KPI Card: white neutral card; numeral turns amber/red + dot ONLY when tone is warn/bad #}
+{% macro kpi(label, value, hint='', tone='neutral', href='') -%}
+{% set tone_cls = ' is-bad' if tone == 'bad' else (' is-warn' if tone == 'warn' else '') %}
+{% set dot_cls = 'mgr-dot--' ~ (tone if tone in ('accent', 'ok', 'warn', 'bad') else 'neutral') %}
+{% if href %}<a class="mgr-kpi{{ tone_cls }}" href="{{ href }}">{% else %}<div class="mgr-kpi{{ tone_cls }}">{% endif %}
+  <div class="mgr-kpi__top">
+    <span class="mgr-kpi__label">{{ label }}</span>
+    <span class="mgr-dot {{ dot_cls }}" aria-hidden="true"></span>
+  </div>
+  <span class="mgr-kpi__val num">{{ value }}</span>
+  {% if hint %}<span class="mgr-kpi__hint">{{ hint }}</span>{% endif %}
+{% if href %}</a>{% else %}</div>{% endif %}
+{%- endmacro %}
+
+{# 5. Chip / Tab Filter Bar: list of dicts or tuples (label, href, active, count=None) #}
+{% macro filter_tabs(items, aria_label='Фильтр') -%}
+<nav class="mgr-tabs" aria-label="{{ aria_label }}">
+  {% for it in items %}
+    {% set label = it.label if it is mapping else it[0] %}
+    {% set href = it.href if it is mapping else it[1] %}
+    {% set active = it.active if it is mapping else it[2] %}
+    {% set count = it.count if it is mapping else (it[3] if it|length > 3 else None) %}
+    <a class="mgr-tab{{ ' is-active' if active }}" href="{{ href }}"{% if active %} aria-current="page"{% endif %}>
+      <span>{{ label }}</span>
+      {% if count is not none %}<span class="mgr-tab__count num">{{ count }}</span>{% endif %}
+    </a>
+  {% endfor %}
+</nav>
+{%- endmacro %}
+
+{# 6. Badge: status / SLA / source #}
+{% macro badge(label, tone='neutral', dot=false, icon_name='') -%}
+<span class="mgr-badge{{ ' mgr-badge--' ~ tone if tone in ('accent', 'ok', 'warn', 'bad') }}">
+  {% if dot %}<span class="mgr-dot mgr-dot--{{ tone if tone in ('accent', 'ok', 'warn', 'bad') else 'neutral' }}" aria-hidden="true"></span>{% endif %}
+  {% if icon_name %}{{ ui.icon(icon_name, 13) }}{% endif %}
+  <span>{{ label }}</span>
+</span>
+{%- endmacro %}
+
+{# 7. Button / Link Button #}
+{% macro btn(label, href='', variant='primary', size='sm', icon_name='', btn_type='button', cls='') -%}
+{% set v_cls = 'mgr-btn--' ~ (variant if variant in ('primary', 'secondary', 'ghost', 'danger') else 'primary') %}
+{% set s_cls = ' mgr-btn--sm' if size == 'sm' else '' %}
+{% if href %}
+<a class="mgr-btn {{ v_cls }}{{ s_cls }}{{ ' ' ~ cls if cls }}" href="{{ href }}">
+  {% if icon_name %}{{ ui.icon(icon_name, 15) }}{% endif %}<span>{{ label }}</span>
+</a>
+{% else %}
+<button class="mgr-btn {{ v_cls }}{{ s_cls }}{{ ' ' ~ cls if cls }}" type="{{ btn_type }}">
+  {% if icon_name %}{{ ui.icon(icon_name, 15) }}{% endif %}<span>{{ label }}</span>
+</button>
+{% endif %}
+{%- endmacro %}
+
+{# 8. Data Table Wrapper (44px rows + sticky header + 13.5px body) #}
+{% macro table_wrap(cls='') -%}
+<div class="mgr-table-wrap{{ ' ' ~ cls if cls }}">
+  {{ caller() }}
+</div>
+{%- endmacro %}
+
+{# 9. Empty State #}
+{% macro empty(title, desc='', icon_name='inbox') -%}
+<div class="mgr-empty">
+  <div class="mgr-empty__ic" aria-hidden="true">{{ ui.icon(icon_name, 20) }}</div>
+  <h3>{{ title }}</h3>
+  {% if desc %}<p>{{ desc }}</p>{% endif %}
+  {% if caller is defined %}<div>{{ caller() }}</div>{% endif %}
+</div>
+{%- endmacro %}
+
+{# 10. Row-Card Pattern (/profile-style stacked card & inline collapsible editor) #}
+{% macro row_card(icon_name, title, desc='', cls='') -%}
+<section class="mgr-row-card{{ ' ' ~ cls if cls }}">
+  <div class="mgr-row-card__head">{% if icon_name %}{{ ui.icon(icon_name, 20) }}{% endif %}<h3>{{ title }}</h3></div>
+  {% if desc %}<p class="mgr-row-card__desc">{{ desc }}</p>{% endif %}
+  {{ caller() }}
+</section>
+{%- endmacro %}
+
+{% macro row_line(shown, action_label='', action_href='') -%}
+<div class="mgr-row-line">
+  <span class="mgr-row-val">{{ shown }}</span>
+  {% if caller is defined %}
+    {{ caller() }}
+  {% elif action_href and action_label %}
+    <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ action_href }}">{{ action_label }}</a>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro row_edit(shown, label='Изменить', open=false, action_url='') -%}
+<details class="mgr-row-edit"{% if open %} open{% endif %}>
+  <summary><span class="mgr-row-val">{{ shown }}</span><span class="mgr-btn mgr-btn--secondary mgr-btn--sm">{{ label }}</span></summary>
+  <form method="post"{% if action_url %} action="{{ action_url }}"{% endif %} class="mgr-row-edit__form">
+    {{ ui.csrf() }}
+    {{ caller() }}
+  </form>
+</details>
+{%- endmacro %}

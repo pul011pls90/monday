@@ -2,7 +2,6 @@
 {% block title %}{{ lesson.group.name }} · {{ _("Урок") }}{% endblock %}
 {% block context %}{{ _("Посещаемость урока") }}{% endblock %}
 {% block content %}
-<div class="crm-workspace">
   <div class="t-hero-bar">
     <div class="t-hero-bar__title">
       <div class="row" style="gap:8px;align-items:center">
@@ -114,5 +113,4 @@
   {% else %}
   <div class="empty"><h3>{{ _("В группе пока нет зачисленных учеников") }}</h3></div>
   {% endif %}
-</div>
 {% endblock %}

@@ -1,138 +1,150 @@
 {% extends "layout.html" %}
+{% import "manager/_ui.html" as mui with context %}
 {% block title %}{{ _("CRM · Лиды") }}{% endblock %}
 {% block context %}{{ _("Кабинет супервайзера") if current_user.is_supervisor else _("Кабинет менеджера") }}{% endblock %}
 {% block page_class %}page--wide{% endblock %}
 {% block content %}
-<div class="crm-workspace">
-  <div class="t-hero-bar">
-    <div class="t-hero-bar__title">
-      <h1>{{ _("Лиды") }} <span class="muted num" style="font-size:20px;font-weight:700">{{ pagination.total if pagination else leads|length }}</span></h1>
-      <p>{{ _("Поиск, фильтрация по статусу, источнику и датам · быстрая смена статуса.") }}</p>
-    </div>
-    <div class="t-hero-actions">
-      <button type="button" class="btn btn--primary btn--min" data-lead-drawer-open>{{ ui.icon('plus', 15) }}<span>{{ _("Новый лид") }}</span></button>
-      <a class="btn btn--secondary btn--min" href="{{ url_for('manager.pipeline') }}">{{ ui.icon('list', 15) }}<span>{{ _("Воронка") }}</span></a>
-    </div>
-  </div>
+  {% call mui.page_header(
+    _("Лиды"),
+    _("Поиск, фильтрация по статусу, источнику и датам · быстрая смена статуса.")
+  ) %}
+    <button type="button" class="mgr-btn mgr-btn--primary mgr-btn--sm" data-lead-drawer-open>{{ ui.icon('plus', 15) }}<span>{{ _("Новый лид") }}</span></button>
+    {{ mui.btn(_("Воронка"), href=url_for('manager.pipeline'), variant='secondary', size='sm', icon_name='list') }}
+  {% endcall %}
 
-  {# Row 1: Quick-Filter Status Pills #}
-  <div class="chips crm-status-pills" role="navigation" aria-label="{{ _('Фильтр по статусу') }}">
-    <a class="chip{{ ' is-active' if not filters.status }}" href="{{ url_for('manager.leads', source=filters.source or None, manager=filters.manager or None, sla=filters.sla or None, date_from=filters.date_from or None, date_to=filters.date_to or None, q=filters.q or None) }}">{{ _("Все") }}</a>
-    {% for s in LEAD_STATUSES %}
-      <a class="chip{{ ' is-active' if filters.status == s }}" href="{{ url_for('manager.leads', status=s, source=filters.source or None, manager=filters.manager or None, sla=filters.sla or None, date_from=filters.date_from or None, date_to=filters.date_to or None, q=filters.q or None) }}">{{ STATUS_LABELS[s] }}</a>
-    {% endfor %}
-  </div>
+  {# Row 1: Status Chips as Tabs with Live Counts #}
+  {% set tab_items = [{
+    'label': _("Все"),
+    'href': url_for('manager.leads', source=filters.source or None, manager=filters.manager or None, sla=filters.sla or None, date_from=filters.date_from or None, date_to=filters.date_to or None, q=filters.q or None),
+    'active': not filters.status,
+    'count': total_all_leads
+  }] %}
+  {% for s in LEAD_STATUSES %}
+    {% set _ = tab_items.append({
+      'label': STATUS_LABELS[s],
+      'href': url_for('manager.leads', status=s, source=filters.source or None, manager=filters.manager or None, sla=filters.sla or None, date_from=filters.date_from or None, date_to=filters.date_to or None, q=filters.q or None),
+      'active': filters.status == s,
+      'count': status_counts.get(s, 0)
+    }) %}
+  {% endfor %}
+  {{ mui.filter_tabs(tab_items, aria_label=_("Фильтр по статусу")) }}
 
-  {# Row 2: Single Horizontal Search & Filter Bar #}
-  <form method="get" action="{{ url_for('manager.leads') }}" class="crm-filter-bar" role="search">
+  {# Row 2: One Compact Filter Row #}
+  <form method="get" action="{{ url_for('manager.leads') }}" class="mgr-filter-row crm-filter-grid" role="search">
     {% if filters.status %}<input type="hidden" name="status" value="{{ filters.status }}">{% endif %}
-    <div class="crm-filter-grid">
-      <label class="search search--sm crm-filter-search">
-        {{ ui.icon('search', 16) }}
-        <span class="sr-only">{{ _("Поиск") }}</span>
-        <input type="search" name="q" value="{{ filters.q }}" placeholder="{{ _('Имя, телефон, @ник, курс...') }}">
-      </label>
-      <select class="select input--sm" name="source" aria-label="{{ _('Источник') }}">
-        <option value="">{{ _("Все источники") }}</option>
-        {% for s in LEAD_SOURCES %}<option value="{{ s }}" {{ 'selected' if filters.source == s }}>{{ SOURCE_LABELS[s] }}</option>{% endfor %}
-      </select>
-      {% if current_user.has_perm('crm.leads.view_all') %}
-      <select class="select input--sm" name="manager" aria-label="{{ _('Менеджер') }}">
-        <option value="">{{ _("Все менеджеры") }}</option>
-        {% for m in managers %}<option value="{{ m.id }}" {{ 'selected' if filters.manager == m.id }}>{{ m.name }}</option>{% endfor %}
-      </select>
-      {% endif %}
-      <select class="select input--sm" name="sla" aria-label="SLA">
-        <option value="">{{ _("Любой SLA") }}</option>
-        <option value="overdue" {{ 'selected' if filters.sla == 'overdue' }}>{{ _("SLA > %(m)s мин", m=sla_threshold) }}</option>
-      </select>
-      <input class="input input--sm crm-filter-date" type="date" name="date_from" value="{{ filters.date_from }}" aria-label="{{ _('С даты') }}" title="{{ _('С даты') }}">
-      <input class="input input--sm crm-filter-date" type="date" name="date_to" value="{{ filters.date_to }}" aria-label="{{ _('По дату') }}" title="{{ _('По дату') }}">
-      <button class="btn btn--primary btn--min" type="submit">{{ ui.icon('search', 14) }}<span>{{ _("Найти") }}</span></button>
-      <a class="btn btn--secondary btn--min" href="{{ url_for('manager.leads') }}">{{ _("Сброс") }}</a>
-    </div>
+    <label class="search search--sm mgr-filter-search">
+      {{ ui.icon('search', 16) }}
+      <span class="sr-only">{{ _("Поиск") }}</span>
+      <input type="search" name="q" value="{{ filters.q }}" placeholder="{{ _('Имя, телефон, @ник, курс...') }}">
+    </label>
+    <select class="select input--sm" name="source" aria-label="{{ _('Источник') }}">
+      <option value="">{{ _("Все источники") }}</option>
+      {% for s in LEAD_SOURCES %}<option value="{{ s }}" {{ 'selected' if filters.source == s }}>{{ SOURCE_LABELS[s] }}</option>{% endfor %}
+    </select>
+    {% if current_user.has_perm('crm.leads.view_all') %}
+    <select class="select input--sm" name="manager" aria-label="{{ _('Менеджер') }}">
+      <option value="">{{ _("Все менеджеры") }}</option>
+      {% for m in managers %}<option value="{{ m.id }}" {{ 'selected' if filters.manager == m.id }}>{{ m.name }}</option>{% endfor %}
+    </select>
+    {% endif %}
+    <select class="select input--sm" name="sla" aria-label="SLA">
+      <option value="">{{ _("Любой SLA") }}</option>
+      <option value="overdue" {{ 'selected' if filters.sla == 'overdue' }}>{{ _("SLA > %(m)s мин", m=sla_threshold) }}</option>
+    </select>
+    <input class="input input--sm" type="date" name="date_from" value="{{ filters.date_from }}" aria-label="{{ _('С даты') }}">
+    <input class="input input--sm" type="date" name="date_to" value="{{ filters.date_to }}" aria-label="{{ _('По дату') }}">
+    <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ ui.icon('search', 14) }}<span>{{ _("Найти") }}</span></button>
+    <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.leads') }}">{{ _("Сброс") }}</a>
   </form>
 
-  {# Dense Leads Table #}
+  {# Leads Data Table (44px rows, sticky header, inline status & SLA badge) #}
   {% if leads %}
-  <div class="table-wrap">
-    <table class="table crm-table">
-      <thead>
-        <tr>
-          <th>{{ _("Лид") }}</th>
-          <th>{{ _("Контакты") }}</th>
-          <th>{{ _("Источник / Интерес") }}</th>
-          <th>{{ _("SLA") }}</th>
-          <th>{{ _("Статус") }}</th>
-          {% if current_user.has_perm('crm.leads.view_all') %}<th>{{ _("Менеджер") }}</th>{% endif %}
-          <th>{{ _("Создан") }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for lead in leads %}
-          {% set sla = lead_sla(lead, now_utc) %}
+    {% call mui.table_wrap() %}
+      <table class="mgr-table">
+        <thead>
           <tr>
-            <td>
-              <a class="t-strong" href="{{ url_for('manager.lead_detail', lead_id=lead.id) }}">{{ lead.full_name }}</a>
-              {% if lead.converted_student_id %}<span class="tag tag--ok tag--xs" style="margin-left:6px">{{ _("Ученик") }}</span>{% endif %}
-            </td>
-            <td class="small">
-              {% if lead.phone %}<div>{{ lead.phone }}</div>{% endif %}
-              {% if lead.messenger_handle %}<div class="muted">{{ lead.messenger_handle }}</div>{% endif %}
-            </td>
-            <td class="small">
-              <span class="tag tag--soft tag--xs">{{ SOURCE_LABELS.get(lead.source, lead.source) }}</span>
-              {% if lead.interest %}<span style="margin-left:4px">{{ lead.interest }}</span>{% endif %}
-              {% if lead.mode_preference %}<span class="muted"> · {{ MODE_PREF_LABELS.get(lead.mode_preference, lead.mode_preference) }}</span>{% endif %}
-            </td>
-            <td>
-              {% if sla.unanswered %}
-                <span class="crm-sla{{ ' crm-sla--hot' if sla.overdue }}" data-sla-badge="{{ 'overdue' if sla.overdue else 'waiting' }}" title="{{ _('Ожидает первого ответа') }}">{{ ui.icon('clock', 12) }}{{ sla.label }}</span>
-              {% elif lead.first_contact_at %}
-                <span class="crm-sla crm-sla--ok" title="{{ _('Время первого ответа') }}">{{ ui.icon('check', 12) }}{{ sla.label }}</span>
-              {% else %}
-                <span class="small muted">—</span>
-              {% endif %}
-            </td>
-            <td>
-              <form method="post" action="{{ url_for('manager.lead_status', lead_id=lead.id) }}" class="row" style="gap:6px;flex-wrap:nowrap">
-                {{ ui.csrf() }}
-                <input type="hidden" name="next" value="{{ request.full_path }}">
-                <select class="select crm-inline-select" name="status" aria-label="{{ _('Статус лида') }}">
-                  {% for s in LEAD_STATUSES %}<option value="{{ s }}" {{ 'selected' if lead.status == s }}>{{ STATUS_LABELS[s] }}</option>{% endfor %}
-                </select>
-                <button class="btn btn--secondary btn--min" type="submit" style="min-height:32px;padding:0 10px">OK</button>
-              </form>
-            </td>
-            {% if current_user.has_perm('crm.leads.view_all') %}
-            <td class="small">{{ lead.assigned_manager.name if lead.assigned_manager else '—' }}</td>
-            {% endif %}
-            <td class="small muted nowrap">{{ lead.created_at|d('d MMM, HH:mm') }}</td>
+            <th>{{ _("Лид") }}</th>
+            <th>{{ _("Контакты") }}</th>
+            <th>{{ _("Источник / Интерес") }}</th>
+            <th>{{ _("SLA") }}</th>
+            <th>{{ _("Этап") }}</th>
+            {% if current_user.has_perm('crm.leads.view_all') %}<th>{{ _("Менеджер") }}</th>{% endif %}
+            <th>{{ _("Создан") }}</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% if pagination and pagination.total_pages > 1 %}
-  <div class="row" style="justify-content:space-between;align-items:center">
-    <span class="small muted">{{ _("Показано %(shown)s из %(total)s · стр. %(page)s/%(pages)s", shown=leads|length, total=pagination.total, page=pagination.page, pages=pagination.total_pages) }}</span>
-    <div class="row" style="gap:6px">
-      {% if pagination.page > 1 %}
-        <a class="btn btn--secondary btn--min" href="{{ url_for('manager.leads', page=pagination.page - 1, status=filters.status or None, source=filters.source or None, manager=filters.manager or None, sla=filters.sla or None, date_from=filters.date_from or None, date_to=filters.date_to or None, q=filters.q or None) }}">{{ _("Назад") }}</a>
-      {% endif %}
-      {% if pagination.page < pagination.total_pages %}
-        <a class="btn btn--secondary btn--min" href="{{ url_for('manager.leads', page=pagination.page + 1, status=filters.status or None, source=filters.source or None, manager=filters.manager or None, sla=filters.sla or None, date_from=filters.date_from or None, date_to=filters.date_to or None, q=filters.q or None) }}">{{ _("Вперёд") }}</a>
-      {% endif %}
+        </thead>
+        <tbody>
+          {% for lead in leads %}
+            {% set sla = lead_sla(lead, now_utc) %}
+            <tr>
+              <td>
+                <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
+                  <a class="mgr-lead-link" href="{{ url_for('manager.lead_detail', lead_id=lead.id) }}">{{ lead.full_name }}</a>
+                  {% if lead.converted_student_id %}{{ mui.badge(_("Ученик"), tone='ok') }}{% endif %}
+                </div>
+              </td>
+              <td>
+                {% if lead.phone %}<div>{{ lead.phone }}</div>{% endif %}
+                {% if lead.messenger_handle %}<div class="mgr-subcell">{{ lead.messenger_handle }}</div>{% endif %}
+                {% if not lead.phone and not lead.messenger_handle %}<span class="muted">—</span>{% endif %}
+              </td>
+              <td>
+                <div class="row" style="gap:6px;align-items:center;flex-wrap:wrap">
+                  {{ mui.badge(SOURCE_LABELS.get(lead.source, lead.source), tone='neutral') }}
+                  {% if lead.interest %}<span>{{ lead.interest }}</span>{% endif %}
+                </div>
+                {% if lead.mode_preference %}<div class="mgr-subcell">{{ MODE_PREF_LABELS.get(lead.mode_preference, lead.mode_preference) }}</div>{% endif %}
+              </td>
+              <td>
+                {% if sla.unanswered %}
+                  <span class="mgr-badge {{ 'mgr-badge--bad' if sla.overdue else 'mgr-badge--accent' }}" data-sla-badge="{{ 'overdue' if sla.overdue else 'waiting' }}" title="{{ _('Ожидает первого ответа') }}">
+                    {{ ui.icon('clock', 13) }}<span>{{ sla.label }}</span>
+                  </span>
+                {% elif lead.first_contact_at %}
+                  <span class="mgr-badge mgr-badge--ok" title="{{ _('Время первого ответа') }}">
+                    {{ ui.icon('check', 13) }}<span>{{ sla.label }}</span>
+                  </span>
+                {% else %}
+                  <span class="muted">—</span>
+                {% endif %}
+              </td>
+              <td>
+                <form method="post" action="{{ url_for('manager.lead_status', lead_id=lead.id) }}" class="mgr-inline-status">
+                  {{ ui.csrf() }}
+                  <input type="hidden" name="next" value="{{ request.full_path }}">
+                  <select class="select mgr-inline-select" name="status" aria-label="{{ _('Статус лида') }}">
+                    {% for s in LEAD_STATUSES %}<option value="{{ s }}" {{ 'selected' if lead.status == s }}>{{ STATUS_LABELS[s] }}</option>{% endfor %}
+                  </select>
+                  <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit" style="min-height:34px;padding:0 10px" title="{{ _('Применить этап') }}">OK</button>
+                </form>
+              </td>
+              {% if current_user.has_perm('crm.leads.view_all') %}
+              <td>{{ lead.assigned_manager.name if lead.assigned_manager else '—' }}</td>
+              {% endif %}
+              <td class="muted nowrap num">{{ lead.created_at|d('d MMM, HH:mm') }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endcall %}
+
+    {% if pagination and pagination.total_pages > 1 %}
+    <div class="row row--between" style="align-items:center">
+      <span class="small muted">{{ _("Показано %(shown)s из %(total)s · стр. %(page)s/%(pages)s", shown=leads|length, total=pagination.total, page=pagination.page, pages=pagination.total_pages) }}</span>
+      <div class="row" style="gap:6px">
+        {% if pagination.page > 1 %}
+          <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.leads', page=pagination.page - 1, status=filters.status or None, source=filters.source or None, manager=filters.manager or None, sla=filters.sla or None, date_from=filters.date_from or None, date_to=filters.date_to or None, q=filters.q or None) }}">{{ _("Назад") }}</a>
+        {% endif %}
+        {% if pagination.page < pagination.total_pages %}
+          <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.leads', page=pagination.page + 1, status=filters.status or None, source=filters.source or None, manager=filters.manager or None, sla=filters.sla or None, date_from=filters.date_from or None, date_to=filters.date_to or None, q=filters.q or None) }}">{{ _("Вперёд") }}</a>
+        {% endif %}
+      </div>
     </div>
-  </div>
-  {% endif %}
+    {% endif %}
   {% else %}
-  <div class="empty">
-    <h3>{{ _("Лидов не найдено") }}</h3>
-    <p class="small">{{ _("Попробуйте изменить фильтры или добавьте нового лида.") }}</p>
-  </div>
+    {% call mui.empty(_("Лидов не найдено"), _("Попробуйте изменить параметры фильтра или добавьте нового лида."), icon_name='users') %}
+      <button type="button" class="mgr-btn mgr-btn--primary mgr-btn--sm" data-lead-drawer-open>{{ ui.icon('plus', 15) }}<span>{{ _("Новый лид") }}</span></button>
+    {% endcall %}
   {% endif %}
-</div>
 
 {# Slide-Over Drawer for Creating a Lead #}
 <div class="crm-drawer-backdrop" id="new-lead" hidden role="dialog" aria-modal="true" aria-labelledby="new-lead-title">
@@ -174,7 +186,7 @@
       {% endif %}
       <div class="field"><label for="nl-note">{{ _("Первичная заметка") }}</label><textarea class="textarea" id="nl-note" name="note" rows="3" placeholder="Удобно звонить после 18:00"></textarea></div>
       <div class="row">
-        <button class="btn btn--primary btn--block" type="submit">{{ ui.icon('plus', 15) }}{{ _("Создать лид") }}</button>
+        <button class="mgr-btn mgr-btn--primary btn--block" type="submit">{{ ui.icon('plus', 15) }}<span>{{ _("Создать лид") }}</span></button>
       </div>
     </form>
   </aside>

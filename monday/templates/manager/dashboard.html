@@ -1,81 +1,175 @@
 {% extends "layout.html" %}
+{% import "manager/_ui.html" as mui with context %}
 {% block title %}{{ _("CRM · Сегодня") }}{% endblock %}
 {% block context %}{{ _("Кабинет супервайзера") if current_user.is_supervisor else _("Кабинет менеджера") }}{% endblock %}
 {% block page_class %}page--wide{% endblock %}
 {% block content %}
-<div class="crm-workspace">
-  <div class="t-hero-bar">
-    <div class="t-hero-bar__title">
-      <h1>{{ _("CRM · Сегодня") }}</h1>
-      <p>{{ _("Новые заявки, просроченные ответы (SLA %(m)s мин), задачи и воронка.", m=sla_threshold) }}</p>
-    </div>
-    <div class="t-hero-actions">
-      <form method="post" action="{{ url_for('manager.toggle_shift') }}">
-        {{ ui.csrf() }}
-        <input type="hidden" name="next" value="{{ request.full_path }}">
-        <button class="btn {{ 'btn--secondary' if current_user.is_on_shift else 'btn--danger' }} btn--min" type="submit">
-          {{ ui.icon('clock', 15) }}<span>{{ _("На смене") if current_user.is_on_shift else _("Не на смене") }}</span>
-        </button>
-      </form>
-      <a class="btn btn--primary btn--min" href="{{ url_for('manager.leads') }}#new-lead">{{ ui.icon('plus', 15) }}<span>{{ _("Новый лид") }}</span></a>
-      <a class="btn btn--secondary btn--min" href="{{ url_for('manager.pipeline') }}">{{ ui.icon('list', 15) }}<span>{{ _("Воронка") }}</span></a>
-      {% if current_user.is_crm_supervisor %}
-        <a class="btn btn--secondary btn--min" href="{{ url_for('manager.audit') }}">{{ ui.icon('shield', 15) }}<span>{{ _("Аудит") }}</span></a>
-      {% endif %}
-    </div>
+  {% call mui.page_header(
+    _("CRM · Сегодня"),
+    _("Приоритетные обращения, просроченные ответы (SLA %(m)s мин), задачи и воронка.", m=sla_threshold)
+  ) %}
+    <form method="post" action="{{ url_for('manager.toggle_shift') }}">
+      {{ ui.csrf() }}
+      <input type="hidden" name="next" value="{{ request.full_path }}">
+      <button class="mgr-btn {{ 'mgr-btn--secondary' if current_user.is_on_shift else 'mgr-btn--danger' }} mgr-btn--sm" type="submit">
+        {{ ui.icon('clock', 15) }}<span>{{ _("На смене") if current_user.is_on_shift else _("Не на смене") }}</span>
+      </button>
+    </form>
+    {{ mui.btn(_("Новый лид"), href=url_for('manager.leads') ~ '#new-lead', variant='primary', size='sm', icon_name='plus') }}
+    {{ mui.btn(_("Воронка"), href=url_for('manager.pipeline'), variant='secondary', size='sm', icon_name='list') }}
+    {% if current_user.is_crm_supervisor %}
+      {{ mui.btn(_("Аудит"), href=url_for('manager.audit'), variant='ghost', size='sm', icon_name='shield') }}
+    {% endif %}
+  {% endcall %}
+
+  {# Neutral White Hero KPI Strip — numerals turn amber/red only when action is required #}
+  <div class="mgr-kpi-grid">
+    {{ mui.kpi(
+      _("Новые лиды"),
+      new_count,
+      _("всего в базе: %(n)s", n=total_leads),
+      tone='accent' if new_count else 'neutral',
+      href=url_for('manager.leads', status='new')
+    ) }}
+    {{ mui.kpi(
+      _("Без ответа > %(m)s мин", m=sla_threshold),
+      sla_overdue_count,
+      _("требуют срочного контакта") if sla_overdue_count else _("всё в пределах SLA"),
+      tone='bad' if sla_overdue_count else 'ok',
+      href=url_for('manager.leads', sla='overdue')
+    ) }}
+    {{ mui.kpi(
+      _("Просроченные задачи"),
+      overdue_tasks|length,
+      _("нужно закрыть сейчас") if overdue_tasks else _("просрочек нет"),
+      tone='bad' if overdue_tasks else 'ok',
+      href="#action-queue"
+    ) }}
+    {{ mui.kpi(
+      _("Задачи на сегодня"),
+      today_tasks|length,
+      _("запланировано до конца дня") if today_tasks else _("на сегодня задач нет"),
+      tone='warn' if today_tasks else 'neutral',
+      href="#tasks-schedule"
+    ) }}
   </div>
 
-  {# KPI Strip #}
-  <div class="crm-kpis">
-    <a class="card crm-kpi crm-kpi--accent" href="{{ url_for('manager.leads', status='new') }}">
-      <span class="eyebrow">{{ _("Новые лиды") }}</span>
-      <span class="stat-value num">{{ new_count }}</span>
-      <span class="stat-label">{{ _("всего в базе: %(n)s", n=total_leads) }}</span>
-    </a>
-    <a class="card crm-kpi {{ 'crm-kpi--hot' if sla_overdue_count else 'crm-kpi--ok' }}" href="{{ url_for('manager.leads', sla='overdue') }}">
-      <span class="eyebrow">{{ _("Без ответа > %(m)s мин", m=sla_threshold) }}</span>
-      <span class="stat-value num">{{ sla_overdue_count }}</span>
-      <span class="stat-label">{{ _("требуют срочного контакта") if sla_overdue_count else _("всё в пределах SLA") }}</span>
-    </a>
-    <a class="card crm-kpi {{ 'crm-kpi--hot' if overdue_tasks else 'crm-kpi--ok' }}" href="#tasks-overdue">
-      <span class="eyebrow">{{ _("Просроченные задачи") }}</span>
-      <span class="stat-value num">{{ overdue_tasks|length }}</span>
-      <span class="stat-label">{{ _("нужно закрыть сейчас") if overdue_tasks else _("просрочек нет") }}</span>
-    </a>
-    <a class="card crm-kpi {{ 'crm-kpi--warn' if today_tasks else 'crm-kpi--accent' }}" href="#tasks-today">
-      <span class="eyebrow">{{ _("Задачи на сегодня") }}</span>
-      <span class="stat-value num">{{ today_tasks|length }}</span>
-      <span class="stat-label">{{ _("запланировано до конца дня") }}</span>
-    </a>
-  </div>
-
-  {# 12-Col Bento Grid #}
-  <div class="crm-bento">
-    <section class="card crm-span-12">
-      <div class="card__head">
-        <div class="hc__head">
-          <span class="hc__ic">{{ ui.icon('chart', 17) }}</span>
-          <h2>{{ _("Воронка конверсии") }}</h2>
-        </div>
-        <a class="hc__pill" href="{{ url_for('manager.pipeline') }}">{{ _("Открыть доску") }} →</a>
-      </div>
-      <div class="crm-funnel">
+  {# Slim Horizontal Funnel Bar with Counts #}
+  {% call mui.card(tight=true) %}
+    {{ mui.section_head('chart', _("Воронка конверсии"), right_href=url_for('manager.pipeline'), right_label=_("Открыть доску") ~ " →") }}
+    {% if total_leads %}
+      <div class="mgr-funnel-track" aria-hidden="true">
         {% for s in LEAD_STATUSES %}
-          <a class="crm-funnel__step" href="{{ url_for('manager.leads', status=s) }}">
-            <span class="crm-funnel__n num">{{ funnel[s] }}</span>
-            <span class="crm-funnel__lbl">{{ STATUS_LABELS[s] }}</span>
-          </a>
+          {% set cnt = funnel[s] %}
+          {% if cnt > 0 %}
+            <div class="mgr-funnel-seg mgr-funnel-seg--{{ s }}" style="flex: {{ cnt }} 0 0" title="{{ STATUS_LABELS[s] }}: {{ cnt }}"></div>
+          {% endif %}
         {% endfor %}
       </div>
+    {% endif %}
+    <div class="mgr-funnel-steps">
+      {% for s in LEAD_STATUSES %}
+        {% set dot_tone = 'ok' if s == 'won' else ('bad' if s == 'lost' else ('warn' if s in ('trial_scheduled', 'trial_done') else 'accent')) %}
+        <a class="mgr-funnel-step" href="{{ url_for('manager.leads', status=s) }}">
+          <span class="mgr-funnel-step__name">
+            <span class="mgr-dot mgr-dot--{{ dot_tone }}" aria-hidden="true"></span>
+            <span>{{ STATUS_LABELS[s] }}</span>
+          </span>
+          <span class="mgr-funnel-step__n num">{{ funnel[s] }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  {% endcall %}
+
+  {# Prioritized Action Queue + Scheduled Tasks #}
+  {% set sla_overdue_leads = [] %}
+  {% set sla_waiting_leads = [] %}
+  {% for lead in unanswered_leads %}
+    {% set sla = lead_sla(lead, now_utc) %}
+    {% if sla.overdue %}
+      {% set _ = sla_overdue_leads.append((lead, sla)) %}
+    {% else %}
+      {% set _ = sla_waiting_leads.append((lead, sla)) %}
+    {% endif %}
+  {% endfor %}
+  {% set action_total = unanswered_leads|length + overdue_tasks|length %}
+
+  <div class="mgr-dash-grid">
+    <section class="mgr-card" id="action-queue">
+      {{ mui.section_head('clock', _("Требует действия"), count=action_total) }}
+      {% if action_total %}
+        <div class="mgr-queue">
+          {# Priority 1: Leads exceeding SLA threshold #}
+          {% for lead, sla in sla_overdue_leads %}
+            <div class="mgr-queue__item">
+              <span class="mgr-dot mgr-dot--bad" aria-hidden="true"></span>
+              <div class="mgr-queue__main">
+                <div class="mgr-queue__title">
+                  <a href="{{ url_for('manager.lead_detail', lead_id=lead.id) }}">{{ lead.full_name }}</a>
+                  {{ mui.badge(SOURCE_LABELS.get(lead.source, lead.source), tone='neutral') }}
+                </div>
+                <div class="mgr-queue__meta">
+                  {{ _("Ждёт первого контакта") }}{% if lead.phone or lead.messenger_handle %} · {{ lead.phone or lead.messenger_handle }}{% endif %}{% if lead.interest %} · {{ lead.interest }}{% endif %}
+                </div>
+              </div>
+              <div class="mgr-queue__actions">
+                <span class="mgr-badge mgr-badge--bad" data-sla-badge="overdue">{{ ui.icon('clock', 13) }}<span>{{ sla.label }}</span></span>
+                {{ mui.btn(_("Открыть"), href=url_for('manager.lead_detail', lead_id=lead.id), variant='secondary', size='sm') }}
+              </div>
+            </div>
+          {% endfor %}
+
+          {# Priority 2: Overdue follow-up tasks #}
+          {% for t in overdue_tasks %}
+            <div class="mgr-queue__item">
+              <form method="post" action="{{ url_for('manager.task_toggle', task_id=t.id) }}">
+                {{ ui.csrf() }}
+                <input type="hidden" name="next" value="{{ request.full_path }}">
+                <button class="mgr-check-btn" type="submit" title="{{ _('Отметить выполненной') }}" aria-label="{{ _('Отметить выполненной: %(n)s', n=t.note) }}">{{ ui.icon('check', 15) }}</button>
+              </form>
+              <div class="mgr-queue__main">
+                <div class="mgr-queue__title">
+                  <a href="{{ url_for('manager.lead_detail', lead_id=t.lead_id) }}">{{ t.lead.full_name }}</a>
+                  {{ mui.badge(_("Просроченная задача"), tone='bad', dot=true) }}
+                </div>
+                <div class="mgr-queue__meta">{{ t.note }} · <span class="num">{{ t.due_at|d('d MMM, HH:mm') }}</span>{% if t.assignee %} · {{ t.assignee.name }}{% endif %}</div>
+              </div>
+              <div class="mgr-queue__actions">
+                {{ mui.btn(_("Открыть"), href=url_for('manager.lead_detail', lead_id=t.lead_id), variant='secondary', size='sm') }}
+              </div>
+            </div>
+          {% endfor %}
+
+          {# Priority 3: New unanswered leads still within SLA #}
+          {% for lead, sla in sla_waiting_leads %}
+            <div class="mgr-queue__item">
+              <span class="mgr-dot mgr-dot--warn" aria-hidden="true"></span>
+              <div class="mgr-queue__main">
+                <div class="mgr-queue__title">
+                  <a href="{{ url_for('manager.lead_detail', lead_id=lead.id) }}">{{ lead.full_name }}</a>
+                  {{ mui.badge(SOURCE_LABELS.get(lead.source, lead.source), tone='neutral') }}
+                </div>
+                <div class="mgr-queue__meta">
+                  {{ _("Ожидает первого ответа") }}{% if lead.phone or lead.messenger_handle %} · {{ lead.phone or lead.messenger_handle }}{% endif %}{% if lead.interest %} · {{ lead.interest }}{% endif %}
+                </div>
+              </div>
+              <div class="mgr-queue__actions">
+                <span class="mgr-badge mgr-badge--accent" data-sla-badge="ok">{{ ui.icon('clock', 13) }}<span>{{ sla.label }}</span></span>
+                {{ mui.btn(_("Открыть"), href=url_for('manager.lead_detail', lead_id=lead.id), variant='secondary', size='sm') }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        {% call mui.empty(_("Срочных действий нет"), _("Все просроченные задачи закрыты, а входящие лиды уже получили первый ответ."), icon_name='check') %}
+          {{ mui.btn(_("Открыть всех лидов"), href=url_for('manager.leads'), variant='secondary', size='sm') }}
+        {% endcall %}
+      {% endif %}
     </section>
 
-    <section class="card crm-span-12">
-      <div class="card__head">
-        <div class="hc__head">
-          <span class="hc__ic">{{ ui.icon('clock', 17) }}</span>
-          <h2>{{ _("Задачи по лидам") }}</h2>
-          <span class="hc__pill num">{{ overdue_tasks|length + today_tasks|length + week_tasks|length + later_tasks|length }}</span>
-        </div>
+    <section class="mgr-card" id="tasks-schedule">
+      <div class="row row--between" style="gap:10px;align-items:center">
+        {{ mui.section_head('list', _("Задачи в работе"), count=today_tasks|length + week_tasks|length + later_tasks|length) }}
         {% if current_user.has_perm('crm.leads.view_all') %}
         <div class="segmented">
           <a class="{{ 'is-active' if scope != 'all' }}" href="{{ url_for('manager.dashboard') }}">{{ _("Мои") }}</a>
@@ -83,153 +177,42 @@
         </div>
         {% endif %}
       </div>
-      <div class="crm-task-board">
-        <div class="crm-col" id="tasks-overdue">
-          <div class="crm-col__head">
-            <span class="t-strong small" style="color:var(--bad)">{{ _("Просрочено") }}</span>
-            <span class="tag {{ 'tag--bad' if overdue_tasks else 'tag--ok' }} tag--xs num">{{ overdue_tasks|length }}</span>
-          </div>
-          <div class="crm-col__cards">
-            {% for t in overdue_tasks %}
-              <div class="crm-task crm-task--overdue">
-                <form method="post" action="{{ url_for('manager.task_toggle', task_id=t.id) }}">
-                  {{ ui.csrf() }}
-                  <input type="hidden" name="next" value="{{ request.full_path }}">
-                  <button class="icon-btn icon-btn--sm" type="submit" title="{{ _('Отметить выполненной') }}">{{ ui.icon('check', 15) }}</button>
-                </form>
-                <div class="crm-task__main">
-                  <a class="t-strong small" href="{{ url_for('manager.lead_detail', lead_id=t.lead_id) }}">{{ t.lead.full_name }}</a>
-                  <span class="small">{{ t.note }}</span>
-                  <span class="small" style="color:var(--bad);font-weight:600">{{ t.due_at|d('d MMM, HH:mm') }}</span>
-                </div>
-              </div>
-            {% else %}
-              <p class="small muted">{{ _("Нет просроченных задач.") }}</p>
-            {% endfor %}
-          </div>
-        </div>
 
-        <div class="crm-col" id="tasks-today">
-          <div class="crm-col__head">
-            <span class="t-strong small">{{ _("Сегодня") }}</span>
-            <span class="tag tag--soft tag--xs num">{{ today_tasks|length }}</span>
-          </div>
-          <div class="crm-col__cards">
-            {% for t in today_tasks %}
-              <div class="crm-task">
-                <form method="post" action="{{ url_for('manager.task_toggle', task_id=t.id) }}">
-                  {{ ui.csrf() }}
-                  <input type="hidden" name="next" value="{{ request.full_path }}">
-                  <button class="icon-btn icon-btn--sm" type="submit" title="{{ _('Отметить выполненной') }}">{{ ui.icon('check', 15) }}</button>
-                </form>
-                <div class="crm-task__main">
-                  <a class="t-strong small" href="{{ url_for('manager.lead_detail', lead_id=t.lead_id) }}">{{ t.lead.full_name }}</a>
-                  <span class="small">{{ t.note }}</span>
-                  <span class="small muted">{{ t.due_at|d('HH:mm') }}</span>
+      {% if today_tasks or week_tasks or later_tasks %}
+        {% for group_label, group_items, date_fmt in [
+          (_("Сегодня"), today_tasks, 'HH:mm'),
+          (_("На этой неделе"), week_tasks, 'EEE d MMM, HH:mm'),
+          (_("Позже"), later_tasks, 'd MMM, HH:mm'),
+        ] %}
+          {% if group_items %}
+          <div class="mgr-task-group">
+            <div class="mgr-task-group__head">
+              <span>{{ group_label }}</span>
+              <span class="num">{{ group_items|length }}</span>
+            </div>
+            <div class="mgr-queue">
+              {% for t in group_items %}
+                <div class="mgr-queue__item">
+                  <form method="post" action="{{ url_for('manager.task_toggle', task_id=t.id) }}">
+                    {{ ui.csrf() }}
+                    <input type="hidden" name="next" value="{{ request.full_path }}">
+                    <button class="mgr-check-btn" type="submit" title="{{ _('Отметить выполненной') }}" aria-label="{{ _('Отметить выполненной: %(n)s', n=t.note) }}">{{ ui.icon('check', 15) }}</button>
+                  </form>
+                  <div class="mgr-queue__main">
+                    <div class="mgr-queue__title">
+                      <a href="{{ url_for('manager.lead_detail', lead_id=t.lead_id) }}">{{ t.lead.full_name }}</a>
+                    </div>
+                    <div class="mgr-queue__meta">{{ t.note }} · <span class="num">{{ t.due_at|d(date_fmt) if t.due_at else _('без срока') }}</span></div>
+                  </div>
                 </div>
-              </div>
-            {% else %}
-              <p class="small muted">{{ _("На сегодня задач больше нет.") }}</p>
-            {% endfor %}
+              {% endfor %}
+            </div>
           </div>
-        </div>
-
-        <div class="crm-col" id="tasks-week">
-          <div class="crm-col__head">
-            <span class="t-strong small">{{ _("На этой неделе") }}</span>
-            <span class="tag tag--soft tag--xs num">{{ week_tasks|length }}</span>
-          </div>
-          <div class="crm-col__cards">
-            {% for t in week_tasks %}
-              <div class="crm-task">
-                <form method="post" action="{{ url_for('manager.task_toggle', task_id=t.id) }}">
-                  {{ ui.csrf() }}
-                  <input type="hidden" name="next" value="{{ request.full_path }}">
-                  <button class="icon-btn icon-btn--sm" type="submit" title="{{ _('Отметить выполненной') }}">{{ ui.icon('check', 15) }}</button>
-                </form>
-                <div class="crm-task__main">
-                  <a class="t-strong small" href="{{ url_for('manager.lead_detail', lead_id=t.lead_id) }}">{{ t.lead.full_name }}</a>
-                  <span class="small">{{ t.note }}</span>
-                  <span class="small muted">{{ t.due_at|d('EEE d MMM, HH:mm') }}</span>
-                </div>
-              </div>
-            {% else %}
-              <p class="small muted">{{ _("Нет задач на неделю.") }}</p>
-            {% endfor %}
-          </div>
-        </div>
-
-        <div class="crm-col" id="tasks-later">
-          <div class="crm-col__head">
-            <span class="t-strong small">{{ _("Позже") }}</span>
-            <span class="tag tag--line tag--xs num">{{ later_tasks|length }}</span>
-          </div>
-          <div class="crm-col__cards">
-            {% for t in later_tasks %}
-              <div class="crm-task">
-                <form method="post" action="{{ url_for('manager.task_toggle', task_id=t.id) }}">
-                  {{ ui.csrf() }}
-                  <input type="hidden" name="next" value="{{ request.full_path }}">
-                  <button class="icon-btn icon-btn--sm" type="submit" title="{{ _('Отметить выполненной') }}">{{ ui.icon('check', 15) }}</button>
-                </form>
-                <div class="crm-task__main">
-                  <a class="t-strong small" href="{{ url_for('manager.lead_detail', lead_id=t.lead_id) }}">{{ t.lead.full_name }}</a>
-                  <span class="small">{{ t.note }}</span>
-                  <span class="small muted">{{ t.due_at|d('d MMM, HH:mm') if t.due_at else _('без срока') }}</span>
-                </div>
-              </div>
-            {% else %}
-              <p class="small muted">{{ _("Нет отложенных задач.") }}</p>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="card crm-span-12">
-      <div class="card__head">
-        <div class="hc__head">
-          <span class="hc__ic">{{ ui.icon('inbox', 17) }}</span>
-          <h2>{{ _("Ждут первого контакта") }}</h2>
-          <span class="hc__pill num">{{ unanswered_leads|length }}</span>
-        </div>
-        <a class="hc__pill" href="{{ url_for('manager.leads') }}">{{ _("Все лиды") }} →</a>
-      </div>
-      {% if unanswered_leads %}
-      <div class="table-wrap" style="border:0;border-radius:0;box-shadow:none">
-        <table class="table crm-table">
-          <thead>
-            <tr>
-              <th>{{ _("Лид") }}</th>
-              <th>{{ _("Источник") }}</th>
-              <th>{{ _("Ожидание") }}</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for lead in unanswered_leads %}
-              {% set sla = lead_sla(lead, now_utc) %}
-              <tr>
-                <td>
-                  <a class="t-strong" href="{{ url_for('manager.lead_detail', lead_id=lead.id) }}">{{ lead.full_name }}</a>
-                  <div class="small muted">{{ lead.phone or lead.messenger_handle or '—' }}{% if lead.interest %} · {{ lead.interest }}{% endif %}</div>
-                </td>
-                <td><span class="tag tag--soft tag--xs">{{ SOURCE_LABELS.get(lead.source, lead.source) }}</span></td>
-                <td>
-                  <span class="crm-sla{{ ' crm-sla--hot' if sla.overdue }}" data-sla-badge="{{ 'overdue' if sla.overdue else 'ok' }}">
-                    {{ ui.icon('clock', 13) }}{{ sla.label }}
-                  </span>
-                </td>
-                <td class="nowrap"><a class="btn btn--secondary btn--min" href="{{ url_for('manager.lead_detail', lead_id=lead.id) }}">{{ _("Открыть") }}</a></td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+          {% endif %}
+        {% endfor %}
       {% else %}
-        <p class="small text-2">{{ _("Все активные лиды уже обработаны.") }}</p>
+        {{ mui.empty(_("Запланированных задач нет"), _("Добавляйте напоминания о звонках и встречах прямо из карточки лида."), icon_name='clock') }}
       {% endif %}
     </section>
   </div>
-</div>
 {% endblock %}

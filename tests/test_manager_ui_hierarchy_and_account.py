@@ -93,14 +93,16 @@ def test_manager_pages_200_hierarchy_and_csrf_tokens():
         resp = c.get(path)
         assert resp.status_code == 200, f"GET {path} returned {resp.status_code}"
         html = resp.get_data(as_text=True)
-        assert 'class="crm-workspace' in html
+        assert '<body class="mgr"' in html
+        assert 'class="crm-workspace' not in html
         _assert_every_post_form_has_csrf(html, path)
 
-    # /manager/leads status chips + horizontal filter toolbar + drawer
+    # /manager/leads status chips with counts + horizontal filter toolbar + inline status + drawer
     leads_html = c.get("/manager/leads?status=new").get_data(as_text=True)
-    assert "crm-status-pills" in leads_html
-    assert "crm-filter-bar" in leads_html
-    assert "crm-filter-date" in leads_html
+    assert "mgr-tabs" in leads_html
+    assert "mgr-tab__count" in leads_html
+    assert "mgr-filter-row" in leads_html
+    assert "mgr-inline-status" in leads_html
 
     # /manager/leads/<id> pill back button + expandable note + collapsible convert details
     detail_html = c.get(f"/manager/leads/{lead_id}").get_data(as_text=True)

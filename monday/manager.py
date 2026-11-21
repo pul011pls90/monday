@@ -348,12 +348,22 @@ def leads():
     page = max(1, min(total_pages, request.args.get("page", 1, type=int) or 1))
     page_rows = rows[(page - 1) * per_page : page * per_page]
 
+    raw_status_counts = dict(
+        _leads_scope(db.session.query(Lead.status, db.func.count(Lead.id)))
+        .group_by(Lead.status)
+        .all()
+    )
+    status_counts = {s: int(raw_status_counts.get(s, 0)) for s in LEAD_STATUSES}
+    total_all_leads = sum(status_counts.values())
+
     return render_template(
         "manager/leads.html",
         **_common_ctx(),
         now_utc=now,
         leads=page_rows,
         managers=_crm_managers(),
+        status_counts=status_counts,
+        total_all_leads=total_all_leads,
         pagination={
             "page": page,
             "per_page": per_page,

@@ -2,6 +2,9 @@
 {% import "partials/macros.html" as ui with context %}
 {% set ep = request.endpoint or '' %}
 
+{% block body_class %}{% if current_user.is_authenticated and request.blueprint in ('manager', 'academic') %}mgr{% endif %}{% endblock %}
+{% block head %}{% if current_user.is_authenticated and request.blueprint in ('manager', 'academic') %}<link rel="stylesheet" href="{{ url_for('static', filename='css/manager.css') }}">{% endif %}{% endblock %}
+
 {% block body %}
 {# the dotted sky: one fixed background behind every student page. Pages with a backdrop of their own empty this block;
    tests and question screens extend base.html, so they never get it. #}
@@ -183,6 +186,6 @@
   </div>
 </div>
 {% if current_user.is_authenticated and current_user.role in ('sales_manager', 'supervisor', 'admin') %}
-<script>(function(){if(localStorage.getItem('monday_crm_compact')==='1'){document.querySelectorAll('.crm-workspace').forEach(function(el){el.classList.add('is-compact');});}})();</script>
+<script>(function(){if(localStorage.getItem('monday_crm_compact')==='1'){document.body.classList.add('is-compact');}})();</script>
 {% endif %}
 {% endblock %}

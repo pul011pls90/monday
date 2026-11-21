@@ -3,7 +3,6 @@
 {% block context %}{{ _("Воронка продаж") }}{% endblock %}
 {% block page_class %}page--wide{% endblock %}
 {% block content %}
-<div class="crm-workspace">
   <div class="t-hero-bar">
     <div class="t-hero-bar__title">
       <h1>{{ _("Воронка и активные ученики") if mode == 'students' else _("Воронка продаж") }}</h1>
@@ -123,5 +122,4 @@
     {% endfor %}
   </div>
   {% endif %}
-</div>
 {% endblock %}

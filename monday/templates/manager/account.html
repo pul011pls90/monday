@@ -3,7 +3,6 @@
 {% block context %}{{ _("Настройки аккаунта") }}{% endblock %}
 {% block page_class %}page--wide{% endblock %}
 {% block content %}
-<div class="crm-workspace">
   <div class="t-hero-bar">
     <div class="t-hero-bar__title">
       <h1>{{ _("Настройки") }}</h1>
@@ -133,14 +132,13 @@
       </section>
     </div>
   </div>
-</div>
 
 <script>
 (function(){
   const cb = document.getElementById('crm-compact-toggle');
   if (!cb) return;
   const apply = (on) => {
-    document.querySelectorAll('.crm-workspace').forEach((el) => el.classList.toggle('is-compact', on));
+    document.body.classList.toggle('is-compact', on);
   };
   const saved = localStorage.getItem('monday_crm_compact') === '1';
   cb.checked = saved;
