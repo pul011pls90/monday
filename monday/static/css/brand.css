@@ -5077,3 +5077,40 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
   .crm-board { grid-template-columns: minmax(0, 1fr); overflow-x: visible; }
   .crm-filters .input--sm, .crm-filters .select--sm { width: 100%; }
 }
+
+/* Phase A CRM + Academic Multi-View Grids & Attendance Pills */
+.crm-board--4 { grid-template-columns: repeat(4, minmax(240px, 1fr)); }
+.crm-task-board { display: grid; grid-template-columns: repeat(4, minmax(230px, 1fr)); gap: 12px; overflow-x: auto; padding-bottom: 4px; align-items: start; }
+@media (max-width: 960px) { .crm-board--4, .crm-task-board { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .crm-board--4, .crm-task-board { grid-template-columns: minmax(0, 1fr); overflow-x: visible; } }
+
+.crm-meter { height: 5px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.crm-meter > span { display: block; height: 100%; border-radius: 999px; background: var(--ok); }
+.crm-meter--warn > span { background: var(--warn); }
+.crm-meter--bad > span { background: var(--bad); }
+
+.acad-week-grid { display: grid; grid-template-columns: repeat(7, minmax(175px, 1fr)); gap: 10px; overflow-x: auto; padding-bottom: 6px; align-items: start; }
+@media (max-width: 900px) { .acad-week-grid { grid-template-columns: minmax(0, 1fr); overflow-x: visible; } }
+.acad-day-col { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-height: 170px; }
+.acad-day-col--today { border-color: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent); }
+.acad-day-col__head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+
+.acad-event { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); border-left: 3px solid var(--accent); background: var(--surface-2); text-decoration: none; color: var(--text); font-size: 12.5px; transition: border-color .15s, transform .12s; }
+.acad-event:hover { border-color: var(--accent); transform: translateY(-1px); text-decoration: none; }
+.acad-event--online { border-left-color: var(--accent); background: var(--accent-soft); }
+.acad-event--offline { border-left-color: var(--ok); }
+.acad-event--conflict { border-color: var(--bad) !important; border-left-width: 4px; background: var(--bad-soft) !important; }
+[data-theme="dark"] .acad-event--online { background: #0B1638; }
+
+.acad-matrix th.is-sticky, .acad-matrix td.is-sticky { position: sticky; left: 0; z-index: 2; background: var(--surface); border-right: 1px solid var(--line); min-width: 170px; }
+.acad-matrix th.is-sticky { background: var(--surface-2); z-index: 3; }
+.acad-matrix td { vertical-align: top; min-width: 155px; }
+
+.att-pills { display: inline-flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.att-pill { position: relative; cursor: pointer; }
+.att-pill input { position: absolute; opacity: 0; pointer-events: none; }
+.att-pill span { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid var(--line); background: var(--surface-2); color: var(--text-2); transition: background .12s, border-color .12s, color .12s; }
+.att-pill input:checked + span { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); }
+.att-pill--present input:checked + span { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); }
+.att-pill--late input:checked + span, .att-pill--excused input:checked + span { border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
+.att-pill--absent input:checked + span { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }

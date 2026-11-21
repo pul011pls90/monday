@@ -8,14 +8,18 @@ from flask import Blueprint, abort, current_app, flash, make_response, redirect,
 from flask_babel import gettext as _
 from flask_login import current_user, login_user
 from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
 from .access import CRM_ROLES, manager_required, min_password_length, permission_required, supervisor_required
 from .audit import write_audit_log
 from .auth import _safe_next
+from .constants import EXAMS
 from .extensions import db
 from .models import (
+    AcademicCourse,
     AuditLog,
+    GroupEnrollment,
     LEAD_ACTIVITY_TYPES,
     LEAD_MODE_PREFERENCES,
     LEAD_SOURCES,
@@ -23,8 +27,19 @@ from .models import (
     Lead,
     LeadActivity,
     LeadTask,
+    Lesson,
+    LessonAttendance,
+    MembershipPlan,
+    PASS_STATUSES,
+    PAYMENT_KINDS,
+    PAYMENT_METHODS,
+    PAY_RATE_TYPES,
+    PaymentTransaction,
+    StudentPass,
     StudentProfile,
     StudentRecord,
+    StudyGroup,
+    TeacherPayRate,
     User,
     local_midnight_utc,
     utcnow,
@@ -65,6 +80,27 @@ MODE_PREF_LABELS = {
     "online": "Онлайн",
     "offline": "Офлайн",
     "any": "Любой",
+}
+
+METHOD_LABELS = {
+    "cash": "Наличные",
+    "mbank": "MBank",
+    "transfer": "Перевод",
+    "card": "Карта",
+}
+
+PASS_STATUS_LABELS = {
+    "active": "Активен",
+    "frozen": "Заморожен",
+    "depleted": "Исчерпан",
+    "expired": "Истёк",
+    "cancelled": "Отменён",
+}
+
+RATE_TYPE_LABELS = {
+    "per_lesson": "За урок",
+    "per_student": "За ученика",
+    "fixed_month": "Оклад в мес.",
 }
 
 
@@ -194,10 +230,11 @@ def _common_ctx() -> dict:
 @bp.route("", strict_slashes=False)
 @manager_required
 def dashboard():
-    """Manager / Supervisor CRM dashboard: KPIs, SLA alerts, tasks today, funnel counts."""
+    """Manager / Supervisor CRM dashboard: KPIs, SLA alerts, 4-bucket task board, funnel counts."""
     now = utcnow()
     day_start = local_midnight_utc()
     day_end = day_start + timedelta(days=1)
+    week_end = day_start + timedelta(days=7)
 
     leads = (
         _leads_scope(Lead.query.options(joinedload(Lead.assigned_manager)))
@@ -212,27 +249,31 @@ def dashboard():
     )
     sla_overdue_leads = [l for l in unanswered_leads if _lead_sla(l, now)["overdue"]]
 
+    scope = "all" if (current_user.has_perm("crm.leads.view_all") and request.args.get("scope") == "all") else "mine"
     task_q = LeadTask.query.options(joinedload(LeadTask.lead), joinedload(LeadTask.assignee)).filter(
         LeadTask.done_at.is_(None)
     )
-    if current_user.has_perm("crm.leads.view_all") and request.args.get("scope") == "all":
-        pass
-    else:
+    if scope == "mine":
         task_q = task_q.filter(LeadTask.assignee_id == current_user.id)
     open_tasks = task_q.order_by(LeadTask.due_at.asc()).all()
 
     overdue_tasks = [t for t in open_tasks if t.due_at and t.due_at < now]
     today_tasks = [t for t in open_tasks if t.due_at and now <= t.due_at < day_end]
+    week_tasks = [t for t in open_tasks if t.due_at and day_end <= t.due_at < week_end]
+    later_tasks = [t for t in open_tasks if (t.due_at is None) or (t.due_at >= week_end)]
 
     return render_template(
         "manager/dashboard.html",
         **_common_ctx(),
         now_utc=now,
+        scope=scope,
         total_leads=len(leads),
         new_count=len(new_leads),
         sla_overdue_count=len(sla_overdue_leads),
         overdue_tasks=overdue_tasks,
         today_tasks=today_tasks,
+        week_tasks=week_tasks,
+        later_tasks=later_tasks,
         unanswered_leads=unanswered_leads[:12],
         funnel={s: funnel.get(s, 0) for s in LEAD_STATUSES},
         managers=_crm_managers(),
@@ -267,13 +308,14 @@ def leads():
     if date_to:
         query = query.filter(Lead.created_at < datetime.combine(date_to + timedelta(days=1), time.min))
     if q:
-        like = f"%{q}%"
+        escaped_q = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        like = f"%{escaped_q}%"
         query = query.filter(
             or_(
-                Lead.full_name.ilike(like),
-                Lead.phone.ilike(like),
-                Lead.messenger_handle.ilike(like),
-                Lead.interest.ilike(like),
+                Lead.full_name.ilike(like, escape="\\"),
+                Lead.phone.ilike(like, escape="\\"),
+                Lead.messenger_handle.ilike(like, escape="\\"),
+                Lead.interest.ilike(like, escape="\\"),
             )
         )
 
@@ -281,12 +323,24 @@ def leads():
     if sla_filter == "overdue":
         rows = [l for l in rows if _lead_sla(l, now)["overdue"]]
 
+    per_page = 50
+    total = len(rows)
+    total_pages = max(1, (total + per_page - 1) // per_page)
+    page = max(1, min(total_pages, request.args.get("page", 1, type=int) or 1))
+    page_rows = rows[(page - 1) * per_page : page * per_page]
+
     return render_template(
         "manager/leads.html",
         **_common_ctx(),
         now_utc=now,
-        leads=rows,
+        leads=page_rows,
         managers=_crm_managers(),
+        pagination={
+            "page": page,
+            "per_page": per_page,
+            "total": total,
+            "total_pages": total_pages,
+        },
         filters={
             "status": status,
             "source": source,
@@ -351,14 +405,126 @@ def lead_create():
 # --------------------------------------------------------------------------- Lead Card & Actions
 
 
+def _build_unified_timeline(lead: Lead | None = None, student_id: int | None = None) -> list[dict]:
+    """Merge LeadActivity, AuditLog, GroupEnrollment, and LessonAttendance into a sorted unified timeline."""
+    events: list[dict] = []
+    if lead is not None:
+        activities = (
+            LeadActivity.query.options(joinedload(LeadActivity.actor))
+            .filter_by(lead_id=lead.id)
+            .all()
+        )
+        for a in activities:
+            events.append({
+                "ts": a.created_at,
+                "category": "comms" if a.type in ("call", "message", "note") else "system",
+                "badge": ACTIVITY_LABELS.get(a.type, a.type),
+                "body": a.body,
+                "actor_name": a.actor.name if a.actor else _("Система"),
+                "id": a.id,
+            })
+        audit_rows = (
+            AuditLog.query.options(joinedload(AuditLog.actor))
+            .filter(AuditLog.entity_type == "lead", AuditLog.entity_id == lead.id)
+            .all()
+        )
+        for al in audit_rows:
+            summary = al.action
+            if al.reason:
+                summary = f"{al.action}: {al.reason}"
+            events.append({
+                "ts": al.timestamp,
+                "category": "system",
+                "badge": f"audit · {al.action}",
+                "body": summary,
+                "actor_name": al.actor.name if al.actor else _("Система"),
+                "id": al.id,
+            })
+        if student_id is None and lead.converted_student_id:
+            student_id = lead.converted_student_id
+
+    if student_id is not None:
+        enrs = (
+            GroupEnrollment.query.options(joinedload(GroupEnrollment.group), joinedload(GroupEnrollment.course))
+            .filter_by(student_user_id=student_id)
+            .all()
+        )
+        for enr in enrs:
+            gname = enr.group.name if enr.group else f"#{enr.group_id}"
+            cname = enr.course.name if enr.course else ""
+            events.append({
+                "ts": enr.enrolled_at,
+                "category": "academic",
+                "badge": _("Зачисление"),
+                "body": f"{gname}" + (f" ({cname})" if cname else ""),
+                "actor_name": _("Учебный отдел"),
+                "id": enr.id,
+            })
+            if enr.left_at is not None:
+                events.append({
+                    "ts": enr.left_at,
+                    "category": "academic",
+                    "badge": _("Завершение"),
+                    "body": f"{gname} · {enr.status}" + (f" — {enr.note}" if enr.note else ""),
+                    "actor_name": _("Учебный отдел"),
+                    "id": enr.id,
+                })
+        atts = (
+            LessonAttendance.query.options(
+                joinedload(LessonAttendance.lesson).joinedload(Lesson.group),
+                joinedload(LessonAttendance.marked_by),
+            )
+            .filter_by(student_user_id=student_id)
+            .order_by(LessonAttendance.marked_at.desc())
+            .limit(40)
+            .all()
+        )
+        att_labels = {"present": "Был", "absent": "Отсутствовал", "late": "Опоздал", "excused": "Уважит. причина"}
+        for att in atts:
+            gname = att.lesson.group.name if (att.lesson and att.lesson.group) else f"Урок #{att.lesson_id}"
+            events.append({
+                "ts": att.marked_at,
+                "category": "academic",
+                "badge": att_labels.get(att.status, att.status),
+                "body": f"{gname}" + (f" · {att.note}" if att.note else ""),
+                "actor_name": att.marked_by.name if att.marked_by else _("Учитель"),
+                "id": att.id,
+            })
+        txs = (
+            PaymentTransaction.query.options(joinedload(PaymentTransaction.recorded_by))
+            .filter_by(student_user_id=student_id)
+            .order_by(PaymentTransaction.paid_at.desc())
+            .limit(40)
+            .all()
+        )
+        for tx in txs:
+            sign = "-" if tx.kind == "refund" else "+"
+            events.append({
+                "ts": tx.paid_at,
+                "category": "finance",
+                "badge": _("Возврат") if tx.kind == "refund" else _("Оплата"),
+                "body": f"{sign}{tx.amount} KGS ({METHOD_LABELS.get(tx.method, tx.method)})" + (f" · {tx.note}" if tx.note else ""),
+                "actor_name": tx.recorded_by.name if tx.recorded_by else _("Система"),
+                "id": tx.id,
+            })
+
+    events.sort(key=lambda e: (e["ts"] or datetime.min, e["id"]), reverse=True)
+    return events
+
+
 def _render_lead_detail(lead: Lead, *, one_time_notice: str | None = None):
     now = utcnow()
+    tab = (request.args.get("tab") or "all").strip().lower()
+    if tab not in ("all", "comms", "system", "academic"):
+        tab = "all"
     activities = (
         LeadActivity.query.options(joinedload(LeadActivity.actor))
         .filter_by(lead_id=lead.id)
         .order_by(LeadActivity.created_at.desc(), LeadActivity.id.desc())
         .all()
     )
+    timeline = _build_unified_timeline(lead=lead)
+    filtered_timeline = timeline if tab == "all" else [e for e in timeline if e["category"] == tab]
     tasks = (
         LeadTask.query.options(joinedload(LeadTask.assignee))
         .filter_by(lead_id=lead.id)
@@ -383,6 +549,14 @@ def _render_lead_detail(lead: Lead, *, one_time_notice: str | None = None):
         lead=lead,
         sla=_lead_sla(lead, now),
         activities=activities,
+        timeline=filtered_timeline,
+        timeline_counts={
+            "all": len(timeline),
+            "comms": sum(1 for e in timeline if e["category"] == "comms"),
+            "system": sum(1 for e in timeline if e["category"] == "system"),
+            "academic": sum(1 for e in timeline if e["category"] == "academic"),
+        },
+        active_tab=tab,
         tasks=tasks,
         managers=_crm_managers(),
         existing_students=existing_students,
@@ -435,10 +609,12 @@ def lead_convert(lead_id: int):
             email=email,
             role="student",
             is_approved=True,
+            must_change_password=True,
             auth_provider="password",
         )
         raw_pw = temporary_password(student)
-        exam_code = (request.form.get("exam") or "").strip().upper() or None
+        raw_exam = (request.form.get("exam") or "").strip().upper()
+        exam_code = raw_exam if raw_exam in EXAMS else None
         student.profile = StudentProfile(exam=exam_code, onboarded=bool(exam_code))
         db.session.add(student)
         db.session.flush()
@@ -497,7 +673,12 @@ def lead_convert(lead_id: int):
         },
         reason=reason,
     )
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        flash(_("Не удалось завершить конвертацию: конфликт данных (email или запись уже существует)."), "error")
+        return redirect(url_for("manager.lead_detail", lead_id=lead.id))
 
     if one_time_notice:
         resp = make_response(_render_lead_detail(lead, one_time_notice=one_time_notice))
@@ -701,10 +882,113 @@ def lead_delete(lead_id: int):
 @bp.route("/pipeline")
 @manager_required
 def pipeline():
-    """7-column status Kanban board with SLA badges and 1-click stage transitions."""
+    """Dual-view board: 7-column Sales Pipeline OR 4-column Active Student Health board."""
     now = utcnow()
+    mode = (request.args.get("mode") or "leads").strip().lower()
+    if mode not in ("leads", "students"):
+        mode = "leads"
     source = (request.args.get("source") or "").strip()
     manager_id = request.args.get("manager", type=int)
+
+    if mode == "students":
+        leads_q = _leads_scope(
+            Lead.query.filter(Lead.converted_student_id.isnot(None)).options(joinedload(Lead.converted_student))
+        )
+        converted_leads = leads_q.all()
+        converted_by_student = {l.converted_student_id: l for l in converted_leads if l.converted_student_id}
+
+        if current_user.has_perm("crm.leads.view_all"):
+            students = (
+                User.query.filter_by(role="student", is_blocked=False)
+                .order_by(User.name.asc())
+                .limit(250)
+                .all()
+            )
+        else:
+            students = [l.converted_student for l in converted_leads if l.converted_student and not l.converted_student.is_blocked]
+
+        student_ids = [s.id for s in students]
+        enr_by_student: dict[int, list[GroupEnrollment]] = {sid: [] for sid in student_ids}
+        att_by_student: dict[int, list[LessonAttendance]] = {sid: [] for sid in student_ids}
+        pass_by_student: dict[int, list[StudentPass]] = {sid: [] for sid in student_ids}
+        if student_ids:
+            enrs = (
+                GroupEnrollment.query.options(joinedload(GroupEnrollment.group))
+                .filter(GroupEnrollment.student_user_id.in_(student_ids))
+                .order_by(GroupEnrollment.enrolled_at.desc())
+                .all()
+            )
+            for e in enrs:
+                enr_by_student.setdefault(e.student_user_id, []).append(e)
+            since = now - timedelta(days=30)
+            atts = (
+                LessonAttendance.query.join(Lesson, Lesson.id == LessonAttendance.lesson_id)
+                .filter(LessonAttendance.student_user_id.in_(student_ids), Lesson.starts_at >= since)
+                .all()
+            )
+            for a in atts:
+                att_by_student.setdefault(a.student_user_id, []).append(a)
+            sp_rows = (
+                StudentPass.query.options(joinedload(StudentPass.plan))
+                .filter(StudentPass.student_user_id.in_(student_ids))
+                .order_by(StudentPass.status != "active", StudentPass.id.desc())
+                .all()
+            )
+            for sp in sp_rows:
+                pass_by_student.setdefault(sp.student_user_id, []).append(sp)
+
+        health_cols = {
+            "unassigned": [],
+            "at_risk": [],
+            "healthy": [],
+            "paused": [],
+        }
+        health_labels = {
+            "unassigned": _("Без группы"),
+            "at_risk": _("Риск (2+ пропуска)"),
+            "healthy": _("Стабильно"),
+            "paused": _("Завершил / Пауза"),
+        }
+        for s in students:
+            enrs = enr_by_student.get(s.id, [])
+            active_enrs = [e for e in enrs if e.left_at is None]
+            atts = att_by_student.get(s.id, [])
+            total_att = len(atts)
+            present_cnt = sum(1 for a in atts if a.status in ("present", "late"))
+            absent_cnt = sum(1 for a in atts if a.status == "absent")
+            att_pct = int(round((present_cnt / total_att) * 100)) if total_att else 100
+            passes = pass_by_student.get(s.id, [])
+            active_pass = next((p for p in passes if p.status == "active"), None)
+            total_debt = sum(p.debt_amount for p in passes if p.status != "cancelled")
+            card = {
+                "student": s,
+                "lead": converted_by_student.get(s.id),
+                "active_groups": [e.group.name for e in active_enrs if e.group],
+                "total_att": total_att,
+                "present_cnt": present_cnt,
+                "absent_cnt": absent_cnt,
+                "att_pct": att_pct,
+                "active_pass": active_pass,
+                "total_debt": total_debt,
+            }
+            if active_enrs:
+                bucket = "at_risk" if absent_cnt >= 2 else "healthy"
+            elif enrs:
+                bucket = "paused"
+            else:
+                bucket = "unassigned"
+            health_cols[bucket].append(card)
+
+        return render_template(
+            "manager/pipeline.html",
+            **_common_ctx(),
+            now_utc=now,
+            mode="students",
+            health_cols=health_cols,
+            health_labels=health_labels,
+            managers=_crm_managers(),
+            filters={"source": source, "manager": manager_id or ""},
+        )
 
     query = _leads_scope(Lead.query.options(joinedload(Lead.assigned_manager)))
     if source in LEAD_SOURCES:
@@ -729,11 +1013,419 @@ def pipeline():
         "manager/pipeline.html",
         **_common_ctx(),
         now_utc=now,
+        mode="leads",
         columns=columns,
         next_status_map=next_status_map,
         managers=_crm_managers(),
         filters={"source": source, "manager": manager_id or ""},
     )
+
+
+def _authorize_student_crm(student_id: int) -> tuple[User, Lead | None]:
+    student = User.query.options(joinedload(User.profile)).filter_by(id=student_id, role="student").first() or abort(404)
+    lead = Lead.query.options(joinedload(Lead.assigned_manager)).filter_by(converted_student_id=student.id).first()
+    if not current_user.has_perm("crm.leads.view_all"):
+        if not lead or lead.assigned_manager_id != current_user.id:
+            abort(403)
+    return student, lead
+
+
+@bp.route("/students/<int:student_id>")
+@manager_required
+def student_detail(student_id: int):
+    """Manager CRM Student 360 card: profile, lead origin, enrollments, attendance, passes & payments, unified timeline."""
+    student, lead = _authorize_student_crm(student_id)
+
+    tab = (request.args.get("tab") or "all").strip().lower()
+    if tab not in ("all", "comms", "system", "academic", "finance"):
+        tab = "all"
+
+    enrollments = (
+        GroupEnrollment.query.options(joinedload(GroupEnrollment.group), joinedload(GroupEnrollment.course))
+        .filter_by(student_user_id=student.id)
+        .order_by(GroupEnrollment.left_at.isnot(None), GroupEnrollment.enrolled_at.desc())
+        .all()
+    )
+    atts = LessonAttendance.query.filter_by(student_user_id=student.id).all()
+    att_counts = Counter(a.status for a in atts)
+    passes = (
+        StudentPass.query.options(joinedload(StudentPass.plan))
+        .filter_by(student_user_id=student.id)
+        .order_by(StudentPass.status != "active", StudentPass.created_at.desc())
+        .all()
+    )
+    payments = (
+        PaymentTransaction.query.options(joinedload(PaymentTransaction.recorded_by), joinedload(PaymentTransaction.student_pass))
+        .filter_by(student_user_id=student.id)
+        .order_by(PaymentTransaction.paid_at.desc(), PaymentTransaction.id.desc())
+        .limit(50)
+        .all()
+    )
+    plans = MembershipPlan.query.filter_by(is_active=True).order_by(MembershipPlan.price_amount.asc()).all()
+    total_debt = sum(p.debt_amount for p in passes if p.status != "cancelled")
+
+    timeline = _build_unified_timeline(lead=lead, student_id=student.id)
+    filtered_timeline = timeline if tab == "all" else [e for e in timeline if e["category"] == tab]
+
+    return render_template(
+        "manager/student_detail.html",
+        **_common_ctx(),
+        student=student,
+        lead=lead,
+        enrollments=enrollments,
+        att_counts=att_counts,
+        att_total=len(atts),
+        passes=passes,
+        payments=payments,
+        plans=plans,
+        total_debt=total_debt,
+        PASS_STATUS_LABELS=PASS_STATUS_LABELS,
+        PAYMENT_METHODS=PAYMENT_METHODS,
+        METHOD_LABELS=METHOD_LABELS,
+        timeline=filtered_timeline,
+        timeline_counts={
+            "all": len(timeline),
+            "academic": sum(1 for e in timeline if e["category"] == "academic"),
+            "finance": sum(1 for e in timeline if e["category"] == "finance"),
+            "comms": sum(1 for e in timeline if e["category"] == "comms"),
+            "system": sum(1 for e in timeline if e["category"] == "system"),
+        },
+        active_tab=tab,
+    )
+
+
+# --------------------------------------------------------------------------- Finance, Passes & Payroll (Phase B)
+
+
+def _scoped_student_ids_for_manager() -> list[int] | None:
+    """Return None when user views all students; otherwise IDs of students converted from their leads."""
+    if current_user.has_perm("crm.leads.view_all"):
+        return None
+    rows = (
+        db.session.query(Lead.converted_student_id)
+        .filter(Lead.assigned_manager_id == current_user.id, Lead.converted_student_id.isnot(None))
+        .all()
+    )
+    return [sid for (sid,) in rows if sid]
+
+
+@bp.route("/finance")
+@permission_required("crm.finance.read")
+def finance():
+    """Membership plans, student passes/debts, immutable payment ledger, and supervisor teacher payroll."""
+    now = utcnow()
+    since_30 = now - timedelta(days=30)
+    scoped_ids = _scoped_student_ids_for_manager()
+
+    tx_q = PaymentTransaction.query.options(
+        joinedload(PaymentTransaction.student),
+        joinedload(PaymentTransaction.recorded_by),
+        joinedload(PaymentTransaction.student_pass).joinedload(StudentPass.plan),
+    )
+    pass_q = StudentPass.query.options(joinedload(StudentPass.student), joinedload(StudentPass.plan))
+    if scoped_ids is not None:
+        if scoped_ids:
+            tx_q = tx_q.filter(PaymentTransaction.student_user_id.in_(scoped_ids))
+            pass_q = pass_q.filter(StudentPass.student_user_id.in_(scoped_ids))
+        else:
+            tx_q = tx_q.filter(PaymentTransaction.id == -1)
+            pass_q = pass_q.filter(StudentPass.id == -1)
+
+    recent_tx = tx_q.order_by(PaymentTransaction.paid_at.desc(), PaymentTransaction.id.desc()).limit(100).all()
+    all_passes = pass_q.order_by(StudentPass.created_at.desc()).all()
+
+    rev_30d = sum(
+        (-tx.amount if tx.kind == "refund" else tx.amount)
+        for tx in recent_tx
+        if tx.paid_at and tx.paid_at >= since_30
+    )
+    active_passes = [p for p in all_passes if p.status == "active"]
+    debt_passes = [p for p in all_passes if p.status != "cancelled" and p.debt_amount > 0]
+    total_debt = sum(p.debt_amount for p in debt_passes)
+    expiring_passes = [
+        p
+        for p in active_passes
+        if (p.lessons_remaining is not None and p.lessons_remaining <= 2)
+        or (p.expires_at is not None and p.expires_at <= now + timedelta(days=7))
+    ]
+
+    plans = MembershipPlan.query.options(joinedload(MembershipPlan.course)).order_by(MembershipPlan.price_amount.asc()).all()
+    courses = AcademicCourse.query.filter_by(is_active=True).order_by(AcademicCourse.name.asc()).all()
+
+    payroll_rows = []
+    pay_rates = []
+    teachers = []
+    if current_user.has_perm("academic.payroll.read"):
+        teachers = User.query.filter_by(role="teacher", is_approved=True, is_blocked=False).order_by(User.name.asc()).all()
+        pay_rates = (
+            TeacherPayRate.query.options(joinedload(TeacherPayRate.teacher), joinedload(TeacherPayRate.course))
+            .filter_by(is_active=True)
+            .order_by(TeacherPayRate.created_at.desc())
+            .all()
+        )
+        rates_by_teacher: dict[int, list[TeacherPayRate]] = {}
+        for r in pay_rates:
+            rates_by_teacher.setdefault(r.teacher_id, []).append(r)
+
+        recent_lessons = (
+            Lesson.query.options(joinedload(Lesson.group), joinedload(Lesson.attendances))
+            .filter(Lesson.starts_at >= since_30, Lesson.starts_at <= now + timedelta(days=1))
+            .all()
+        )
+        lessons_by_teacher: dict[int, list[Lesson]] = {}
+        for l in recent_lessons:
+            if l.teacher_id:
+                lessons_by_teacher.setdefault(l.teacher_id, []).append(l)
+
+        for tch in teachers:
+            t_rates = rates_by_teacher.get(tch.id, [])
+            t_lessons = lessons_by_teacher.get(tch.id, [])
+            accrued = 0
+            for l in t_lessons:
+                cid = l.group.course_id if l.group else None
+                rate = next((r for r in t_rates if r.course_id == cid), None) or next((r for r in t_rates if r.course_id is None), None)
+                if rate:
+                    if rate.rate_type == "per_lesson":
+                        accrued += rate.rate_amount
+                    elif rate.rate_type == "per_student":
+                        accrued += rate.rate_amount * sum(1 for a in l.attendances if a.status in ("present", "late"))
+            fixed = next((r for r in t_rates if r.rate_type == "fixed_month"), None)
+            if fixed and not accrued:
+                accrued = fixed.rate_amount
+            payroll_rows.append({
+                "teacher": tch,
+                "lesson_count": len(t_lessons),
+                "accrued": accrued,
+                "rates": t_rates,
+            })
+
+    return render_template(
+        "manager/finance.html",
+        **_common_ctx(),
+        now_utc=now,
+        rev_30d=rev_30d,
+        total_debt=total_debt,
+        active_passes_count=len(active_passes),
+        expiring_passes=expiring_passes,
+        debt_passes=debt_passes,
+        recent_tx=recent_tx,
+        plans=plans,
+        courses=courses,
+        teachers=teachers,
+        pay_rates=pay_rates,
+        payroll_rows=payroll_rows,
+        PASS_STATUS_LABELS=PASS_STATUS_LABELS,
+        PAYMENT_METHODS=PAYMENT_METHODS,
+        METHOD_LABELS=METHOD_LABELS,
+        PAY_RATE_TYPES=PAY_RATE_TYPES,
+        RATE_TYPE_LABELS=RATE_TYPE_LABELS,
+    )
+
+
+@bp.post("/plans/new")
+@permission_required("crm.finance.manage")
+def plan_create():
+    name = (request.form.get("name") or "").strip()
+    course_id = request.form.get("course_id", type=int) or None
+    total_lessons = request.form.get("total_lessons", type=int)
+    duration_days = max(1, min(365, request.form.get("duration_days", 30, type=int) or 30))
+    price_amount = max(0, request.form.get("price_amount", 0, type=int) or 0)
+    if len(name) < 2:
+        flash(_("Укажите название тарифа."), "error")
+        return redirect(url_for("manager.finance"))
+    if course_id and not db.session.get(AcademicCourse, course_id):
+        course_id = None
+    if total_lessons is not None and total_lessons <= 0:
+        total_lessons = None
+    plan = MembershipPlan(
+        name=name,
+        course_id=course_id,
+        total_lessons=total_lessons,
+        duration_days=duration_days,
+        price_amount=price_amount,
+    )
+    db.session.add(plan)
+    db.session.commit()
+    flash(_("Тариф «%(n)s» добавлен.", n=plan.name), "success")
+    return redirect(url_for("manager.finance"))
+
+
+@bp.post("/students/<int:student_id>/passes/new")
+@permission_required("crm.finance.record")
+def student_pass_create(student_id: int):
+    student, _lead = _authorize_student_crm(student_id)
+    plan_id = request.form.get("plan_id", type=int)
+    plan = db.session.get(MembershipPlan, plan_id) if plan_id else None
+    if not plan:
+        flash(_("Выберите тариф абонемента."), "error")
+        return redirect(url_for("manager.student_detail", student_id=student.id))
+
+    enrollment_id = request.form.get("enrollment_id", type=int) or None
+    if enrollment_id:
+        enr = db.session.get(GroupEnrollment, enrollment_id)
+        if not enr or enr.student_user_id != student.id:
+            enrollment_id = None
+
+    raw_price = request.form.get("agreed_price", type=int)
+    agreed_price = max(0, raw_price if raw_price is not None else plan.price_amount)
+    initial_pay = max(0, request.form.get("initial_payment", 0, type=int) or 0)
+    method = (request.form.get("method") or "cash").strip().lower()
+    if method not in PAYMENT_METHODS:
+        method = "cash"
+    note = (request.form.get("note") or "").strip()
+
+    now = utcnow()
+    sp = StudentPass(
+        student_user_id=student.id,
+        plan_id=plan.id,
+        enrollment_id=enrollment_id,
+        status="active",
+        lessons_total=plan.total_lessons,
+        lessons_remaining=plan.total_lessons,
+        starts_at=now,
+        expires_at=now + timedelta(days=max(1, plan.duration_days)),
+        agreed_price=agreed_price,
+        paid_amount=min(agreed_price, initial_pay) if agreed_price else initial_pay,
+        note=note,
+        created_by_id=current_user.id,
+    )
+    db.session.add(sp)
+    db.session.flush()
+    if initial_pay > 0:
+        db.session.add(
+            PaymentTransaction(
+                student_user_id=student.id,
+                pass_id=sp.id,
+                amount=initial_pay,
+                method=method,
+                kind="payment",
+                note=note or f"Оплата при выдаче: {plan.name}",
+                recorded_by_id=current_user.id,
+                paid_at=now,
+            )
+        )
+    write_audit_log(
+        actor_id=current_user.id,
+        action="pass_issue",
+        entity_type="student_pass",
+        entity_id=sp.id,
+        new_value={"student_id": student.id, "plan": plan.name, "agreed_price": agreed_price, "initial_pay": initial_pay},
+    )
+    db.session.commit()
+    flash(_("Абонемент «%(p)s» выдан ученику.", p=plan.name), "success")
+    return redirect(url_for("manager.student_detail", student_id=student.id))
+
+
+@bp.post("/students/<int:student_id>/payments/new")
+@permission_required("crm.finance.record")
+def student_payment_create(student_id: int):
+    student, _lead = _authorize_student_crm(student_id)
+    amount = request.form.get("amount", type=int) or 0
+    kind = (request.form.get("kind") or "payment").strip().lower()
+    method = (request.form.get("method") or "cash").strip().lower()
+    pass_id = request.form.get("pass_id", type=int) or None
+    note = (request.form.get("note") or "").strip()
+
+    if kind not in PAYMENT_KINDS or method not in PAYMENT_METHODS or amount <= 0:
+        flash(_("Укажите корректную сумму (> 0), способ и тип операции."), "error")
+        return redirect(url_for("manager.student_detail", student_id=student.id))
+    if kind == "refund" and not current_user.has_perm("crm.finance.manage"):
+        abort(403)
+
+    sp = db.session.get(StudentPass, pass_id) if pass_id else None
+    if pass_id and (not sp or sp.student_user_id != student.id):
+        flash(_("Указанный абонемент не принадлежит ученику."), "error")
+        return redirect(url_for("manager.student_detail", student_id=student.id))
+
+    if sp is not None:
+        if kind == "refund" and amount > sp.paid_amount:
+            flash(_("Сумма возврата превышает оплаченную сумму по абонементу."), "error")
+            return redirect(url_for("manager.student_detail", student_id=student.id))
+        sp.paid_amount = sp.paid_amount - amount if kind == "refund" else sp.paid_amount + amount
+
+    tx = PaymentTransaction(
+        student_user_id=student.id,
+        pass_id=sp.id if sp else None,
+        amount=amount,
+        method=method,
+        kind=kind,
+        note=note,
+        recorded_by_id=current_user.id,
+        paid_at=utcnow(),
+    )
+    db.session.add(tx)
+    db.session.flush()
+    write_audit_log(
+        actor_id=current_user.id,
+        action="payment_refund" if kind == "refund" else "payment_record",
+        entity_type="payment_transaction",
+        entity_id=tx.id,
+        new_value={"student_id": student.id, "pass_id": tx.pass_id, "amount": amount, "method": method, "kind": kind},
+        reason=note,
+    )
+    db.session.commit()
+    flash(_("Операция на %(a)s KGS сохранена.", a=amount), "success")
+    return redirect(url_for("manager.student_detail", student_id=student.id))
+
+
+@bp.post("/passes/<int:pass_id>/status")
+@permission_required("crm.finance.manage")
+def pass_update_status(pass_id: int):
+    sp = db.session.get(StudentPass, pass_id) or abort(404)
+    new_status = (request.form.get("status") or "").strip().lower()
+    if new_status not in PASS_STATUSES:
+        abort(400)
+    old_status = sp.status
+    if old_status != new_status:
+        sp.status = new_status
+        write_audit_log(
+            actor_id=current_user.id,
+            action="pass_status_change",
+            entity_type="student_pass",
+            entity_id=sp.id,
+            old_value={"status": old_status},
+            new_value={"status": new_status},
+            reason=(request.form.get("reason") or "").strip(),
+        )
+        db.session.commit()
+        flash(_("Статус абонемента обновлён."), "success")
+    return redirect(url_for("manager.student_detail", student_id=sp.student_user_id))
+
+
+@bp.post("/payroll/rates/new")
+@permission_required("academic.payroll.manage")
+def payroll_rate_create():
+    teacher_id = request.form.get("teacher_id", type=int)
+    course_id = request.form.get("course_id", type=int) or None
+    rate_type = (request.form.get("rate_type") or "per_lesson").strip().lower()
+    rate_amount = max(0, request.form.get("rate_amount", 0, type=int) or 0)
+    teacher = db.session.get(User, teacher_id) if teacher_id else None
+    if not teacher or teacher.role not in ("teacher", "admin") or rate_type not in PAY_RATE_TYPES or rate_amount <= 0:
+        flash(_("Укажите учителя, тип ставки и сумму (> 0)."), "error")
+        return redirect(url_for("manager.finance"))
+    if course_id and not db.session.get(AcademicCourse, course_id):
+        course_id = None
+    # Deactivate existing matching rule for the same (teacher_id, course_id) so one active rate governs
+    TeacherPayRate.query.filter_by(teacher_id=teacher.id, course_id=course_id, is_active=True).update({"is_active": False})
+    r = TeacherPayRate(
+        teacher_id=teacher.id,
+        course_id=course_id,
+        rate_type=rate_type,
+        rate_amount=rate_amount,
+        is_active=True,
+    )
+    db.session.add(r)
+    db.session.flush()
+    write_audit_log(
+        actor_id=current_user.id,
+        action="payroll_rate_set",
+        entity_type="teacher_pay_rate",
+        entity_id=r.id,
+        new_value={"teacher_id": teacher.id, "course_id": course_id, "rate_type": rate_type, "rate_amount": rate_amount},
+    )
+    db.session.commit()
+    flash(_("Ставка для %(n)s сохранена.", n=teacher.name), "success")
+    return redirect(url_for("manager.finance"))
 
 
 # --------------------------------------------------------------------------- Supervisor / Admin Audit Log

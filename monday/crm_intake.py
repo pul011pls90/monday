@@ -192,7 +192,11 @@ def webhook_lead():
     if not ok:
         return jsonify({"ok": False, "error": err}), status_code
 
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True)
+    if data is None:
+        data = {}
+    if not isinstance(data, dict):
+        return jsonify({"ok": False, "error": "invalid_json"}), 400
     full_name = str(data.get("full_name") or "").strip()
     phone = str(data.get("phone") or "").strip()
     messenger_handle = str(data.get("messenger_handle") or "").strip()

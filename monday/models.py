@@ -1301,6 +1301,123 @@ class LessonAttendance(db.Model):
     marked_by = db.relationship("User", foreign_keys=[marked_by_id])
 
 
+# --------------------------------------------------------------------------- Finance, Passes & Payroll (Phase B)
+
+
+PASS_STATUSES = ("active", "frozen", "depleted", "expired", "cancelled")
+PAYMENT_METHODS = ("cash", "mbank", "transfer", "card")
+PAYMENT_KINDS = ("payment", "refund")
+PAY_RATE_TYPES = ("per_lesson", "per_student", "fixed_month")
+
+
+class MembershipPlan(db.Model):
+    """Catalog plan / subscription package (e.g. 8 SAT lessons / 30 days)."""
+
+    __tablename__ = "membership_plans"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey("academic_courses.id", ondelete="SET NULL"), nullable=True, index=True)
+    total_lessons = db.Column(db.Integer, nullable=True)  # None = time-bounded unlimited lessons
+    duration_days = db.Column(db.Integer, nullable=False, default=30)
+    price_amount = db.Column(db.Integer, nullable=False, default=0)
+    currency = db.Column(db.String(8), nullable=False, default="KGS")
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    course = db.relationship("AcademicCourse")
+
+
+class StudentPass(db.Model):
+    """Issued student pass/membership tracking remaining lessons, expiry, and payment balance."""
+
+    __tablename__ = "student_passes"
+    __table_args__ = (
+        db.Index("ix_student_passes_student_status", "student_user_id", "status"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    student_user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True)
+    plan_id = db.Column(db.Integer, db.ForeignKey("membership_plans.id", ondelete="RESTRICT"), nullable=False, index=True)
+    enrollment_id = db.Column(db.Integer, db.ForeignKey("group_enrollments.id", ondelete="SET NULL"), nullable=True, index=True)
+    status = db.Column(db.String(20), nullable=False, default="active", index=True)
+    lessons_total = db.Column(db.Integer, nullable=True)
+    lessons_remaining = db.Column(db.Integer, nullable=True)
+    starts_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+    expires_at = db.Column(db.DateTime, nullable=True, index=True)
+    agreed_price = db.Column(db.Integer, nullable=False, default=0)
+    paid_amount = db.Column(db.Integer, nullable=False, default=0)
+    note = db.Column(db.String(255), nullable=False, default="")
+    created_by_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    student = db.relationship("User", foreign_keys=[student_user_id])
+    plan = db.relationship("MembershipPlan")
+    enrollment = db.relationship("GroupEnrollment")
+    created_by = db.relationship("User", foreign_keys=[created_by_id])
+
+    @property
+    def debt_amount(self) -> int:
+        return max(0, int(self.agreed_price or 0) - int(self.paid_amount or 0))
+
+
+class PaymentTransaction(db.Model):
+    """Immutable financial ledger row (payment or refund) for a student / pass."""
+
+    __tablename__ = "payment_transactions"
+
+    id = db.Column(db.Integer, primary_key=True)
+    student_user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True)
+    pass_id = db.Column(db.Integer, db.ForeignKey("student_passes.id", ondelete="SET NULL"), nullable=True, index=True)
+    amount = db.Column(db.Integer, nullable=False)
+    method = db.Column(db.String(24), nullable=False, default="cash")
+    kind = db.Column(db.String(16), nullable=False, default="payment")  # payment | refund
+    note = db.Column(db.String(255), nullable=False, default="")
+    recorded_by_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
+    paid_at = db.Column(db.DateTime, nullable=False, default=utcnow, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    student = db.relationship("User", foreign_keys=[student_user_id])
+    student_pass = db.relationship("StudentPass", foreign_keys=[pass_id])
+    recorded_by = db.relationship("User", foreign_keys=[recorded_by_id])
+
+
+class LessonPassUsage(db.Model):
+    """Idempotency ledger tying one lesson attendance consumption to a StudentPass."""
+
+    __tablename__ = "lesson_pass_usages"
+    __table_args__ = (
+        UniqueConstraint("lesson_id", "student_user_id", name="uq_lesson_pass_usage_lesson_student"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    lesson_id = db.Column(db.Integer, db.ForeignKey("lessons.id", ondelete="CASCADE"), nullable=False, index=True)
+    student_user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True)
+    pass_id = db.Column(db.Integer, db.ForeignKey("student_passes.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    lesson = db.relationship("Lesson")
+    student_pass = db.relationship("StudentPass")
+
+
+class TeacherPayRate(db.Model):
+    """Compensation rule per teacher (optionally scoped to a course)."""
+
+    __tablename__ = "teacher_pay_rates"
+
+    id = db.Column(db.Integer, primary_key=True)
+    teacher_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True)
+    course_id = db.Column(db.Integer, db.ForeignKey("academic_courses.id", ondelete="SET NULL"), nullable=True, index=True)
+    rate_type = db.Column(db.String(24), nullable=False, default="per_lesson")  # per_lesson | per_student | fixed_month
+    rate_amount = db.Column(db.Integer, nullable=False, default=0)
+    currency = db.Column(db.String(8), nullable=False, default="KGS")
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    teacher = db.relationship("User", foreign_keys=[teacher_id])
+    course = db.relationship("AcademicCourse")
+
+
 # Safety net for PostgreSQL, which (unlike SQLite) rejects a string longer than its column:
 # anything typed into a limited field (an answer, a school name…) is cut to fit instead of failing the request.
 from sqlalchemy import String as _String, event as _event, inspect as _inspect  # noqa: E402

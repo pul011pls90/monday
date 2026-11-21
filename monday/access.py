@@ -45,6 +45,13 @@ PERMISSIONS = {
     "academic.attendance.read": frozenset({"teacher", "sales_manager", "supervisor", "admin"}),
     "academic.attendance.mark": frozenset({"teacher", "supervisor", "admin"}),
     "academic.attendance.edit_retro": frozenset({"supervisor", "admin"}),
+
+    # Finance, Passes & Teacher Payroll (Phase B)
+    "crm.finance.read": frozenset({"sales_manager", "supervisor", "admin"}),
+    "crm.finance.record": frozenset({"sales_manager", "supervisor", "admin"}),
+    "crm.finance.manage": frozenset({"supervisor", "admin"}),
+    "academic.payroll.read": frozenset({"supervisor", "admin"}),
+    "academic.payroll.manage": frozenset({"supervisor", "admin"}),
 }
 
 

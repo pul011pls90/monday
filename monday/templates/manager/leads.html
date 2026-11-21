@@ -139,6 +139,19 @@
     </tbody>
   </table>
 </div>
+{% if pagination and pagination.total_pages > 1 %}
+<div class="row" style="justify-content:space-between;align-items:center;margin-top:12px">
+  <span class="small muted">{{ _("Показано %(shown)s из %(total)s · стр. %(page)s/%(pages)s", shown=leads|length, total=pagination.total, page=pagination.page, pages=pagination.total_pages) }}</span>
+  <div class="row" style="gap:6px">
+    {% if pagination.page > 1 %}
+      <a class="btn btn--secondary btn--sm" href="{{ url_for('manager.leads', page=pagination.page - 1, status=filters.status or None, source=filters.source or None, manager=filters.manager or None, sla=filters.sla or None, date_from=filters.date_from or None, date_to=filters.date_to or None, q=filters.q or None) }}">{{ _("Назад") }}</a>
+    {% endif %}
+    {% if pagination.page < pagination.total_pages %}
+      <a class="btn btn--secondary btn--sm" href="{{ url_for('manager.leads', page=pagination.page + 1, status=filters.status or None, source=filters.source or None, manager=filters.manager or None, sla=filters.sla or None, date_from=filters.date_from or None, date_to=filters.date_to or None, q=filters.q or None) }}">{{ _("Вперёд") }}</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
 {% else %}
 <div class="empty">
   <h3>{{ _("Лидов не найдено") }}</h3>

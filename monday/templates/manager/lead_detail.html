@@ -23,7 +23,7 @@
   </div>
   <div class="row" style="gap:8px;flex-wrap:wrap">
     {% if lead.converted_student_id %}
-      <span class="btn btn--secondary btn--sm is-disabled">{{ ui.icon('check', 15) }}{{ _("Ученик") }} #{{ lead.converted_student_id }}</span>
+      <a class="btn btn--secondary btn--sm" href="{{ url_for('manager.student_detail', student_id=lead.converted_student_id) }}">{{ ui.icon('users', 15) }}{{ _("Профиль ученика") }} #{{ lead.converted_student_id }}</a>
     {% else %}
       <a class="btn btn--primary btn--sm" href="#convert-lead">{{ ui.icon('check', 15) }}{{ _("Конвертировать в ученика") }}</a>
     {% endif %}
@@ -65,24 +65,30 @@
     </section>
 
     <section class="card card--tight">
-      <div class="card__head">
-        <h2 style="font-size:16px">{{ _("История активности") }}</h2>
-        <span class="small muted num">{{ activities|length }}</span>
+      <div class="card__head" style="flex-wrap:wrap;gap:8px">
+        <h2 style="font-size:16px">{{ _("Единая лента событий") }}</h2>
+        <span class="small muted num">{{ timeline_counts[active_tab] }}</span>
       </div>
-      {% if activities %}
+      <div class="admin-tabs" style="margin-bottom:12px">
+        <a class="{{ 'is-active' if active_tab == 'all' }}" href="{{ url_for('manager.lead_detail', lead_id=lead.id, tab='all') }}">{{ _("Все") }} <span class="admin-tabs__n num">{{ timeline_counts.all }}</span></a>
+        <a class="{{ 'is-active' if active_tab == 'comms' }}" href="{{ url_for('manager.lead_detail', lead_id=lead.id, tab='comms') }}">{{ _("Контакты") }} <span class="admin-tabs__n num">{{ timeline_counts.comms }}</span></a>
+        <a class="{{ 'is-active' if active_tab == 'system' }}" href="{{ url_for('manager.lead_detail', lead_id=lead.id, tab='system') }}">{{ _("Статусы и аудит") }} <span class="admin-tabs__n num">{{ timeline_counts.system }}</span></a>
+        <a class="{{ 'is-active' if active_tab == 'academic' }}" href="{{ url_for('manager.lead_detail', lead_id=lead.id, tab='academic') }}">{{ _("Учёба") }} <span class="admin-tabs__n num">{{ timeline_counts.academic }}</span></a>
+      </div>
+      {% if timeline %}
       <ul class="crm-timeline">
-        {% for a in activities %}
+        {% for ev in timeline %}
           <li class="crm-timeline__item">
-            <span class="crm-timeline__badge">{{ ACTIVITY_LABELS.get(a.type, a.type) }}</span>
+            <span class="crm-timeline__badge">{{ ev.badge }}</span>
             <div>
-              <div class="crm-timeline__body">{{ a.body }}</div>
-              <div class="crm-timeline__meta">{{ a.actor.name if a.actor else _('Система') }} · {{ a.created_at|d('d MMM y, HH:mm') }}</div>
+              <div class="crm-timeline__body">{{ ev.body }}</div>
+              <div class="crm-timeline__meta">{{ ev.actor_name }} · {{ ev.ts|d('d MMM y, HH:mm') }}</div>
             </div>
           </li>
         {% endfor %}
       </ul>
       {% else %}
-        <p class="small text-2">{{ _("Пока нет записей.") }}</p>
+        <p class="small text-2">{{ _("В этой вкладке пока нет событий.") }}</p>
       {% endif %}
     </section>
 

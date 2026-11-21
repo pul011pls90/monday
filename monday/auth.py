@@ -19,6 +19,12 @@ from .models import Assignment, StudentProfile, StudentRecord, User
 bp = Blueprint("auth", __name__)
 
 
+def _no_store_render(template: str, status: int = 200, **ctx):
+    resp = make_response(render_template(template, **ctx), status)
+    resp.headers["Cache-Control"] = "no-store, max-age=0"
+    return resp
+
+
 def _home_for(user):
     if getattr(user, "must_change_password", False):
         return url_for("auth.force_password_change")
@@ -110,7 +116,7 @@ def login():
             ok, msg = link_invite_code(user, pending_code)
             flash(msg, "success" if ok else "error")
         return redirect(_safe_next(request.args.get("next")) or _home_for(user))
-    return render_template("auth/welcome.html", tab="login", form={})
+    return _no_store_render("auth/welcome.html", tab="login", form={})
 
 
 GOOGLE_AUTH = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -318,7 +324,7 @@ def register():
             ok, msg = link_invite_code(user, code)
             flash(msg, "success" if ok else "error")
         return redirect(_home_for(user))
-    return render_template("auth/welcome.html", tab="register", form=form)
+    return _no_store_render("auth/welcome.html", tab="register", form=form)
 
 
 @bp.route("/join/<code>")
@@ -376,7 +382,7 @@ def force_password_change():
         if errors:
             for e in errors:
                 flash(e, "error")
-            return render_template("auth/change_password.html", min_pw_len=min_len), 400
+            return _no_store_render("auth/change_password.html", status=400, min_pw_len=min_len)
 
         user_obj = current_user._get_current_object()
         user_obj.set_password(new_pw)  # increments session_version -> revokes other sessions
@@ -386,7 +392,7 @@ def force_password_change():
         login_user(user_obj, remember=False)
         flash(_("Пароль успешно обновлён."), "success")
         return redirect(_home_for(user_obj))
-    return render_template("auth/change_password.html", min_pw_len=min_len)
+    return _no_store_render("auth/change_password.html", min_pw_len=min_len)
 
 
 @bp.route("/prefs/theme", methods=["POST"])
