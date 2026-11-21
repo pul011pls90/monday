@@ -4,39 +4,45 @@
 {% block context %}{{ _("Воронка продаж") }}{% endblock %}
 {% block page_class %}page--wide{% endblock %}
 {% block content %}
+  {# Row 1: Page Header — Title & Subtitle Left | Switcher & Solid Primary CTA Right #}
   {% call mui.page_header(
     _("Воронка и активные ученики") if mode == 'students' else _("Воронка продаж"),
-    _("Как учатся текущие ученики: группы, абонементы и посещаемость.") if mode == 'students' else _("Путь каждого обращения — от первой заявки до оплаты.")
+    _("Группы, абонементы и посещаемость текущих учеников.") if mode == 'students' else _("Сделки по этапам — от первого обращения до оплаты.")
   ) %}
-    <div class="segmented">
+    <div class="segmented" role="navigation" aria-label="{{ _('Режим воронки') }}">
       <a class="{{ 'is-active' if mode != 'students' }}" href="{{ url_for('manager.pipeline', mode='leads') }}">{{ _("Воронка лидов") }}</a>
       <a class="{{ 'is-active' if mode == 'students' }}" href="{{ url_for('manager.pipeline', mode='students') }}">{{ _("Активные ученики") }}</a>
     </div>
-    {% if mode != 'students' %}
-    <form method="get" action="{{ url_for('manager.pipeline') }}" class="row" style="gap:6px">
-      <input type="hidden" name="mode" value="leads">
-      <select class="select input--sm" name="source" aria-label="{{ _('Источник') }}" style="width:auto;min-height:36px">
-        <option value="">{{ _("Все источники") }}</option>
-        {% for s in LEAD_SOURCES %}<option value="{{ s }}" {{ 'selected' if filters.source == s }}>{{ SOURCE_LABELS[s] }}</option>{% endfor %}
-      </select>
-      {% if current_user.has_perm('crm.leads.view_all') %}
-      <select class="select input--sm" name="manager" aria-label="{{ _('Менеджер') }}" style="width:auto;min-height:36px">
-        <option value="">{{ _("Все менеджеры") }}</option>
-        {% for m in managers %}<option value="{{ m.id }}" {{ 'selected' if filters.manager == m.id }}>{{ m.name }}</option>{% endfor %}
-      </select>
-      {% endif %}
-      <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">{{ _("Показать") }}</button>
-    </form>
-    {% endif %}
-    {{ mui.btn(_("Новый лид"), href=url_for('manager.leads') ~ '#new-lead', variant='primary', size='sm', icon_name='plus') }}
+    <a class="btn btn--primary btn--min" href="{{ url_for('manager.leads') ~ '#new-lead' }}">{{ ui.icon('plus', 15) }}<span>{{ _("Новый лид") }}</span></a>
   {% endcall %}
+
+  {# Row 2: Compact Filter Bar in var(--surface-2) Strip #}
+  {% if mode != 'students' %}
+  <form method="get" action="{{ url_for('manager.pipeline') }}" class="mgr-filter-row mgr-pipeline-filter" role="search">
+    <input type="hidden" name="mode" value="leads">
+    <select class="select input--sm" name="source" aria-label="{{ _('Источник') }}" onchange="this.form.submit()">
+      <option value="">{{ _("Все источники") }}</option>
+      {% for s in LEAD_SOURCES %}<option value="{{ s }}" {{ 'selected' if filters.source == s }}>{{ SOURCE_LABELS[s] }}</option>{% endfor %}
+    </select>
+    {% if current_user.has_perm('crm.leads.view_all') %}
+    <select class="select input--sm" name="manager" aria-label="{{ _('Менеджер') }}" onchange="this.form.submit()">
+      <option value="">{{ _("Все менеджеры") }}</option>
+      {% for m in managers %}<option value="{{ m.id }}" {{ 'selected' if filters.manager == m.id }}>{{ m.name }}</option>{% endfor %}
+    </select>
+    {% endif %}
+    <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Применить") }}</button>
+    {% if filters.source or filters.manager %}
+      <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.pipeline', mode='leads') }}">{{ _("Сброс") }}</a>
+    {% endif %}
+  </form>
+  {% endif %}
 
   {% if mode == 'students' %}
   <div class="mgr-board mgr-board--4">
     {% for key in ('unassigned', 'at_risk', 'healthy', 'paused') %}
       {% set items = health_cols[key] %}
       {% set h_tone = 'bad' if key == 'at_risk' else ('ok' if key == 'healthy' else ('warn' if key == 'unassigned' else 'neutral')) %}
-      <section class="mgr-col">
+      <section class="mgr-col mgr-col--health-{{ key }}">
         <div class="mgr-col__head">
           {{ mui.badge(health_labels[key], tone=h_tone, dot=true) }}
           <span class="mgr-pill num">{{ items|length }}</span>
@@ -71,7 +77,7 @@
               </div>
             </article>
           {% else %}
-            <p class="small muted" style="text-align:center;padding:16px 0">{{ _("Пусто") }}</p>
+            <p class="mgr-col__empty">{{ _("Пока пусто") }}</p>
           {% endfor %}
         </div>
       </section>
@@ -83,7 +89,7 @@
       {% set items = columns[st] %}
       {% set st_tone = 'ok' if st == 'won' else ('bad' if st == 'lost' else ('warn' if st in ('trial_scheduled', 'trial_done') else 'accent')) %}
       {% set moves = allowed_transitions.get(st, []) if allowed_transitions is defined else ([next_status_map[st]] if st in next_status_map else []) %}
-      <section class="mgr-col">
+      <section class="mgr-col mgr-col--{{ st }}">
         <div class="mgr-col__head">
           {{ mui.badge(STATUS_LABELS[st], tone=st_tone, dot=true) }}
           <span class="mgr-pill num">{{ items|length }}</span>
@@ -127,7 +133,7 @@
               {% endif %}
             </article>
           {% else %}
-            <p class="small muted" style="text-align:center;padding:16px 0">{{ _("Пусто") }}</p>
+            <p class="mgr-col__empty">{{ _("Пока пусто") }}</p>
           {% endfor %}
         </div>
       </section>

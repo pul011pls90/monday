@@ -226,3 +226,47 @@ def test_shell_panel_finance_fx_hooks_and_account_controls():
     stu = _login_csrf(app.test_client(), "stu@monday.kg")
     home_html = stu.get("/home").data.decode()
     assert 'class="app-shell-panel"' not in home_html
+
+
+def test_pipeline_shell_toolbar_csrf_and_rbac():
+    from monday.models import Lead
+
+    app = _make_app(csrf_enabled=True)
+    mgr_id = _seed_user(app, "mgr@monday.kg", "Manager", "sales_manager")
+    _seed_user(app, "sup@monday.kg", "Supervisor", "supervisor")
+    _seed_user(app, "stu@monday.kg", "Student", "student")
+    _seed_user(app, "tch@monday.kg", "Teacher", "teacher")
+
+    with app.app_context():
+        db.session.add(Lead(full_name="Тестовый Лид", phone="+996700111222", source="site", status="new", assigned_manager_id=mgr_id))
+        db.session.commit()
+
+    def _login_csrf(client, email, pw="StrongStaff12!"):
+        pg = client.get("/login").data.decode()
+        m = re.search(r'name="csrf_token"[^>]*value="([^"]+)"', pg)
+        assert m
+        r = client.post("/login", data={"email": email, "password": pw, "csrf_token": m.group(1)})
+        assert r.status_code == 302
+        return client
+
+    for email in ("mgr@monday.kg", "sup@monday.kg"):
+        c = _login_csrf(app.test_client(), email)
+        for url in ("/manager/pipeline", "/manager/pipeline?tab=clients", "/manager/pipeline?mode=students"):
+            res = c.get(url)
+            assert res.status_code == 200, (email, url)
+            html = res.data.decode()
+            assert 'class="app-shell-panel"' in html
+            post_forms = re.findall(r"<form\b[^>]*method=[\"']post[\"'][^>]*>.*?</form>", html, flags=re.I | re.S)
+            for form_html in post_forms:
+                assert 'name="csrf_token"' in form_html
+
+        leads_html = c.get("/manager/pipeline").data.decode()
+        assert "Сделки по этапам — от первого обращения до оплаты." in leads_html
+        assert "mgr-pipeline-filter" in leads_html
+        assert "mgr-col--new" in leads_html
+
+    for denied_email in ("stu@monday.kg", "tch@monday.kg"):
+        c = _login_csrf(app.test_client(), denied_email)
+        assert c.get("/manager/pipeline").status_code == 403
+        assert c.get("/manager/pipeline?tab=clients").status_code == 403
+

@@ -1085,7 +1085,8 @@ def toggle_shift():
 def pipeline():
     """Dual-view board: 7-column Sales Pipeline OR 4-column Active Student Health board."""
     now = utcnow()
-    mode = (request.args.get("mode") or "leads").strip().lower()
+    tab = (request.args.get("tab") or "").strip().lower()
+    mode = (request.args.get("mode") or ("students" if tab == "clients" else "leads")).strip().lower()
     if mode not in ("leads", "students"):
         mode = "leads"
     source = (request.args.get("source") or "").strip()

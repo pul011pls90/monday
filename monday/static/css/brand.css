@@ -5324,6 +5324,8 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
   flex-direction: column;
   gap: 20px;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   background: color-mix(in srgb, var(--surface) calc(var(--shell-alpha, 80) * 1%), transparent);
   -webkit-backdrop-filter: blur(14px) saturate(1.3);
   backdrop-filter: blur(14px) saturate(1.3);

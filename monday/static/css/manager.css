@@ -1135,17 +1135,46 @@ body.mgr .hc__head h2 {
   color: var(--text);
 }
 
-/* Stage 3.4 & 3.5 — Pipeline Wider Columns, Clean White Cards, Stage Action Menu & Student Progress Bar */
+/* Stage 3.4 & 3.5 — Pipeline Columns, Edge-Safe Scroll Track & Stage Top Accents */
+.mgr .mgr-pipeline-filter {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  box-shadow: none;
+  padding: 8px 12px;
+  border-radius: 14px;
+  gap: 8px;
+}
+[data-theme="dark"] .mgr .mgr-pipeline-filter {
+  background: var(--surface-3);
+  border-color: rgba(255, 255, 255, .16);
+}
+.mgr .mgr-pipeline-filter .select.input--sm {
+  width: auto;
+  min-width: 170px;
+  min-height: 36px;
+  height: 36px;
+}
+
 .mgr .mgr-board {
   display: grid;
-  grid-template-columns: repeat(7, minmax(265px, 1fr));
-  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  justify-content: flex-start;
+  grid-template-columns: repeat(7, minmax(220px, 1fr));
+  gap: 10px;
   overflow-x: auto;
-  padding-bottom: 10px;
+  padding: 2px 2px 10px;
   align-items: start;
 }
+@media (min-width: 1440px) {
+  .mgr .mgr-board {
+    grid-template-columns: repeat(7, minmax(175px, 1fr));
+    gap: 10px;
+  }
+}
 .mgr .mgr-board--4 {
-  grid-template-columns: repeat(4, minmax(260px, 1fr));
+  grid-template-columns: repeat(4, minmax(240px, 1fr));
 }
 @media (max-width: 1120px) {
   .mgr .mgr-board--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); overflow-x: visible; }
@@ -1157,19 +1186,43 @@ body.mgr .hc__head h2 {
 .mgr .mgr-col {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 20px;
-  padding: 14px;
+  border-top: 3px solid var(--line-strong);
+  border-radius: 18px;
+  padding: 12px;
   box-shadow: var(--card-shadow);
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
   min-height: 220px;
 }
+.mgr .mgr-col--new { border-top-color: var(--accent); }
+.mgr .mgr-col--contacted { border-top-color: #5B6EF5; }
+.mgr .mgr-col--trial_scheduled { border-top-color: var(--warn); }
+.mgr .mgr-col--trial_done { border-top-color: #F2994A; }
+.mgr .mgr-col--negotiation { border-top-color: #0D9488; }
+.mgr .mgr-col--won { border-top-color: var(--ok); }
+.mgr .mgr-col--lost { border-top-color: var(--muted); }
+.mgr .mgr-col--health-unassigned { border-top-color: var(--warn); }
+.mgr .mgr-col--health-at_risk { border-top-color: var(--bad); }
+.mgr .mgr-col--health-healthy { border-top-color: var(--ok); }
+.mgr .mgr-col--health-paused { border-top-color: var(--muted); }
 [data-theme="dark"] .mgr .mgr-col {
   background: var(--surface-2);
   border-color: rgba(255, 255, 255, .16);
   box-shadow: none;
 }
+[data-theme="dark"] .mgr .mgr-col--new { border-top-color: var(--accent); }
+[data-theme="dark"] .mgr .mgr-col--contacted { border-top-color: #7FA3F3; }
+[data-theme="dark"] .mgr .mgr-col--trial_scheduled { border-top-color: var(--warn); }
+[data-theme="dark"] .mgr .mgr-col--trial_done { border-top-color: #F2994A; }
+[data-theme="dark"] .mgr .mgr-col--negotiation { border-top-color: #2DD4BF; }
+[data-theme="dark"] .mgr .mgr-col--won { border-top-color: var(--ok); }
+[data-theme="dark"] .mgr .mgr-col--lost { border-top-color: var(--muted); }
+[data-theme="dark"] .mgr .mgr-col--health-unassigned { border-top-color: var(--warn); }
+[data-theme="dark"] .mgr .mgr-col--health-at_risk { border-top-color: var(--bad); }
+[data-theme="dark"] .mgr .mgr-col--health-healthy { border-top-color: var(--ok); }
+[data-theme="dark"] .mgr .mgr-col--health-paused { border-top-color: var(--muted); }
 .mgr .mgr-col__head {
   display: flex;
   align-items: center;
@@ -1177,6 +1230,12 @@ body.mgr .hc__head h2 {
   gap: 8px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--line);
+}
+.mgr .mgr-col__empty {
+  text-align: center;
+  padding: 20px 8px;
+  font-size: 13px;
+  color: var(--muted);
 }
 .mgr .mgr-col__cards {
   display: flex;
