@@ -232,8 +232,27 @@ def create_app(config_object=Config, *, seed_if_empty=True):
             return redirect(url)
         return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
+    @app.before_request
+    def _enforce_password_change():
+        if not current_user.is_authenticated:
+            return None
+        if not getattr(current_user, "must_change_password", False):
+            return None
+        ep = request.endpoint or ""
+        if ep in (
+            "auth.force_password_change",
+            "auth.logout",
+            "auth.toggle_theme",
+            "auth.set_lang",
+            "static",
+            "deploy_safety.api_version",
+            "deploy_safety.api_site_status",
+        ):
+            return None
+        return redirect(url_for("auth.force_password_change"))
+
     with app.app_context():
-        if "reset-db" in sys.argv or "db" in sys.argv:  # CLI migration/reset commands manage schema themselves
+        if "reset-db" in sys.argv or "db" in sys.argv or "create-manager" in sys.argv:  # CLI commands manage schema/actions directly
             return app
         from sqlalchemy import inspect as _sa_inspect
         if app.config.get("TESTING"):
@@ -525,6 +544,77 @@ def _register_cli(app):
         from .analytics_jobs import run_daily_analytics_maintenance
         res = run_daily_analytics_maintenance(retention_days=days)
         click.echo(f"Deleted page_views={res['deleted_page_views']}, updated_users={res['updated_users']}")
+
+    @app.cli.command("create-manager")
+    @click.option("--email", required=True, help="Manager email address.")
+    @click.option("--name", required=True, help="Manager display name.")
+    @click.option(
+        "--role",
+        default="sales_manager",
+        show_default=True,
+        type=click.Choice(["sales_manager", "supervisor"]),
+        help="CRM role to assign.",
+    )
+    def create_manager_cmd(email, name, role):
+        """Provision a Sales Manager (or Supervisor) with a one-time random password and audit log."""
+        import secrets
+        from .audit import write_audit_log
+        from .models import User
+
+        norm_email = (email or "").strip().lower()
+        clean_name = (name or "").strip()
+        if "@" not in norm_email or "." not in norm_email.split("@")[-1]:
+            raise click.ClickException("Invalid email address.")
+        if len(clean_name) < 2:
+            raise click.ClickException("Name must be at least 2 characters.")
+        if User.query.filter_by(email=norm_email).first() is not None:
+            raise click.ClickException(f"User with email {norm_email} already exists.")
+
+        # 20-char cryptographically random password mixing upper, lower, digits, and symbols (no fixed defaults).
+        upper = "ABCDEFGHJKLMNPQRSTUVWXYZ"
+        lower = "abcdefghijkmnopqrstuvwxyz"
+        digits = "23456789"
+        symbols = "!@#$%^&*-_=+"
+        alphabet = upper + lower + digits + symbols
+        chars = [
+            secrets.choice(upper),
+            secrets.choice(lower),
+            secrets.choice(digits),
+            secrets.choice(symbols),
+        ] + [secrets.choice(alphabet) for _ in range(16)]
+        # Fisher-Yates shuffle with secrets.randbelow
+        for i in range(len(chars) - 1, 0, -1):
+            j = secrets.randbelow(i + 1)
+            chars[i], chars[j] = chars[j], chars[i]
+        raw_password = "".join(chars)
+
+        user = User(
+            email=norm_email,
+            name=clean_name,
+            role=role,
+            is_approved=True,
+            is_blocked=False,
+            auth_provider="password",
+            must_change_password=True,
+        )
+        user.set_password(raw_password)
+        db.session.add(user)
+        db.session.flush()
+        write_audit_log(
+            actor_id=None,
+            action="manager_create",
+            entity_type="user",
+            entity_id=user.id,
+            old_value=None,
+            new_value={"email": user.email, "name": user.name, "role": user.role, "must_change_password": True},
+            reason="cli:create-manager",
+        )
+        db.session.commit()
+
+        click.echo(f"Created {role} account (id={user.id})")
+        click.echo(f"Email:    {user.email}")
+        click.echo(f"Password: {raw_password}")
+        click.echo("Note:     One-time password — user will be forced to change it on first login.")
 
 
 def _bootstrap_admin(app):
