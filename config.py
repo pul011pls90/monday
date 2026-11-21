@@ -1,5 +1,6 @@
 import os
 import secrets
+from datetime import timedelta
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
@@ -72,8 +73,8 @@ class Config:
     # for translators (see translations/ and README).
     GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")  # sign in with Google (later)
     GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
-    # Desmos graphing calculator in SAT/CSCA tests (Monday's own key from desmos.com/my-api).
-    DESMOS_API_KEY = os.environ.get("DESMOS_API_KEY", "9daae6e774bc4c34b328b6599b77571c")
+    # Desmos graphing calculator in SAT/CSCA tests (set via DESMOS_API_KEY env var; never hardcode keys).
+    DESMOS_API_KEY = os.environ.get("DESMOS_API_KEY", "").strip()
     # Questions are translated for students: known sentence patterns instantly, anything new through
     # MyMemory (free, no key). An email here raises its free limit from ~5k to ~50k characters a day.
     TRANSLATE_ONLINE = os.environ.get("TRANSLATE_ONLINE", "1") == "1"
@@ -110,6 +111,7 @@ class Config:
     ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
     ADMIN_API_TOKEN = os.environ.get("ADMIN_API_TOKEN", "")
     RESUME_MAX_DAYS = int(os.environ.get("RESUME_MAX_DAYS", "30") or "30")
+    INVITE_CODE_TTL_DAYS = int(os.environ.get("INVITE_CODE_TTL_DAYS", "14") or "14")
     APP_VERSION = (
         os.environ.get("RENDER_GIT_COMMIT")
         or os.environ.get("APP_VERSION")
@@ -120,4 +122,9 @@ class Config:
 
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
+    PERMANENT_SESSION_LIFETIME = timedelta(days=7)
     REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SAMESITE = "Lax"
+    REMEMBER_COOKIE_DURATION = timedelta(days=14)
+    RATELIMIT_STORAGE_URI = os.environ.get("RATELIMIT_STORAGE_URI", "memory://")
+    RATELIMIT_HEADERS_ENABLED = True

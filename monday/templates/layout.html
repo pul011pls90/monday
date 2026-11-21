@@ -155,6 +155,7 @@
 
     {% block page %}
     <main class="page {% block page_class %}{% endblock %}">
+      {% if one_time_notice %}<div class="flash flash--success" role="status">{{ one_time_notice }}</div>{% endif %}
       {{ ui.flashes() }}
       {% block content %}{% endblock %}
     </main>

@@ -14,7 +14,7 @@ from . import formulas as monday_formulas
 from .access import student_required
 from .auth import link_invite_code
 from .constants import EXAMS, FORMAT_FOR_EXAM, LATIN_FORMATS, UNIVERSITY_EXAM, MISTAKE_REASONS, MODES, PACE, SESSION_LEVELS, SESSION_MINUTES, WORK_CATEGORIES
-from .extensions import db
+from .extensions import db, limiter
 from .models import utcnow
 from .models import Assignment, Attempt, AttemptAnswer, BankState, ContentNode, Question, Skill, StudentProfile, StudentRecord, User, Work, WorkVersion
 from .search import search
@@ -1473,6 +1473,7 @@ def switch_exam():
 
 @bp.route("/profile", methods=["GET", "POST"])
 @student_required
+@limiter.limit("15 per minute", methods=["POST"], exempt_when=lambda: request.form.get("action") != "join")
 def profile():
     p = current_user.profile
     if request.method == "POST":
@@ -1589,8 +1590,10 @@ def profile():
             elif len(request.form.get("new", "")) < 8:
                 flash(_("Новый пароль должен быть не короче 8 символов."), "error")
             else:
+                from flask_login import login_user
                 current_user.set_password(request.form["new"])
                 db.session.commit()
+                login_user(current_user._get_current_object())
                 flash(_("Пароль изменён."), "success")
         return redirect(url_for("student.profile") + ("#profile" if action == "join" else "#security" if action == "password" else "#exam"))
     teachers = StudentRecord.query.filter_by(student_user_id=current_user.id).all()
@@ -1610,6 +1613,8 @@ def _delete_account(user):
         user.profile.grade = user.profile.region = user.profile.school = user.profile.country = None
     for rec in StudentRecord.query.filter_by(student_user_id=user.id).all():
         rec.student_user_id = None
+        rec.linked_at = None
+        rec.revoke_invite_code()
     db.session.commit()
 
 

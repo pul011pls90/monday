@@ -256,9 +256,8 @@ def localize(item, lang=None):
 @bp.route("/prefs/original")
 def toggle_original():
     """Switch between the translated and the original question text (remembered in a cookie)."""
-    nxt = request.args.get("next") or ""
-    if not nxt.startswith("/") or nxt.startswith("//"):
-        nxt = url_for("auth.index")
+    from .auth import _safe_next
+    nxt = _safe_next(request.args.get("next") or "") or url_for("auth.index")
     resp = redirect(nxt)
     if request.cookies.get(ORIG_COOKIE) == "1":
         resp.delete_cookie(ORIG_COOKIE)

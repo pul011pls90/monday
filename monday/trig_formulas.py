@@ -10,6 +10,8 @@ from pathlib import Path
 from flask import Blueprint, abort, current_app, jsonify, render_template, request, url_for
 from flask_login import login_required
 
+from .access import admin_required
+
 _BASE = Path(__file__).resolve().parent
 _DATA_FILE = _BASE / "data" / "trigonometry_formulas.json"
 _PHOTO_SUBDIR = "img/trig"
@@ -460,12 +462,14 @@ def trig_level(level_id):
 
 
 @trig_bp.route("/api/trigonometry-formulas")
+@login_required
 def trig_api():
     """JSON endpoint."""
     return jsonify(_load_raw())
 
 
 @trig_bp.route("/dev/visuals")
+@admin_required
 def dev_visuals():
     """QA contact sheet for all generated example and formula SVGs."""
     ex_dir = Path(current_app.static_folder) / "img" / "examples"

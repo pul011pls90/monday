@@ -16,7 +16,8 @@
 {% if not r.student_user_id %}
 <section class="card card--soft" aria-labelledby="code-h">
   <h2 id="code-h" style="font-size:20px">{{ _("Подключите аккаунт ученика") }}</h2>
-  <p>{{ _("Отправьте ученику код или ссылку. После регистрации его результаты и прогресс появятся здесь автоматически.") }}</p>
+  {% if r.invite_is_active %}
+  <p>{{ _("Отправьте ученику код или ссылку. После регистрации его результаты и прогресс появятся здесь автоматически.") }}{% if r.invite_expires_at %} <span class="muted">({{ _("действует до") }} {{ r.invite_expires_at|d('d MMM') }})</span>{% endif %}</p>
   <div class="grid grid-2">
     <div class="field"><label for="code">{{ _("Код") }}</label>
       <div class="copy-field"><input class="input input--mono" id="code" value="{{ r.invite_code }}" readonly><button class="btn btn--primary" type="button" data-copy="code" data-done="{{ _('Скопировано') }}">{{ ui.icon('copy', 18) }}{{ _("Копировать") }}</button></div></div>
@@ -27,7 +28,14 @@
     <a class="btn btn--secondary btn--sm" target="_blank" rel="noopener" href="https://wa.me/?text={{ (_('Привет! Подключайся к моим урокам в Monday: ') ~ join_url)|urlencode }}">WhatsApp</a>
     <a class="btn btn--secondary btn--sm" target="_blank" rel="noopener" href="https://t.me/share/url?url={{ join_url|urlencode }}&text={{ _('Подключайся к моим урокам в Monday')|urlencode }}">Telegram</a>
     <form method="post" action="{{ url_for('teacher.student_new_code', record_id=r.id) }}" data-confirm="{{ _('Создать новый код? Старый перестанет работать.') }}">{{ ui.csrf() }}<button class="btn btn--ghost btn--sm" type="submit">{{ _("Новый код") }}</button></form>
+    <form method="post" action="{{ url_for('teacher.student_revoke_code', record_id=r.id) }}" data-confirm="{{ _('Отозвать код? Ученик не сможет подключиться по старой ссылке.') }}">{{ ui.csrf() }}<button class="btn btn--ghost btn--sm" type="submit">{{ _("Отозвать код") }}</button></form>
   </div>
+  {% else %}
+  <p class="text-2">{% if r.invite_revoked_at %}{{ _("Код приглашения отозван.") }}{% else %}{{ _("Срок действия кода истёк.") }}{% endif %} {{ _("Создайте новый код, чтобы подключить аккаунт ученика.") }}</p>
+  <div class="row">
+    <form method="post" action="{{ url_for('teacher.student_new_code', record_id=r.id) }}">{{ ui.csrf() }}<button class="btn btn--primary btn--sm" type="submit">{{ _("Новый код") }}</button></form>
+  </div>
+  {% endif %}
 </section>
 {% endif %}
 

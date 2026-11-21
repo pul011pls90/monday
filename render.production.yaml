@@ -9,6 +9,7 @@ services:
     region: frankfurt
     plan: 0.5c-512mb          # «Less than 1 CPU», never sleeps. For Monday-test peaks: 1c-2g ($25)
     buildCommand: pip install -r requirements.txt && pybabel compile -d translations
+    preDeployCommand: flask --app app db upgrade
     startCommand: gunicorn app:app -c gunicorn.conf.py
     healthCheckPath: /login
     disk:
@@ -32,9 +33,19 @@ services:
         value: "1"
       - key: SEED_DEMO          # no demo accounts in production
         value: "0"
+      - key: DATA_FIXES         # never run legacy cleanup scripts in production
+        value: "0"
       - key: ADMIN_EMAIL        # the first admin, asked once when the Blueprint is created
         sync: false
       - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_API_TOKEN
+        sync: false
+      - key: DESMOS_API_KEY
+        sync: false
+      - key: ANALYTICS_IP_SALT
+        sync: false
+      - key: RATELIMIT_STORAGE_URI
         sync: false
       - key: MONDAY_TEST_ALWAYS_OPEN   # the Monday test only on Mondays 19:00–24:00
         value: "0"

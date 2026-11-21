@@ -143,7 +143,6 @@ def _domain_diagnostic_stats(user_id: int, milestones: list[RoadmapMilestone]) -
 
 def build_sat_roadmap(user_id: int, topics: list[dict], q: str = "", lang: str = "ru") -> dict:
     """Build the SAT Math Roadmap from DB tables with live Bank, Journal, and Diagnostic sync."""
-    ensure_roadmap_schema()
     milestones_db = RoadmapMilestone.query.filter_by(exam="SAT").order_by(RoadmapMilestone.step.asc()).all()
     if not milestones_db:
         from scripts.seed_roadmap import seed_sat_roadmap
@@ -396,7 +395,6 @@ def api_checklist():
 @bp.route("/admin/roadmap", methods=["GET", "POST"])
 @admin_required
 def admin_roadmap():
-    ensure_roadmap_schema()
     milestones = RoadmapMilestone.query.filter_by(exam="SAT").order_by(RoadmapMilestone.step.asc()).all()
     saved_msg = ""
     if request.method == "POST":

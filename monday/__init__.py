@@ -11,7 +11,9 @@ from flask_login import current_user, login_required
 
 from config import Config
 
-from .extensions import babel, csrf, db, login_manager
+from .extensions import babel, csrf, db, limiter, login_manager, migrate
+
+MIGRATIONS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "migrations")
 
 
 def select_locale():
@@ -34,7 +36,10 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
     db.init_app(app)
+    migrate.init_app(app, db, directory=MIGRATIONS_DIR, render_as_batch=True)
     csrf.init_app(app)
+    app.config.setdefault("RATELIMIT_ENABLED", not app.config.get("TESTING", False))
+    limiter.init_app(app)
     _register_speed(app)
     babel.init_app(app, locale_selector=select_locale)
 
@@ -50,12 +55,27 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
     login_manager.login_message = None
+    login_manager.session_protection = "basic" if app.config.get("TESTING") else "strong"
 
     from .models import LoginEvent, PageView, User, Visit
 
     @login_manager.user_loader
     def load_user(user_id):
-        return db.session.get(User, int(user_id))
+        raw = str(user_id or "")
+        if ":" in raw:
+            uid_s, ver_s = raw.split(":", 1)
+            if not (uid_s.isdigit() and ver_s.isdigit()):
+                return None
+            u = db.session.get(User, int(uid_s))
+            if not u or (u.session_version or 1) != int(ver_s):
+                return None
+            return u
+        if not raw.isdigit():
+            return None
+        u = db.session.get(User, int(raw))
+        if not u or (u.session_version or 1) != 1:
+            return None
+        return u
 
     from . import admin, assistant, auth, bank, daily, picker, student, teacher
     app.register_blueprint(auth.bp)
@@ -129,15 +149,78 @@ def create_app(config_object=Config, *, seed_if_empty=True):
             db.session.commit()
         return None
 
+    def _authorize_upload(filename):
+        """Enforce per-object ownership/role authorization on /uploads/<path:filename>."""
+        import re
+        from .models import Attempt, AttemptAnswer, Question, SheetEntry, StudentRecord, User
+        if not filename or filename.startswith("/") or "\\" in filename or ".." in filename.split("/"):
+            abort(404)
+        if filename.startswith("solutions/"):
+            m = re.fullmatch(r"solutions/a(\d+)_\d+_[0-9a-f]+\.[a-z0-9]+", filename)
+            if not m:
+                abort(404)
+            att = db.session.get(Attempt, int(m.group(1)))
+            if not att:
+                abort(404)
+            attached = (
+                AttemptAnswer.query.filter_by(attempt_id=att.id, photo_path=filename).first() is not None
+                or filename in (att.draft or {}).values()
+            )
+            if not attached:
+                abort(404)
+            if current_user.is_admin or att.user_id == current_user.id:
+                return
+            if current_user.is_teacher and StudentRecord.query.filter_by(
+                teacher_id=current_user.id, student_user_id=att.user_id
+            ).first():
+                return
+            abort(403)
+        if filename.startswith("sheet-"):
+            entry = SheetEntry.query.filter_by(image_path=filename).first()
+            if not entry:
+                abort(404)
+            if current_user.is_admin or entry.sheet.user_id == current_user.id:
+                return
+            abort(403)
+        if filename.startswith("avatar-"):
+            owner = User.query.filter_by(avatar_path=filename).first()
+            if not owner:
+                abort(404)
+            if current_user.is_admin or owner.id == current_user.id:
+                return
+            if current_user.is_teacher and StudentRecord.query.filter_by(
+                teacher_id=current_user.id, student_user_id=owner.id
+            ).first():
+                return
+            if owner.is_teacher and StudentRecord.query.filter_by(
+                teacher_id=owner.id, student_user_id=current_user.id
+            ).first():
+                return
+            abort(403)
+        q = Question.query.filter_by(image_path=filename).first()
+        if q is None:
+            abort(404)
+        if q.status == "published":
+            return
+        if current_user.is_admin or q.author_id == current_user.id or (current_user.can_review and q.status == "pending"):
+            return
+        abort(403)
+
     @app.route("/uploads/<path:filename>")
     @login_required
     def uploaded_file(filename):
         """Pack figures come from the repository; everything else from the uploads folder or Supabase Storage."""
         from . import storage
-        if filename.startswith("packs/") and filename.count("/") == 2:
-            _, pack, name = filename.split("/")
-            from .packs import PACK_DIR
+        if filename.startswith("packs/"):
+            parts = filename.split("/")
+            if len(parts) != 3 or not parts[1] or not parts[2] or ".." in parts:
+                abort(404)
+            _, pack, name = parts
+            from .packs import PACK_DIR, available
+            if pack not in available():
+                abort(404)
             return send_from_directory(os.path.join(PACK_DIR, pack, "figures"), name)
+        _authorize_upload(filename)
         if storage.using_supabase():
             url = storage.signed_url(filename)
             if not url:
@@ -146,13 +229,18 @@ def create_app(config_object=Config, *, seed_if_empty=True):
         return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
     with app.app_context():
-        if "reset-db" in sys.argv:  # the CLI command below rebuilds the tables itself
+        if "reset-db" in sys.argv or "db" in sys.argv:  # CLI migration/reset commands manage schema themselves
             return app
-        db.create_all()
-        _check_schema()
-        deploy_safety.ensure_deploy_safety_tables()
-        from .analytics_schema import ensure_analytics_schema
-        ensure_analytics_schema()
+        from sqlalchemy import inspect as _sa_inspect
+        if app.config.get("TESTING"):
+            from flask_migrate import upgrade as _alembic_upgrade
+            if os.path.isdir(MIGRATIONS_DIR) and os.path.isfile(os.path.join(MIGRATIONS_DIR, "env.py")):
+                _alembic_upgrade(directory=MIGRATIONS_DIR)
+            else:
+                db.create_all()
+        elif not _sa_inspect(db.engine).has_table("user"):
+            app.logger.error("Database schema is not initialized. Run: flask --app app db upgrade")
+            return app
         _lock_supabase_api()
         from .storage import ensure_bucket
         ensure_bucket()
@@ -167,7 +255,7 @@ def create_app(config_object=Config, *, seed_if_empty=True):
         from .packs import ensure_packs
         ensure_packs()  # ready-made questions and collections from monday/data/packs (once per pack)
         from .cleanup import run_fixes
-        run_fixes()  # one-time data fixes (demo collections removed, demo student renamed)
+        run_fixes()  # one-time data fixes (disabled in production via DATA_FIXES=0)
         if app.config.get("SEED_DEMO", True):
             from .seed import refresh_demo_mondays
             refresh_demo_mondays()  # demo Monday tests + demo students' results follow the calendar
@@ -187,40 +275,6 @@ def _lock_supabase_api():
     with db.engine.begin() as conn:
         for (name,) in conn.execute(text("SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND NOT rowsecurity")):
             conn.execute(text(f'ALTER TABLE public."{name}" ENABLE ROW LEVEL SECURITY'))
-
-
-def _check_schema():
-    """Keep an existing local database in step with the models.
-
-    New columns that may be empty (or have a simple default) are added automatically,
-    so updates like "profile picture" don't wipe the demo data. Anything bigger stops
-    the app with a clear message (until real migrations are added for production).
-    """
-    from sqlalchemy import inspect, text
-    inspector = inspect(db.engine)
-    missing, added = [], []
-    for table in db.metadata.sorted_tables:
-        if not inspector.has_table(table.name):
-            continue
-        have = {c["name"] for c in inspector.get_columns(table.name)}
-        for col in table.columns:
-            if col.name in have:
-                continue
-            default = col.default.arg if col.default is not None and col.default.is_scalar else None
-            if col.nullable or default is not None:
-                ddl = f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {col.type.compile(db.engine.dialect)}'
-                if default is not None:
-                    ddl += " DEFAULT " + (f"'{default}'" if isinstance(default, str) else str(int(default) if isinstance(default, bool) else default))
-                with db.engine.begin() as conn:
-                    conn.execute(text(ddl))
-                added.append(f"{table.name}.{col.name}")
-            else:
-                missing.append(f"{table.name}.{col.name}")
-    if missing:
-        raise SystemExit(
-            "\nThe database was created by an older version of Monday (missing: "
-            + ", ".join(missing[:5]) + ("…" if len(missing) > 5 else "") + ").\n"
-            "Recreate it with demo data:\n\n    flask --app app reset-db\n\nthen start again: python3 app.py\n")
 
 
 def _register_template_helpers(app):
@@ -389,9 +443,13 @@ def _register_cli(app):
     @app.cli.command("reset-db")
     @click.option("--no-seed", is_flag=True, help="Create empty tables without demo data.")
     def reset_db(no_seed):
-        """Drop all tables and recreate them (demo data included by default)."""
+        """Drop all tables and recreate them via Alembic migrations (demo data included by default)."""
+        from flask_migrate import upgrade as _alembic_upgrade
+        from sqlalchemy import text
         db.drop_all()
-        db.create_all()
+        with db.engine.begin() as conn:
+            conn.execute(text("DROP TABLE IF EXISTS alembic_version"))
+        _alembic_upgrade(directory=MIGRATIONS_DIR)
         if not no_seed:
             from .seed import seed_demo
             seed_demo()
