@@ -182,4 +182,7 @@
     {% block footer %}{% endblock %}{# site footer: off until it is redesigned (partials/site_footer.html) #}
   </div>
 </div>
+{% if current_user.is_authenticated and current_user.role in ('sales_manager', 'supervisor', 'admin') %}
+<script>(function(){if(localStorage.getItem('monday_crm_compact')==='1'){document.querySelectorAll('.crm-workspace').forEach(function(el){el.classList.add('is-compact');});}})();</script>
+{% endif %}
 {% endblock %}

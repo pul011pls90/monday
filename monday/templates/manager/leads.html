@@ -15,18 +15,23 @@
     </div>
   </div>
 
-  {# Compact Horizontal Filter Bar #}
+  {# Row 1: Quick-Filter Status Pills #}
+  <div class="chips crm-status-pills" role="navigation" aria-label="{{ _('Фильтр по статусу') }}">
+    <a class="chip{{ ' is-active' if not filters.status }}" href="{{ url_for('manager.leads', source=filters.source or None, manager=filters.manager or None, sla=filters.sla or None, date_from=filters.date_from or None, date_to=filters.date_to or None, q=filters.q or None) }}">{{ _("Все") }}</a>
+    {% for s in LEAD_STATUSES %}
+      <a class="chip{{ ' is-active' if filters.status == s }}" href="{{ url_for('manager.leads', status=s, source=filters.source or None, manager=filters.manager or None, sla=filters.sla or None, date_from=filters.date_from or None, date_to=filters.date_to or None, q=filters.q or None) }}">{{ STATUS_LABELS[s] }}</a>
+    {% endfor %}
+  </div>
+
+  {# Row 2: Single Horizontal Search & Filter Bar #}
   <form method="get" action="{{ url_for('manager.leads') }}" class="crm-filter-bar" role="search">
+    {% if filters.status %}<input type="hidden" name="status" value="{{ filters.status }}">{% endif %}
     <div class="crm-filter-grid">
-      <label class="search search--sm">
+      <label class="search search--sm crm-filter-search">
         {{ ui.icon('search', 16) }}
         <span class="sr-only">{{ _("Поиск") }}</span>
         <input type="search" name="q" value="{{ filters.q }}" placeholder="{{ _('Имя, телефон, @ник, курс...') }}">
       </label>
-      <select class="select input--sm" name="status" aria-label="{{ _('Статус') }}">
-        <option value="">{{ _("Все статусы") }}</option>
-        {% for s in LEAD_STATUSES %}<option value="{{ s }}" {{ 'selected' if filters.status == s }}>{{ STATUS_LABELS[s] }}</option>{% endfor %}
-      </select>
       <select class="select input--sm" name="source" aria-label="{{ _('Источник') }}">
         <option value="">{{ _("Все источники") }}</option>
         {% for s in LEAD_SOURCES %}<option value="{{ s }}" {{ 'selected' if filters.source == s }}>{{ SOURCE_LABELS[s] }}</option>{% endfor %}
@@ -41,8 +46,8 @@
         <option value="">{{ _("Любой SLA") }}</option>
         <option value="overdue" {{ 'selected' if filters.sla == 'overdue' }}>{{ _("SLA > %(m)s мин", m=sla_threshold) }}</option>
       </select>
-      <input class="input input--sm" type="date" name="date_from" value="{{ filters.date_from }}" aria-label="{{ _('С даты') }}">
-      <input class="input input--sm" type="date" name="date_to" value="{{ filters.date_to }}" aria-label="{{ _('По дату') }}">
+      <input class="input input--sm crm-filter-date" type="date" name="date_from" value="{{ filters.date_from }}" aria-label="{{ _('С даты') }}" title="{{ _('С даты') }}">
+      <input class="input input--sm crm-filter-date" type="date" name="date_to" value="{{ filters.date_to }}" aria-label="{{ _('По дату') }}" title="{{ _('По дату') }}">
       <button class="btn btn--primary btn--min" type="submit">{{ ui.icon('search', 14) }}<span>{{ _("Найти") }}</span></button>
       <a class="btn btn--secondary btn--min" href="{{ url_for('manager.leads') }}">{{ _("Сброс") }}</a>
     </div>
@@ -162,7 +167,8 @@
       <div class="field">
         <label for="nl-mgr">{{ _("Ответственный") }}</label>
         <select class="select input--sm" id="nl-mgr" name="assigned_manager_id">
-          {% for m in managers %}<option value="{{ m.id }}" {{ 'selected' if m.id == current_user.id }}>{{ m.name }}</option>{% endfor %}
+          <option value="">{{ _("Авто (по смене и загрузке)") }}</option>
+          {% for m in managers %}<option value="{{ m.id }}">{{ m.name }}{% if not m.is_on_shift %} ({{ _("не на смене") }}){% endif %}</option>{% endfor %}
         </select>
       </div>
       {% endif %}

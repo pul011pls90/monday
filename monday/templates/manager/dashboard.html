@@ -10,6 +10,13 @@
       <p>{{ _("Новые заявки, просроченные ответы (SLA %(m)s мин), задачи и воронка.", m=sla_threshold) }}</p>
     </div>
     <div class="t-hero-actions">
+      <form method="post" action="{{ url_for('manager.toggle_shift') }}">
+        {{ ui.csrf() }}
+        <input type="hidden" name="next" value="{{ request.full_path }}">
+        <button class="btn {{ 'btn--secondary' if current_user.is_on_shift else 'btn--danger' }} btn--min" type="submit">
+          {{ ui.icon('clock', 15) }}<span>{{ _("На смене") if current_user.is_on_shift else _("Не на смене") }}</span>
+        </button>
+      </form>
       <a class="btn btn--primary btn--min" href="{{ url_for('manager.leads') }}#new-lead">{{ ui.icon('plus', 15) }}<span>{{ _("Новый лид") }}</span></a>
       <a class="btn btn--secondary btn--min" href="{{ url_for('manager.pipeline') }}">{{ ui.icon('list', 15) }}<span>{{ _("Воронка") }}</span></a>
       {% if current_user.is_crm_supervisor %}
@@ -20,22 +27,22 @@
 
   {# KPI Strip #}
   <div class="crm-kpis">
-    <a class="card crm-kpi" href="{{ url_for('manager.leads', status='new') }}">
+    <a class="card crm-kpi crm-kpi--accent" href="{{ url_for('manager.leads', status='new') }}">
       <span class="eyebrow">{{ _("Новые лиды") }}</span>
       <span class="stat-value num">{{ new_count }}</span>
       <span class="stat-label">{{ _("всего в базе: %(n)s", n=total_leads) }}</span>
     </a>
-    <a class="card crm-kpi{{ ' crm-kpi--hot' if sla_overdue_count }}" href="{{ url_for('manager.leads', sla='overdue') }}">
+    <a class="card crm-kpi {{ 'crm-kpi--hot' if sla_overdue_count else 'crm-kpi--ok' }}" href="{{ url_for('manager.leads', sla='overdue') }}">
       <span class="eyebrow">{{ _("Без ответа > %(m)s мин", m=sla_threshold) }}</span>
       <span class="stat-value num">{{ sla_overdue_count }}</span>
       <span class="stat-label">{{ _("требуют срочного контакта") if sla_overdue_count else _("всё в пределах SLA") }}</span>
     </a>
-    <a class="card crm-kpi{{ ' crm-kpi--hot' if overdue_tasks }}" href="#tasks-overdue">
+    <a class="card crm-kpi {{ 'crm-kpi--hot' if overdue_tasks else 'crm-kpi--ok' }}" href="#tasks-overdue">
       <span class="eyebrow">{{ _("Просроченные задачи") }}</span>
       <span class="stat-value num">{{ overdue_tasks|length }}</span>
       <span class="stat-label">{{ _("нужно закрыть сейчас") if overdue_tasks else _("просрочек нет") }}</span>
     </a>
-    <a class="card crm-kpi" href="#tasks-today">
+    <a class="card crm-kpi {{ 'crm-kpi--warn' if today_tasks else 'crm-kpi--accent' }}" href="#tasks-today">
       <span class="eyebrow">{{ _("Задачи на сегодня") }}</span>
       <span class="stat-value num">{{ today_tasks|length }}</span>
       <span class="stat-label">{{ _("запланировано до конца дня") }}</span>

@@ -1,35 +1,50 @@
 """Stage 3 Manager UI tests: dashboard, lead list, lead card, pipeline, SLA badge, supervisor scoping & audit."""
+import os
+import tempfile
 from datetime import timedelta
 
+from config import Config
 from monday.extensions import db
 from monday.models import AuditLog, Lead, LeadActivity, LeadTask, User, utcnow
-from test_app import APP, client, login
-
-
-def _mk_user(email: str, name: str, role: str, password: str = "Pass12345") -> int:
-    with APP.app_context():
-        u = User.query.filter_by(email=email).first()
-        if not u:
-            u = User(email=email, name=name, role=role, is_approved=True)
-            u.set_password(password)
-            db.session.add(u)
-        else:
-            u.role = role
-            u.is_approved = True
-            u.is_blocked = False
-            u.set_password(password)
-        db.session.commit()
-        return u.id
 
 
 def test_stage3_sales_manager_full_lead_lifecycle_sla_and_isolation():
+    tmp = tempfile.mkdtemp()
+
+    class Stage3Config(Config):
+        TESTING = True
+        WTF_CSRF_ENABLED = False
+        SEED_DEMO = False
+        DATA_FIXES = False
+        IMPORT_PACKS = False
+        RATELIMIT_ENABLED = False
+        SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(tmp, "stage3.db")
+        UPLOAD_FOLDER = os.path.join(tmp, "uploads")
+
+    from monday import create_app
+
+    app = create_app(Stage3Config, seed_if_empty=False)
+
+    def _mk_user(email: str, name: str, role: str, password: str = "Pass12345") -> int:
+        with app.app_context():
+            u = User(email=email, name=name, role=role, is_approved=True)
+            u.set_password(password)
+            db.session.add(u)
+            db.session.commit()
+            return u.id
+
+    def _login(email: str, password: str):
+        c = app.test_client()
+        assert c.post("/login", data={"email": email, "password": password}).status_code == 302
+        return c
+
     m1_id = _mk_user("s3.m1@example.com", "Manager One", "sales_manager")
     m2_id = _mk_user("s3.m2@example.com", "Manager Two", "sales_manager")
     sup_id = _mk_user("s3.sup@example.com", "Supervisor One", "supervisor")
 
-    c_m1 = login(client(), "s3.m1@example.com", "Pass12345")
-    c_m2 = login(client(), "s3.m2@example.com", "Pass12345")
-    c_sup = login(client(), "s3.sup@example.com", "Pass12345")
+    c_m1 = _login("s3.m1@example.com", "Pass12345")
+    c_m2 = _login("s3.m2@example.com", "Pass12345")
+    c_sup = _login("s3.sup@example.com", "Pass12345")
 
     # 1. Manager 1 creates a lead via UI
     r_new = c_m1.post("/manager/leads/new", data={
@@ -41,7 +56,7 @@ def test_stage3_sales_manager_full_lead_lifecycle_sla_and_isolation():
         "note": "Wants trial this week",
     })
     assert r_new.status_code == 302
-    with APP.app_context():
+    with app.app_context():
         lead = Lead.query.filter_by(full_name="Nurlan S3").order_by(Lead.id.desc()).first()
         assert lead is not None and lead.assigned_manager_id == m1_id and lead.status == "new"
         # Backdate created_at by 25 minutes to verify red Speed-to-Lead SLA badge (> 15 min)
@@ -63,7 +78,7 @@ def test_stage3_sales_manager_full_lead_lifecycle_sla_and_isolation():
     # 3. Adding a call activity clears unanswered SLA and auto-advances status new -> contacted
     r_act = c_m1.post(f"/manager/leads/{lead_id}/activity", data={"type": "call", "body": "Spoke with parent"})
     assert r_act.status_code == 302
-    with APP.app_context():
+    with app.app_context():
         l = db.session.get(Lead, lead_id)
         assert l.first_contact_at is not None and l.last_contact_at is not None
         assert l.status == "contacted"
@@ -72,13 +87,13 @@ def test_stage3_sales_manager_full_lead_lifecycle_sla_and_isolation():
     due_str = (utcnow() - timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M")
     r_t = c_m1.post(f"/manager/leads/{lead_id}/tasks", data={"note": "Confirm trial time", "due_at": due_str})
     assert r_t.status_code == 302
-    with APP.app_context():
+    with app.app_context():
         task = LeadTask.query.filter_by(lead_id=lead_id).first()
         assert task is not None and task.done_at is None
         tid = task.id
     assert "Confirm trial time" in c_m1.get("/manager").data.decode()
     assert c_m1.post(f"/manager/tasks/{tid}/toggle").status_code == 302
-    with APP.app_context():
+    with app.app_context():
         assert db.session.get(LeadTask, tid).done_at is not None
 
     # 5. Pipeline board renders and advances status
@@ -86,7 +101,7 @@ def test_stage3_sales_manager_full_lead_lifecycle_sla_and_isolation():
     assert "Nurlan S3" in pipe_html
     r_mv = c_m1.post(f"/manager/leads/{lead_id}/status", data={"status": "trial_scheduled", "next": "/manager/pipeline"})
     assert r_mv.status_code == 302 and "/manager/pipeline" in r_mv.headers["Location"]
-    with APP.app_context():
+    with app.app_context():
         assert db.session.get(Lead, lead_id).status == "trial_scheduled"
 
     # 6. Sales Manager CANNOT reassign or delete (403); Supervisor CAN see all, reassign, audit & delete!
@@ -96,7 +111,7 @@ def test_stage3_sales_manager_full_lead_lifecycle_sla_and_isolation():
     assert "Nurlan S3" in c_sup.get("/manager/leads").data.decode()
     r_re = c_sup.post(f"/manager/leads/{lead_id}/reassign", data={"assigned_manager_id": m2_id, "reason": "Load balancing"})
     assert r_re.status_code == 302
-    with APP.app_context():
+    with app.app_context():
         assert db.session.get(Lead, lead_id).assigned_manager_id == m2_id
         al = AuditLog.query.filter_by(action="lead_reassign", entity_type="lead", entity_id=lead_id).first()
         assert al is not None and al.actor_id == sup_id
@@ -111,7 +126,7 @@ def test_stage3_sales_manager_full_lead_lifecycle_sla_and_isolation():
     # Supervisor deletes lead -> recorded in AuditLog
     r_del = c_sup.post(f"/manager/leads/{lead_id}/delete", data={"reason": "Duplicate test entry"})
     assert r_del.status_code == 302
-    with APP.app_context():
+    with app.app_context():
         assert db.session.get(Lead, lead_id) is None
         al_del = AuditLog.query.filter_by(action="lead_delete", entity_type="lead", entity_id=lead_id).first()
         assert al_del is not None and al_del.reason == "Duplicate test entry"

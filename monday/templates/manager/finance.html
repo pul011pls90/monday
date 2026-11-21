@@ -16,22 +16,22 @@
   </div>
 
   <div class="crm-kpis">
-    <div class="card crm-kpi">
+    <div class="card crm-kpi crm-kpi--ok">
       <span class="eyebrow">{{ _("Выручка (30 дней)") }}</span>
       <span class="stat-value num">{{ rev_30d }} <span class="small">KGS</span></span>
       <span class="stat-label">{{ _("за вычетом возвратов") }}</span>
     </div>
-    <div class="card crm-kpi{{ ' crm-kpi--hot' if total_debt }}">
+    <div class="card crm-kpi {{ 'crm-kpi--hot' if total_debt else 'crm-kpi--ok' }}">
       <span class="eyebrow">{{ _("Общий долг") }}</span>
       <span class="stat-value num">{{ total_debt }} <span class="small">KGS</span></span>
       <span class="stat-label">{{ _("абонементов с долгом: %(n)s", n=debt_passes|length) }}</span>
     </div>
-    <div class="card crm-kpi">
+    <div class="card crm-kpi crm-kpi--accent">
       <span class="eyebrow">{{ _("Активные абонементы") }}</span>
       <span class="stat-value num">{{ active_passes_count }}</span>
       <span class="stat-label">{{ _("действующих сейчас") }}</span>
     </div>
-    <div class="card crm-kpi{{ ' crm-kpi--hot' if expiring_passes }}">
+    <div class="card crm-kpi {{ 'crm-kpi--warn' if expiring_passes else 'crm-kpi--ok' }}">
       <span class="eyebrow">{{ _("Скоро продление") }}</span>
       <span class="stat-value num">{{ expiring_passes|length }}</span>
       <span class="stat-label">{{ _("<= 2 уроков или <= 7 дней") }}</span>

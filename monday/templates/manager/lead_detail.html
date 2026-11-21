@@ -1,12 +1,13 @@
 {% extends "layout.html" %}
 {% block title %}{{ lead.full_name }} · CRM{% endblock %}
 {% block context %}{{ _("Карточка лида") }} #{{ lead.id }}{% endblock %}
+{% block page_class %}crm-detail-page{% endblock %}
 {% block content %}
 <div class="crm-workspace">
   <div class="t-hero-bar">
     <div class="t-hero-bar__title">
       <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
-        <a class="small muted" href="{{ url_for('manager.leads') }}">← {{ _("Лиды") }}</a>
+        <a class="btn btn--secondary crm-back-btn" href="{{ url_for('manager.leads') }}">{{ ui.icon('arrow-left', 14) }}<span>{{ _("К лидам") }}</span></a>
         <span class="crm-status crm-status--{{ lead.status }}">{{ STATUS_LABELS.get(lead.status, lead.status) }}</span>
         {% if sla.unanswered %}
           <span class="crm-sla{{ ' crm-sla--hot' if sla.overdue }}" data-sla-badge="{{ 'overdue' if sla.overdue else 'waiting' }}">
@@ -18,39 +19,48 @@
         {% if lead.converted_student_id %}
           <span class="tag tag--ok tag--xs">{{ _("Конвертирован в ученика") }} #{{ lead.converted_student_id }}</span>
         {% endif %}
+        <span class="tag {{ 'tag--bad' if lead.temperature == 'hot' else ('tag--warn' if lead.temperature == 'warm' else 'tag--soft') }} tag--xs">{{ TEMPERATURE_LABELS.get(lead.temperature or 'cold', lead.temperature) }}</span>
+        {% if lead.previous_lead_id %}
+          <a class="tag tag--line tag--xs" href="{{ url_for('manager.lead_detail', lead_id=lead.previous_lead_id) }}">{{ _("Повтор от") }} #{{ lead.previous_lead_id }}</a>
+        {% endif %}
       </div>
       <h1>{{ lead.full_name }}</h1>
-      <p>{{ lead.phone or '—' }}{% if lead.messenger_handle %} · {{ lead.messenger_handle }}{% endif %} · {{ SOURCE_LABELS.get(lead.source, lead.source) }}{% if lead.interest %} · {{ lead.interest }}{% endif %}</p>
+      <p>{{ lead.phone_e164 or lead.phone or '—' }}{% if lead.messenger_handle %} · {{ lead.messenger_handle }}{% endif %} · {{ SOURCE_LABELS.get(lead.source, lead.source) }}{% if lead.interest %} · {{ lead.interest }}{% endif %}</p>
+      {% if lead.ai_summary %}<p class="small muted">{{ _("Сводка") }}: {{ lead.ai_summary }}</p>{% endif %}
     </div>
     <div class="t-hero-actions">
       {% if lead.converted_student_id %}
         <a class="btn btn--secondary btn--min" href="{{ url_for('manager.student_detail', student_id=lead.converted_student_id) }}">{{ ui.icon('users', 15) }}<span>{{ _("Профиль ученика") }} #{{ lead.converted_student_id }}</span></a>
       {% else %}
-        <a class="btn btn--primary btn--min" href="#convert-lead">{{ ui.icon('check', 15) }}<span>{{ _("Конвертировать в ученика") }}</span></a>
+        <a class="btn btn--primary btn--min" href="#convert-lead" data-open-convert>{{ ui.icon('check', 15) }}<span>{{ _("Конвертировать в ученика") }}</span></a>
       {% endif %}
     </div>
   </div>
 
-  <div class="crm-split">
-    {# LEFT COLUMN: Status bar + Activity composer + Unified Timeline + Edit Details #}
-    <div class="stack">
-      <section class="card">
-        <div class="hc__head">
-          <span class="hc__ic">{{ ui.icon('status', 17) }}</span>
-          <h2>{{ _("Смена статуса") }}</h2>
-        </div>
-        <form method="post" action="{{ url_for('manager.lead_status', lead_id=lead.id) }}" class="stack-sm">
-          {{ ui.csrf() }}
-          <div class="row" style="gap:8px">
-            <select class="select input--sm" name="status" style="flex:1">
-              {% for s in LEAD_STATUSES %}<option value="{{ s }}" {{ 'selected' if lead.status == s }}>{{ STATUS_LABELS[s] }}</option>{% endfor %}
-            </select>
-            <input class="input input--sm" name="lost_reason" value="{{ lead.lost_reason }}" placeholder="{{ _('Причина отказа (если Отказ)') }}" style="flex:1">
-            <button class="btn btn--primary btn--min" type="submit">{{ _("Сохранить") }}</button>
-          </div>
-        </form>
-      </section>
+  {# Compact Inline Status Bar #}
+  <section class="card">
+    <form method="post" action="{{ url_for('manager.lead_status', lead_id=lead.id) }}" class="stack-sm">
+      {{ ui.csrf() }}
+      <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+        <span class="eyebrow" style="margin-right:4px">{{ _("Этап") }}</span>
+        <select class="select input--sm" name="status" style="width:auto;min-width:190px">
+          {% for s in LEAD_STATUSES %}<option value="{{ s }}" {{ 'selected' if lead.status == s }}>{{ STATUS_LABELS[s] }}</option>{% endfor %}
+        </select>
+        <input class="input input--sm" name="lost_reason" value="{{ lead.lost_reason }}" placeholder="{{ _('Причина отказа (обязательна для Отказ)') }}" style="flex:1;min-width:200px">
+        <button class="btn btn--primary btn--min" type="submit">{{ _("Сохранить статус") }}</button>
+      </div>
+      {% if lead.status == 'won' and current_user.is_crm_supervisor %}
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <label class="check small"><input type="checkbox" name="supervisor_override" value="1"> {{ _("Переопределение супервайзера") }}</label>
+        <input class="input input--sm" name="override_reason" placeholder="{{ _('Причина отката статуса (в аудит)') }}" style="flex:1">
+      </div>
+      {% endif %}
+    </form>
+  </section>
 
+  <div class="crm-split">
+    {# LEFT COLUMN: Activity composer + Unified Timeline + Edit Details #}
+    <div class="stack">
       <section class="card">
         <div class="hc__head">
           <span class="hc__ic">{{ ui.icon('chat', 17) }}</span>
@@ -58,15 +68,15 @@
         </div>
         <form method="post" action="{{ url_for('manager.lead_add_activity', lead_id=lead.id) }}" class="stack-sm">
           {{ ui.csrf() }}
-          <div class="row" style="gap:8px">
+          <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
             <select class="select input--sm" name="type" style="width:auto">
               <option value="call">{{ _("Звонок") }}</option>
               <option value="message">{{ _("Сообщение") }}</option>
               <option value="note">{{ _("Заметка") }}</option>
             </select>
-            <span class="small muted">{{ _("Звонок или сообщение автоматически фиксирует первый контакт (SLA).") }}</span>
+            <span class="small muted">{{ _("Звонок или сообщение фиксирует первый контакт (SLA).") }}</span>
           </div>
-          <textarea class="textarea" name="body" rows="3" required placeholder="{{ _('Итог звонка, договорённости, переписка...') }}"></textarea>
+          <textarea class="textarea crm-activity-note" name="body" rows="2" required placeholder="{{ _('Итог звонка, договорённости, переписка...') }}"></textarea>
           <div><button class="btn btn--primary btn--min" type="submit">{{ ui.icon('send', 15) }}<span>{{ _("Записать") }}</span></button></div>
         </form>
       </section>
@@ -123,6 +133,12 @@
                 {% for m in LEAD_MODE_PREFERENCES %}<option value="{{ m }}" {{ 'selected' if lead.mode_preference == m }}>{{ MODE_PREF_LABELS[m] }}</option>{% endfor %}
               </select>
             </div>
+            <div class="field">
+              <label>{{ _("Температура") }}</label>
+              <select class="select input--sm" name="temperature">
+                {% for t in LEAD_TEMPERATURES %}<option value="{{ t }}" {{ 'selected' if (lead.temperature or 'cold') == t }}>{{ TEMPERATURE_LABELS[t] }}</option>{% endfor %}
+              </select>
+            </div>
           </div>
           <div><button class="btn btn--secondary btn--min" type="submit">{{ _("Сохранить изменения") }}</button></div>
         </form>
@@ -146,53 +162,61 @@
         </dl>
       </section>
 
+      {% if lead.converted_student_id %}
       <section class="card" id="convert-lead">
         <div class="hc__head">
           <span class="hc__ic">{{ ui.icon('users', 17) }}</span>
           <h2>{{ _("Конвертация в ученика") }}</h2>
         </div>
-        {% if lead.converted_student_id %}
-          <p class="small" style="color:var(--ok);font-weight:700">
-            {{ ui.icon('check', 14) }} {{ _("Привязан к ученику") }} #{{ lead.converted_student_id }}{% if lead.converted_student %} ({{ lead.converted_student.name }} · {{ lead.converted_student.email }}){% endif %}
-          </p>
-        {% else %}
-          <form method="post" action="{{ url_for('manager.lead_convert', lead_id=lead.id) }}" class="stack-sm">
-            {{ ui.csrf() }}
-            <input type="hidden" name="convert_mode" value="create">
-            <div class="eyebrow">{{ _("Создать новый аккаунт ученика") }}</div>
-            <input class="input input--sm" type="email" name="student_email" required placeholder="student@example.com">
-            <div class="row" style="gap:8px">
-              <select class="select input--sm" name="exam" style="flex:1">
-                <option value="">{{ _("Экзамен (необязательно)") }}</option>
-                {% for code, ex in EXAMS.items() %}<option value="{{ code }}">{{ ex.label }}</option>{% endfor %}
-              </select>
-              <select class="select input--sm" name="teacher_id" style="flex:1">
-                <option value="">{{ _("Учитель (необязательно)") }}</option>
-                {% for t in teachers %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
-              </select>
-            </div>
-            <button class="btn btn--primary btn--min" type="submit">{{ _("Создать ученика и закрыть лид") }}</button>
-          </form>
-
-          {% if existing_students %}
-          <hr style="border:0;border-top:1px solid var(--line);margin:4px 0">
-          <form method="post" action="{{ url_for('manager.lead_convert', lead_id=lead.id) }}" class="stack-sm">
-            {{ ui.csrf() }}
-            <input type="hidden" name="convert_mode" value="link">
-            <div class="eyebrow">{{ _("Или привязать существующего ученика") }}</div>
-            <select class="select input--sm" name="existing_student_id" required>
-              <option value="">{{ _("Выберите ученика...") }}</option>
-              {% for st in existing_students %}<option value="{{ st.id }}">#{{ st.id }} · {{ st.name }} ({{ st.email }})</option>{% endfor %}
+        <p class="small" style="color:var(--ok);font-weight:700">
+          {{ ui.icon('check', 14) }} {{ _("Привязан к ученику") }} #{{ lead.converted_student_id }}{% if lead.converted_student %} ({{ lead.converted_student.name }} · {{ lead.converted_student.email }}){% endif %}
+        </p>
+      </section>
+      {% else %}
+      <details class="card crm-convert-details" id="convert-lead">
+        <summary>
+          <span class="hc__head">
+            <span class="hc__ic">{{ ui.icon('users', 17) }}</span>
+            <h2>{{ _("Конвертация в ученика") }}</h2>
+          </span>
+        </summary>
+        <form method="post" action="{{ url_for('manager.lead_convert', lead_id=lead.id) }}" class="stack-sm">
+          {{ ui.csrf() }}
+          <input type="hidden" name="convert_mode" value="create">
+          <div class="eyebrow">{{ _("Создать новый аккаунт ученика") }}</div>
+          <input class="input input--sm" id="convert-student-email" type="email" name="student_email" required placeholder="student@example.com">
+          <div class="row" style="gap:8px">
+            <select class="select input--sm" name="exam" style="flex:1">
+              <option value="">{{ _("Экзамен (необязательно)") }}</option>
+              {% for code, ex in EXAMS.items() %}<option value="{{ code }}">{{ ex.label }}</option>{% endfor %}
             </select>
-            <select class="select input--sm" name="teacher_id">
+            <select class="select input--sm" name="teacher_id" style="flex:1">
               <option value="">{{ _("Учитель (необязательно)") }}</option>
               {% for t in teachers %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
             </select>
-            <button class="btn btn--secondary btn--min" type="submit">{{ _("Привязать существующего ученика") }}</button>
-          </form>
-          {% endif %}
+          </div>
+          <button class="btn btn--primary btn--min" type="submit">{{ _("Создать ученика и закрыть лид") }}</button>
+        </form>
+
+        {% if existing_students %}
+        <hr style="border:0;border-top:1px solid var(--line);margin:4px 0">
+        <form method="post" action="{{ url_for('manager.lead_convert', lead_id=lead.id) }}" class="stack-sm">
+          {{ ui.csrf() }}
+          <input type="hidden" name="convert_mode" value="link">
+          <div class="eyebrow">{{ _("Или привязать существующего ученика") }}</div>
+          <select class="select input--sm" name="existing_student_id" required>
+            <option value="">{{ _("Выберите ученика...") }}</option>
+            {% for st in existing_students %}<option value="{{ st.id }}">#{{ st.id }} · {{ st.name }} ({{ st.email }})</option>{% endfor %}
+          </select>
+          <select class="select input--sm" name="teacher_id">
+            <option value="">{{ _("Учитель (необязательно)") }}</option>
+            {% for t in teachers %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
+          </select>
+          <button class="btn btn--secondary btn--min" type="submit">{{ _("Привязать существующего ученика") }}</button>
+        </form>
         {% endif %}
-      </section>
+      </details>
+      {% endif %}
 
       <section class="card">
         <div class="card__head">
@@ -246,6 +270,28 @@
           <button class="btn btn--secondary btn--min" type="submit">{{ _("Переназначить") }}</button>
         </form>
       </section>
+
+      {% if lead.status not in ('won', 'lost') %}
+      <section class="card">
+        <div class="hc__head">
+          <span class="hc__ic">{{ ui.icon('link', 17) }}</span>
+          <h2>{{ _("Объединить дубликат") }}</h2>
+        </div>
+        <form method="post" action="{{ url_for('manager.lead_merge', lead_id=lead.id) }}" class="stack-sm">
+          {{ ui.csrf() }}
+          {% if duplicate_candidates %}
+          <select class="select input--sm" name="duplicate_lead_id" required>
+            <option value="">{{ _("Найдены похожие открытые лиды...") }}</option>
+            {% for dc in duplicate_candidates %}<option value="{{ dc.id }}">#{{ dc.id }} · {{ dc.full_name }} ({{ dc.phone_e164 or dc.phone or dc.messenger_handle }})</option>{% endfor %}
+          </select>
+          {% else %}
+          <input class="input input--sm" type="number" min="1" name="duplicate_lead_id" required placeholder="{{ _('ID дубликата для слияния') }}">
+          {% endif %}
+          <input class="input input--sm" name="reason" placeholder="{{ _('Причина объединения (в аудит)') }}">
+          <button class="btn btn--secondary btn--min" type="submit">{{ _("Объединить в этот лид") }}</button>
+        </form>
+      </section>
+      {% endif %}
       {% endif %}
 
       {% if current_user.has_perm('crm.leads.delete') %}
@@ -264,4 +310,17 @@
     </div>
   </div>
 </div>
+<script>
+(function(){
+  const btn = document.querySelector('[data-open-convert]');
+  const det = document.getElementById('convert-lead');
+  if (btn && det && det.tagName === 'DETAILS') {
+    btn.addEventListener('click', () => {
+      det.open = true;
+      const inp = document.getElementById('convert-student-email');
+      if (inp) setTimeout(() => inp.focus(), 60);
+    });
+  }
+})();
+</script>
 {% endblock %}

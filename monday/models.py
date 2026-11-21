@@ -64,6 +64,7 @@ class User(UserMixin, db.Model):
     google_sub = db.Column(db.String(64), unique=True, nullable=True, index=True)  # immutable Google OIDC subject ID
     session_version = db.Column(db.Integer, nullable=False, default=1)  # bumped on password change/reset or block
     must_change_password = db.Column(db.Boolean, nullable=False, default=False)  # force password rotation on first login
+    is_on_shift = db.Column(db.Boolean, nullable=False, default=True)  # manager CRM availability for auto-assignment
     login_count = db.Column(db.Integer, nullable=False, default=0)  # total successful sign-ins
     last_seen_at = db.Column(db.DateTime)  # updated at most every few minutes
     total_visits = db.Column(db.Integer, nullable=False, default=0)  # cached by daily analytics job
@@ -1073,6 +1074,7 @@ LEAD_SOURCES = ("instagram", "whatsapp", "telegram", "site", "referral", "other"
 LEAD_STATUSES = ("new", "contacted", "trial_scheduled", "trial_done", "negotiation", "won", "lost")
 LEAD_ACTIVITY_TYPES = ("call", "message", "note", "status_change", "reassign")
 LEAD_MODE_PREFERENCES = ("", "online", "offline", "any")
+LEAD_TEMPERATURES = ("cold", "warm", "hot")
 
 
 class Lead(db.Model):
@@ -1087,10 +1089,15 @@ class Lead(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     full_name = db.Column(db.String(160), nullable=False)
     phone = db.Column(db.String(40), nullable=True, index=True)
+    phone_e164 = db.Column(db.String(20), nullable=True, index=True)
     messenger_handle = db.Column(db.String(120), nullable=True)
+    messenger_norm = db.Column(db.String(120), nullable=True, index=True)
     source = db.Column(db.String(32), nullable=False, default="other", index=True)
     interest = db.Column(db.String(160), nullable=False, default="")
     mode_preference = db.Column(db.String(16), nullable=False, default="")
+    temperature = db.Column(db.String(16), nullable=False, default="cold")
+    ai_summary = db.Column(db.Text, nullable=True)
+    previous_lead_id = db.Column(db.Integer, db.ForeignKey("leads.id", ondelete="SET NULL"), nullable=True, index=True)
     status = db.Column(db.String(24), nullable=False, default="new", index=True)
     assigned_manager_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow, index=True)
@@ -1101,6 +1108,7 @@ class Lead(db.Model):
 
     assigned_manager = db.relationship("User", foreign_keys=[assigned_manager_id])
     converted_student = db.relationship("User", foreign_keys=[converted_student_id])
+    previous_lead = db.relationship("Lead", remote_side=[id], foreign_keys=[previous_lead_id])
     activities = db.relationship(
         "LeadActivity",
         back_populates="lead",

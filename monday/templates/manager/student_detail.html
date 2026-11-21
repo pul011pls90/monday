@@ -6,7 +6,7 @@
   <div class="t-hero-bar">
     <div class="t-hero-bar__title">
       <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
-        <a class="small muted" href="{{ url_for('manager.pipeline', mode='students') }}">← {{ _("Активные ученики") }}</a>
+        <a class="btn btn--secondary crm-back-btn" href="{{ url_for('manager.pipeline', mode='students') }}">{{ ui.icon('arrow-left', 14) }}<span>{{ _("К ученикам") }}</span></a>
         {% if lead %}
           <a class="tag tag--soft tag--xs" href="{{ url_for('manager.lead_detail', lead_id=lead.id) }}">{{ _("Лид") }} #{{ lead.id }}</a>
         {% endif %}

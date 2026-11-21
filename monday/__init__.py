@@ -652,7 +652,36 @@ def _register_cli(app):
         click.echo(f"Created {role} account (id={user.id})")
         click.echo(f"Email:    {user.email}")
         click.echo(f"Password: {raw_password}")
-        click.echo("Note:     One-time password — user will be forced to change it on first login.")
+        click.echo(f"Note:     One-time password — user will be forced to change it on first login.")
+
+    @app.cli.command("crm-find-duplicates")
+    def crm_find_duplicates_cmd():
+        """Dry-run report of open duplicate leads grouped by phone_e164 and normalized messenger handle."""
+        from collections import defaultdict
+        from .models import Lead
+
+        open_leads = Lead.query.filter(Lead.status.notin_(("won", "lost"))).order_by(Lead.id.asc()).all()
+        by_phone = defaultdict(list)
+        by_msg = defaultdict(list)
+        for l in open_leads:
+            if l.phone_e164:
+                by_phone[l.phone_e164].append(l)
+            if l.messenger_norm:
+                by_msg[l.messenger_norm].append(l)
+
+        found = 0
+        for phone_val, grp in by_phone.items():
+            if len(grp) > 1:
+                found += 1
+                desc = ", ".join(f"#{x.id} {x.full_name} [{x.status}]" for x in grp)
+                click.echo(f"[PHONE {phone_val}] {desc}")
+        for msg_val, grp in by_msg.items():
+            if len(grp) > 1:
+                found += 1
+                desc = ", ".join(f"#{x.id} {x.full_name} [{x.status}]" for x in grp)
+                click.echo(f"[MESSENGER @{msg_val}] {desc}")
+        if not found:
+            click.echo("No duplicate open leads found.")
 
 
 def _bootstrap_admin(app):

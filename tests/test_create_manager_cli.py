@@ -12,8 +12,25 @@ from test_app import APP, client
 
 
 def test_create_manager_cli_forced_password_change_session_bump_audit_and_403():
+    tmp = tempfile.mkdtemp()
+
+    class CliCfg(Config):
+        TESTING = True
+        WTF_CSRF_ENABLED = False
+        SEED_DEMO = False
+        DATA_FIXES = False
+        IMPORT_PACKS = False
+        RATELIMIT_ENABLED = False
+        SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(tmp, "cli.db")
+        UPLOAD_FOLDER = os.path.join(tmp, "uploads")
+
+    from monday import create_app
+    cli_app = create_app(CliCfg, seed_if_empty=False)
+    with cli_app.app_context():
+        upgrade()
+
     email = "cli.sales.mgr@example.com"
-    runner = APP.test_cli_runner()
+    runner = cli_app.test_cli_runner()
     res = runner.invoke(args=["create-manager", "--email", email, "--name", "CLI Sales Manager"])
     assert res.exit_code == 0, res.output
 
@@ -27,7 +44,7 @@ def test_create_manager_cli_forced_password_change_session_bump_audit_and_403():
     assert dup.exit_code != 0
 
     # Verify DB state & audit_logs entry
-    with APP.app_context():
+    with cli_app.app_context():
         u = User.query.filter_by(email=email).first()
         assert u is not None
         assert u.role == "sales_manager"
@@ -43,12 +60,12 @@ def test_create_manager_cli_forced_password_change_session_bump_audit_and_403():
         assert al.new_value["must_change_password"] is True
 
     # Two concurrent logins with the one-time password
-    c1 = client()
+    c1 = cli_app.test_client()
     r_login = c1.post("/login", data={"email": email, "password": temp_pw})
     assert r_login.status_code == 302
     assert "/change-password" in r_login.headers["Location"]
 
-    c2 = client()
+    c2 = cli_app.test_client()
     assert c2.post("/login", data={"email": email, "password": temp_pw}).status_code == 302
 
     # Before changing password, accessing /manager is blocked by forced redirect to /change-password
@@ -70,7 +87,7 @@ def test_create_manager_cli_forced_password_change_session_bump_audit_and_403():
     assert r_chg.status_code == 302
     assert r_chg.headers["Location"].rstrip("/").endswith("/manager")
 
-    with APP.app_context():
+    with cli_app.app_context():
         u = db.session.get(User, uid)
         assert u.must_change_password is False
         assert u.session_version == 2
@@ -86,7 +103,7 @@ def test_create_manager_cli_forced_password_change_session_bump_audit_and_403():
         follow_redirects=True,
     )
     assert "12" in r_acc_short.data.decode()
-    with APP.app_context():
+    with cli_app.app_context():
         assert db.session.get(User, uid).check_password(new_pw)
 
     # c1 reaches /manager (200) and receives 403 on admin & teacher routes

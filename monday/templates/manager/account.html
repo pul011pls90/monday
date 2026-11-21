@@ -1,27 +1,155 @@
 {% extends "layout.html" %}
 {% block title %}{{ _("Настройки · CRM") }}{% endblock %}
 {% block context %}{{ _("Настройки аккаунта") }}{% endblock %}
+{% block page_class %}page--wide{% endblock %}
 {% block content %}
 <div class="crm-workspace">
   <div class="t-hero-bar">
     <div class="t-hero-bar__title">
       <h1>{{ _("Настройки") }}</h1>
-      <p>{{ current_user.name }} · {{ current_user.email }}</p>
+      <p>{{ current_user.name }} · {{ current_user.email }} · {{ role_label }}</p>
+    </div>
+    <div class="t-hero-actions">
+      <a class="btn btn--secondary btn--min" href="{{ url_for('manager.dashboard') }}">{{ ui.icon('list', 15) }}<span>{{ _("На главную CRM") }}</span></a>
     </div>
   </div>
 
-  <section class="card" style="max-width:560px">
-    <div class="hc__head">
-      <span class="hc__ic">{{ ui.icon('shield', 17) }}</span>
-      <h2>{{ _("Смена пароля") }}</h2>
+  <div class="crm-account-grid">
+    {# LEFT COLUMN: Profile & Permissions + Interface & Density Preferences #}
+    <div class="stack">
+      <section class="card">
+        <div class="hc__head">
+          <span class="hc__ic">{{ ui.icon('users', 17) }}</span>
+          <h2>{{ _("Профиль и права") }}</h2>
+          <span class="hc__pill">{{ role_label }}</span>
+        </div>
+
+        <div class="crm-profile-meta">
+          {{ ui.avatar(current_user) }}
+          <div style="min-width:0;flex:1">
+            <div class="t-strong">{{ current_user.name }}</div>
+            <div class="small muted">{{ current_user.email }}</div>
+          </div>
+          <span class="tag {{ 'tag--ok' if current_user.is_on_shift else 'tag--soft' }} tag--xs">
+            {{ _("На смене") if current_user.is_on_shift else _("Не на смене") }}
+          </span>
+        </div>
+
+        <form method="post" action="{{ url_for('manager.account') }}" class="stack-sm">
+          {{ ui.csrf() }}
+          <input type="hidden" name="action" value="profile">
+          <div class="field">
+            <label for="acct-name">{{ _("Отображаемое имя") }}</label>
+            <div class="row" style="gap:8px;flex-wrap:nowrap">
+              <input class="input input--sm" id="acct-name" name="name" value="{{ current_user.name }}" minlength="2" maxlength="120" required style="flex:1">
+              <button class="btn btn--primary btn--min" type="submit">{{ _("Сохранить имя") }}</button>
+            </div>
+          </div>
+        </form>
+
+        <hr style="border:0;border-top:1px solid var(--line);margin:2px 0">
+        <div class="eyebrow">{{ _("Ваши права в CRM") }}</div>
+        <ul class="crm-perm-list">
+          {% for perm_text in role_perms %}
+            <li>{{ ui.icon('check', 15) }}<span>{{ perm_text }}</span></li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="card">
+        <div class="hc__head">
+          <span class="hc__ic">{{ ui.icon('settings', 17) }}</span>
+          <h2>{{ _("Интерфейс и плотность") }}</h2>
+        </div>
+
+        <div class="row row--between" style="gap:12px;flex-wrap:wrap">
+          <div>
+            <div class="t-strong small">{{ _("Тема оформления") }}</div>
+            <div class="small muted">{{ _("Текущая") }}: {{ _("тёмная") if current_user.theme == 'dark' else (_("системная") if current_user.theme == 'system' else _("светлая")) }}</div>
+          </div>
+          <div class="row" style="gap:6px">
+            <form method="post" action="{{ url_for('auth.toggle_theme') }}">
+              {{ ui.csrf() }}
+              <input type="hidden" name="theme" value="light">
+              <input type="hidden" name="next" value="{{ request.full_path }}">
+              <button class="btn {{ 'btn--primary' if current_user.theme != 'dark' else 'btn--secondary' }} btn--min" type="submit">{{ ui.icon('sun', 14) }}<span>{{ _("Светлая") }}</span></button>
+            </form>
+            <form method="post" action="{{ url_for('auth.toggle_theme') }}">
+              {{ ui.csrf() }}
+              <input type="hidden" name="theme" value="dark">
+              <input type="hidden" name="next" value="{{ request.full_path }}">
+              <button class="btn {{ 'btn--primary' if current_user.theme == 'dark' else 'btn--secondary' }} btn--min" type="submit">{{ ui.icon('moon', 14) }}<span>{{ _("Тёмная") }}</span></button>
+            </form>
+          </div>
+        </div>
+
+        <hr style="border:0;border-top:1px solid var(--line);margin:2px 0">
+
+        <label class="row row--between" style="gap:12px;cursor:pointer">
+          <div>
+            <div class="t-strong small">{{ _("Компактный режим") }}</div>
+            <div class="small muted">{{ _("Уменьшает отступы в таблицах, карточках и панели фильтров CRM.") }}</div>
+          </div>
+          <input type="checkbox" id="crm-compact-toggle" style="width:18px;height:18px;accent-color:var(--accent)">
+        </label>
+      </section>
     </div>
-    <form method="post" action="{{ url_for('manager.account') }}" class="stack">
-      {{ ui.csrf() }}
-      <input type="hidden" name="action" value="password">
-      <div class="field"><label for="pw-cur">{{ _("Текущий пароль") }}</label><input class="input" id="pw-cur" type="password" name="current" required></div>
-      <div class="field"><label for="pw-new">{{ _("Новый пароль (от %(n)s символов)", n=min_pw_len|default(12)) }}</label><input class="input" id="pw-new" type="password" name="new" minlength="{{ min_pw_len|default(12) }}" required></div>
-      <div><button class="btn btn--primary btn--min" type="submit">{{ _("Обновить пароль") }}</button></div>
-    </form>
-  </section>
+
+    {# RIGHT COLUMN: Password Security + Quick Links & SLA Guide #}
+    <div class="stack">
+      <section class="card">
+        <div class="hc__head">
+          <span class="hc__ic">{{ ui.icon('shield', 17) }}</span>
+          <h2>{{ _("Смена пароля") }}</h2>
+        </div>
+        <form method="post" action="{{ url_for('manager.account') }}" class="stack">
+          {{ ui.csrf() }}
+          <input type="hidden" name="action" value="password">
+          <div class="field"><label for="pw-cur">{{ _("Текущий пароль") }}</label><input class="input input--sm" id="pw-cur" type="password" name="current" required></div>
+          <div class="field"><label for="pw-new">{{ _("Новый пароль (от %(n)s символов)", n=min_pw_len|default(12)) }}</label><input class="input input--sm" id="pw-new" type="password" name="new" minlength="{{ min_pw_len|default(12) }}" required></div>
+          <div><button class="btn btn--primary btn--min" type="submit">{{ _("Обновить пароль") }}</button></div>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="hc__head">
+          <span class="hc__ic">{{ ui.icon('clock', 17) }}</span>
+          <h2>{{ _("Горячие переходы и справка SLA") }}</h2>
+        </div>
+        <div class="crm-shortcut-grid">
+          <a class="btn btn--secondary btn--min" href="{{ url_for('manager.leads') }}">{{ ui.icon('users', 14) }}<span>{{ _("Список лидов") }}</span></a>
+          <a class="btn btn--secondary btn--min" href="{{ url_for('manager.pipeline') }}">{{ ui.icon('list', 14) }}<span>{{ _("Воронка продаж") }}</span></a>
+          <a class="btn btn--secondary btn--min" href="{{ url_for('manager.finance') }}">{{ ui.icon('bank', 14) }}<span>{{ _("Финансы") }}</span></a>
+          <a class="btn btn--secondary btn--min" href="{{ url_for('academic.schedule') }}">{{ ui.icon('calendar', 14) }}<span>{{ _("Расписание") }}</span></a>
+          {% if current_user.is_crm_supervisor %}
+            <a class="btn btn--secondary btn--min" href="{{ url_for('manager.audit') }}">{{ ui.icon('shield', 14) }}<span>{{ _("Журнал аудита") }}</span></a>
+          {% endif %}
+        </div>
+        <hr style="border:0;border-top:1px solid var(--line);margin:2px 0">
+        <div class="small text-2 stack-sm">
+          <div><b>{{ _("Порог SLA первого контакта:") }}</b> {{ sla_threshold }} {{ _("мин с момента создания лида.") }}</div>
+          <div><b>{{ _("Фиксация контакта:") }}</b> {{ _("активность типа «Звонок» или «Сообщение» (либо перевод в следующий этап) автоматически закрывает таймер SLA.") }}</div>
+        </div>
+      </section>
+    </div>
+  </div>
 </div>
+
+<script>
+(function(){
+  const cb = document.getElementById('crm-compact-toggle');
+  if (!cb) return;
+  const apply = (on) => {
+    document.querySelectorAll('.crm-workspace').forEach((el) => el.classList.toggle('is-compact', on));
+  };
+  const saved = localStorage.getItem('monday_crm_compact') === '1';
+  cb.checked = saved;
+  apply(saved);
+  cb.addEventListener('change', () => {
+    const on = cb.checked;
+    localStorage.setItem('monday_crm_compact', on ? '1' : '0');
+    apply(on);
+  });
+})();
+</script>
 {% endblock %}

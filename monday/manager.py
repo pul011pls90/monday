@@ -24,6 +24,7 @@ from .models import (
     LEAD_MODE_PREFERENCES,
     LEAD_SOURCES,
     LEAD_STATUSES,
+    LEAD_TEMPERATURES,
     Lead,
     LeadActivity,
     LeadTask,
@@ -72,7 +73,23 @@ ACTIVITY_LABELS = {
     "message": "Сообщение",
     "note": "Заметка",
     "status_change": "Смена статуса",
-    "reassign": "Переназначение",
+    "reassign": "Переназначение / объединение",
+}
+
+TEMPERATURE_LABELS = {
+    "cold": "Холодный",
+    "warm": "Тёплый",
+    "hot": "Горячий",
+}
+
+ALLOWED_LEAD_TRANSITIONS = {
+    "new": frozenset({"contacted", "trial_scheduled", "lost"}),
+    "contacted": frozenset({"trial_scheduled", "trial_done", "negotiation", "lost"}),
+    "trial_scheduled": frozenset({"contacted", "trial_done", "negotiation", "lost"}),
+    "trial_done": frozenset({"trial_scheduled", "negotiation", "won", "lost"}),
+    "negotiation": frozenset({"trial_scheduled", "trial_done", "won", "lost"}),
+    "won": frozenset(),
+    "lost": frozenset({"new", "contacted"}),
 }
 
 MODE_PREF_LABELS = {
@@ -215,10 +232,12 @@ def _common_ctx() -> dict:
         "LEAD_SOURCES": LEAD_SOURCES,
         "LEAD_ACTIVITY_TYPES": LEAD_ACTIVITY_TYPES,
         "LEAD_MODE_PREFERENCES": LEAD_MODE_PREFERENCES,
+        "LEAD_TEMPERATURES": LEAD_TEMPERATURES,
         "STATUS_LABELS": STATUS_LABELS,
         "SOURCE_LABELS": SOURCE_LABELS,
         "ACTIVITY_LABELS": ACTIVITY_LABELS,
         "MODE_PREF_LABELS": MODE_PREF_LABELS,
+        "TEMPERATURE_LABELS": TEMPERATURE_LABELS,
         "sla_threshold": _sla_threshold_minutes(),
         "lead_sla": _lead_sla,
     }
@@ -374,31 +393,35 @@ def lead_create():
         flash(_("Укажите телефон или мессенджер для связи."), "error")
         return _safe_back("manager.leads")
 
-    assigned_id = current_user.id
+    explicit_mgr_id = None
     if current_user.has_perm("crm.leads.reassign"):
         req_mgr = request.form.get("assigned_manager_id", type=int)
         if req_mgr:
             target = db.session.get(User, req_mgr)
             if target and target.role in CRM_ROLES and not target.is_blocked:
-                assigned_id = target.id
+                explicit_mgr_id = target.id
 
-    lead = Lead(
+    from .crm_intake import ingest_or_dedupe_lead
+
+    note = (request.form.get("note") or "").strip()
+    lead, deduped = ingest_or_dedupe_lead(
         full_name=full_name,
         phone=phone,
         messenger_handle=messenger_handle,
         source=source,
         interest=interest,
         mode_preference=mode_pref,
-        status="new",
-        assigned_manager_id=assigned_id,
+        note=note,
+        explicit_manager_id=explicit_mgr_id,
+        actor_id=current_user.id,
     )
-    db.session.add(lead)
-    db.session.flush()
-    note = (request.form.get("note") or "").strip()
-    if note:
-        db.session.add(LeadActivity(lead_id=lead.id, actor_id=current_user.id, type="note", body=note))
-    db.session.commit()
-    flash(_("Лид «%(name)s» добавлен.", name=lead.full_name), "success")
+    if deduped:
+        flash(_("Найден открытый дубликат «%(name)s» — обращение добавлено в историю без создания нового лида.", name=lead.full_name), "info")
+    else:
+        mgr_name = lead.assigned_manager.name if lead.assigned_manager else "—"
+        flash(_("Лид «%(name)s» добавлен (менеджер: %(mgr)s).", name=lead.full_name, mgr=mgr_name), "success")
+    if not current_user.has_perm("crm.leads.view_all") and lead.assigned_manager_id != current_user.id:
+        return redirect(url_for("manager.leads"))
     return redirect(url_for("manager.lead_detail", lead_id=lead.id))
 
 
@@ -542,6 +565,19 @@ def _render_lead_detail(lead: Lead, *, one_time_notice: str | None = None):
         .order_by(User.name.asc())
         .all()
     )
+    duplicate_candidates = []
+    if current_user.has_perm("crm.leads.reassign") and lead.status not in ("won", "lost"):
+        cand_filters = []
+        if lead.phone_e164:
+            cand_filters.append(Lead.phone_e164 == lead.phone_e164)
+        if lead.messenger_norm:
+            cand_filters.append(Lead.messenger_norm == lead.messenger_norm)
+        if cand_filters:
+            duplicate_candidates = (
+                Lead.query.filter(Lead.id != lead.id, Lead.status.notin_(("won", "lost")), or_(*cand_filters))
+                .order_by(Lead.id.desc())
+                .all()
+            )
     return render_template(
         "manager/lead_detail.html",
         **_common_ctx(),
@@ -561,6 +597,7 @@ def _render_lead_detail(lead: Lead, *, one_time_notice: str | None = None):
         managers=_crm_managers(),
         existing_students=existing_students,
         teachers=teachers,
+        duplicate_candidates=duplicate_candidates,
         one_time_notice=one_time_notice,
     )
 
@@ -691,6 +728,8 @@ def lead_convert(lead_id: int):
 @bp.route("/leads/<int:lead_id>/edit", methods=["POST"])
 @manager_required
 def lead_edit(lead_id: int):
+    from .phone_utils import normalize_messenger, normalize_phone
+
     lead = _get_lead_or_403(lead_id)
     full_name = (request.form.get("full_name") or "").strip()
     if len(full_name) < 2:
@@ -698,7 +737,9 @@ def lead_edit(lead_id: int):
         return redirect(url_for("manager.lead_detail", lead_id=lead.id))
     lead.full_name = full_name
     lead.phone = (request.form.get("phone") or "").strip() or None
+    lead.phone_e164 = normalize_phone(lead.phone)
     lead.messenger_handle = (request.form.get("messenger_handle") or "").strip() or None
+    lead.messenger_norm = normalize_messenger(lead.messenger_handle)
     source = (request.form.get("source") or lead.source).strip()
     if source in LEAD_SOURCES:
         lead.source = source
@@ -706,6 +747,9 @@ def lead_edit(lead_id: int):
     mode_pref = (request.form.get("mode_preference") or "").strip()
     if mode_pref in LEAD_MODE_PREFERENCES:
         lead.mode_preference = mode_pref
+    temp = (request.form.get("temperature") or lead.temperature).strip().lower()
+    if temp in LEAD_TEMPERATURES:
+        lead.temperature = temp
     db.session.commit()
     flash(_("Карточка лида обновлена."), "success")
     return redirect(url_for("manager.lead_detail", lead_id=lead.id))
@@ -720,26 +764,71 @@ def lead_status(lead_id: int):
         abort(400)
     old_status = lead.status
     lost_reason = (request.form.get("lost_reason") or "").strip()
+    override = request.form.get("supervisor_override") == "1"
+    override_reason = (request.form.get("override_reason") or "").strip()
     now = utcnow()
 
-    if new_status != old_status or (new_status == "lost" and lost_reason != lead.lost_reason):
-        lead.status = new_status
-        if new_status == "lost":
-            lead.lost_reason = lost_reason
-        elif old_status == "lost":
-            lead.lost_reason = ""
-        if new_status in ("contacted", "trial_scheduled", "trial_done", "negotiation", "won"):
-            if lead.first_contact_at is None:
-                lead.first_contact_at = now
-            lead.last_contact_at = now
-        body = f"{STATUS_LABELS.get(old_status, old_status)} → {STATUS_LABELS.get(new_status, new_status)}"
-        if new_status == "lost" and lead.lost_reason:
-            body += f" ({lead.lost_reason})"
-        db.session.add(
-            LeadActivity(lead_id=lead.id, actor_id=current_user.id, type="status_change", body=body)
+    if new_status == old_status and not (new_status == "lost" and lost_reason != lead.lost_reason):
+        return _safe_back("manager.lead_detail", lead_id=lead.id)
+
+    # Enforce pipeline transition rules
+    is_override = False
+    if old_status == "won" and new_status != "won":
+        if lead.converted_student_id is not None:
+            if not current_user.has_perm("crm.leads.reassign"):
+                flash(_("Только супервайзер может изменить статус уже конвертированного лида."), "error")
+                return _safe_back("manager.lead_detail", lead_id=lead.id)
+            if not override or not override_reason:
+                flash(_("Для смены статуса конвертированного лида отметьте переопределение и укажите причину."), "error")
+                return _safe_back("manager.lead_detail", lead_id=lead.id)
+            is_override = True
+        elif not current_user.has_perm("crm.leads.reassign") or not override or not override_reason:
+            flash(_("Нельзя откатить статус «Оплатил / Ученик» без переопределения супервайзера с причиной."), "error")
+            return _safe_back("manager.lead_detail", lead_id=lead.id)
+        else:
+            is_override = True
+    elif new_status != old_status and new_status not in ALLOWED_LEAD_TRANSITIONS.get(old_status, frozenset()):
+        if old_status == "new" and new_status == "won":
+            flash(_("Нельзя перевести лид из «Новый» сразу в «Оплатил / Ученик» без конвертации или прохождения этапов."), "error")
+        else:
+            flash(
+                _("Недопустимый переход статуса: «%(a)s» → «%(b)s».", a=STATUS_LABELS.get(old_status, old_status), b=STATUS_LABELS.get(new_status, new_status)),
+                "error",
+            )
+        return _safe_back("manager.lead_detail", lead_id=lead.id)
+
+    if new_status == "lost" and not lost_reason:
+        flash(_("Укажите причину отказа для перевода лида в статус «Отказ»."), "error")
+        return _safe_back("manager.lead_detail", lead_id=lead.id)
+
+    lead.status = new_status
+    if new_status == "lost":
+        lead.lost_reason = lost_reason
+    elif old_status == "lost":
+        lead.lost_reason = ""
+    if new_status in ("contacted", "trial_scheduled", "trial_done", "negotiation", "won"):
+        if lead.first_contact_at is None:
+            lead.first_contact_at = now
+        lead.last_contact_at = now
+    body = f"{STATUS_LABELS.get(old_status, old_status)} → {STATUS_LABELS.get(new_status, new_status)}"
+    if new_status == "lost" and lead.lost_reason:
+        body += f" ({lead.lost_reason})"
+    if is_override:
+        body += f" [Override: {override_reason}]"
+        write_audit_log(
+            actor_id=current_user.id,
+            action="lead_status_override",
+            entity_type="lead",
+            entity_id=lead.id,
+            old_value={"status": old_status, "converted_student_id": lead.converted_student_id},
+            new_value={"status": new_status, "converted_student_id": lead.converted_student_id},
+            reason=override_reason,
         )
-        db.session.commit()
-        flash(_("Статус обновлён: %(s)s.", s=STATUS_LABELS.get(new_status, new_status)), "success")
+    db.session.add(
+        LeadActivity(lead_id=lead.id, actor_id=current_user.id, type="status_change", body=body)
+    )
+    db.session.commit()
+    flash(_("Статус обновлён: %(s)s.", s=STATUS_LABELS.get(new_status, new_status)), "success")
     return _safe_back("manager.lead_detail", lead_id=lead.id)
 
 
@@ -874,6 +963,108 @@ def lead_delete(lead_id: int):
     db.session.commit()
     flash(_("Лид удалён (запись сохранена в аудите)."), "info")
     return redirect(url_for("manager.leads"))
+
+
+@bp.route("/leads/<int:lead_id>/merge", methods=["POST"])
+@permission_required("crm.leads.reassign")
+def lead_merge(lead_id: int):
+    """Supervisor-only merge of a duplicate lead into the surviving lead with full history/task transfer."""
+    survivor = db.session.get(Lead, lead_id) or abort(404)
+    dup_id = request.form.get("duplicate_lead_id", type=int)
+    dup = db.session.get(Lead, dup_id) if dup_id else None
+    if not dup or dup.id == survivor.id:
+        flash(_("Выберите другой лид-дубликат для объединения."), "error")
+        return redirect(url_for("manager.lead_detail", lead_id=survivor.id))
+    if (
+        dup.converted_student_id is not None
+        and survivor.converted_student_id is not None
+        and dup.converted_student_id != survivor.converted_student_id
+    ):
+        flash(_("Нельзя объединить лиды, привязанные к разным ученикам."), "error")
+        return redirect(url_for("manager.lead_detail", lead_id=survivor.id))
+
+    reason = (request.form.get("reason") or "").strip()
+    moved_activities = LeadActivity.query.filter_by(lead_id=dup.id).update({"lead_id": survivor.id})
+    moved_tasks = LeadTask.query.filter_by(lead_id=dup.id).update({"lead_id": survivor.id})
+    Lead.query.filter_by(previous_lead_id=dup.id).update({"previous_lead_id": survivor.id})
+
+    if not survivor.phone and dup.phone:
+        survivor.phone = dup.phone
+    if not survivor.phone_e164 and dup.phone_e164:
+        survivor.phone_e164 = dup.phone_e164
+    if not survivor.messenger_handle and dup.messenger_handle:
+        survivor.messenger_handle = dup.messenger_handle
+    if not survivor.messenger_norm and dup.messenger_norm:
+        survivor.messenger_norm = dup.messenger_norm
+    if not survivor.interest and dup.interest:
+        survivor.interest = dup.interest
+    if not survivor.ai_summary and dup.ai_summary:
+        survivor.ai_summary = dup.ai_summary
+    if not survivor.converted_student_id and dup.converted_student_id:
+        survivor.converted_student_id = dup.converted_student_id
+
+    dup_snapshot = {
+        "duplicate_id": dup.id,
+        "full_name": dup.full_name,
+        "phone": dup.phone,
+        "phone_e164": dup.phone_e164,
+        "messenger_handle": dup.messenger_handle,
+        "status": dup.status,
+        "assigned_manager_id": dup.assigned_manager_id,
+    }
+    db.session.add(
+        LeadActivity(
+            lead_id=survivor.id,
+            actor_id=current_user.id,
+            type="reassign",
+            body=f"Объединён дубликат #{dup.id} ({dup.full_name})" + (f": {reason}" if reason else ""),
+        )
+    )
+    write_audit_log(
+        actor_id=current_user.id,
+        action="lead_merge",
+        entity_type="lead",
+        entity_id=survivor.id,
+        old_value=dup_snapshot,
+        new_value={
+            "surviving_lead_id": survivor.id,
+            "moved_activities": moved_activities,
+            "moved_tasks": moved_tasks,
+        },
+        reason=reason,
+    )
+    db.session.delete(dup)
+    db.session.commit()
+    flash(_("Дубликат #%(d)s объединён с лидом #%(s)s.", d=dup_id, s=survivor.id), "success")
+    return redirect(url_for("manager.lead_detail", lead_id=survivor.id))
+
+
+@bp.route("/shift", methods=["POST"])
+@manager_required
+def toggle_shift():
+    """Toggle `is_on_shift` for self (or another manager when supervisor/admin)."""
+    target_id = request.form.get("user_id", type=int) or current_user.id
+    if target_id != current_user.id and not current_user.has_perm("crm.leads.reassign"):
+        abort(403)
+    target = db.session.get(User, target_id) or abort(404)
+    if target.role not in CRM_ROLES:
+        abort(400)
+    old_val = bool(target.is_on_shift)
+    target.is_on_shift = not old_val
+    write_audit_log(
+        actor_id=current_user.id,
+        action="manager_shift_toggle",
+        entity_type="user",
+        entity_id=target.id,
+        old_value={"is_on_shift": old_val},
+        new_value={"is_on_shift": target.is_on_shift},
+    )
+    db.session.commit()
+    flash(
+        _("%(n)s теперь на смене.", n=target.name) if target.is_on_shift else _("%(n)s ушёл со смены.", n=target.name),
+        "info",
+    )
+    return _safe_back("manager.dashboard")
 
 
 # --------------------------------------------------------------------------- Pipeline Kanban
@@ -1468,11 +1659,30 @@ def audit():
 @bp.route("/account", methods=["GET", "POST"])
 @manager_required
 def account():
-    """Password change & preferences for sales managers and supervisors."""
+    """Profile, interface preferences, password change & role summary for CRM staff."""
     min_len = min_password_length(current_user.role)
     if request.method == "POST":
         action = request.form.get("action")
-        if action == "password":
+        if action == "profile":
+            new_name = (request.form.get("name") or "").strip()
+            if len(new_name) < 2 or len(new_name) > 120:
+                flash(_("Имя должно быть от 2 до 120 символов."), "error")
+            else:
+                user_obj = current_user._get_current_object()
+                old_name = user_obj.name
+                if new_name != old_name:
+                    user_obj.name = new_name
+                    write_audit_log(
+                        actor_id=user_obj.id,
+                        action="manager_profile_update",
+                        entity_type="user",
+                        entity_id=user_obj.id,
+                        old_value={"name": old_name},
+                        new_value={"name": new_name},
+                    )
+                    db.session.commit()
+                flash(_("Профиль обновлён."), "success")
+        elif action == "password":
             cur_pw = request.form.get("current", "")
             new_pw = request.form.get("new", "")
             if not current_user.check_password(cur_pw):
@@ -1487,4 +1697,32 @@ def account():
                 login_user(user_obj)
                 flash(_("Пароль изменён."), "success")
         return redirect(url_for("manager.account"))
-    return render_template("manager/account.html", min_pw_len=min_len)
+
+    role_labels = {
+        "admin": _("Администратор"),
+        "supervisor": _("Супервайзер CRM"),
+        "sales_manager": _("Менеджер продаж"),
+    }
+    if current_user.is_crm_supervisor:
+        role_perms = [
+            _("Просмотр и редактирование всех лидов команды"),
+            _("Переназначение, объединение дубликатов и удаление лидов"),
+            _("Управление тарифами, абонементами и ставками учителей"),
+            _("Редактирование расписания, групп и ретроспективной посещаемости"),
+            _("Доступ к журналу аудита действий CRM"),
+        ]
+    else:
+        role_perms = [
+            _("Создание лидов и работа со своими закреплёнными лидами"),
+            _("Смена этапов воронки, звонки, переписка и задачи SLA"),
+            _("Конвертация лидов в учеников и выдача абонементов"),
+            _("Приём оплат по абонементам и просмотр расписания групп"),
+        ]
+
+    return render_template(
+        "manager/account.html",
+        min_pw_len=min_len,
+        role_label=role_labels.get(current_user.role, current_user.role),
+        role_perms=role_perms,
+        sla_threshold=_sla_threshold_minutes(),
+    )
