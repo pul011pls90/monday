@@ -1,0 +1,183 @@
+{% extends "layout.html" %}
+{% import "manager/_ui.html" as mui with context %}
+{% block title %}{{ record.name }} · {{ _("Запись ученика") }}{% endblock %}
+{% block context %}{{ _("Запись") }} #{{ record.id }}{% endblock %}
+{% block content %}
+  {% set st = record.code_status %}
+  {% set st_tone = 'ok' if st == 'claimed' else ('accent' if st == 'pending' else ('warn' if st == 'expired' else 'bad')) %}
+  {% call mui.page_header(
+    record.name,
+    (record.phone or '') ~ (' · ' ~ record.email if record.email else '') ~ (' · ' ~ record.course.name if record.course else ''),
+    back_href=url_for('manager.students'),
+    back_label=_("К ученикам")
+  ) %}
+    {{ mui.badge(record.code_status_label, tone=st_tone, dot=true) }}
+    {% if record.source_lead %}
+      {{ mui.btn(_("Лид") ~ " #" ~ record.source_lead.id, href=url_for('manager.lead_detail', lead_id=record.source_lead.id), variant='secondary', size='sm') }}
+    {% endif %}
+    {% if record.student %}
+      {{ mui.btn(_("Профиль 360"), href=url_for('manager.student_detail', student_id=record.student.id), variant='secondary', size='sm', icon_name='users') }}
+    {% endif %}
+  {% endcall %}
+
+  {% include "manager/_code_result.html" %}
+
+  <div class="mgr-detail-grid">
+    <div class="stack">
+      {% call mui.card() %}
+        {{ mui.section_head('users', _("Текущие преподаватели"), count=open_assignments|length) }}
+        {% if open_assignments %}
+          <div class="stack-sm">
+            {% for ta in open_assignments %}
+              <div class="mgr-row-line">
+                <div>
+                  <a href="{{ url_for('manager.teacher_detail', teacher_id=ta.teacher.id) }}" style="font-weight:700;font-size:15px">{{ ta.teacher.name }}</a>
+                  <div class="small muted">
+                    {% if ta.course %}{{ ta.course.name }} · {% endif %}
+                    {{ _("С") }} <span class="num">{{ ta.started_at|d('d MMM y, HH:mm') }}</span>
+                    {% if ta.assigned_by %} · {{ _("Назначил") }}: {{ ta.assigned_by.name }}{% endif %}
+                  </div>
+                </div>
+                {{ mui.badge(_("Активен"), tone='ok', dot=true) }}
+              </div>
+            {% endfor %}
+          </div>
+        {% elif record.teacher %}
+          <div class="mgr-row-line">
+            <a href="{{ url_for('manager.teacher_detail', teacher_id=record.teacher.id) }}" style="font-weight:700">{{ record.teacher.name }}</a>
+            {{ mui.badge(_("Активен"), tone='ok', dot=true) }}
+          </div>
+        {% else %}
+          <p class="small text-2">{{ _("Преподаватель пока не назначен.") }}</p>
+        {% endif %}
+
+        {% if current_user.has_perm('crm.leads.convert') %}
+          <div style="margin-top:12px">
+            <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="button" id="open-change-teacher-modal">{{ ui.icon('edit', 14) }}<span>{{ _("Сменить преподавателя") }}</span></button>
+          </div>
+        {% endif %}
+      {% endcall %}
+
+      {% call mui.card() %}
+        {{ mui.section_head('clock', _("История преподавателей"), count=history|length) }}
+        {% if history %}
+          <ul class="mgr-timeline">
+            {% for h in history %}
+              <li class="mgr-timeline__item">
+                {{ mui.badge(_("Активен") if h.ended_at is none else _("Завершён"), tone='ok' if h.ended_at is none else 'neutral', dot=(h.ended_at is none)) }}
+                <div>
+                  <div class="mgr-timeline__body">
+                    <b>{{ h.teacher.name if h.teacher else ('#' ~ h.teacher_user_id) }}</b>
+                    {% if h.course %} · <span class="muted">{{ h.course.name }}</span>{% endif %}
+                    {% if h.change_reason %}
+                      <div class="small text-2" style="margin-top:2px">{{ _("Причина") }}: {{ h.change_reason }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="mgr-timeline__meta num">
+                    {{ _("С") }} {{ h.started_at|d('d MMM y, HH:mm') }}
+                    — {{ h.ended_at|d('d MMM y, HH:mm') if h.ended_at else _("по настоящее время") }}
+                    · {{ _("Назначил") }}: {{ h.assigned_by.name if h.assigned_by else '—' }}
+                    {% if h.ended_by %} · {{ _("Снял") }}: {{ h.ended_by.name }}{% endif %}
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          {{ mui.empty(_("Истории назначений пока нет"), _("После назначения преподавателя здесь появится история."), icon_name='clock') }}
+        {% endif %}
+      {% endcall %}
+    </div>
+
+    <div class="stack">
+      {% call mui.card() %}
+        {{ mui.section_head('link', _("Код подключения и доступ")) }}
+        <dl class="mgr-kv">
+          <dt>{{ _("Статус кода") }}</dt>
+          <dd>{{ mui.badge(record.code_status_label, tone=st_tone, dot=true) }}</dd>
+          <dt>{{ _("Истекает") }}</dt>
+          <dd class="num">{{ record.invite_expires_at|d('d MMM y, HH:mm') if record.invite_expires_at else '—' }}</dd>
+          {% if record.claimed_at or record.linked_at %}
+            <dt>{{ _("Привязан") }}</dt>
+            <dd class="num">{{ (record.claimed_at or record.linked_at)|d('d MMM y, HH:mm') }}</dd>
+          {% endif %}
+          {% if record.student %}
+            <dt>{{ _("Аккаунт") }}</dt>
+            <dd>{{ record.student.name }} ({{ record.student.email }})</dd>
+          {% endif %}
+          {% if record.created_by %}
+            <dt>{{ _("Создал") }}</dt>
+            <dd>{{ record.created_by.name }}</dd>
+          {% endif %}
+          <dt>{{ _("Телефон") }}</dt>
+          <dd class="num">{{ record.phone or '—' }}</dd>
+          <dt>{{ _("Email") }}</dt>
+          <dd>{{ record.email or '—' }}</dd>
+        </dl>
+
+        {% if current_user.has_perm('crm.leads.convert') and st != 'claimed' %}
+          <hr style="border:0;border-top:1px solid var(--line);margin:8px 0">
+          <div class="row" style="gap:8px;flex-wrap:wrap">
+            <form method="post" action="{{ url_for('manager.student_record_regenerate', record_id=record.id) }}">
+              {{ ui.csrf() }}
+              <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ ui.icon('rotate', 14) }}<span>{{ _("Перевыпустить код") }}</span></button>
+            </form>
+            {% if st in ('pending', 'expired') %}
+              <form method="post" action="{{ url_for('manager.student_record_revoke', record_id=record.id) }}">
+                {{ ui.csrf() }}
+                <button class="mgr-btn mgr-btn--danger mgr-btn--sm" type="submit">{{ ui.icon('ban', 14) }}<span>{{ _("Отозвать код") }}</span></button>
+              </form>
+            {% endif %}
+          </div>
+        {% endif %}
+      {% endcall %}
+    </div>
+  </div>
+
+  {% if current_user.has_perm('crm.leads.convert') %}
+  <dialog class="exit-dialog" id="change-teacher-dialog" aria-labelledby="change-teacher-title">
+    <h2 id="change-teacher-title">{{ _("Сменить преподавателя") }}</h2>
+    <p>{{ _("Текущее назначение будет закрыто с сохранением истории, а ученик сразу перейдёт к новому преподавателю.") }}</p>
+    <form method="post" action="{{ url_for('manager.student_record_change_teacher', record_id=record.id) }}" class="stack-sm" style="margin-top:14px">
+      {{ ui.csrf() }}
+      <label class="eyebrow" for="ct-teacher">{{ _("Новый преподаватель") }} *</label>
+      <select class="select" id="ct-teacher" name="new_teacher_id" required>
+        <option value="">{{ _("Выберите преподавателя...") }}</option>
+        {% for t in teachers %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
+      </select>
+      <label class="eyebrow" for="ct-course">{{ _("Предмет / курс") }}</label>
+      <select class="select" id="ct-course" name="course_id">
+        <option value="">{{ _("Основное назначение (без предмета)") }}</option>
+        {% for c in courses %}
+          <option value="{{ c.id }}" {{ 'selected' if (open_assignments and open_assignments[0].course_id == c.id) or (not open_assignments and record.course_id == c.id) }}>{{ c.name }}</option>
+        {% endfor %}
+      </select>
+      <label class="eyebrow" for="ct-reason">{{ _("Причина смены") }} *</label>
+      <textarea class="input" id="ct-reason" name="reason" rows="3" required placeholder="{{ _('Например: перенос расписания или запрос ученика') }}"></textarea>
+      <div class="exit-dialog__actions">
+        <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="button" id="close-change-teacher-modal">{{ _("Отмена") }}</button>
+        <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Сохранить смену") }}</button>
+      </div>
+    </form>
+  </dialog>
+  <script>
+  (function () {
+    var dlg = document.getElementById('change-teacher-dialog');
+    var openBtn = document.getElementById('open-change-teacher-modal');
+    var closeBtn = document.getElementById('close-change-teacher-modal');
+    if (dlg && openBtn) {
+      openBtn.addEventListener('click', function () {
+        if (typeof dlg.showModal === 'function') dlg.showModal();
+        else dlg.setAttribute('open', 'open');
+      });
+    }
+    if (dlg && closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        if (typeof dlg.close === 'function') dlg.close();
+        else dlg.removeAttribute('open');
+      });
+    }
+  })();
+  </script>
+  {% endif %}
+{% endblock %}

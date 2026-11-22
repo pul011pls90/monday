@@ -18,8 +18,8 @@ from fractions import Fraction
 from .extensions import db
 from .models import today as local_today  # noqa: E402
 from .models import utcnow
-from .models import (Assignment, Attempt, AttemptAnswer, Question, Skill, StudentProfile, StudentRecord, User,
-                     Work, new_invite_code)
+from .models import (Assignment, Attempt, AttemptAnswer, Question, Skill, StudentProfile, StudentRecord,
+                     TeacherAssignment, User, Work, new_invite_code)
 from .services import grade_version_attempt, next_monday_test_start, publish_work, week_start
 
 ALL = ["ORT", "ENT", "EGE", "OGE", "SAT", "CSCA"]
@@ -610,6 +610,20 @@ def seed_demo():
         records.append(r)
     records[4].goal_text = "SAT Math 700+"
     db.session.add_all(records)
+    db.session.flush()
+    now_seed = utcnow()
+    for r in records:
+        if r.student_user_id:
+            r.claimed_at = r.linked_at or now_seed
+            r.claimed_by_user_id = r.student_user_id
+        db.session.add(
+            TeacherAssignment(
+                student_record_id=r.id,
+                teacher_user_id=r.teacher_id,
+                started_at=r.linked_at or now_seed,
+                assigned_by_id=r.teacher_id,
+            )
+        )
     db.session.flush()
 
     # ---- practice history for Tima and the others (last 3 weeks)

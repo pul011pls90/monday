@@ -15,6 +15,16 @@
 
 {# ------------------------------------------------------------ «Сегодня»: the day's plan as one checklist, one button for the next step #}
 <h1 class="home-hello">{{ _("Привет, %(name)s", name=current_user.first_name) }}</h1>
+<div class="row small" style="gap:8px;margin-bottom:12px;flex-wrap:wrap">
+  <span class="tag tag--soft">
+    {{ ui.icon('users', 14) }}
+    {% if current_teachers %}
+      {{ _("Мой преподаватель") }}: <b>{% for ct in current_teachers %}{{ ct.teacher.name }}{% if ct.course %} ({{ ct.course.name }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</b>
+    {% else %}
+      {{ _("Преподаватель пока не назначен") }}
+    {% endif %}
+  </span>
+</div>
 <section id="ds-resume-card" class="ds-resume" hidden aria-label="{{ _('Продолжить работу') }}"></section>
 {% set plan = [] %}
 {% if daily['items'] %}{% set dn = daily['items']|length %}{% set dleft = dn - daily.done %}

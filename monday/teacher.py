@@ -16,10 +16,21 @@ from .access import staff_required, teacher_required
 from .constants import EXAMS, MISTAKE_REASONS, WORK_CATEGORIES, WORK_KINDS
 from .extensions import db
 from .models import utcnow
+from .audit import write_audit_log
 from .models import (INPUT_FORMATS, MATERIAL_TYPES, QUESTION_WORD_LIMIT, Assignment, Attempt, AttemptAnswer,
-                     ContentNode, Question, Report, Skill, StudentRecord, User, Work, new_invite_code)
+                     ContentNode, Question, Report, Skill, StudentRecord, TeacherAssignment, User, Work, new_invite_code)
 from .services import (content_tree, homework_state, latest_attempt, mistake_breakdown, parse_number,
                        progress_summary, publish_work, record_progress, skill_map, temporary_password, visible_nodes)
+from .student_links import (
+    StudentLinkConflictError,
+    StudentLinkError,
+    can_teacher_access,
+    code_last4,
+    regenerate_code,
+    revoke_code,
+    teacher_open_records_query,
+    teacher_progress_since,
+)
 
 bp = Blueprint("teacher", __name__, url_prefix="/teacher")
 
@@ -27,13 +38,15 @@ TIME_RE = re.compile(r"^([01]?\d|2[0-3]):[0-5]\d$")
 
 
 def _my_records():
-    return StudentRecord.query.filter_by(teacher_id=current_user.id)
+    return teacher_open_records_query(current_user.id)
 
 
 def _own_record(record_id):
     r = db.session.get(StudentRecord, record_id)
-    if not r or (r.teacher_id != current_user.id and not current_user.is_admin):
+    if not r:
         abort(404)
+    if not can_teacher_access(current_user._get_current_object(), r):
+        abort(403)
     return r
 
 
@@ -148,6 +161,11 @@ def dashboard():
     from .services import week_start
     from sqlalchemy.orm import joinedload
     records = _my_records().all()
+    since_by_uid = {
+        r.student_user_id: teacher_progress_since(current_user._get_current_object(), r)
+        for r in records
+        if r.student_user_id
+    }
     today = local_today()
     weekday = today.weekday()
     today_lessons = sorted([r for r in records if weekday in (r.lesson_days or []) and r.lesson_time],
@@ -156,14 +174,20 @@ def dashboard():
         Attendance.day == today, Attendance.record_id.in_([r.id for r in today_lessons] or [0])).all()}
     now_hm = local_now().strftime("%H:%M")
     next_lesson = next((r for r in today_lessons if r.lesson_time >= now_hm), None)
+    open_rec_ids = [r.id for r in records]
     to_check = []
-    for a in Assignment.query.filter_by(teacher_id=current_user.id, checked_at=None).all():
+    assign_q = Assignment.query.filter(Assignment.checked_at.is_(None))
+    if open_rec_ids:
+        assign_q = assign_q.filter(Assignment.record_id.in_(open_rec_ids))
+    else:
+        assign_q = assign_q.filter(db.false())
+    for a in assign_q.all():
         last = latest_attempt(a, a.record.student_user_id) if a.record.student_user_id else None
         if last and not _handed_in_empty(last):
             to_check.append(a)
     behind = []
     for r in records:
-        progress = record_progress(r)
+        progress = record_progress(r, since=since_by_uid.get(r.student_user_id))
         overdue = sum(1 for a in r.assignments
                       if r.student_user_id and homework_state(a, r.student_user_id) == "overdue")
         if progress < 40 or overdue:
@@ -187,7 +211,8 @@ def dashboard():
     return render_template("teacher/dashboard.html", today_lessons=today_lessons, marks=marks, next_lesson=next_lesson,
                            to_check=to_check, behind=behind, records=records, pending_q=pending_q,
                            week=homework_week(current_user.id, start), week_offset=offset, today=today,
-                           mistakes=fresh_mistakes(records), dots=class_dots(current_user, records),
+                           mistakes=fresh_mistakes(records, since_by_uid=since_by_uid),
+                           dots=class_dots(current_user, records, since_by_uid=since_by_uid),
                            monday=monday_results(records), daily=teacher_daily(current_user, records),
                            group_lessons=group_lessons, lesson_att_stats=compute_lesson_att_stats(group_lessons),
                            LESSON_MODE_LABELS=LESSON_MODE_LABELS)
@@ -380,7 +405,16 @@ def students():
     records = _my_records().all()
     if q:
         records = [r for r in records if q in r.name.lower() or q in (r.grade or "").lower()]
-    rows = [{"r": r, "progress": record_progress(r)} for r in records]
+    rows = [
+        {
+            "r": r,
+            "progress": record_progress(r, since=teacher_progress_since(current_user._get_current_object(), r)),
+            "is_manager_unclaimed": bool(
+                not r.student_user_id and (r.source_lead_id or (r.created_by_user_id and r.created_by_user_id != current_user.id))
+            ),
+        }
+        for r in records
+    ]
     keys = {
         "name": lambda x: x["r"].name.lower(),
         "grade": lambda x: x["r"].grade or "",
@@ -426,7 +460,8 @@ def _fill_record(r, form):
 @bp.route("/students/new", methods=["POST"])
 @teacher_required
 def student_new():
-    r = StudentRecord(teacher_id=current_user.id)
+    now = utcnow()
+    r = StudentRecord(teacher_id=current_user.id, created_by_user_id=current_user.id, created_at=now)
     r.rotate_invite_code()
     errors = _fill_record(r, request.form)
     if errors:
@@ -434,6 +469,32 @@ def student_new():
             flash(e, "error")
         return redirect(url_for("teacher.students") + "#add")
     db.session.add(r)
+    db.session.flush()
+    ta = TeacherAssignment(
+        student_record_id=r.id,
+        teacher_user_id=current_user.id,
+        started_at=now,
+        assigned_by_id=current_user.id,
+    )
+    db.session.add(ta)
+    db.session.flush()
+    write_audit_log(
+        actor_id=current_user.id,
+        action="student_code_created",
+        entity_type="student_record",
+        entity_id=r.id,
+        new_value={
+            "code_last4": code_last4(r.invite_code),
+            "expires_at": r.invite_expires_at.isoformat() if r.invite_expires_at else None,
+        },
+    )
+    write_audit_log(
+        actor_id=current_user.id,
+        action="teacher_assigned",
+        entity_type="student_record",
+        entity_id=r.id,
+        new_value={"assignment_id": ta.id, "teacher_id": current_user.id, "course_id": None},
+    )
     db.session.commit()
     flash(_("Ученик добавлен. Отправьте ему код %(code)s, чтобы подключить его аккаунт.", code=r.invite_code),
           "success")
@@ -442,13 +503,19 @@ def student_new():
 
 def _render_student_detail(r, one_time_notice=None):
     data = {}
+    since = teacher_progress_since(current_user._get_current_object(), r)
     if r.student_user_id:
         exam = r.exam or (r.student.profile.exam if r.student.profile else None)
-        data["summary"] = progress_summary(r.student_user_id, exam)
-        data["topics"] = skill_map(r.student_user_id, exam)
-        data["breakdown"] = mistake_breakdown(r.student_user_id, utcnow() - timedelta(days=30))
-        data["recent"] = (Attempt.query.filter(Attempt.user_id == r.student_user_id, Attempt.finished_at.isnot(None))
-                          .order_by(Attempt.finished_at.desc()).limit(8).all())
+        data["summary"] = progress_summary(r.student_user_id, exam, since=since)
+        data["topics"] = skill_map(r.student_user_id, exam, since=since)
+        mb_since = utcnow() - timedelta(days=30)
+        if since and since > mb_since:
+            mb_since = since
+        data["breakdown"] = mistake_breakdown(r.student_user_id, mb_since)
+        att_q = Attempt.query.filter(Attempt.user_id == r.student_user_id, Attempt.finished_at.isnot(None))
+        if since is not None:
+            att_q = att_q.filter(Attempt.finished_at >= since)
+        data["recent"] = att_q.order_by(Attempt.finished_at.desc()).limit(8).all()
     assignments = [(a, homework_state(a, r.student_user_id) if r.student_user_id else "new",
                     latest_attempt(a, r.student_user_id) if r.student_user_id else None)
                    for a in sorted(r.assignments, key=lambda a: a.created_at, reverse=True)]
@@ -457,18 +524,21 @@ def _render_student_detail(r, one_time_notice=None):
     from .models import Attendance
     from .services import open_mistakes
     if r.student_user_id:
-        data["trend"] = score_trend(r.student_user_id)
-        data["mistakes"] = open_mistakes(r.student_user_id)[:8]
+        data["trend"] = score_trend(r.student_user_id, since=since)
+        data["mistakes"] = open_mistakes(r.student_user_id, since=since)[:8]
     att = attendance_summary(r)
-    progress = record_progress(r)
+    progress = record_progress(r, since=since)
     overdue = sum(1 for _a, st, _l in assignments if st == "overdue")
     # Standing = knowledge minus penalties (attendance and discipline are shown apart from knowledge)
     penalty = 3 * att["absent"] + 1 * att["late"] + 2 * overdue
     today_mark = Attendance.query.filter_by(record_id=r.id, day=local_today()).first()
+    is_manager_unclaimed = bool(
+        not r.student_user_id and (r.source_lead_id or (r.created_by_user_id and r.created_by_user_id != current_user.id))
+    )
     return render_template("teacher/student_detail.html", r=r, data=data, assignments=assignments,
                            join_url=join_url, progress=progress, att=att, overdue=overdue, penalty=penalty,
                            standing=max(0, progress - penalty), today_mark=today_mark.status if today_mark else None,
-                           one_time_notice=one_time_notice)
+                           one_time_notice=one_time_notice, is_manager_unclaimed=is_manager_unclaimed)
 
 
 @bp.route("/students/<int:record_id>")
@@ -480,14 +550,17 @@ def student_detail(record_id):
 @bp.route("/attempts/<int:attempt_id>/written", methods=["GET", "POST"])
 @teacher_required
 def written_review(attempt_id):
-    """Written answers (part 2) of one finished attempt of the teacher's student: photo, student's own mark, criteria."""
+    """Written answers (part 2) of one finished attempt of the teacher's current student."""
     from .services import rescore
     att = db.session.get(Attempt, attempt_id)
     if not att or not att.finished_at:
         abort(404)
-    linked = StudentRecord.query.filter_by(teacher_id=current_user.id, student_user_id=att.user_id).first()
+    if att.assignment:
+        linked = att.assignment.record if can_teacher_access(current_user._get_current_object(), att.assignment.record) else None
+    else:
+        linked = teacher_open_records_query(current_user.id).filter_by(student_user_id=att.user_id).first()
     if not linked and not current_user.is_admin:
-        abort(404)
+        abort(403)
     items = att.work_version.items
     rows = [(a, items[a.index]) for a in att.answers
             if a.index < len(items) and items[a.index].get("answer_type") == "written"]
@@ -525,9 +598,13 @@ def student_new_code(record_id):
     if r.student_user_id:
         flash(_("Ученик уже подключён — новый код не нужен."), "info")
     else:
-        r.rotate_invite_code()
-        db.session.commit()
-        flash(_("Новый код: %(code)s. Старый больше не работает.", code=r.invite_code), "success")
+        try:
+            _rec, code = regenerate_code(current_user._get_current_object(), r.id)
+            flash(_("Новый код: %(code)s. Старый больше не работает.", code=code), "success")
+        except StudentLinkConflictError:
+            flash(_("Ученик уже подключён — новый код не нужен."), "info")
+        except StudentLinkError as exc:
+            flash(str(exc), "error")
     return redirect(url_for("teacher.student_detail", record_id=r.id))
 
 
@@ -538,9 +615,13 @@ def student_revoke_code(record_id):
     if r.student_user_id:
         flash(_("Ученик уже подключён — код больше не активен."), "info")
     else:
-        r.revoke_invite_code()
-        db.session.commit()
-        flash(_("Код приглашения отозван. Чтобы подключить ученика позже, создайте новый код."), "success")
+        try:
+            revoke_code(current_user._get_current_object(), r.id)
+            flash(_("Код приглашения отозван. Чтобы подключить ученика позже, создайте новый код."), "success")
+        except StudentLinkConflictError:
+            flash(_("Ученик уже подключён — код больше не активен."), "info")
+        except StudentLinkError as exc:
+            flash(str(exc), "error")
     return redirect(url_for("teacher.student_detail", record_id=r.id))
 
 
@@ -833,6 +914,12 @@ def assign():
             flash(_("Выберите опубликованную работу."), "error")
             return redirect(url_for("teacher.assign"))
         ids = [int(i) for i in request.form.getlist("record_ids") if i.isdigit()]
+        allowed_ids = {r.id for r in records}
+        for rid in ids:
+            if rid not in allowed_ids:
+                target_rec = db.session.get(StudentRecord, rid)
+                if target_rec is not None:
+                    abort(403)
         chosen = [r for r in records if r.id in ids]
         if not chosen:
             flash(_("Выберите хотя бы одного ученика."), "error")
@@ -865,15 +952,23 @@ def assign():
 @teacher_required
 def review():
     show = request.args.get("show", "submitted")
+    open_rec_ids = [r.id for r in _my_records().all()]
+    assign_q = Assignment.query
+    if open_rec_ids:
+        assign_q = assign_q.filter(
+            db.or_(Assignment.teacher_id == current_user.id, Assignment.record_id.in_(open_rec_ids))
+        )
+    else:
+        assign_q = assign_q.filter(Assignment.teacher_id == current_user.id)
     rows = []
-    for a in (Assignment.query.filter_by(teacher_id=current_user.id)
-              .order_by(Assignment.created_at.desc()).all()):
+    for a in assign_q.order_by(Assignment.created_at.desc()).all():
         uid = a.record.student_user_id
         state = homework_state(a, uid) if uid else "new"
         last = latest_attempt(a, uid) if uid else None
         if state == "submitted" and _handed_in_empty(last):
             state = "empty"  # «Не сданы», not «Ждут проверки»
-        rows.append({"a": a, "state": state, "last": last})
+        can_grade = current_user.is_admin or can_teacher_access(current_user._get_current_object(), a.record)
+        rows.append({"a": a, "state": state, "last": last, "can_grade": can_grade})
     not_done = ("new", "in_progress", "overdue", "empty")
     counts = {k: sum(1 for r in rows if r["state"] == k) for k in ("submitted", "checked")}
     counts["open"] = sum(1 for r in rows if r["state"] in not_done)
@@ -889,9 +984,11 @@ def review():
 
 
 def written_to_mark(teacher):
-    """Finished attempts of the teacher's students with part-2 (written) answers the teacher hasn't marked yet."""
-    records = {r.student_user_id: r for r in StudentRecord.query.filter_by(teacher_id=teacher.id)
-               .filter(StudentRecord.student_user_id.isnot(None)).all()}
+    """Finished attempts of the teacher's current students with part-2 (written) answers not marked yet."""
+    records = {
+        r.student_user_id: r
+        for r in teacher_open_records_query(teacher.id).filter(StudentRecord.student_user_id.isnot(None)).all()
+    }
     if not records:
         return []
     answers = (AttemptAnswer.query.join(Attempt, AttemptAnswer.attempt_id == Attempt.id)
@@ -913,8 +1010,14 @@ def written_to_mark(teacher):
 @teacher_required
 def review_detail(assignment_id):
     a = db.session.get(Assignment, assignment_id)
-    if not a or (a.teacher_id != current_user.id and not current_user.is_admin):
+    if not a:
         abort(404)
+    can_grade = current_user.is_admin or can_teacher_access(current_user._get_current_object(), a.record)
+    can_view = can_grade or (a.teacher_id == current_user.id)
+    if not can_view:
+        abort(403)
+    if request.method == "POST" and not can_grade:
+        abort(403)
     uid = a.record.student_user_id
     last = latest_attempt(a, uid) if uid else None
     if request.method == "POST":
@@ -932,7 +1035,7 @@ def review_detail(assignment_id):
         items = last.work_version.items
         rows = [{"item": items[ans.index] if ans.index < len(items) else None, "answer": ans} for ans in last.answers]
     return render_template("teacher/review_detail.html", a=a, last=last, rows=rows,
-                           state=homework_state(a, uid) if uid else "new")
+                           state=homework_state(a, uid) if uid else "new", can_grade=can_grade)
 
 
 # --------------------------------------------------------------------------- abilities map (content tree)

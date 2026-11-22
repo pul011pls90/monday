@@ -276,8 +276,8 @@ def teacher_ids_for(user):
         return set()
     if user.is_teacher:
         return {user.id}
-    rows = StudentRecord.query.filter_by(student_user_id=user.id).all()
-    return {r.teacher_id for r in rows}
+    from .student_links import teacher_ids_for_student
+    return teacher_ids_for_student(user.id)
 
 
 def visible_nodes(user=None, include_archived=False):
@@ -339,11 +339,13 @@ def leaf_nodes(user=None, exam=None):
 # --------------------------------------------------------------------------- mastery & progress
 
 
-def skill_stats(user_id):
+def skill_stats(user_id, since=None):
     """Per-skill stats from the last MASTERY_WINDOW answers: {skill_id: {...}}."""
-    rows = (db.session.query(AttemptAnswer.skill_id, AttemptAnswer.is_correct, AttemptAnswer.answered_at)
-            .join(Attempt).filter(Attempt.user_id == user_id, AttemptAnswer.skill_id.isnot(None))
-            .order_by(AttemptAnswer.answered_at.desc()).all())
+    q = (db.session.query(AttemptAnswer.skill_id, AttemptAnswer.is_correct, AttemptAnswer.answered_at)
+         .join(Attempt).filter(Attempt.user_id == user_id, AttemptAnswer.skill_id.isnot(None)))
+    if since is not None:
+        q = q.filter(AttemptAnswer.answered_at >= since)
+    rows = q.order_by(AttemptAnswer.answered_at.desc()).all()
     buckets = defaultdict(list)
     for skill_id, ok, _ in rows:
         if len(buckets[skill_id]) < MASTERY_WINDOW:
@@ -368,12 +370,12 @@ def skills_for_exam(exam, user=None):
     return leaf_nodes(user, exam)
 
 
-def skill_map(user_id, exam):
+def skill_map(user_id, exam, since=None):
     """The tree with a state on every node: mastered | progress | new | outside.
 
     Returns [{node, subtopics: [{node, items: [{skill, state, accuracy}]}], items: [...all leaves]}].
     """
-    stats = skill_stats(user_id)
+    stats = skill_stats(user_id, since=since)
     out = []
     for t in content_tree(_user(user_id)):
         topic = {"node": t["node"], "name": t["node"].name, "subtopics": [], "items": []}
@@ -396,10 +398,10 @@ def skill_map(user_id, exam):
     return out
 
 
-def progress_summary(user_id, exam):
+def progress_summary(user_id, exam, since=None):
     """Overall numbers for a student: mastery %, accuracy, predicted score, weak skills."""
     skills = skills_for_exam(exam, _user(user_id))
-    stats = skill_stats(user_id)
+    stats = skill_stats(user_id, since=since)
     total = len(skills) or 1
     mastered = sum(1 for s in skills if stats.get(s.id, {}).get("state") == "mastered")
     touched = [stats[s.id]["accuracy"] for s in skills if s.id in stats]
@@ -421,11 +423,11 @@ def progress_summary(user_id, exam):
     }
 
 
-def record_progress(record):
+def record_progress(record, since=None):
     """Progress % shown in the teacher's table."""
     if record.student_user_id:
         exam = record.exam or (record.student.profile.exam if record.student and record.student.profile else None)
-        return progress_summary(record.student_user_id, exam)["mastery_pct"]
+        return progress_summary(record.student_user_id, exam, since=since)["mastery_pct"]
     return record.manual_progress or 0
 
 
@@ -720,11 +722,13 @@ def recommended_mode(minutes):
 # --------------------------------------------------------------------------- journal
 
 
-def open_mistakes(user_id):
-    return (AttemptAnswer.query.join(Attempt)
-            .filter(Attempt.user_id == user_id, AttemptAnswer.is_correct.is_(False),
-                    AttemptAnswer.resolved.is_(False), Attempt.finished_at.isnot(None))
-            .order_by(AttemptAnswer.answered_at.desc()).all())
+def open_mistakes(user_id, since=None):
+    q = (AttemptAnswer.query.join(Attempt)
+         .filter(Attempt.user_id == user_id, AttemptAnswer.is_correct.is_(False),
+                 AttemptAnswer.resolved.is_(False), Attempt.finished_at.isnot(None)))
+    if since is not None:
+        q = q.filter(AttemptAnswer.answered_at >= since)
+    return q.order_by(AttemptAnswer.answered_at.desc()).all()
 
 
 def mistake_breakdown(user_id, since=None):

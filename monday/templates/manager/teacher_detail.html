@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+{% import "manager/_ui.html" as mui with context %}
+{% block title %}{{ teacher.name }} · {{ _("Ученики преподавателя") }}{% endblock %}
+{% block context %}{{ _("Преподаватель") }} #{{ teacher.id }}{% endblock %}
+{% block content %}
+  {% call mui.page_header(
+    teacher.name,
+    _("Текущие ученики преподавателя по открытым назначениям (только просмотр)."),
+    back_href=url_for('manager.students'),
+    back_label=_("Ко всем ученикам")
+  ) %}
+    {{ mui.badge(_("Активных учеников") ~ ": " ~ assignments|length, tone='accent') }}
+  {% endcall %}
+
+  {% call mui.card() %}
+    {{ mui.section_head('users', _("Текущие ученики"), count=assignments|length) }}
+    {% if assignments %}
+      {% call mui.table_wrap() %}
+        <table class="mgr-table">
+          <thead>
+            <tr>
+              <th>{{ _("Ученик") }}</th>
+              <th>{{ _("Предмет") }}</th>
+              <th>{{ _("Статус кода") }}</th>
+              <th>{{ _("Назначен с") }}</th>
+              <th class="mgr-right">{{ _("Карточка") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ta in assignments %}
+              {% set rec = ta.student_record %}
+              {% set st = rec.code_status %}
+              {% set st_tone = 'ok' if st == 'claimed' else ('accent' if st == 'pending' else ('warn' if st == 'expired' else 'bad')) %}
+              <tr>
+                <td>
+                  <a class="mgr-lead-link" href="{{ url_for('manager.student_record_detail', record_id=rec.id) }}">{{ rec.name }}</a>
+                  {% if rec.phone %}<div class="mgr-subcell num">{{ rec.phone }}</div>{% endif %}
+                </td>
+                <td>{{ ta.course.name if ta.course else (rec.course.name if rec.course else '—') }}</td>
+                <td>{{ mui.badge(rec.code_status_label, tone=st_tone, dot=true) }}</td>
+                <td class="num small muted">{{ ta.started_at|d('d MMM y, HH:mm') }}</td>
+                <td class="mgr-right">
+                  {{ mui.btn(_("Открыть"), href=url_for('manager.student_record_detail', record_id=rec.id), variant='secondary', size='sm') }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endcall %}
+    {% else %}
+      {{ mui.empty(_("Текущих учеников нет"), _("У этого преподавателя пока нет открытых назначений."), icon_name='users') }}
+    {% endif %}
+  {% endcall %}
+{% endblock %}

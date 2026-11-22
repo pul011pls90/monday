@@ -424,14 +424,29 @@ def new_invite_code():
     raise RuntimeError("Failed to generate a unique invite code after 16 attempts.")
 
 
+CODE_STATUS_LABELS = {
+    "pending": "Ожидает",
+    "claimed": "Привязан",
+    "expired": "Истёк",
+    "revoked": "Отозван",
+}
+
+
 class StudentRecord(db.Model):
     """A row in a teacher's student table. Linked to a real account by invite code."""
 
     id = db.Column(db.Integer, primary_key=True)
-    teacher_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    teacher_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True, index=True)
     student_user_id = db.Column(db.Integer, db.ForeignKey("user.id"), index=True)
     previous_student_user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
+    created_by_user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
+    source_lead_id = db.Column(db.Integer, db.ForeignKey("leads.id", ondelete="SET NULL"), nullable=True, index=True)
+    course_id = db.Column(db.Integer, db.ForeignKey("academic_courses.id", ondelete="SET NULL"), nullable=True, index=True)
+    claimed_at = db.Column(db.DateTime, nullable=True)
+    claimed_by_user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
     name = db.Column(db.String(120), nullable=False)
+    phone = db.Column(db.String(40), nullable=True, index=True)
+    email = db.Column(db.String(255), nullable=True, index=True)
     grade = db.Column(db.String(16))
     lesson_time = db.Column(db.String(5))  # "16:00"
     lesson_days = db.Column(JSONText, default=list)  # [0..6], 0 = Monday
@@ -449,6 +464,16 @@ class StudentRecord(db.Model):
 
     teacher = db.relationship("User", foreign_keys=[teacher_id])
     student = db.relationship("User", foreign_keys=[student_user_id])
+    created_by = db.relationship("User", foreign_keys=[created_by_user_id])
+    claimed_by = db.relationship("User", foreign_keys=[claimed_by_user_id])
+    source_lead = db.relationship("Lead", foreign_keys=[source_lead_id])
+    course = db.relationship("AcademicCourse", foreign_keys=[course_id])
+    teacher_assignments = db.relationship(
+        "TeacherAssignment",
+        back_populates="student_record",
+        order_by="TeacherAssignment.started_at.desc(), TeacherAssignment.id.desc()",
+        cascade="all, delete-orphan",
+    )
 
     @property
     def invite_is_expired(self):
@@ -456,17 +481,83 @@ class StudentRecord(db.Model):
 
     @property
     def invite_is_active(self):
-        return bool(self.invite_code and not self.student_user_id and not self.invite_revoked_at and not self.invite_is_expired)
+        return bool(
+            self.invite_code
+            and not self.student_user_id
+            and self.claimed_at is None
+            and not self.invite_revoked_at
+            and not self.invite_is_expired
+        )
+
+    @property
+    def code_status(self):
+        """Derive invite code lifecycle status from existing StudentRecord fields."""
+        if self.student_user_id is not None or self.claimed_at is not None:
+            return "claimed"
+        if self.invite_revoked_at is not None or not self.invite_code:
+            return "revoked"
+        if self.invite_is_expired:
+            return "expired"
+        return "pending"
+
+    @property
+    def code_status_label(self):
+        """Localized Russian label for the derived invite code status."""
+        return CODE_STATUS_LABELS.get(self.code_status, "Ожидает")
 
     def rotate_invite_code(self, ttl_days=None):
         self.invite_code = new_invite_code()
         self.invite_expires_at = default_invite_expiry(ttl_days)
         self.invite_revoked_at = None
+        if not self.student_user_id:
+            self.claimed_at = None
+            self.claimed_by_user_id = None
         return self.invite_code
 
     def revoke_invite_code(self):
         self.invite_code = None
         self.invite_revoked_at = utcnow()
+
+
+class TeacherAssignment(db.Model):
+    """Historical and active teacher assignments for a StudentRecord."""
+
+    __tablename__ = "teacher_assignments"
+    __table_args__ = (
+        db.Index("ix_teacher_assignments_teacher_ended", "teacher_user_id", "ended_at"),
+        db.Index("ix_teacher_assignments_student_record_id", "student_record_id"),
+        db.Index(
+            "uq_teacher_assignments_open_record_course",
+            "student_record_id",
+            "course_id",
+            unique=True,
+            sqlite_where=db.text("ended_at IS NULL AND course_id IS NOT NULL"),
+            postgresql_where=db.text("ended_at IS NULL AND course_id IS NOT NULL"),
+        ),
+        db.Index(
+            "uq_teacher_assignments_open_record_nocourse",
+            "student_record_id",
+            unique=True,
+            sqlite_where=db.text("ended_at IS NULL AND course_id IS NULL"),
+            postgresql_where=db.text("ended_at IS NULL AND course_id IS NULL"),
+        ),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    student_record_id = db.Column(db.Integer, db.ForeignKey("student_record.id", ondelete="CASCADE"), nullable=False)
+    teacher_user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="RESTRICT"), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey("academic_courses.id", ondelete="SET NULL"), nullable=True)
+    started_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+    ended_at = db.Column(db.DateTime, nullable=True)
+    assigned_by_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    ended_by_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True)
+    change_reason = db.Column(db.Text, nullable=True)
+
+    student_record = db.relationship("StudentRecord", back_populates="teacher_assignments")
+    teacher = db.relationship("User", foreign_keys=[teacher_user_id])
+    course = db.relationship("AcademicCourse", foreign_keys=[course_id])
+    assigned_by = db.relationship("User", foreign_keys=[assigned_by_id])
+    ended_by = db.relationship("User", foreign_keys=[ended_by_id])
 
     @property
     def goal_label(self):

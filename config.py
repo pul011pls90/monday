@@ -113,6 +113,7 @@ class Config:
     ADMIN_API_TOKEN = os.environ.get("ADMIN_API_TOKEN", "")
     RESUME_MAX_DAYS = int(os.environ.get("RESUME_MAX_DAYS", "30") or "30")
     INVITE_CODE_TTL_DAYS = int(os.environ.get("INVITE_CODE_TTL_DAYS", "14") or "14")
+    NEW_TEACHER_SEES_EARLIER_PROGRESS = False
     APP_VERSION = (
         os.environ.get("RENDER_GIT_COMMIT")
         or os.environ.get("APP_VERSION")

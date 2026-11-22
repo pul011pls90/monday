@@ -509,11 +509,11 @@ def test_teacher_students_crud():
     with APP.app_context():
         from monday.extensions import db
         assert db.session.get(StudentRecord, rid) is None
-    # another teacher cannot see Aibek's students
+    # another teacher gets 403 on Aibek's students
     other = login(client(), "nurai@monday.kg", "teacher123")
     with APP.app_context():
         rid2 = StudentRecord.query.first().id
-    assert other.get(f"/teacher/students/{rid2}").status_code == 404
+    assert other.get(f"/teacher/students/{rid2}").status_code == 403
 
 
 def test_teacher_question_and_work_versioning():
@@ -1487,7 +1487,7 @@ def test_written_answer_photo_self_assessment_and_teacher_mark():
         a = AttemptAnswer.query.filter_by(attempt_id=att_id, index=12).first()
         assert (a.points, a.points_by) == (2, "teacher") and att.score == 3
     other = login(client(), "nurai@monday.kg", "teacher123")
-    assert other.get(f"/teacher/attempts/{att_id}/written").status_code == 404
+    assert other.get(f"/teacher/attempts/{att_id}/written").status_code == 403
     t.post(f"/teacher/attempts/{att_id}/written", data={"idx": "13", "points": "0"})
     ok(t, "/teacher/review?show=written", contains="Все решения оценены")
     ok(s, result, contains="ЕГЭ · ")

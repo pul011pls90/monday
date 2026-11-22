@@ -1,0 +1,101 @@
+{% extends "layout.html" %}
+{% import "manager/_ui.html" as mui with context %}
+{% block title %}{{ _("CRM · Ученики") }}{% endblock %}
+{% block context %}{{ _("Ученики и преподаватели") }}{% endblock %}
+{% block content %}
+  {% call mui.page_header(
+    _("Ученики"),
+    _("Записи учеников, закреплённые преподаватели и статусы одноразовых кодов.")
+  ) %}
+    {% if current_user.has_perm('crm.leads.convert') %}
+      {{ mui.btn(_("Новый ученик"), href=url_for('manager.student_new'), variant='primary', size='sm', icon_name='plus') }}
+    {% endif %}
+    {{ mui.btn(_("Здоровье учеников"), href=url_for('manager.pipeline', mode='students'), variant='secondary', size='sm', icon_name='kanban') }}
+  {% endcall %}
+
+  {{ mui.filter_tabs([
+    {'label': _("Все"), 'href': url_for('manager.students', teacher_id=filters.teacher_id or '', q=filters.q, status='all'), 'active': filters.status == 'all', 'count': total_before_status},
+    {'label': _("Ожидает"), 'href': url_for('manager.students', teacher_id=filters.teacher_id or '', q=filters.q, status='pending'), 'active': filters.status == 'pending', 'count': status_counts.get('pending', 0)},
+    {'label': _("Привязан"), 'href': url_for('manager.students', teacher_id=filters.teacher_id or '', q=filters.q, status='claimed'), 'active': filters.status == 'claimed', 'count': status_counts.get('claimed', 0)},
+    {'label': _("Истёк"), 'href': url_for('manager.students', teacher_id=filters.teacher_id or '', q=filters.q, status='expired'), 'active': filters.status == 'expired', 'count': status_counts.get('expired', 0)},
+    {'label': _("Отозван"), 'href': url_for('manager.students', teacher_id=filters.teacher_id or '', q=filters.q, status='revoked'), 'active': filters.status == 'revoked', 'count': status_counts.get('revoked', 0)},
+  ], aria_label=_("Фильтр по статусу кода")) }}
+
+  <form method="get" action="{{ url_for('manager.students') }}" class="mgr-filter-row" role="search">
+    <input type="hidden" name="status" value="{{ filters.status }}">
+    <label class="search search--sm mgr-filter-row__search" style="flex:1 1 240px">
+      {{ ui.icon('search', 16) }}<span class="sr-only">{{ _("Поиск") }}</span>
+      <input type="search" name="q" value="{{ filters.q }}" placeholder="{{ _('Имя, телефон, email, предмет...') }}">
+    </label>
+    <select class="select input--sm" name="teacher_id" aria-label="{{ _('Преподаватель') }}" onchange="this.form.submit()">
+      <option value="">{{ _("Все преподаватели") }}</option>
+      {% for t in teachers %}<option value="{{ t.id }}" {{ 'selected' if filters.teacher_id == t.id }}>{{ t.name }}</option>{% endfor %}
+    </select>
+    <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Найти") }}</button>
+    {% if filters.teacher_id or filters.q or filters.status != 'all' %}
+      <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.students') }}">{{ _("Сброс") }}</a>
+    {% endif %}
+  </form>
+
+  {% call mui.card() %}
+    {% if rows %}
+      {% call mui.table_wrap() %}
+        <table class="mgr-table">
+          <thead>
+            <tr>
+              <th>{{ _("Ученик") }}</th>
+              <th>{{ _("Предмет") }}</th>
+              <th>{{ _("Преподаватель") }}</th>
+              <th>{{ _("Статус кода") }}</th>
+              <th>{{ _("Срок / Привязан") }}</th>
+              <th class="mgr-right">{{ _("Действия") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in rows %}
+              {% set rec = item.record %}
+              {% set st = item.status %}
+              {% set st_tone = 'ok' if st == 'claimed' else ('accent' if st == 'pending' else ('warn' if st == 'expired' else 'bad')) %}
+              <tr>
+                <td>
+                  <a class="mgr-lead-link" href="{{ url_for('manager.student_record_detail', record_id=rec.id) }}">{{ rec.name }}</a>
+                  <div class="mgr-subcell">
+                    {% if rec.phone %}<span class="num">{{ rec.phone }}</span>{% endif %}
+                    {% if rec.phone and rec.email %} · {% endif %}
+                    {% if rec.email %}<span>{{ rec.email }}</span>{% endif %}
+                    {% if rec.student %} · <a href="{{ url_for('manager.student_detail', student_id=rec.student.id) }}">{{ _("Профиль 360") }}</a>{% endif %}
+                  </div>
+                </td>
+                <td>{{ rec.course.name if rec.course else (rec.exam or '—') }}</td>
+                <td>
+                  {% if item.current_teachers %}
+                    {% for t in item.current_teachers %}
+                      <a href="{{ url_for('manager.teacher_detail', teacher_id=t.id) }}" style="font-weight:600">{{ t.name }}</a>{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                  {% else %}
+                    <span class="muted">{{ _("Не назначен") }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ mui.badge(item.status_label, tone=st_tone, dot=true) }}</td>
+                <td class="num small muted">
+                  {% if st == 'claimed' and (rec.claimed_at or rec.linked_at) %}
+                    {{ (rec.claimed_at or rec.linked_at)|d('d MMM y, HH:mm') }}
+                  {% elif rec.invite_expires_at %}
+                    {{ _("до") }} {{ rec.invite_expires_at|d('d MMM y') }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
+                <td class="mgr-right">
+                  {{ mui.btn(_("Карточка"), href=url_for('manager.student_record_detail', record_id=rec.id), variant='secondary', size='sm') }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endcall %}
+    {% else %}
+      {{ mui.empty(_("Записей учеников нет"), _("Добавьте нового ученика или измените фильтры."), icon_name='users') }}
+    {% endif %}
+  {% endcall %}
+{% endblock %}

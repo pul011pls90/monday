@@ -4,7 +4,7 @@ import sys
 from datetime import date, datetime
 
 import click
-from flask import Flask, abort, g, redirect, request, send_from_directory, session, url_for
+from flask import Flask, abort, g, has_request_context, redirect, request, send_from_directory, session, url_for
 from flask_babel import format_date, format_datetime
 from flask_babel import gettext as _
 from flask_login import current_user, login_required
@@ -17,8 +17,10 @@ MIGRATIONS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "migra
 
 
 def select_locale():
+    if not has_request_context():
+        return Config.BABEL_DEFAULT_LOCALE
     langs = Config.LANGUAGES
-    if current_user.is_authenticated and current_user.language in langs:
+    if current_user and current_user.is_authenticated and current_user.language in langs:
         return current_user.language
     cookie = request.cookies.get("lang")
     if cookie in langs:
@@ -178,8 +180,9 @@ def create_app(config_object=Config, *, seed_if_empty=True):
                 abort(404)
             if current_user.is_admin or att.user_id == current_user.id:
                 return
-            if current_user.is_teacher and StudentRecord.query.filter_by(
-                teacher_id=current_user.id, student_user_id=att.user_id
+            from .student_links import teacher_open_records_query
+            if current_user.is_teacher and teacher_open_records_query(current_user.id).filter(
+                StudentRecord.student_user_id == att.user_id
             ).first():
                 return
             abort(403)
@@ -196,12 +199,13 @@ def create_app(config_object=Config, *, seed_if_empty=True):
                 abort(404)
             if current_user.is_admin or owner.id == current_user.id:
                 return
-            if current_user.is_teacher and StudentRecord.query.filter_by(
-                teacher_id=current_user.id, student_user_id=owner.id
+            from .student_links import teacher_open_records_query
+            if current_user.is_teacher and teacher_open_records_query(current_user.id).filter(
+                StudentRecord.student_user_id == owner.id
             ).first():
                 return
-            if owner.is_teacher and StudentRecord.query.filter_by(
-                teacher_id=owner.id, student_user_id=current_user.id
+            if owner.is_teacher and teacher_open_records_query(owner.id).filter(
+                StudentRecord.student_user_id == current_user.id
             ).first():
                 return
             abort(403)

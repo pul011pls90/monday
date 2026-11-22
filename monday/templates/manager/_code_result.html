@@ -1,0 +1,71 @@
+{% if code_result %}
+<div class="mgr-card" style="border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:var(--accent-soft);margin-bottom:14px">
+  <div class="mgr-section-head">
+    <span class="mgr-section-head__ic" aria-hidden="true">{{ ui.icon('link', 20) }}</span>
+    <h2 class="mgr-section-head__title">{{ _("Код подключения для ученика") }}</h2>
+    {{ mui.badge(code_result.record.code_status_label, tone='ok' if code_result.record.code_status == 'claimed' else ('accent' if code_result.record.code_status == 'pending' else 'warn'), dot=true) }}
+  </div>
+  {% if code_result.code and code_result.record.code_status in ('pending', 'expired') %}
+    <p class="small text-2" style="margin-bottom:10px">{{ _("Код показан один раз для передачи ученику. Сохраните или скопируйте сообщение ниже.") }}</p>
+    <div class="stack-sm">
+      <div class="mgr-row-line">
+        <div>
+          <div class="eyebrow">{{ _("Одноразовый код") }}</div>
+          <code class="num" id="issued-code-val" style="font-size:18px;font-weight:800;letter-spacing:.04em">{{ code_result.code }}</code>
+        </div>
+        <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="button" data-copy-target="#issued-code-val">{{ ui.icon('copy', 14) }}<span>{{ _("Копировать код") }}</span></button>
+      </div>
+      <div class="mgr-row-line">
+        <div style="min-width:0;flex:1">
+          <div class="eyebrow">{{ _("Ссылка для входа") }}</div>
+          <code id="issued-url-val" style="font-size:13px;word-break:break-all">{{ code_result.join_url }}</code>
+        </div>
+        <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="button" data-copy-target="#issued-url-val">{{ ui.icon('copy', 14) }}<span>{{ _("Копировать ссылку") }}</span></button>
+      </div>
+      <div class="small muted">
+        {{ _("Преподаватель") }}: <b>{{ code_result.teacher_name }}</b>{% if code_result.course_name %} · {{ code_result.course_name }}{% endif %} · {{ _("Действует до") }}: <span class="num">{{ code_result.expires_at|d('d MMM y, HH:mm') if code_result.expires_at else '—' }}</span>
+      </div>
+      <div class="stack-sm" style="margin-top:4px">
+        <label class="eyebrow" for="wa-template-text">{{ _("Шаблон сообщения для WhatsApp") }}</label>
+        <textarea class="input" id="wa-template-text" rows="5" readonly style="font-size:13px;line-height:1.45">{{ code_result.whatsapp_text }}</textarea>
+        <div class="row" style="gap:8px">
+          <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="button" data-copy-target="#wa-template-text">{{ ui.icon('copy', 14) }}<span>{{ _("Скопировать для WhatsApp") }}</span></button>
+          <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.student_record_detail', record_id=code_result.record.id) }}">{{ _("Открыть карточку ученика") }}</a>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <p class="small text-2">
+      {{ _("Запись") }} #{{ code_result.record.id }} ({{ code_result.record.name }}) · {{ _("Статус") }}: <b>{{ code_result.record.code_status_label }}</b>.
+      <a href="{{ url_for('manager.student_record_detail', record_id=code_result.record.id) }}">{{ _("Открыть карточку") }}</a>
+    </p>
+  {% endif %}
+</div>
+<script>
+document.querySelectorAll('[data-copy-target]').forEach(function (btn) {
+  if (btn.dataset.boundCopy) return;
+  btn.dataset.boundCopy = '1';
+  btn.addEventListener('click', function () {
+    var el = document.querySelector(btn.getAttribute('data-copy-target'));
+    if (!el) return;
+    var val = el.value !== undefined ? el.value : el.textContent.trim();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(val);
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = val;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+    var orig = btn.querySelector('span');
+    if (orig) {
+      var prev = orig.textContent;
+      orig.textContent = 'Скопировано';
+      setTimeout(function () { orig.textContent = prev; }, 1600);
+    }
+  });
+});
+</script>
+{% endif %}

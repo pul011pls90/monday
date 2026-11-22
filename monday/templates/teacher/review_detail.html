@@ -40,6 +40,7 @@
       {% endfor %}
     </div>
   </section>
+  {% if can_grade %}
   <form method="post" class="card" style="position:sticky;top:90px">
     {{ ui.csrf() }}
     <h2 style="font-size:20px">{{ _("Комментарий") }}</h2>
@@ -53,6 +54,13 @@
       <button class="btn btn--primary btn--block" type="submit" name="action" value="check">{{ ui.icon('check', 18) }}{{ _("Отметить как проверенное") }}</button>
     {% endif %}
   </form>
+  {% else %}
+  <section class="card" style="position:sticky;top:90px">
+    <h2 style="font-size:20px">{{ _("Только просмотр") }}</h2>
+    <p class="small text-2">{{ _("Ученик переведён к другому преподавателю. Вы видите созданное вами задание в архивном режиме; проверка доступна текущему преподавателю.") }}</p>
+    {% if a.teacher_comment %}<p class="small"><b>{{ _("Комментарий") }}:</b> {{ a.teacher_comment }}</p>{% endif %}
+  </section>
+  {% endif %}
 </div>
 {% endif %}
 {% endblock %}

@@ -85,16 +85,20 @@
   {% call row('home', _('Школа'), '') %}
     {% call edit('school', 'profile', p.school or _('Не указана')) %}<input class="input" name="value" value="{{ p.school or '' }}" aria-label="{{ _('Школа') }}">{% endcall %}
   {% endcall %}
-  {% call row('users', _('Мои учителя'), _('Учитель видит твои результаты и выдаёт задания. Подключиться можно по его коду.')) %}
-    {% for r in teachers %}
-      <div class="set-line"><span class="author">{{ ui.avatar(r.teacher, 'avatar--sm') }}{{ r.teacher.name }}</span>
-        <span class="small muted">{% if r.lesson_time %}{{ _("урок в") }} {{ r.lesson_time }}{% endif %}{% if r.goal_label %} · {{ r.goal_label }}{% endif %}</span></div>
-    {% endfor %}
-    <details class="set-edit"{% if not teachers %} open{% endif %}>
-      <summary><span class="set-edit__value">{{ _("Пока ни одного учителя") if not teachers else _("Ещё один учитель") }}</span><span class="btn btn--secondary btn--sm">{{ _("Ввести код") }}</span></summary>
+  {% call row('users', _('Мои учителя'), _('Учитель видит твои результаты и выдаёт задания. Подключиться можно по коду от менеджера или учителя.')) %}
+    {% if current_teachers %}
+      {% for ct in current_teachers %}
+        <div class="set-line"><span class="author">{{ ui.avatar(ct.teacher, 'avatar--sm') }}{{ _("Мой преподаватель") }}: <b>{{ ct.teacher.name }}</b></span>
+          <span class="small muted">{% if ct.course %}{{ ct.course.name }}{% endif %}{% if ct.record.lesson_time %}{% if ct.course %} · {% endif %}{{ _("урок в") }} {{ ct.record.lesson_time }}{% endif %}{% if ct.record.goal_label %} · {{ ct.record.goal_label }}{% endif %}</span></div>
+      {% endfor %}
+    {% else %}
+      <p class="small muted">{{ _("Преподаватель пока не назначен — введи код подключения ниже.") }}</p>
+    {% endif %}
+    <details class="set-edit"{% if not current_teachers %} open{% endif %}>
+      <summary><span class="set-edit__value">{{ _("Пока ни одного учителя") if not current_teachers else _("Подключиться по коду") }}</span><span class="btn btn--secondary btn--sm">{{ _("Ввести код") }}</span></summary>
       <form method="post" class="set-edit__form">
         {{ ui.csrf() }}<input type="hidden" name="action" value="join">
-        <input class="input input--mono" name="invite_code" placeholder="MND-XXXX" autocapitalize="characters" required aria-label="{{ _('Код от учителя') }}">
+        <input class="input input--mono" name="invite_code" placeholder="MND-XXXX" autocapitalize="characters" required aria-label="{{ _('Код подключения') }}">
         <button class="btn btn--primary" type="submit">{{ _("Подключиться") }}</button>
       </form>
     </details>

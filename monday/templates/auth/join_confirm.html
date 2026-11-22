@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Подключение к преподавателю") }}{% endblock %}
+{% block content %}
+<section class="card" style="max-width:520px;margin:24px auto">
+  <div class="hc__head">
+    <span class="hc__ic">{{ ui.icon('link', 22) }}</span>
+    <h1>{{ _("Подтверждение подключения") }}</h1>
+  </div>
+
+  {% if can_claim %}
+    <p style="font-size:18px;font-weight:700;margin:10px 0 6px">{{ _("Вы — %(name)s?", name=masked_name) }}</p>
+    <p class="small text-2" style="margin-bottom:16px">
+      {{ _("Проверьте имя и подтвердите привязку этого аккаунта (%(email)s) к вашей записи ученика в Monday Academy.", email=current_user.email) }}
+    </p>
+    <div class="row" style="gap:10px;flex-wrap:wrap">
+      <form method="post" action="{{ url_for('auth.join', code=code) }}">
+        {{ ui.csrf() }}
+        <input type="hidden" name="action" value="confirm">
+        <button class="btn btn--primary" type="submit">{{ ui.icon('check', 16) }}<span>{{ _("Да, это я — подключиться") }}</span></button>
+      </form>
+      <form method="post" action="{{ url_for('auth.join', code=code) }}">
+        {{ ui.csrf() }}
+        <input type="hidden" name="action" value="cancel">
+        <button class="btn btn--secondary" type="submit">{{ _("Нет, отмена") }}</button>
+      </form>
+    </div>
+  {% else %}
+    <div class="flash flash--error" style="margin:12px 0">{{ error_msg }}</div>
+    <a class="btn btn--secondary" href="{{ url_for('student.home') }}">{{ _("На главную") }}</a>
+  {% endif %}
+</section>
+{% endblock %}

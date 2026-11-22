@@ -40,12 +40,25 @@ from .models import (
     StudentProfile,
     StudentRecord,
     StudyGroup,
+    TeacherAssignment,
     TeacherPayRate,
     User,
     local_midnight_utc,
     utcnow,
 )
 from .services import temporary_password
+from .student_links import (
+    StudentLinkConflictError,
+    StudentLinkError,
+    StudentLinkNotFoundError,
+    StudentLinkPermissionError,
+    StudentLinkValidationError,
+    change_teacher,
+    code_last4,
+    create_student_with_code,
+    regenerate_code,
+    revoke_code,
+)
 
 bp = Blueprint("manager", __name__, url_prefix="/manager")
 
@@ -545,7 +558,51 @@ def _build_unified_timeline(lead: Lead | None = None, student_id: int | None = N
     return events
 
 
-def _render_lead_detail(lead: Lead, *, one_time_notice: str | None = None):
+def _build_code_result_ctx(record: StudentRecord, plain_code: str | None) -> dict:
+    """Build view context for displaying a generated connection code and WhatsApp message once."""
+    code = plain_code or record.invite_code
+    join_url = url_for("auth.join", code=code, _external=True) if code else ""
+    teacher_name = record.teacher.name if record.teacher else _("Преподаватель")
+    course_name = record.course.name if record.course else ""
+    exp_str = record.invite_expires_at.strftime("%d.%m.%Y %H:%M") if record.invite_expires_at else "—"
+    course_part = f" ({course_name})" if course_name else ""
+    if code:
+        wa_text = (
+            f"Здравствуйте, {record.name}!\n"
+            f"Ваш доступ в Monday Academy готов{course_part}.\n"
+            f"Преподаватель: {teacher_name}\n"
+            f"Ссылка для подключения: {join_url}\n"
+            f"Код подключения: {code}\n"
+            f"Код действителен до: {exp_str} UTC"
+        )
+    else:
+        wa_text = ""
+    return {
+        "record": record,
+        "code": code,
+        "join_url": join_url,
+        "expires_at": record.invite_expires_at,
+        "teacher_name": teacher_name,
+        "course_name": course_name,
+        "whatsapp_text": wa_text,
+    }
+
+
+def _active_teachers_and_courses():
+    teachers = (
+        User.query.filter_by(role="teacher", is_approved=True, is_blocked=False)
+        .order_by(User.name.asc())
+        .all()
+    )
+    courses = (
+        AcademicCourse.query.filter_by(is_active=True)
+        .order_by(AcademicCourse.name.asc())
+        .all()
+    )
+    return teachers, courses
+
+
+def _render_lead_detail(lead: Lead, *, one_time_notice: str | None = None, code_result: dict | None = None):
     now = utcnow()
     tab = (request.args.get("tab") or "all").strip().lower()
     if tab not in ("all", "comms", "system", "academic"):
@@ -570,10 +627,16 @@ def _render_lead_detail(lead: Lead, *, one_time_notice: str | None = None):
         .limit(100)
         .all()
     )
-    teachers = (
-        User.query.filter_by(role="teacher", is_approved=True, is_blocked=False)
-        .order_by(User.name.asc())
-        .all()
+    teachers, courses = _active_teachers_and_courses()
+    converted_record = (
+        StudentRecord.query.options(
+            joinedload(StudentRecord.teacher),
+            joinedload(StudentRecord.course),
+            joinedload(StudentRecord.student),
+        )
+        .filter_by(source_lead_id=lead.id)
+        .order_by(StudentRecord.id.asc())
+        .first()
     )
     duplicate_candidates = []
     if current_user.has_perm("crm.leads.reassign") and lead.status not in ("won", "lost"):
@@ -607,8 +670,11 @@ def _render_lead_detail(lead: Lead, *, one_time_notice: str | None = None):
         managers=_crm_managers(),
         existing_students=existing_students,
         teachers=teachers,
+        courses=courses,
+        converted_record=converted_record,
         duplicate_candidates=duplicate_candidates,
         one_time_notice=one_time_notice,
+        code_result=code_result,
     )
 
 
@@ -622,18 +688,97 @@ def lead_detail(lead_id: int):
 @bp.route("/leads/<int:lead_id>/convert", methods=["POST"])
 @permission_required("crm.leads.convert")
 def lead_convert(lead_id: int):
-    """Idempotent Lead -> Student conversion: link existing student by ID or create a new student account."""
+    """Idempotent Lead -> Student conversion: code-based record, link existing student, or direct account creation."""
     lead = _get_lead_or_403(lead_id)
+
+    # Idempotency 1: lead already linked to a Student User (via create, link, or claimed code)
     if lead.converted_student_id is not None:
         flash(_("Лид уже конвертирован в ученика #%(id)s.", id=lead.converted_student_id), "info")
         return redirect(url_for("manager.lead_detail", lead_id=lead.id))
 
-    mode = (request.form.get("convert_mode") or "create").strip()
+    # Idempotency 2: lead already produced an unclaimed StudentRecord via manager code flow
+    existing_code_rec = (
+        StudentRecord.query.options(
+            joinedload(StudentRecord.teacher),
+            joinedload(StudentRecord.course),
+        )
+        .filter_by(source_lead_id=lead.id)
+        .order_by(StudentRecord.id.asc())
+        .first()
+    )
+    if existing_code_rec is not None:
+        flash(_("Лид уже конвертирован — показана существующая запись ученика и код."), "info")
+        resp = make_response(
+            _render_lead_detail(
+                lead,
+                code_result=_build_code_result_ctx(existing_code_rec, existing_code_rec.invite_code),
+            )
+        )
+        resp.headers["Cache-Control"] = "no-store, max-age=0"
+        return resp
+
+    mode = (request.form.get("convert_mode") or "code").strip()
     teacher_id = request.form.get("teacher_id", type=int)
+    course_id = request.form.get("course_id", type=int)
     reason = (request.form.get("reason") or "").strip()
     now = utcnow()
     old_status = lead.status
     one_time_notice = None
+
+    if mode == "code":
+        name = (request.form.get("name") or lead.full_name or "").strip()
+        phone = (request.form.get("phone") or lead.phone or "").strip()
+        email_optional = (request.form.get("email") or request.form.get("student_email") or "").strip() or None
+        try:
+            rec, plain_code = create_student_with_code(
+                current_user._get_current_object(),
+                name=name,
+                phone=phone or None,
+                email_optional=email_optional,
+                teacher_id=teacher_id,
+                course_id=course_id,
+                lead_id=lead.id,
+                commit=False,
+            )
+        except StudentLinkPermissionError:
+            abort(403)
+        except StudentLinkError as exc:
+            flash(str(exc), "error")
+            return redirect(url_for("manager.lead_detail", lead_id=lead.id) + "#convert-lead")
+
+        lead.status = "won"
+        if lead.first_contact_at is None:
+            lead.first_contact_at = now
+        lead.last_contact_at = now
+        db.session.add(
+            LeadActivity(
+                lead_id=lead.id,
+                actor_id=current_user.id,
+                type="status_change",
+                body=f"Конвертирован в запись ученика #{rec.id} ({rec.name})",
+            )
+        )
+        write_audit_log(
+            actor_id=current_user.id,
+            action="lead_convert",
+            entity_type="lead",
+            entity_id=lead.id,
+            old_value={"status": old_status, "converted_student_id": None},
+            new_value={
+                "status": "won",
+                "converted_student_id": None,
+                "student_record_id": rec.id,
+                "code_last4": code_last4(plain_code),
+            },
+            reason=reason,
+        )
+        db.session.commit()
+        flash(_("Запись ученика создана и лид переведён в «Оплатил / Ученик»."), "success")
+        resp = make_response(
+            _render_lead_detail(lead, code_result=_build_code_result_ctx(rec, plain_code))
+        )
+        resp.headers["Cache-Control"] = "no-store, max-age=0"
+        return resp
 
     if mode == "link":
         existing_id = request.form.get("existing_student_id", type=int)
@@ -680,16 +825,29 @@ def lead_convert(lead_id: int):
         if teacher and teacher.role == "teacher" and teacher.is_approved and not teacher.is_blocked:
             rec = StudentRecord.query.filter_by(teacher_id=teacher.id, student_user_id=student.id).first()
             if rec is None:
+                from .models import TeacherAssignment
                 rec = StudentRecord(
                     teacher_id=teacher.id,
                     student_user_id=student.id,
                     previous_student_user_id=student.id,
+                    created_by_user_id=current_user.id,
+                    source_lead_id=lead.id,
+                    claimed_at=now,
+                    claimed_by_user_id=student.id,
                     name=student.name,
                     exam=student.profile.exam if student.profile else None,
                     linked_at=now,
                 )
                 db.session.add(rec)
                 db.session.flush()
+                db.session.add(
+                    TeacherAssignment(
+                        student_record_id=rec.id,
+                        teacher_user_id=teacher.id,
+                        started_at=now,
+                        assigned_by_id=current_user.id,
+                    )
+                )
             linked_record_id = rec.id
 
     lead.converted_student_id = student.id
@@ -1236,6 +1394,357 @@ def _authorize_student_crm(student_id: int) -> tuple[User, Lead | None]:
     return student, lead
 
 
+def _record_detail_ctx(record: StudentRecord, *, code_result: dict | None = None) -> dict:
+    teachers, courses = _active_teachers_and_courses()
+    history = (
+        TeacherAssignment.query.options(
+            joinedload(TeacherAssignment.teacher),
+            joinedload(TeacherAssignment.course),
+            joinedload(TeacherAssignment.assigned_by),
+            joinedload(TeacherAssignment.ended_by),
+        )
+        .filter_by(student_record_id=record.id)
+        .order_by(TeacherAssignment.started_at.desc(), TeacherAssignment.id.desc())
+        .all()
+    )
+    open_assignments = [ta for ta in history if ta.ended_at is None]
+    return {
+        **_common_ctx(),
+        "record": record,
+        "history": history,
+        "open_assignments": open_assignments,
+        "teachers": teachers,
+        "courses": courses,
+        "code_result": code_result,
+    }
+
+
+@bp.route("/students")
+@manager_required
+def students():
+    """Manager students list with teacher assignment, derived code status, and teacher/status filters."""
+    teacher_id = request.args.get("teacher_id", type=int)
+    status_filter = (request.args.get("status") or "").strip().lower()
+    q = (request.args.get("q") or "").strip()
+    q_low = q.casefold()
+
+    all_records = (
+        StudentRecord.query.options(
+            joinedload(StudentRecord.teacher),
+            joinedload(StudentRecord.student),
+            joinedload(StudentRecord.course),
+            joinedload(StudentRecord.source_lead),
+            joinedload(StudentRecord.teacher_assignments).joinedload(TeacherAssignment.teacher),
+        )
+        .order_by(StudentRecord.created_at.desc(), StudentRecord.id.desc())
+        .all()
+    )
+
+    rows = []
+    status_counts = Counter()
+    for rec in all_records:
+        st = rec.code_status
+        open_tas = [ta for ta in rec.teacher_assignments if ta.ended_at is None]
+        current_teachers = [ta.teacher for ta in open_tas if ta.teacher]
+        if not current_teachers and rec.teacher:
+            current_teachers = [rec.teacher]
+
+        if teacher_id and not any(t.id == teacher_id for t in current_teachers):
+            continue
+        if q_low:
+            hay = " ".join(
+                filter(
+                    None,
+                    [
+                        rec.name,
+                        rec.phone,
+                        rec.email,
+                        rec.course.name if rec.course else None,
+                        " ".join(t.name for t in current_teachers),
+                    ],
+                )
+            ).casefold()
+            if q_low not in hay:
+                continue
+
+        status_counts[st] += 1
+        if status_filter and status_filter != "all" and st != status_filter:
+            continue
+        rows.append(
+            {
+                "record": rec,
+                "open_assignments": open_tas,
+                "current_teachers": current_teachers,
+                "status": st,
+                "status_label": rec.code_status_label,
+            }
+        )
+
+    teachers, _courses = _active_teachers_and_courses()
+    return render_template(
+        "manager/students.html",
+        **_common_ctx(),
+        rows=rows,
+        teachers=teachers,
+        status_counts=status_counts,
+        total_before_status=sum(status_counts.values()),
+        filters={
+            "teacher_id": teacher_id,
+            "status": status_filter or "all",
+            "q": q,
+        },
+    )
+
+
+@bp.route("/students/new", methods=["GET", "POST"])
+@permission_required("crm.leads.convert")
+def student_new():
+    """Manager 'Новый ученик' form creating StudentRecord + TeacherAssignment + one-time connection code."""
+    teachers, courses = _active_teachers_and_courses()
+    lead_id = request.values.get("lead_id", type=int)
+    source_lead = _get_lead_or_403(lead_id) if lead_id else None
+
+    if source_lead is not None:
+        existing_rec = (
+            StudentRecord.query.options(joinedload(StudentRecord.teacher), joinedload(StudentRecord.course))
+            .filter_by(source_lead_id=source_lead.id)
+            .order_by(StudentRecord.id.asc())
+            .first()
+        )
+        if existing_rec is not None:
+            flash(_("По этому лиду запись ученика уже создана."), "info")
+            resp = make_response(
+                render_template(
+                    "manager/student_record_detail.html",
+                    **_record_detail_ctx(
+                        existing_rec,
+                        code_result=_build_code_result_ctx(existing_rec, existing_rec.invite_code),
+                    ),
+                )
+            )
+            resp.headers["Cache-Control"] = "no-store, max-age=0"
+            return resp
+
+    form_data = {
+        "name": source_lead.full_name if source_lead else "",
+        "phone": (source_lead.phone or "") if source_lead else "",
+        "email": "",
+        "teacher_id": "",
+        "course_id": "",
+        "lead_id": source_lead.id if source_lead else "",
+    }
+
+    if request.method == "POST":
+        form_data = {
+            "name": (request.form.get("name") or "").strip(),
+            "phone": (request.form.get("phone") or "").strip(),
+            "email": (request.form.get("email") or "").strip(),
+            "teacher_id": request.form.get("teacher_id", type=int) or "",
+            "course_id": request.form.get("course_id", type=int) or "",
+            "lead_id": lead_id or "",
+        }
+        if not form_data["phone"]:
+            flash(_("Укажите телефон ученика."), "error")
+            return render_template(
+                "manager/student_new.html",
+                **_common_ctx(),
+                teachers=teachers,
+                courses=courses,
+                source_lead=source_lead,
+                form=form_data,
+                code_result=None,
+            ), 400
+        try:
+            rec, plain_code = create_student_with_code(
+                current_user._get_current_object(),
+                name=form_data["name"],
+                phone=form_data["phone"],
+                email_optional=form_data["email"] or None,
+                teacher_id=form_data["teacher_id"] or None,
+                course_id=form_data["course_id"] or None,
+                lead_id=source_lead.id if source_lead else None,
+                commit=(source_lead is None),
+            )
+            if source_lead is not None:
+                now = utcnow()
+                old_status = source_lead.status
+                source_lead.status = "won"
+                if source_lead.first_contact_at is None:
+                    source_lead.first_contact_at = now
+                source_lead.last_contact_at = now
+                db.session.add(
+                    LeadActivity(
+                        lead_id=source_lead.id,
+                        actor_id=current_user.id,
+                        type="status_change",
+                        body=f"Конвертирован в запись ученика #{rec.id} ({rec.name})",
+                    )
+                )
+                write_audit_log(
+                    actor_id=current_user.id,
+                    action="lead_convert",
+                    entity_type="lead",
+                    entity_id=source_lead.id,
+                    old_value={"status": old_status, "converted_student_id": None},
+                    new_value={
+                        "status": "won",
+                        "student_record_id": rec.id,
+                        "code_last4": code_last4(plain_code),
+                    },
+                )
+                db.session.commit()
+        except StudentLinkPermissionError:
+            abort(403)
+        except StudentLinkError as exc:
+            flash(str(exc), "error")
+            return render_template(
+                "manager/student_new.html",
+                **_common_ctx(),
+                teachers=teachers,
+                courses=courses,
+                source_lead=source_lead,
+                form=form_data,
+                code_result=None,
+            ), exc.status_code
+
+        flash(_("Запись ученика создана. Передайте код или ссылку подключения ученику."), "success")
+        resp = make_response(
+            render_template(
+                "manager/student_record_detail.html",
+                **_record_detail_ctx(rec, code_result=_build_code_result_ctx(rec, plain_code)),
+            )
+        )
+        resp.headers["Cache-Control"] = "no-store, max-age=0"
+        return resp
+
+    return render_template(
+        "manager/student_new.html",
+        **_common_ctx(),
+        teachers=teachers,
+        courses=courses,
+        source_lead=source_lead,
+        form=form_data,
+        code_result=None,
+    )
+
+
+@bp.route("/students/records/<int:record_id>")
+@manager_required
+def student_record_detail(record_id: int):
+    """Manager card for one StudentRecord: current teachers, code status/actions, and teacher history."""
+    rec = (
+        StudentRecord.query.options(
+            joinedload(StudentRecord.teacher),
+            joinedload(StudentRecord.student),
+            joinedload(StudentRecord.course),
+            joinedload(StudentRecord.source_lead),
+            joinedload(StudentRecord.created_by),
+            joinedload(StudentRecord.claimed_by),
+        )
+        .filter_by(id=record_id)
+        .first()
+        or abort(404)
+    )
+    return render_template("manager/student_record_detail.html", **_record_detail_ctx(rec))
+
+
+@bp.route("/students/records/<int:record_id>/code/regenerate", methods=["POST"])
+@permission_required("crm.leads.convert")
+def student_record_regenerate(record_id: int):
+    """Revoke any existing pending code and display a newly generated one once."""
+    try:
+        rec, new_code = regenerate_code(current_user._get_current_object(), record_id)
+    except StudentLinkPermissionError:
+        abort(403)
+    except StudentLinkNotFoundError:
+        abort(404)
+    except StudentLinkError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("manager.student_record_detail", record_id=record_id))
+
+    flash(_("Выпущен новый код подключения (старый отозван)."), "success")
+    resp = make_response(
+        render_template(
+            "manager/student_record_detail.html",
+            **_record_detail_ctx(rec, code_result=_build_code_result_ctx(rec, new_code)),
+        )
+    )
+    resp.headers["Cache-Control"] = "no-store, max-age=0"
+    return resp
+
+
+@bp.route("/students/records/<int:record_id>/code/revoke", methods=["POST"])
+@permission_required("crm.leads.convert")
+def student_record_revoke(record_id: int):
+    """Revoke active invite code on an unclaimed StudentRecord."""
+    reason = (request.form.get("reason") or "").strip()
+    try:
+        revoke_code(current_user._get_current_object(), record_id, reason=reason)
+    except StudentLinkPermissionError:
+        abort(403)
+    except StudentLinkNotFoundError:
+        abort(404)
+    except StudentLinkError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("manager.student_record_detail", record_id=record_id))
+
+    flash(_("Код подключения отозван."), "success")
+    return redirect(url_for("manager.student_record_detail", record_id=record_id))
+
+
+@bp.route("/students/records/<int:record_id>/teacher/change", methods=["POST"])
+@permission_required("crm.leads.convert")
+def student_record_change_teacher(record_id: int):
+    """Atomically change current teacher with required reason and preserve history."""
+    new_teacher_id = request.form.get("new_teacher_id", type=int)
+    course_id = request.form.get("course_id", type=int)
+    reason = (request.form.get("reason") or "").strip()
+    if not reason:
+        flash(_("Укажите причину смены преподавателя."), "error")
+        return redirect(url_for("manager.student_record_detail", record_id=record_id))
+
+    try:
+        change_teacher(
+            current_user._get_current_object(),
+            record_id=record_id,
+            new_teacher_id=new_teacher_id or 0,
+            course_id=course_id,
+            reason=reason,
+        )
+    except StudentLinkPermissionError:
+        abort(403)
+    except StudentLinkNotFoundError:
+        abort(404)
+    except StudentLinkError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("manager.student_record_detail", record_id=record_id))
+
+    flash(_("Преподаватель изменён, история назначений сохранена."), "success")
+    return redirect(url_for("manager.student_record_detail", record_id=record_id))
+
+
+@bp.route("/teachers/<int:teacher_id>")
+@manager_required
+def teacher_detail(teacher_id: int):
+    """Manager read-only view of a teacher's current students (open assignments)."""
+    teacher = User.query.filter_by(id=teacher_id, role="teacher").first() or abort(404)
+    open_assignments = (
+        TeacherAssignment.query.options(
+            joinedload(TeacherAssignment.student_record).joinedload(StudentRecord.student),
+            joinedload(TeacherAssignment.course),
+        )
+        .filter_by(teacher_user_id=teacher.id, ended_at=None)
+        .order_by(TeacherAssignment.started_at.desc(), TeacherAssignment.id.desc())
+        .all()
+    )
+    return render_template(
+        "manager/teacher_detail.html",
+        **_common_ctx(),
+        teacher=teacher,
+        assignments=open_assignments,
+    )
+
+
 @bp.route("/students/<int:student_id>")
 @manager_required
 def student_detail(student_id: int):
@@ -1270,6 +1779,17 @@ def student_detail(student_id: int):
     plans = MembershipPlan.query.filter_by(is_active=True).order_by(MembershipPlan.price_amount.asc()).all()
     total_debt = sum(p.debt_amount for p in passes if p.status != "cancelled")
 
+    linked_records = (
+        StudentRecord.query.options(
+            joinedload(StudentRecord.teacher),
+            joinedload(StudentRecord.course),
+            joinedload(StudentRecord.teacher_assignments).joinedload(TeacherAssignment.teacher),
+        )
+        .filter_by(student_user_id=student.id)
+        .order_by(StudentRecord.id.desc())
+        .all()
+    )
+
     timeline = _build_unified_timeline(lead=lead, student_id=student.id)
     filtered_timeline = timeline if tab == "all" else [e for e in timeline if e["category"] == tab]
 
@@ -1278,6 +1798,7 @@ def student_detail(student_id: int):
         **_common_ctx(),
         student=student,
         lead=lead,
+        linked_records=linked_records,
         enrollments=enrollments,
         att_counts=att_counts,
         att_total=len(atts),
@@ -1653,6 +2174,12 @@ _AUDIT_ACTION_LABELS = {
     "pass_status": "Статус абонемента",
     "payment_record": "Оплата / возврат",
     "payroll_rate_set": "Ставка учителя",
+    "student_code_created": "Создан код ученика",
+    "student_code_regenerated": "Перевыпущен код ученика",
+    "student_code_revoked": "Отозван код ученика",
+    "student_code_claimed": "Код ученика активирован",
+    "teacher_assigned": "Назначен преподаватель",
+    "teacher_changed": "Смена преподавателя",
 }
 
 _AUDIT_KEY_LABELS = {
@@ -1681,6 +2208,13 @@ _AUDIT_KEY_LABELS = {
     "source": "Источник",
     "merged_into": "Объединён с",
     "lost_reason": "Причина отказа",
+    "code_last4": "Код (последние 4)",
+    "expires_at": "Срок кода",
+    "revoked_at": "Отозван",
+    "claimed_at": "Привязан",
+    "claimed_by_user_id": "Привязал аккаунт",
+    "assignment_id": "Назначение",
+    "source_lead_id": "Лид",
 }
 
 

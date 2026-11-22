@@ -29,7 +29,7 @@ def homework_week(teacher_id, start):
     return [{"date": start + timedelta(days=i), "items": days.get(i, [])} for i in range(7)]
 
 
-def fresh_mistakes(records, days=7, limit=8):
+def fresh_mistakes(records, days=7, limit=8, since_by_uid=None):
     """Latest wrong answers, grouped: one row per student × skill × reason with how many times (newest first)."""
     ids = {r.student_user_id: r for r in records if r.student_user_id}
     if not ids:
@@ -41,6 +41,9 @@ def fresh_mistakes(records, days=7, limit=8):
             .order_by(AttemptAnswer.answered_at.desc()).limit(200).all())
     groups = {}
     for a in rows:
+        cutoff = since_by_uid.get(a.attempt.user_id) if since_by_uid else None
+        if cutoff is not None and a.answered_at and a.answered_at < cutoff:
+            continue
         key = (a.attempt.user_id, a.skill_id, a.mistake_reason)
         if key in groups:
             groups[key]["count"] += 1
@@ -49,7 +52,7 @@ def fresh_mistakes(records, days=7, limit=8):
     return list(groups.values())
 
 
-def class_dots(teacher, records):
+def class_dots(teacher, records, since_by_uid=None):
     """Students × topics. Each cell: accuracy over the topic's answered skills, coloured green/yellow/red."""
     tree = content_tree(teacher)
     topics = []
@@ -62,7 +65,8 @@ def class_dots(teacher, records):
         if not r.student_user_id:
             rows.append({"record": r, "cells": [None] * len(topics), "linked": False})
             continue
-        stats = skill_stats(r.student_user_id)
+        cutoff = since_by_uid.get(r.student_user_id) if since_by_uid else None
+        stats = skill_stats(r.student_user_id, since=cutoff)
         cells = []
         for t in topics:
             acc = [stats[i]["accuracy"] for i in t["leaves"] if i in stats]
@@ -140,11 +144,13 @@ def monday_results(records):
     return None
 
 
-def score_trend(user_id, limit=12):
+def score_trend(user_id, limit=12, since=None):
     """Finished tests (not practice) in time order: [{date, percent, title}]."""
-    rows = (Attempt.query.filter(Attempt.user_id == user_id, Attempt.finished_at.isnot(None),
-                                 Attempt.work_version_id.isnot(None))
-            .order_by(Attempt.finished_at.desc()).limit(limit).all())
+    q = Attempt.query.filter(Attempt.user_id == user_id, Attempt.finished_at.isnot(None),
+                             Attempt.work_version_id.isnot(None))
+    if since is not None:
+        q = q.filter(Attempt.finished_at >= since)
+    rows = q.order_by(Attempt.finished_at.desc()).limit(limit).all()
     return [{"date": a.finished_at, "percent": a.percent, "title": a.work_version.title if a.work_version else ""}
             for a in reversed(rows)]
 

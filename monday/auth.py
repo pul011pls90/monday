@@ -5,7 +5,7 @@ import hmac
 from datetime import datetime
 from urllib.parse import urlparse
 
-from flask import Blueprint, flash, make_response, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, flash, make_response, redirect, render_template, request, session, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_required, login_user, logout_user
 
@@ -14,7 +14,20 @@ from config import Config
 from .access import min_password_length
 from .extensions import db, limiter
 from .models import utcnow
-from .models import Assignment, StudentProfile, StudentRecord, User
+from .models import StudentProfile, User
+from .student_links import (
+    claim_code,
+    inspect_code_for_student,
+    masked_student_name,
+    normalize_invite_code,
+)
+
+
+def _account_rate_key():
+    from flask_limiter.util import get_remote_address
+    if current_user and current_user.is_authenticated:
+        return f"user:{current_user.id}"
+    return f"ip:{get_remote_address()}"
 
 bp = Blueprint("auth", __name__)
 
@@ -49,40 +62,12 @@ def _safe_next(target):
 
 
 def _normalize_invite_code(code):
-    code = (code or "").strip().upper()
-    if not code:
-        return ""
-    if not code.startswith("MND-"):
-        code = "MND-" + code
-    return code
+    return normalize_invite_code(code)
 
 
 def link_invite_code(user, code):
-    """Attach a student account to a teacher's table row. Returns (ok, message)."""
-    code = _normalize_invite_code(code)
-    if not code:
-        return False, _("Введи код.")
-    record = StudentRecord.query.filter_by(invite_code=code).first()
-    if not record or record.invite_revoked_at is not None or record.invite_is_expired:
-        return False, _("Такого кода нет. Уточни его у учителя.")
-    if record.student_user_id and record.student_user_id != user.id:
-        return False, _("Этот код уже использован другим учеником.")
-    if (
-        record.previous_student_user_id
-        and record.previous_student_user_id != user.id
-        and Assignment.query.filter_by(record_id=record.id).first() is not None
-    ):
-        return False, _("Эта строка уже содержит задания другого ученика. Попроси учителя создать новую строку.")
-    if StudentRecord.query.filter_by(teacher_id=record.teacher_id, student_user_id=user.id).filter(
-            StudentRecord.id != record.id).first():
-        return False, _("Ты уже подключён к этому учителю.")
-    record.student_user_id = user.id
-    record.previous_student_user_id = user.id
-    record.linked_at = utcnow()
-    if user.profile and not user.profile.exam and record.exam:
-        user.profile.exam = record.exam
-    db.session.commit()
-    return True, _("Готово, ты подключён к учителю: %(name)s.", name=record.teacher.name)
+    """Attach a student account to a StudentRecord via a one-time invite code."""
+    return claim_code(user, code)
 
 
 @bp.route("/")
@@ -113,8 +98,8 @@ def login():
         session.clear()
         login_user(user, remember=bool(request.form.get("remember")))
         if pending_code and user.role == "student":
-            ok, msg = link_invite_code(user, pending_code)
-            flash(msg, "success" if ok else "error")
+            session["invite_code"] = pending_code
+            return redirect(url_for("auth.join", code=pending_code))
         return redirect(_safe_next(request.args.get("next")) or _home_for(user))
     return _no_store_render("auth/welcome.html", tab="login", form={})
 
@@ -279,8 +264,8 @@ def google_callback():
     session.clear()
     login_user(user, remember=False)
     if code and user.role == "student":
-        ok, msg = link_invite_code(user, code)
-        flash(msg, "success" if ok else "error")
+        session["invite_code"] = code
+        return redirect(url_for("auth.join", code=code))
     return redirect(next_url or _home_for(user))
 
 
@@ -327,22 +312,49 @@ def register():
     return _no_store_render("auth/welcome.html", tab="register", form=form)
 
 
-@bp.route("/join/<code>")
+@bp.route("/join/<code>", methods=["GET", "POST"])
 @limiter.limit("15 per minute")
+@limiter.limit("15 per minute", key_func=_account_rate_key)
 def join(code):
-    """Link a teacher sends: /join/MND-XXXXXXXXXXXX. Does not reveal code validity or teacher names unauthenticated."""
+    """Student connection-code claim link (/join/MND-XXXXXXXXXXXX).
+
+    Logged-out visitors receive identical responses regardless of code validity (no oracle).
+    Authenticated students see a confirmation step ('Вы — Айдана А.?') and claim atomically on POST.
+    """
     norm = _normalize_invite_code(code)
-    if current_user.is_authenticated:
-        if current_user.role != "student":
-            flash(_("Код приглашения предназначен для ученика."), "error")
+    if not current_user.is_authenticated:
+        if request.method == "POST":
+            abort(403)
+        if norm:
+            session["invite_code"] = norm
+        flash(_("Зарегистрируйся или войди, и код подключения сработает автоматически."), "info")
+        return redirect(url_for("auth.register"))
+
+    if current_user.role != "student":
+        if request.method == "POST":
+            abort(403)
+        flash(_("Код приглашения предназначен для ученика."), "error")
+        return redirect(_home_for(current_user))
+
+    if request.method == "POST":
+        if request.form.get("action") == "cancel":
+            session.pop("invite_code", None)
+            flash(_("Привязка отменена."), "info")
             return redirect(_home_for(current_user))
-        ok, msg = link_invite_code(current_user, norm)
+        session.pop("invite_code", None)
+        ok, msg = claim_code(current_user._get_current_object(), norm)
         flash(msg, "success" if ok else "error")
         return redirect(_home_for(current_user))
-    if norm:
-        session["invite_code"] = norm
-    flash(_("Зарегистрируйся или войди, и код подключения сработает автоматически."), "info")
-    return redirect(url_for("auth.register"))
+
+    ok, rec, err = inspect_code_for_student(current_user._get_current_object(), norm)
+    masked_name = masked_student_name(rec.name) if ok and rec else None
+    return _no_store_render(
+        "auth/join_confirm.html",
+        code=norm,
+        can_claim=ok,
+        masked_name=masked_name,
+        error_msg=err,
+    )
 
 
 @bp.route("/logout", methods=["POST"])

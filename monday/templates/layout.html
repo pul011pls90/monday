@@ -20,7 +20,7 @@
       {% set items = [
         ('admin.index', 'shield', _('Админ'), ['admin.index', 'course.admin_course', 'roadmap.admin_roadmap', 'deploy_safety.admin_maintenance']),
         ('analytics.dashboard', 'chart', _('Аналитика'), ['analytics.dashboard']),
-        ('manager.dashboard', 'dashboard', _('CRM'), ['manager.dashboard', 'manager.leads', 'manager.lead_detail', 'manager.pipeline', 'manager.student_detail', 'manager.finance', 'manager.audit', 'manager.account']),
+        ('manager.dashboard', 'dashboard', _('CRM'), ['manager.dashboard', 'manager.leads', 'manager.lead_detail', 'manager.pipeline', 'manager.students', 'manager.student_new', 'manager.student_record_detail', 'manager.student_detail', 'manager.teacher_detail', 'manager.finance', 'manager.audit', 'manager.account']),
         ('academic.schedule', 'calendar', _('Расписание'), ['academic.schedule', 'academic.lesson_detail']),
         ('review.queue', 'check', _('Модерация'), ['review.queue']),
         ('reports.inbox', 'flag', _('Правки'), ['reports.inbox']),
@@ -49,13 +49,14 @@
       <a class="rail__logo" href="{{ url_for('manager.dashboard') }}" aria-label="Monday">M</a>
       {% set items = [
         ('manager.dashboard', 'dashboard', _('Сегодня'), ['manager.dashboard']),
-        ('manager.leads', 'users', _('Лиды'), ['manager.leads', 'manager.lead_detail']),
-        ('manager.pipeline', 'kanban', _('Воронка'), ['manager.pipeline', 'manager.student_detail']),
+        ('manager.leads', 'inbox', _('Лиды'), ['manager.leads', 'manager.lead_detail']),
+        ('manager.students', 'users', _('Ученики'), ['manager.students', 'manager.student_new', 'manager.student_record_detail', 'manager.student_detail', 'manager.teacher_detail']),
+        ('manager.pipeline', 'kanban', _('Воронка'), ['manager.pipeline']),
         ('academic.schedule', 'calendar', _('Расписание'), ['academic.schedule', 'academic.lesson_detail']),
         ('manager.finance', 'dollar', _('Финансы'), ['manager.finance']),
       ] %}
       {% if current_user.is_crm_supervisor %}{% set items = items + [('manager.audit', 'shield-check', _('Аудит'), ['manager.audit'])] %}{% endif %}
-      {% set primary = ['manager.dashboard', 'manager.leads', 'manager.pipeline', 'academic.schedule', 'manager.finance'] %}
+      {% set primary = ['manager.dashboard', 'manager.leads', 'manager.students', 'manager.pipeline', 'manager.finance'] %}
     {% elif current_user.is_assistant %}
       <a class="rail__logo" href="{{ url_for('assistant.home') }}" aria-label="Monday">M</a>
       {% set items = [

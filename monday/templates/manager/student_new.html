@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+{% import "manager/_ui.html" as mui with context %}
+{% block title %}{{ _("Новый ученик") }} · CRM{% endblock %}
+{% block context %}{{ _("Новый ученик") }}{% endblock %}
+{% block content %}
+  {% call mui.page_header(
+    _("Новый ученик"),
+    _("Создайте запись, назначьте преподавателя и получите одноразовый код подключения."),
+    back_href=url_for('manager.lead_detail', lead_id=source_lead.id) if source_lead else url_for('manager.students'),
+    back_label=_("К лиду") if source_lead else _("К списку учеников")
+  ) %}{% endcall %}
+
+  {% include "manager/_code_result.html" %}
+
+  {% call mui.card() %}
+    {{ mui.section_head('users', _("Данные ученика и назначение")) }}
+    <form method="post" action="{{ url_for('manager.student_new', lead_id=form.lead_id) if form.lead_id else url_for('manager.student_new') }}" class="stack" style="max-width:640px">
+      {{ ui.csrf() }}
+      {% if source_lead %}
+        <input type="hidden" name="lead_id" value="{{ source_lead.id }}">
+        <div class="mgr-row-line">
+          <span class="small muted">{{ _("Источник — лид") }} #{{ source_lead.id }}</span>
+          <a class="small" href="{{ url_for('manager.lead_detail', lead_id=source_lead.id) }}">{{ source_lead.full_name }}</a>
+        </div>
+      {% endif %}
+
+      <div class="stack-sm">
+        <label class="eyebrow" for="s-name">{{ _("Имя и фамилия") }} *</label>
+        <input class="input" id="s-name" name="name" value="{{ form.name }}" minlength="2" maxlength="120" required placeholder="{{ _('Например: Айдана Асанова') }}">
+      </div>
+
+      <div class="row" style="gap:12px;flex-wrap:wrap">
+        <div class="stack-sm" style="flex:1 1 220px">
+          <label class="eyebrow" for="s-phone">{{ _("Телефон") }} *</label>
+          <input class="input" id="s-phone" name="phone" value="{{ form.phone }}" required placeholder="+996 555 123 456">
+        </div>
+        <div class="stack-sm" style="flex:1 1 220px">
+          <label class="eyebrow" for="s-email">{{ _("Email (необязательно)") }}</label>
+          <input class="input" id="s-email" type="email" name="email" value="{{ form.email }}" placeholder="student@example.com">
+        </div>
+      </div>
+
+      <div class="row" style="gap:12px;flex-wrap:wrap">
+        <div class="stack-sm" style="flex:1 1 240px">
+          <label class="eyebrow" for="s-teacher">{{ _("Преподаватель") }} *</label>
+          <select class="select" id="s-teacher" name="teacher_id" required>
+            <option value="">{{ _("Выберите преподавателя...") }}</option>
+            {% for t in teachers %}<option value="{{ t.id }}" {{ 'selected' if form.teacher_id == t.id }}>{{ t.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="stack-sm" style="flex:1 1 240px">
+          <label class="eyebrow" for="s-course">{{ _("Предмет / курс") }}</label>
+          <select class="select" id="s-course" name="course_id">
+            <option value="">{{ _("Без привязки к предмету") }}</option>
+            {% for c in courses %}<option value="{{ c.id }}" {{ 'selected' if form.course_id == c.id }}>{{ c.name }}{% if c.exam %} ({{ c.exam }}){% endif %}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="row" style="gap:10px;margin-top:4px">
+        <button class="mgr-btn mgr-btn--primary" type="submit">{{ ui.icon('plus', 16) }}<span>{{ _("Создать ученика и выдать код") }}</span></button>
+        <a class="mgr-btn mgr-btn--secondary" href="{{ url_for('manager.students') }}">{{ _("Отмена") }}</a>
+      </div>
+    </form>
+  {% endcall %}
+{% endblock %}

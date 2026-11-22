@@ -24,7 +24,8 @@ def visible_reports(user):
     q = Report.query
     if user.is_admin:
         return q
-    students = [r.student_user_id for r in StudentRecord.query.filter_by(teacher_id=user.id).all() if r.student_user_id]
+    from .student_links import teacher_open_records_query
+    students = [r.student_user_id for r in teacher_open_records_query(user.id).all() if r.student_user_id]
     own_q = db.session.query(Question.id).filter(Question.author_id == user.id)
     own_n = db.session.query(ContentNode.id).filter(ContentNode.owner_id == user.id)
     return q.filter(or_(Report.author_id.in_(students or [-1]), Report.question_id.in_(own_q), Report.node_id.in_(own_n)))

@@ -79,6 +79,32 @@
     </div>
 
     <div class="stack">
+      {% if linked_records %}
+      {% call mui.card() %}
+        {{ mui.section_head('users', _("Преподаватели и код подключения"), count=linked_records|length) }}
+        <div class="stack-sm">
+          {% for rec in linked_records %}
+            {% set open_tas = rec.teacher_assignments|selectattr('ended_at', 'none')|list %}
+            <div class="mgr-row-line">
+              <div>
+                <div style="font-weight:700">
+                  {% if open_tas %}
+                    {% for ta in open_tas %}{{ ta.teacher.name }}{% if ta.course %} ({{ ta.course.name }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+                  {% elif rec.teacher %}
+                    {{ rec.teacher.name }}
+                  {% else %}
+                    {{ _("Преподаватель не назначен") }}
+                  {% endif %}
+                </div>
+                <div class="small muted">{{ rec.course.name if rec.course else _('Общий курс') }} · {{ rec.code_status_label }}</div>
+              </div>
+              {{ mui.btn(_("Карточка записи"), href=url_for('manager.student_record_detail', record_id=rec.id), variant='secondary', size='sm') }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endcall %}
+      {% endif %}
+
       {% call mui.card() %}
         {{ mui.section_head('dollar', _("Абонементы и оплаты"), count=passes|length) }}
         {% if passes %}

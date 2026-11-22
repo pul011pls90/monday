@@ -7,13 +7,23 @@
     {{ ui.avatar(r.student, 'avatar--lg', text=r.name[:1]) }}
     <div class="stack-sm" style="gap:2px">
       <h1 style="font-size:32px">{{ r.name }}</h1>
-      <span class="text-2">{{ r.grade ~ ' ' ~ _('класс') if r.grade }}{% if r.lesson_time %} · {{ _("урок в") }} {{ r.lesson_time }}{% endif %}{% if r.goal_label %} · {{ _("цель") }}: {{ r.goal_label }}{% endif %}</span>
+      {% if is_manager_unclaimed %}
+        <span class="tag tag--soft">{{ _("ожидает регистрации") }}</span>
+      {% else %}
+        <span class="text-2">{{ r.grade ~ ' ' ~ _('класс') if r.grade }}{% if r.lesson_time %} · {{ _("урок в") }} {{ r.lesson_time }}{% endif %}{% if r.goal_label %} · {{ _("цель") }}: {{ r.goal_label }}{% endif %}</span>
+      {% endif %}
     </div>
   </div>
   <a class="btn btn--primary" href="{{ url_for('teacher.assign', record_id=r.id) }}">{{ ui.icon('send', 18) }}{{ _("Выдать задание") }}</a>
 </div>
 
 {% if not r.student_user_id %}
+{% if is_manager_unclaimed %}
+<section class="card card--soft" aria-labelledby="code-h">
+  <h2 id="code-h" style="font-size:20px">{{ _("Ожидает регистрации") }}</h2>
+  <p class="text-2">{{ _("Ученик ещё не активировал аккаунт. После подключения по коду здесь появится его учебный прогресс и задания.") }}</p>
+</section>
+{% else %}
 <section class="card card--soft" aria-labelledby="code-h">
   <h2 id="code-h" style="font-size:20px">{{ _("Подключите аккаунт ученика") }}</h2>
   {% if r.invite_is_active %}
@@ -37,6 +47,7 @@
   </div>
   {% endif %}
 </section>
+{% endif %}
 {% endif %}
 
 {# ------------------------------------------------------------ knowledge, attendance, standing #}

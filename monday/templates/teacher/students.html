@@ -159,11 +159,21 @@
         {% for row in rows %}{% set r = row.r %}
         <tr>
           <td><a href="{{ url_for('teacher.student_detail', record_id=r.id) }}" class="t-strong" style="color:inherit">{{ r.name }}</a></td>
-          <td>{{ r.grade or '—' }}</td>
-          <td class="num">{% if r.lesson_time %}<b>{{ r.lesson_time }}</b> <span class="muted small">{% for d in r.lesson_days or [] %}{{ WEEKDAYS[d] }}{{ ', ' if not loop.last }}{% endfor %}</span>{% else %}—{% endif %}</td>
-          <td style="min-width:160px"><div class="row" style="flex-wrap:nowrap">{{ ui.progress(row.progress) }}<span class="num small">{{ row.progress }}%</span></div></td>
-          <td>{{ r.goal_label or '—' }}</td>
-          <td>{% if r.student_user_id %}<span class="state state--checked">{{ _("подключён") }}</span>{% elif r.invite_is_active %}<span class="code">{{ r.invite_code }}</span>{% else %}<span class="muted small">{{ _("отозван") if r.invite_revoked_at else _("истёк") }}</span>{% endif %}</td>
+          <td>{{ '—' if row.is_manager_unclaimed else (r.grade or '—') }}</td>
+          <td class="num">{% if not row.is_manager_unclaimed and r.lesson_time %}<b>{{ r.lesson_time }}</b> <span class="muted small">{% for d in r.lesson_days or [] %}{{ WEEKDAYS[d] }}{{ ', ' if not loop.last }}{% endfor %}</span>{% else %}—{% endif %}</td>
+          <td style="min-width:160px">{% if row.is_manager_unclaimed %}<span class="muted small">—</span>{% else %}<div class="row" style="flex-wrap:nowrap">{{ ui.progress(row.progress) }}<span class="num small">{{ row.progress }}%</span></div>{% endif %}</td>
+          <td>{{ '—' if row.is_manager_unclaimed else (r.goal_label or '—') }}</td>
+          <td>
+            {% if r.student_user_id %}
+              <span class="state state--checked">{{ _("подключён") }}</span>
+            {% elif row.is_manager_unclaimed %}
+              <span class="tag tag--soft">{{ _("ожидает регистрации") }}</span>
+            {% elif r.invite_is_active %}
+              <span class="code">{{ r.invite_code }}</span>
+            {% else %}
+              <span class="muted small">{{ _("отозван") if r.invite_revoked_at else _("истёк") }}</span>
+            {% endif %}
+          </td>
           <td style="text-align:right;white-space:nowrap"><a href="{{ url_for('teacher.student_detail', record_id=r.id) }}">{{ _("Открыть") }}</a></td>
         </tr>
         {% endfor %}

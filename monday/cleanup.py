@@ -5,7 +5,7 @@ Each fix runs once per database; AppMeta remembers it.
 from flask import current_app
 
 from .extensions import db
-from .models import AppMeta, Assignment, Attempt, StudentRecord, User, Work, WorkVersion
+from .models import AppMeta, Assignment, Attempt, StudentRecord, TeacherAssignment, User, Work, WorkVersion
 
 # Placeholder collections created by the demo seed (random questions, no real source).
 DEMO_COLLECTIONS = [
@@ -206,6 +206,9 @@ def remove_demo_students():
 
     if seen_rec_ids:
         Attendance.query.filter(Attendance.record_id.in_(seen_rec_ids)).delete(synchronize_session=False)
+        TeacherAssignment.query.filter(TeacherAssignment.student_record_id.in_(seen_rec_ids)).delete(
+            synchronize_session=False
+        )
         for assign in Assignment.query.filter(Assignment.record_id.in_(seen_rec_ids)).all():
             for att in Attempt.query.filter_by(assignment_id=assign.id).all():
                 db.session.delete(att)
@@ -294,11 +297,18 @@ def remove_extra_teachers():
     rec_ids = [r.id for r in StudentRecord.query.filter(StudentRecord.teacher_id.in_(extra_ids)).all()]
     if rec_ids:
         Attendance.query.filter(Attendance.record_id.in_(rec_ids)).delete(synchronize_session=False)
+        TeacherAssignment.query.filter(TeacherAssignment.student_record_id.in_(rec_ids)).delete(
+            synchronize_session=False
+        )
         for assign in Assignment.query.filter(Assignment.record_id.in_(rec_ids)).all():
             for att in Attempt.query.filter_by(assignment_id=assign.id).all():
                 db.session.delete(att)
             db.session.delete(assign)
         StudentRecord.query.filter(StudentRecord.id.in_(rec_ids)).delete(synchronize_session=False)
+
+    TeacherAssignment.query.filter(TeacherAssignment.teacher_user_id.in_(extra_ids)).delete(
+        synchronize_session=False
+    )
 
     for assign in Assignment.query.filter(Assignment.teacher_id.in_(extra_ids)).all():
         for att in Attempt.query.filter_by(assignment_id=assign.id).all():
@@ -356,14 +366,26 @@ def ensure_showcase_student():
 
     teacher = User.query.filter_by(email="aibek@monday.kg", role="teacher").first()
     if teacher and not StudentRecord.query.filter_by(teacher_id=teacher.id, student_user_id=stu.id).first():
+        now = utcnow()
+        rec = StudentRecord(
+            teacher_id=teacher.id,
+            name=stu.name or "Student",
+            grade=(stu.profile.grade if stu.profile else None) or "11",
+            exam=(stu.profile.exam if stu.profile else None) or "ORT",
+            goal_score=(stu.profile.goal_score if stu.profile else None) or 190,
+            student_user_id=stu.id,
+            claimed_at=now,
+            claimed_by_user_id=stu.id,
+            linked_at=now,
+        )
+        db.session.add(rec)
+        db.session.flush()
         db.session.add(
-            StudentRecord(
-                teacher_id=teacher.id,
-                name=stu.name or "Student",
-                grade=(stu.profile.grade if stu.profile else None) or "11",
-                exam=(stu.profile.exam if stu.profile else None) or "ORT",
-                goal_score=(stu.profile.goal_score if stu.profile else None) or 190,
-                student_user_id=stu.id,
+            TeacherAssignment(
+                student_record_id=rec.id,
+                teacher_user_id=teacher.id,
+                started_at=now,
+                assigned_by_id=teacher.id,
             )
         )
 

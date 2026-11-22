@@ -136,6 +136,7 @@ def home():
     left = mondays_left(p.exam_date)
     week_solved = (AttemptAnswer.query.join(Attempt)
                    .filter(Attempt.user_id == current_user.id, AttemptAnswer.answered_at >= since).count())
+    from .student_links import student_current_teachers
     return render_template(
         "student/home.html", p=p, summary=summary, mondays=left, minutes=minutes, week_solved=week_solved,
         recommended=recommended_mode(minutes), monday_countdown=None if monday_window_open() else countdown_label(start - local_now()),
@@ -143,6 +144,7 @@ def home():
         my_place=my_place, strip=_monday_strip(left), task=_todays_task(p.exam, summary),
         portrait=skill_map(current_user.id, p.exam), daily=_daily_block(),
         replies=_report_replies(), practice=_practice_goal(),
+        current_teachers=student_current_teachers(current_user.id),
     )
 
 
@@ -1471,9 +1473,15 @@ def switch_exam():
     return redirect(url_for("student.home"))
 
 
+def _profile_account_rate_key():
+    from flask_limiter.util import get_remote_address
+    return f"user:{current_user.id}" if current_user.is_authenticated else f"ip:{get_remote_address()}"
+
+
 @bp.route("/profile", methods=["GET", "POST"])
 @student_required
 @limiter.limit("15 per minute", methods=["POST"], exempt_when=lambda: request.form.get("action") != "join")
+@limiter.limit("15 per minute", methods=["POST"], key_func=_profile_account_rate_key, exempt_when=lambda: request.form.get("action") != "join")
 def profile():
     p = current_user.profile
     if request.method == "POST":
@@ -1596,8 +1604,10 @@ def profile():
                 login_user(current_user._get_current_object())
                 flash(_("Пароль изменён."), "success")
         return redirect(url_for("student.profile") + ("#profile" if action == "join" else "#security" if action == "password" else "#exam"))
+    from .student_links import student_current_teachers
+    current_teachers = student_current_teachers(current_user.id)
     teachers = StudentRecord.query.filter_by(student_user_id=current_user.id).all()
-    return render_template("student/profile.html", p=p, teachers=teachers)
+    return render_template("student/profile.html", p=p, teachers=teachers, current_teachers=current_teachers)
 
 
 def _delete_account(user):

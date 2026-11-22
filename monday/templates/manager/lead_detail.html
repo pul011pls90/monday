@@ -152,7 +152,24 @@
         </dl>
       {% endcall %}
 
-      {% if lead.converted_student_id %}
+      {% include "manager/_code_result.html" %}
+
+      {% if converted_record %}
+      {% call mui.card() %}
+        <div id="convert-lead">
+          {{ mui.section_head('users', _("Конвертация в ученика")) }}
+          <p class="small" style="color:var(--ok);font-weight:700;margin-top:8px">
+            {{ ui.icon('check', 14) }} {{ _("Создана запись ученика") }} #{{ converted_record.id }} ({{ converted_record.name }}) · {{ mui.badge(converted_record.code_status_label, tone='ok' if converted_record.code_status == 'claimed' else 'accent') }}
+          </p>
+          <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
+            <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.student_record_detail', record_id=converted_record.id) }}">{{ _("Карточка и история") }}</a>
+            {% if converted_record.student %}
+              <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.student_detail', student_id=converted_record.student.id) }}">{{ _("Профиль 360") }}</a>
+            {% endif %}
+          </div>
+        </div>
+      {% endcall %}
+      {% elif lead.converted_student_id %}
       {% call mui.card() %}
         <div id="convert-lead">
           {{ mui.section_head('users', _("Конвертация в ученика")) }}
@@ -162,45 +179,74 @@
         </div>
       {% endcall %}
       {% else %}
-      <details class="mgr-card crm-convert-details" id="convert-lead">
+      <details class="mgr-card crm-convert-details" id="convert-lead"{{ ' open' if code_result }}>
         <summary>
-          {{ mui.section_head('users', _("Конвертация в ученика")) }}
+          {{ mui.section_head('users', _("Конвертировать в ученика")) }}
         </summary>
         <form method="post" action="{{ url_for('manager.lead_convert', lead_id=lead.id) }}" class="stack-sm">
           {{ ui.csrf() }}
-          <input type="hidden" name="convert_mode" value="create">
-          <div class="eyebrow">{{ _("Создать новый аккаунт ученика") }}</div>
-          <input class="input input--sm" id="convert-student-email" type="email" name="student_email" required placeholder="student@example.com">
+          <input type="hidden" name="convert_mode" value="code">
+          <div class="eyebrow">{{ _("Создать запись и код подключения") }}</div>
+          <input class="input input--sm" name="name" value="{{ lead.full_name }}" required placeholder="{{ _('Имя ученика') }}">
           <div class="row" style="gap:8px">
-            <select class="select input--sm" name="exam" style="flex:1">
-              <option value="">{{ _("Экзамен (необязательно)") }}</option>
-              {% for code, ex in EXAMS.items() %}<option value="{{ code }}">{{ ex.label }}</option>{% endfor %}
+            <input class="input input--sm" name="phone" value="{{ lead.phone or '' }}" placeholder="{{ _('Телефон') }}" style="flex:1">
+            <input class="input input--sm" type="email" name="email" placeholder="{{ _('Email (необязательно)') }}" style="flex:1">
+          </div>
+          <div class="row" style="gap:8px">
+            <select class="select input--sm" name="teacher_id" required style="flex:1">
+              <option value="">{{ _("Выберите преподавателя...") }}</option>
+              {% for t in teachers %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
             </select>
-            <select class="select input--sm" name="teacher_id" style="flex:1">
+            <select class="select input--sm" name="course_id" style="flex:1">
+              <option value="">{{ _("Предмет (необязательно)") }}</option>
+              {% for c in courses %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="row" style="gap:8px;flex-wrap:wrap">
+            <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Создать запись и выдать код") }}</button>
+            <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.student_new', lead_id=lead.id) }}">{{ _("Открыть полную форму") }}</a>
+          </div>
+        </form>
+
+        <hr style="border:0;border-top:1px solid var(--line);margin:6px 0">
+        <details class="stack-sm">
+          <summary class="small muted" style="cursor:pointer">{{ _("Дополнительно: создать аккаунт с паролем / привязать существующего") }}</summary>
+          <form method="post" action="{{ url_for('manager.lead_convert', lead_id=lead.id) }}" class="stack-sm" style="margin-top:8px">
+            {{ ui.csrf() }}
+            <input type="hidden" name="convert_mode" value="create">
+            <div class="eyebrow">{{ _("Создать аккаунт ученика напрямую") }}</div>
+            <input class="input input--sm" id="convert-student-email" type="email" name="student_email" required placeholder="student@example.com">
+            <div class="row" style="gap:8px">
+              <select class="select input--sm" name="exam" style="flex:1">
+                <option value="">{{ _("Экзамен (необязательно)") }}</option>
+                {% for code, ex in EXAMS.items() %}<option value="{{ code }}">{{ ex.label }}</option>{% endfor %}
+              </select>
+              <select class="select input--sm" name="teacher_id" style="flex:1">
+                <option value="">{{ _("Учитель (необязательно)") }}</option>
+                {% for t in teachers %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
+              </select>
+            </div>
+            <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">{{ _("Создать ученика и закрыть лид") }}</button>
+          </form>
+
+          {% if existing_students %}
+          <hr style="border:0;border-top:1px solid var(--line);margin:4px 0">
+          <form method="post" action="{{ url_for('manager.lead_convert', lead_id=lead.id) }}" class="stack-sm">
+            {{ ui.csrf() }}
+            <input type="hidden" name="convert_mode" value="link">
+            <div class="eyebrow">{{ _("Или привязать существующего ученика") }}</div>
+            <select class="select input--sm" name="existing_student_id" required>
+              <option value="">{{ _("Выберите ученика...") }}</option>
+              {% for st in existing_students %}<option value="{{ st.id }}">#{{ st.id }} · {{ st.name }} ({{ st.email }})</option>{% endfor %}
+            </select>
+            <select class="select input--sm" name="teacher_id">
               <option value="">{{ _("Учитель (необязательно)") }}</option>
               {% for t in teachers %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
             </select>
-          </div>
-          <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Создать ученика и закрыть лид") }}</button>
-        </form>
-
-        {% if existing_students %}
-        <hr style="border:0;border-top:1px solid var(--line);margin:4px 0">
-        <form method="post" action="{{ url_for('manager.lead_convert', lead_id=lead.id) }}" class="stack-sm">
-          {{ ui.csrf() }}
-          <input type="hidden" name="convert_mode" value="link">
-          <div class="eyebrow">{{ _("Или привязать существующего ученика") }}</div>
-          <select class="select input--sm" name="existing_student_id" required>
-            <option value="">{{ _("Выберите ученика...") }}</option>
-            {% for st in existing_students %}<option value="{{ st.id }}">#{{ st.id }} · {{ st.name }} ({{ st.email }})</option>{% endfor %}
-          </select>
-          <select class="select input--sm" name="teacher_id">
-            <option value="">{{ _("Учитель (необязательно)") }}</option>
-            {% for t in teachers %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
-          </select>
-          <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">{{ _("Привязать существующего ученика") }}</button>
-        </form>
-        {% endif %}
+            <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">{{ _("Привязать существующего ученика") }}</button>
+          </form>
+          {% endif %}
+        </details>
       </details>
       {% endif %}
 

@@ -57,7 +57,7 @@ def test_teacher_resets_only_a_linked_student():
         db.session.commit()
         rec_id, empty_id, foreign_id = rec.id, empty.id, foreign.id
     assert t.post(f"/teacher/students/{empty_id}/reset-password").status_code == 404
-    assert t.post(f"/teacher/students/{foreign_id}/reset-password").status_code == 404
+    assert t.post(f"/teacher/students/{foreign_id}/reset-password").status_code == 403
     body = t.post(f"/teacher/students/{rec_id}/reset-password", follow_redirects=True).data.decode()
     raw = re.search(r"Временный пароль для [^:]+: (\w+)\.", body).group(1)
     assert client().post("/login", data={"email": email, "password": PW}).status_code == 401  # the old one is gone
