@@ -64,5 +64,12 @@
     </article>
     {% endfor %}
   </div>
+
+  <p class="small muted" style="margin:0">
+    {{ _("Правовые документы") }}:
+    <a href="{{ url_for('auth.terms') }}">{{ _("Условия использования") }}</a> ·
+    <a href="{{ url_for('auth.privacy') }}">{{ _("Конфиденциальность") }}</a> ·
+    <a href="{{ url_for('auth.refund') }}">{{ _("Возврат и отмена подписки") }}</a>
+  </p>
 </section>
 {% endblock %}

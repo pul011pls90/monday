@@ -1,0 +1,12 @@
+{% set _ep = request.endpoint or '' %}
+{% if not legal.reviewed %}
+<div class="alert alert--warn" role="status" style="margin-bottom:16px">
+  <strong>{{ _("Черновик юридического документа") }}</strong> —
+  {{ _("раздел находится на юридической проверке и не введён в действие в продакшене.") }}
+</div>
+{% endif %}
+<nav class="row" aria-label="{{ _('Правовая информация') }}" style="gap:8px;flex-wrap:wrap;margin-bottom:16px">
+  <a class="btn btn--sm {{ 'btn--primary' if _ep == 'auth.terms' else 'btn--secondary' }}" href="{{ url_for('auth.terms') }}">{{ _("Условия использования") }}</a>
+  <a class="btn btn--sm {{ 'btn--primary' if _ep == 'auth.privacy' else 'btn--secondary' }}" href="{{ url_for('auth.privacy') }}">{{ _("Конфиденциальность") }}</a>
+  <a class="btn btn--sm {{ 'btn--primary' if _ep == 'auth.refund' else 'btn--secondary' }}" href="{{ url_for('auth.refund') }}">{{ _("Возврат и отмена подписки") }}</a>
+</nav>

@@ -458,12 +458,41 @@ def about():
 
 @bp.route("/terms")
 def terms():
-    return render_template("info/terms.html")
+    from .legal import get_legal_context
+    from .public_site import _public_pricing_meta, is_public_site_enabled
+
+    return render_template(
+        "info/terms.html",
+        legal=get_legal_context(),
+        pricing=_public_pricing_meta(),
+        public_site_active=is_public_site_enabled(),
+    )
 
 
 @bp.route("/privacy")
 def privacy():
-    return render_template("info/privacy.html")
+    from .legal import get_legal_context
+    from .public_site import _public_pricing_meta, is_public_site_enabled
+
+    return render_template(
+        "info/privacy.html",
+        legal=get_legal_context(),
+        pricing=_public_pricing_meta(),
+        public_site_active=is_public_site_enabled(),
+    )
+
+
+@bp.route("/refund")
+def refund():
+    from .legal import get_legal_context
+    from .public_site import _public_pricing_meta, is_public_site_enabled
+
+    return render_template(
+        "info/refund.html",
+        legal=get_legal_context(),
+        pricing=_public_pricing_meta(),
+        public_site_active=is_public_site_enabled(),
+    )
 
 
 @bp.route("/prefs/lang", methods=["POST"])

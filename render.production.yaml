@@ -29,8 +29,18 @@ services:
         value: /var/data/public_sample_media
       - key: PUBLIC_SITE_ENABLED
         value: "0"
+      - key: PUBLIC_LEGAL_REVIEWED
+        value: "0"
       - key: SELF_STUDY_SIGNUP_ENABLED
         value: "0"
+      - key: LEGAL_ENTITY_NAME
+        sync: false
+      - key: LEGAL_ENTITY_ID
+        sync: false
+      - key: LEGAL_ENTITY_ADDRESS
+        sync: false
+      - key: LEGAL_CONTACT_EMAIL
+        sync: false
       - key: MONDAY_SECRET_KEY
         generateValue: true
       - key: MONDAY_DEBUG

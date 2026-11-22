@@ -409,6 +409,7 @@ def test_every_question_serving_route_has_gating_decorator(tmp_path):
         "auth.logout",
         "auth.pending",
         "auth.privacy",
+        "auth.refund",
         "auth.register",
         "auth.set_avatar",
         "auth.set_language",

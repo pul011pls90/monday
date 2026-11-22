@@ -100,6 +100,10 @@ def collect_site_preflight_blockers(
 
     if not current_app.config.get("PUBLIC_LEGAL_REVIEWED", False):
         blockers.append("Legal pages (Terms/Privacy/Refund) are not marked reviewed (PUBLIC_LEGAL_REVIEWED=0).")
+    if template_dirs is None:
+        from .legal import collect_legal_config_blockers
+
+        blockers.extend(collect_legal_config_blockers())
 
     contacts = contacts_override if contacts_override is not None else CONTACTS
     empty_contacts = [k for k in ("instagram", "telegram", "whatsapp", "trial_lesson", "address") if not str(contacts.get(k) or "").strip()]
@@ -586,6 +590,7 @@ def sitemap_xml():
         url_for("auth.about", _external=True),
         url_for("auth.terms", _external=True),
         url_for("auth.privacy", _external=True),
+        url_for("auth.refund", _external=True),
         url_for("crm_intake.public_apply", _external=True),
     ]
     if is_public_site_enabled():
@@ -601,6 +606,7 @@ def sitemap_xml():
             url_for("crm_intake.public_apply", _external=True),
             url_for("auth.terms", _external=True),
             url_for("auth.privacy", _external=True),
+            url_for("auth.refund", _external=True),
         ]
     else:
         urls.insert(0, url_for("auth.login", _external=True))
