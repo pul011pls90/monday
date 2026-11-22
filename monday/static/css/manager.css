@@ -139,9 +139,14 @@ body.mgr .btn--secondary:hover {
   border-color: color-mix(in srgb, var(--accent) 42%, transparent) !important;
 }
 [data-theme="dark"] body.mgr .btn--secondary {
-  background: var(--accent-soft) !important;
-  color: var(--accent) !important;
-  border-color: color-mix(in srgb, var(--accent) 42%, transparent) !important;
+  background: #1B1B1B !important;
+  color: #F2F2F2 !important;
+  border-color: #363636 !important;
+}
+[data-theme="dark"] body.mgr .btn--secondary:hover {
+  background: #242424 !important;
+  border-color: #4A4A4A !important;
+  color: #F2F2F2 !important;
 }
 body.mgr .segmented {
   background: var(--surface);
@@ -173,13 +178,13 @@ body.mgr .hc__head h2 {
   font-size: 20px;
 }
 
-/* Gentle dark-mode borders inside Manager workspace (no harsh #FFFFFF boxes) */
+/* Gentle dark-mode borders inside Manager workspace (crisp carbon hairline boxes) */
 [data-theme="dark"] body.mgr {
   --bw: 1px;
 }
 [data-theme="dark"] body.mgr :is(.input, .select, .textarea, .search) {
-  border-color: rgba(255, 255, 255, .20);
-  background: var(--surface-2);
+  border-color: #363636;
+  background: #1B1B1B;
 }
 [data-theme="dark"] body.mgr :is(.input, .select, .textarea):focus,
 [data-theme="dark"] body.mgr .search:focus-within {
@@ -246,8 +251,8 @@ body.mgr .hc__head h2 {
   min-width: 0;
 }
 [data-theme="dark"] .mgr .mgr-card {
-  background: var(--surface-2);
-  border-color: rgba(255, 255, 255, .16);
+  background: var(--surface);
+  border-color: var(--line);
   box-shadow: none;
 }
 .mgr .mgr-card--tight {
@@ -300,8 +305,8 @@ body.mgr .hc__head h2 {
   text-decoration: none;
 }
 [data-theme="dark"] .mgr .mgr-pill {
-  background: var(--surface-3);
-  border-color: rgba(255, 255, 255, .14);
+  background: var(--surface-2);
+  border-color: var(--line);
 }
 
 /* 4. KPI Card (white, neutral surface; value turns red/amber only when action needed) */
@@ -336,8 +341,8 @@ body.mgr .hc__head h2 {
   text-decoration: none;
 }
 [data-theme="dark"] .mgr .mgr-kpi {
-  background: var(--surface-2);
-  border-color: rgba(255, 255, 255, .16);
+  background: var(--surface);
+  border-color: var(--line);
   box-shadow: none;
 }
 .mgr .mgr-kpi__top {
@@ -415,13 +420,13 @@ body.mgr .hc__head h2 {
 }
 [data-theme="dark"] .mgr .mgr-tab {
   background: var(--surface-2);
-  border-color: rgba(255, 255, 255, .18);
+  border-color: var(--line-strong);
   color: var(--text-2);
 }
 [data-theme="dark"] .mgr .mgr-tab.is-active {
   background: var(--accent-soft);
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--text);
+  border-color: var(--line-strong);
 }
 .mgr .mgr-tab__count {
   padding: 1px 7px;
@@ -452,8 +457,8 @@ body.mgr .hc__head h2 {
   box-shadow: var(--card-shadow);
 }
 [data-theme="dark"] .mgr .mgr-filter-row {
-  background: var(--surface-2);
-  border-color: rgba(255, 255, 255, .16);
+  background: var(--surface);
+  border-color: var(--line);
   box-shadow: none;
 }
 .mgr .mgr-filter-row :is(.input, .select, .search) {
@@ -550,10 +555,14 @@ body.mgr .hc__head h2 {
   color: #86EFAC;
   border-color: rgba(74, 222, 128, 0.5);
 }
-.mgr .mgr-btn--secondary {
-  background: var(--accent-soft);
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 26%, transparent);
+[data-theme="dark"] .mgr .mgr-btn--secondary {
+  background: #1B1B1B;
+  color: #F2F2F2;
+  border-color: #363636;
+}
+[data-theme="dark"] .mgr .mgr-btn--secondary:hover {
+  background: #242424;
+  border-color: #4A4A4A;
 }
 .mgr .mgr-btn--secondary:hover {
   background: color-mix(in srgb, var(--accent) 16%, var(--surface));
@@ -588,8 +597,8 @@ body.mgr .hc__head h2 {
   box-shadow: var(--card-shadow);
 }
 [data-theme="dark"] .mgr .mgr-table-wrap {
-  background: var(--surface-2);
-  border-color: rgba(255, 255, 255, .16);
+  background: var(--surface);
+  border-color: var(--line);
   box-shadow: none;
 }
 .mgr .mgr-table {
@@ -631,11 +640,11 @@ body.mgr .hc__head h2 {
   border-bottom: 0;
 }
 [data-theme="dark"] .mgr .mgr-table thead th {
-  background: var(--surface-3);
-  border-bottom-color: rgba(255, 255, 255, .14);
+  background: var(--surface-2);
+  border-bottom-color: var(--line);
 }
 [data-theme="dark"] .mgr .mgr-table tbody td {
-  border-bottom-color: rgba(255, 255, 255, .12);
+  border-bottom-color: var(--line);
 }
 
 /* 9. Empty State */
@@ -653,8 +662,8 @@ body.mgr .hc__head h2 {
   color: var(--muted);
 }
 [data-theme="dark"] .mgr .mgr-empty {
-  background: var(--surface-2);
-  border-color: rgba(255, 255, 255, .20);
+  background: var(--surface);
+  border-color: var(--line-strong);
 }
 .mgr .mgr-empty__ic {
   width: 44px;
@@ -695,8 +704,8 @@ body.mgr .hc__head h2 {
   box-shadow: var(--card-shadow);
 }
 [data-theme="dark"] .mgr .mgr-row-card {
-  background: var(--surface-2);
-  border-color: rgba(255, 255, 255, .16);
+  background: var(--surface);
+  border-color: var(--line);
   box-shadow: none;
 }
 .mgr .mgr-row-card__head {
@@ -812,8 +821,8 @@ body.mgr .hc__head h2 {
   text-decoration: none;
 }
 [data-theme="dark"] .mgr .mgr-funnel-step {
-  background: var(--surface-3);
-  border-color: rgba(255, 255, 255, .14);
+  background: var(--surface-2);
+  border-color: var(--line);
 }
 .mgr .mgr-funnel-step__name {
   display: flex;
@@ -864,8 +873,8 @@ body.mgr .hc__head h2 {
   border-color: var(--accent);
 }
 [data-theme="dark"] .mgr .mgr-queue__item {
-  background: var(--surface-3);
-  border-color: rgba(255, 255, 255, .14);
+  background: var(--surface-2);
+  border-color: var(--line);
 }
 .mgr .mgr-queue__main {
   flex: 1;
@@ -1053,8 +1062,8 @@ body.mgr .hc__head h2 {
   color: var(--text);
 }
 [data-theme="dark"] .mgr .crm-drawer {
-  background: var(--surface-2);
-  border-left-color: rgba(255, 255, 255, .18);
+  background: var(--surface);
+  border-left-color: var(--line-strong);
 }
 
 /* Stage 3.3 — Lead Detail (/manager/leads/<id>): Sticky Header + 2-Column Workspace */
@@ -1075,8 +1084,8 @@ body.mgr .hc__head h2 {
   flex-wrap: wrap;
 }
 [data-theme="dark"] .mgr .mgr-sticky-head {
-  background: var(--surface-2);
-  border-color: rgba(255, 255, 255, .18);
+  background: var(--surface);
+  border-color: var(--line);
   box-shadow: 0 8px 24px rgba(0, 0, 0, .55);
 }
 @media (max-width: 900px) {
@@ -1171,9 +1180,9 @@ body.mgr .hc__head h2 {
   flex: none;
 }
 [data-theme="dark"] .mgr .mgr-due-row .date-field {
-  border-color: rgba(255, 255, 255, .20);
-  background: var(--surface-3);
-  color: var(--text);
+  border-color: #363636;
+  background: #1B1B1B;
+  color: #F2F2F2;
 }
 
 /* Stage 3.4 & 3.5 — Pipeline Columns, Edge-Safe Scroll Track & Stage Top Accents */
@@ -1186,8 +1195,8 @@ body.mgr .hc__head h2 {
   gap: 8px;
 }
 [data-theme="dark"] .mgr .mgr-pipeline-filter {
-  background: var(--surface-3);
-  border-color: rgba(255, 255, 255, .16);
+  background: var(--surface-2);
+  border-color: var(--line);
 }
 .mgr .mgr-pipeline-filter .select.input--sm {
   width: auto;
@@ -1237,8 +1246,8 @@ body.mgr .hc__head h2 {
   min-height: 220px;
 }
 [data-theme="dark"] .mgr .mgr-col {
-  background: var(--surface-2);
-  border-color: rgba(255, 255, 255, .16);
+  background: var(--surface);
+  border-color: var(--line);
   box-shadow: none;
 }
 .mgr .mgr-col__head {
@@ -1296,8 +1305,8 @@ body.mgr .hc__head h2 {
   border-color: var(--accent);
 }
 [data-theme="dark"] .mgr .mgr-kanban-card {
-  background: var(--surface-3);
-  border-color: rgba(255, 255, 255, .14);
+  background: var(--surface-2);
+  border-color: var(--line);
 }
 .mgr .mgr-kanban-card__top {
   display: flex;
@@ -1344,8 +1353,8 @@ body.mgr .hc__head h2 {
   gap: 2px;
 }
 [data-theme="dark"] .mgr .mgr-stage-menu__pop {
-  background: var(--surface-2);
-  border-color: rgba(255, 255, 255, .20);
+  background: var(--surface);
+  border-color: var(--line-strong);
   box-shadow: 0 12px 32px rgba(0, 0, 0, .65);
 }
 .mgr .mgr-stage-menu__item {
@@ -1407,15 +1416,15 @@ body.mgr .hc__head h2 {
   font-weight: 600;
 }
 
-/* Stage 4 — Dark Mode Polish (Manager-Scoped Only, AA contrast & subtle borders) */
+/* Stage 4 — Dark Mode Polish (Manager-Scoped Only, Pure Carbon AA Contrast & Hairline Borders) */
 [data-theme="dark"] body.mgr {
-  --muted: #B0B7C6;
-  --text-2: #E2E6F0;
-  --line: rgba(255, 255, 255, .16);
-  --line-strong: rgba(255, 255, 255, .24);
+  --muted: #9A9A9A;
+  --text-2: #C8C8C8;
+  --line: #262626;
+  --line-strong: #363636;
 }
 [data-theme="dark"] body.mgr :is(.btn, .icon-btn, .chip, .segmented, .admin-tabs, .set-hero, .set-row, .acad-day-col, .acad-event, .att-pill span, .dp) {
-  border-color: rgba(255, 255, 255, .18);
+  border-color: #363636;
   border-width: 1px;
 }
 [data-theme="dark"] body.mgr .input,
@@ -1424,13 +1433,13 @@ body.mgr .hc__head h2 {
 [data-theme="dark"] body.mgr .search,
 [data-theme="dark"] body.mgr .date-field {
   border-width: 1px;
-  border-color: rgba(255, 255, 255, .20);
-  background-color: var(--surface-3);
-  color: var(--text);
+  border-color: #363636;
+  background-color: #1B1B1B;
+  color: #F2F2F2;
 }
 [data-theme="dark"] body.mgr .select option {
-  background: #141821;
-  color: #FFFFFF;
+  background: #141414;
+  color: #F2F2F2;
 }
 
 /* Compact Mode Workspace Shell */
@@ -1455,8 +1464,8 @@ body.mgr.is-compact .app-shell-panel {
 [data-theme="dark"] .mgr .mgr-kpi--money-slate,
 [data-theme="dark"] .mgr .mgr-kpi--money-accent,
 [data-theme="dark"] .mgr .mgr-kpi--money-warn {
-  background: var(--surface-2);
-  border-color: rgba(255, 255, 255, .16);
+  background: var(--surface);
+  border-color: var(--line);
   box-shadow: none;
 }
 .mgr .mgr-kpi--money-ok .mgr-kpi__val { color: var(--ok); }
@@ -1515,7 +1524,7 @@ body.mgr.is-compact .app-shell-panel {
 }
 [data-theme="dark"] .mgr .fx-switcher {
   background: var(--surface-2);
-  border-color: rgba(255, 255, 255, .18);
+  border-color: var(--line-strong);
 }
 .mgr .fx-switcher__btn {
   border: 0;
