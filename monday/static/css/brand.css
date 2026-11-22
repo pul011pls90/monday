@@ -108,13 +108,29 @@ body:not(.auth-body) {
   top: 18px;
   left: 24px;
   right: 24px;
+  width: auto;
+  float: none;
   padding: 0;
   margin: 0;
   line-height: 1.2;
+  text-align: left;
+  justify-content: flex-start;
+}
+.page-sky ~ .app fieldset:is(.cb__filter, .bank-filter) {
+  padding-top: 42px;
+}
+.page-sky ~ .app fieldset:is(.cb__filter, .bank-filter) > legend {
+  top: 12px;
+  left: 14px;
+  right: 14px;
+  width: auto;
+  float: none;
 }
 @media (max-width: 640px) {
   .page-sky ~ .app fieldset { padding-top: 42px; }
   .page-sky ~ .app fieldset > legend { top: 14px; left: 18px; right: 18px; }
+  .page-sky ~ .app fieldset:is(.cb__filter, .bank-filter) { padding-top: 40px; }
+  .page-sky ~ .app fieldset:is(.cb__filter, .bank-filter) > legend { top: 12px; left: 14px; right: 14px; }
 }
 .page-sky ~ .app .page-head,
 .page-sky ~ .app .an-head {
