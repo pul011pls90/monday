@@ -1,32 +1,231 @@
 {% extends "public/_base.html" %}
 {% block json_ld %}
 <script type="application/ld+json">{{ org_json_ld|tojson }}</script>
+<script defer src="{{ url_for('static', filename='js/landing.js') }}"></script>
 {% endblock %}
 
 {% block content %}
-<section class="pub-hero">
-  <div>
-    <span class="eyebrow" style="color:var(--hero-muted)">Monday Academy</span>
-    <h1>{{ _("Подготовка к экзаменам по математике — в группе или самостоятельно") }}</h1>
-    <p class="pub-hero__lead">{{ _("Выберите занятия с преподавателями в Monday Academy (офлайн и онлайн) или самостоятельную тренировку по банку вопросов с разбором и прогнозом баллов.") }}</p>
-    <div class="pub-hero__ctas">
-      <a class="btn btn--primary btn--lg" href="#apply-form">{{ _("Учиться в Monday Academy") }}</a>
-      <a class="btn btn--secondary btn--lg" href="{{ url_for('public_site.question_bank') }}">{{ _("Банк вопросов без преподавателя") }}</a>
+{# --------------------------------------------------------------------------- 1. Duolingo-Style Animated Hero #}
+<section class="pub-hero-play" aria-label="Monday Academy">
+  <div class="pub-hero-play__copy">
+    <span class="pub-hero-play__pill">{{ _("ОРТ · SAT · ЕГЭ · ЕНТ · Школьная математика") }}</span>
+    <h1>{{ _("Решай математику легко и уверенно каждый день") }}</h1>
+    <p class="pub-hero-play__lead">
+      {{ _("Готовьтесь к ОРТ, SAT, ЕГЭ, ЕНТ и школьным экзаменам с преподавателем или самостоятельно в банке вопросов с разбором каждого шага и прогнозом балла.") }}
+    </p>
+    <div class="pub-hero-play__ctas">
+      <a class="duo-btn duo-btn--primary" href="#try-challenge" data-scroll-challenge>
+        <span>{{ _("Начать бесплатно") }}</span>
+      </a>
+      <a class="duo-btn duo-btn--secondary" href="{{ url_for('auth.login') }}">
+        <span>{{ _("У меня уже есть аккаунт") }}</span>
+      </a>
     </div>
+    <p class="small muted" style="margin:12px 0 0">
+      {{ _("Самостоятельный доступ к банку вопросов — от") }} <b class="num">{{ pricing.display_price }}/{{ _("мес") }}</b> · {{ stats.published_questions }} {{ _("задач в базе") }}
+    </p>
   </div>
-  <div class="pub-hero__card">
-    <div class="eyebrow" style="color:var(--hero-muted)">{{ _("Два формата работы") }}</div>
-    <div>
-      <strong>{{ _("1. Курсы с преподавателем") }}</strong>
-      <p class="small" style="margin:4px 0 0;color:var(--hero-muted)">{{ _("Офлайн-аудитории и онлайн-группы: домашние задания, еженедельный тест Monday и контроль прогресса.") }}</p>
-    </div>
-    <div>
-      <strong>{{ _("2. Подписка на банк вопросов") }}</strong>
-      <p class="small" style="margin:4px 0 0;color:var(--hero-muted)">{{ _("Для самостоятельных учеников — от") }} {{ pricing.display_price }}/{{ _("мес") }} {{ _("с бесплатными примерами задач.") }}</p>
-    </div>
+
+  <div class="pub-hero-play__art" aria-hidden="true">
+    <svg class="duo-hero-svg" viewBox="0 0 420 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Soft geometric backdrop grid -->
+      <rect x="18" y="18" width="384" height="304" rx="28" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="2"/>
+      <path d="M58 64V282M128 64V282M198 64V282M268 64V282M338 64V282" stroke="var(--line)" stroke-width="1"/>
+      <path d="M44 102H376M44 162H376M44 222H376M44 282H376" stroke="var(--line)" stroke-width="1"/>
+
+      <!-- Coordinate axes + animated parabola -->
+      <line x1="60" y1="248" x2="352" y2="248" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+      <line x1="196" y1="74" x2="196" y2="286" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+      <path class="duo-svg-curve" d="M84 94 Q196 312 318 92" stroke="#1F4FE0" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+
+      <!-- Pulsing vertex & intersection nodes -->
+      <circle class="duo-svg-pulse" cx="196" cy="202" r="9" fill="#1E8E5A" stroke="#FFFFFF" stroke-width="3"/>
+      <circle class="duo-svg-pulse-delay" cx="132" cy="176" r="7" fill="#F2C94C" stroke="#FFFFFF" stroke-width="2.5"/>
+      <circle class="duo-svg-pulse" cx="264" cy="176" r="7" fill="#1F4FE0" stroke="#FFFFFF" stroke-width="2.5"/>
+
+      <!-- Floating rotated triangle shape -->
+      <g class="duo-svg-spin">
+        <polygon points="88,236 138,180 144,242" fill="#E8F1FB" stroke="#1F4FE0" stroke-width="2.5" stroke-linejoin="round"/>
+      </g>
+
+      <!-- Floating Top Progress Badge -->
+      <g class="duo-svg-float">
+        <rect x="234" y="34" width="152" height="58" rx="16" fill="#E7F6EE" stroke="#1E8E5A" stroke-width="2"/>
+        <circle cx="260" cy="63" r="14" fill="#1E8E5A"/>
+        <path d="M254 63L258 67L267 58" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="284" y="58" fill="#116A3F" font-size="13" font-weight="800" font-family="Onest, sans-serif">SAT / ОРТ</text>
+        <text x="284" y="75" fill="#1E8E5A" font-size="11.5" font-weight="700" font-family="Onest, sans-serif">+140 баллов</text>
+      </g>
+
+      <!-- Floating Bottom Formula Card -->
+      <g class="duo-svg-float-alt">
+        <rect x="34" y="256" width="156" height="50" rx="14" fill="#FDF6DD" stroke="#E8A400" stroke-width="2"/>
+        <text x="52" y="286" fill="#7A5200" font-size="15" font-weight="800" font-family="Onest, sans-serif">f(x) = x² − 4x + 5</text>
+      </g>
+    </svg>
   </div>
 </section>
 
+{# --------------------------------------------------------------------------- 2. Brilliant.org Interactive "Попробуй решить" #}
+<section id="try-challenge" class="br-challenge" data-landing-challenge aria-labelledby="br-try-h">
+  <div class="pub-section-head" style="margin-bottom:14px">
+    <div>
+      <span class="eyebrow">{{ _("Интерактивный тренажёр") }}</span>
+      <h2 id="br-try-h">{{ _("Попробуй решить прямо сейчас") }}</h2>
+    </div>
+    <p class="small text-2" style="margin:0">{{ _("Выберите тему и нажмите на ответ — разбор откроется мгновенно.") }}</p>
+  </div>
+
+  <div class="br-tabs" role="tablist" aria-label="{{ _('Темы мини-задач') }}">
+    <button type="button" class="br-tab is-active" role="tab" aria-selected="true" data-subject-tab="ort">{{ _("ОРТ Математика") }}</button>
+    <button type="button" class="br-tab" role="tab" aria-selected="false" data-subject-tab="algebra">{{ _("Алгебра") }}</button>
+    <button type="button" class="br-tab" role="tab" aria-selected="false" data-subject-tab="geometry">{{ _("Геометрия") }}</button>
+    <button type="button" class="br-tab" role="tab" aria-selected="false" data-subject-tab="logic">{{ _("Логика") }}</button>
+  </div>
+
+  <!-- Panel 1: ОРТ Математика -->
+  <article class="br-panel" role="tabpanel" data-subject-panel="ort">
+    <div class="br-problem">
+      <div class="br-problem__visual">
+        <svg viewBox="0 0 280 140" class="br-diagram" aria-hidden="true">
+          <rect x="8" y="14" width="122" height="68" rx="14" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="69" y="38" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent-ink)">КОЛОНКА А</text>
+          <text x="69" y="64" text-anchor="middle" font-size="20" font-weight="800" fill="var(--text)">3x + 4</text>
+          <rect x="150" y="14" width="122" height="68" rx="14" fill="var(--surface-2)" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <text x="211" y="38" text-anchor="middle" font-size="11" font-weight="700" fill="var(--muted)">КОЛОНКА Б</text>
+          <text x="211" y="64" text-anchor="middle" font-size="20" font-weight="800" fill="var(--text)">2x + 4</text>
+          <line x1="28" y1="112" x2="252" y2="112" stroke="var(--line-strong)" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="96" cy="112" r="5" fill="var(--muted)"/><text x="96" y="131" text-anchor="middle" font-size="11" fill="var(--muted)">0</text>
+          <circle cx="152" cy="112" r="5" fill="var(--surface)" stroke="var(--accent)" stroke-width="2.5"/><text x="152" y="131" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent)">1</text>
+          <line x1="157" y1="112" x2="246" y2="112" stroke="var(--ok)" stroke-width="4" stroke-linecap="round"/>
+          <text x="210" y="102" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ok)">x &gt; 1</text>
+        </svg>
+      </div>
+      <div class="br-problem__q">
+        <div class="eyebrow">{{ _("Сравнение величин · x > 1") }}</div>
+        <h3>{{ _("Какая величина больше при любом x > 1?") }}</h3>
+        <div class="br-options">
+          <button type="button" class="br-opt" data-challenge-opt data-correct="true"><span>А) {{ _("Колонка А больше") }}</span></button>
+          <button type="button" class="br-opt" data-challenge-opt><span>Б) {{ _("Колонка Б больше") }}</span></button>
+          <button type="button" class="br-opt" data-challenge-opt><span>В) {{ _("Величины равны") }}</span></button>
+          <button type="button" class="br-opt" data-challenge-opt><span>Г) {{ _("Данных недостаточно") }}</span></button>
+        </div>
+        <div class="br-explain" data-challenge-explain hidden>
+          <div class="br-explain__status" data-challenge-status data-ok-text="{{ _('Точно! Вы быстро упростили сравнение.') }}" data-bad-text="{{ _('Почти! Посмотрите короткий разбор:') }}"></div>
+          <ol class="br-explain__steps">
+            <li>{{ _("Уберём одинаковую часть (2x + 4) из обеих колонок: остаётся сравнить x и 0.") }}</li>
+            <li>{{ _("По условию x > 1 > 0, поэтому Колонка А всегда больше.") }}</li>
+          </ol>
+          <a class="duo-btn duo-btn--primary duo-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Продолжить обучение →") }}</a>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Panel 2: Алгебра -->
+  <article class="br-panel" role="tabpanel" data-subject-panel="algebra" hidden>
+    <div class="br-problem">
+      <div class="br-problem__visual">
+        <svg viewBox="0 0 280 140" class="br-diagram" aria-hidden="true">
+          <rect x="14" y="18" width="252" height="104" rx="16" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="140" y="54" text-anchor="middle" font-size="16" font-weight="800" fill="var(--accent-ink)">a + b = 12   ·   a − b = 3</text>
+          <line x1="44" y1="70" x2="236" y2="70" stroke="var(--line-strong)" stroke-width="1"/>
+          <text x="140" y="99" text-anchor="middle" font-size="22" font-weight="800" fill="var(--text)">a² − b² = ?</text>
+        </svg>
+      </div>
+      <div class="br-problem__q">
+        <div class="eyebrow">{{ _("Формулы сокращённого умножения") }}</div>
+        <h3>{{ _("Найдите значение выражения a² − b², если a + b = 12 и a − b = 3.") }}</h3>
+        <div class="br-options">
+          <button type="button" class="br-opt" data-challenge-opt><span>9</span></button>
+          <button type="button" class="br-opt" data-challenge-opt><span>15</span></button>
+          <button type="button" class="br-opt" data-challenge-opt data-correct="true"><span>36</span></button>
+          <button type="button" class="br-opt" data-challenge-opt><span>48</span></button>
+        </div>
+        <div class="br-explain" data-challenge-explain hidden>
+          <div class="br-explain__status" data-challenge-status data-ok-text="{{ _('Верно! Отличное применение формулы.') }}" data-bad-text="{{ _('Не совсем. Разберём решение за 2 шага:') }}"></div>
+          <ol class="br-explain__steps">
+            <li>{{ _("Раскладываем разность квадратов: a² − b² = (a − b)(a + b).") }}</li>
+            <li>{{ _("Подставляем числа без поиска a и b по отдельности: 3 × 12 = 36.") }}</li>
+          </ol>
+          <a class="duo-btn duo-btn--primary duo-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Продолжить обучение →") }}</a>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Panel 3: Геометрия -->
+  <article class="br-panel" role="tabpanel" data-subject-panel="geometry" hidden>
+    <div class="br-problem">
+      <div class="br-problem__visual">
+        <svg viewBox="0 0 280 140" class="br-diagram" aria-hidden="true">
+          <polygon points="56,116 216,116 56,26" fill="var(--ok-soft)" stroke="#1E8E5A" stroke-width="2.5" stroke-linejoin="round"/>
+          <rect x="56" y="100" width="16" height="16" fill="none" stroke="#1E8E5A" stroke-width="2"/>
+          <text x="38" y="76" font-size="16" font-weight="800" fill="var(--text)">6</text>
+          <text x="150" y="64" font-size="16" font-weight="800" fill="#1E8E5A">10</text>
+          <text x="136" y="134" text-anchor="middle" font-size="14" font-weight="700" fill="var(--muted)">?</text>
+        </svg>
+      </div>
+      <div class="br-problem__q">
+        <div class="eyebrow">{{ _("Планиметрия · Прямоугольный треугольник") }}</div>
+        <h3>{{ _("Гипотенуза прямоугольного треугольника равна 10, а один из катетов равен 6. Найдите площадь треугольника.") }}</h3>
+        <div class="br-options">
+          <button type="button" class="br-opt" data-challenge-opt><span>18</span></button>
+          <button type="button" class="br-opt" data-challenge-opt data-correct="true"><span>24</span></button>
+          <button type="button" class="br-opt" data-challenge-opt><span>30</span></button>
+          <button type="button" class="br-opt" data-challenge-opt><span>48</span></button>
+        </div>
+        <div class="br-explain" data-challenge-explain hidden>
+          <div class="br-explain__status" data-challenge-status data-ok-text="{{ _('Супер! Треугольник 6-8-10 узнан мгновенно.') }}" data-bad-text="{{ _('Почти! Посмотрите шаги решения:') }}"></div>
+          <ol class="br-explain__steps">
+            <li>{{ _("По теореме Пифагора второй катет равен √(10² − 6²) = √64 = 8.") }}</li>
+            <li>{{ _("Площадь равна половине произведения катетов: (6 × 8) / 2 = 24.") }}</li>
+          </ol>
+          <a class="duo-btn duo-btn--primary duo-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Продолжить обучение →") }}</a>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Panel 4: Логика -->
+  <article class="br-panel" role="tabpanel" data-subject-panel="logic" hidden>
+    <div class="br-problem">
+      <div class="br-problem__visual">
+        <svg viewBox="0 0 280 140" class="br-diagram" aria-hidden="true">
+          <polygon points="140,20 202,60 178,120 102,120 78,60" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+          <line x1="140" y1="20" x2="178" y2="120" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <line x1="140" y1="20" x2="102" y2="120" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <line x1="202" y1="60" x2="102" y2="120" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <line x1="202" y1="60" x2="78" y2="60" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <line x1="178" y1="120" x2="78" y2="60" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <circle cx="140" cy="20" r="8" fill="#1F4FE0"/><circle cx="202" cy="60" r="8" fill="#1E8E5A"/>
+          <circle cx="178" cy="120" r="8" fill="#1F4FE0"/><circle cx="102" cy="120" r="8" fill="#1E8E5A"/>
+          <circle cx="78" cy="60" r="8" fill="#F2C94C"/>
+        </svg>
+      </div>
+      <div class="br-problem__q">
+        <div class="eyebrow">{{ _("Комбинаторика и графы") }}</div>
+        <h3>{{ _("В группе 5 учеников. Каждый пожал руку каждому из остальных ровно по одному разу. Сколько всего рукопожатий произошло?") }}</h3>
+        <div class="br-options">
+          <button type="button" class="br-opt" data-challenge-opt><span>8</span></button>
+          <button type="button" class="br-opt" data-challenge-opt data-correct="true"><span>10</span></button>
+          <button type="button" class="br-opt" data-challenge-opt><span>15</span></button>
+          <button type="button" class="br-opt" data-challenge-opt><span>20</span></button>
+        </div>
+        <div class="br-explain" data-challenge-explain hidden>
+          <div class="br-explain__status" data-challenge-status data-ok-text="{{ _('Точно! Двойной учёт не сбил вас с толку.') }}" data-bad-text="{{ _('Подсказка: проверьте, сколько раз посчитана каждая пара:') }}"></div>
+          <ol class="br-explain__steps">
+            <li>{{ _("Каждый из 5 учеников делает по 4 рукопожатия: 5 × 4 = 20 касаний.") }}</li>
+            <li>{{ _("Каждое рукопожатие связывает двоих, поэтому делим на 2: 20 / 2 = 10.") }}</li>
+          </ol>
+          <a class="duo-btn duo-btn--primary duo-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Продолжить обучение →") }}</a>
+        </div>
+      </div>
+    </div>
+  </article>
+</section>
+
+{# --------------------------------------------------------------------------- 3. Live DB Stats Strip #}
 <section aria-label="{{ _('Актуальная статистика базы заданий') }}">
   <div class="pub-stats">
     <article class="pub-stat">
@@ -48,29 +247,64 @@
   </div>
 </section>
 
-<section>
+{# --------------------------------------------------------------------------- 4. Audience Split (Brilliant.org role cards) #}
+<section aria-labelledby="br-roles-h">
   <div class="pub-section-head">
     <div>
-      <span class="eyebrow">{{ _("Методика") }}</span>
-      <h2>{{ _("Как устроена подготовка в Monday") }}</h2>
+      <span class="eyebrow">{{ _("Для кого платформа") }}</span>
+      <h2 id="br-roles-h">{{ _("Два сценария — один результат") }}</h2>
     </div>
   </div>
-  <div class="pub-grid-3">
-    <article class="card">
-      <h3>{{ _("1. Точная диагностика") }}</h3>
-      <p class="text-2">{{ _("Определяем текущий уровень по карте тем и строим понятный маршрут к нужному экзамену.") }}</p>
+  <div class="pub-grid-2">
+    <article class="card br-role-card">
+      <span class="tag tag--soft">{{ _("Самостоятельно или в группе") }}</span>
+      <h3>{{ _("Для учеников") }}</h3>
+      <p class="text-2">{{ _("Интерактивные сессии от 5 минут, пробные тесты формата ОРТ и SAT с калькулятором Desmos, формулы и умный журнал ошибок.") }}</p>
+      <div class="br-role-card__actions">
+        <a class="btn btn--primary" href="{{ url_for('public_site.question_bank') }}">{{ _("Открыть банк вопросов") }}</a>
+        <a class="btn btn--secondary" href="{{ url_for('auth.register') }}">{{ _("Создать аккаунт") }}</a>
+      </div>
     </article>
-    <article class="card">
-      <h3>{{ _("2. Практика без воды") }}</h3>
-      <p class="text-2">{{ _("Тренировочные сессии от 5 до 30 минут, мгновенная проверка, пояснения и личный журнал ошибок.") }}</p>
-    </article>
-    <article class="card">
-      <h3>{{ _("3. Симуляция экзамена") }}</h3>
-      <p class="text-2">{{ _("Таймер, формат бланков (ОРТ) или встроенный калькулятор Desmos (SAT / CSCA) и прогноз балла.") }}</p>
+    <article class="card br-role-card">
+      <span class="tag tag--ok">{{ _("Контроль и поддержка") }}</span>
+      <h3>{{ _("Для преподавателей и родителей") }}</h3>
+      <p class="text-2">{{ _("Прозрачная карта освоенных тем, статистика попыток, домашние задания, еженедельный тест понедельника и очные/онлайн-занятия с учителем.") }}</p>
+      <div class="br-role-card__actions">
+        <a class="btn btn--secondary" href="{{ url_for('public_site.offline_courses') }}">{{ _("Офлайн-курсы и филиалы") }}</a>
+        <a class="btn btn--ghost" href="#apply-form">{{ _("Консультация с менеджером") }}</a>
+      </div>
     </article>
   </div>
 </section>
 
+{# --------------------------------------------------------------------------- 5. 3-Step Visual Learning Loop #}
+<section aria-labelledby="br-loop-h">
+  <div class="pub-section-head">
+    <div>
+      <span class="eyebrow">{{ _("Система подготовки") }}</span>
+      <h2 id="br-loop-h">{{ _("Как работает цикл обучения в Monday") }}</h2>
+    </div>
+  </div>
+  <div class="pub-grid-3 br-loop">
+    <article class="card br-loop__step">
+      <span class="br-loop__num num">1</span>
+      <h3>{{ _("1. Диагностика уровня") }}</h3>
+      <p class="text-2">{{ _("Определяем сильные и слабые навыки по карте экзамена и строим персональный план без лишних повторений.") }}</p>
+    </article>
+    <article class="card br-loop__step">
+      <span class="br-loop__num num">2</span>
+      <h3>{{ _("2. Интерактивная практика") }}</h3>
+      <p class="text-2">{{ _("Короткие сессии, пошаговые подсказки, симулятор ОРТ / SAT и автоматический разбор каждой ошибки.") }}</p>
+    </article>
+    <article class="card br-loop__step">
+      <span class="br-loop__num num">3</span>
+      <h3>{{ _("3. Контроль прогресса с преподавателем") }}</h3>
+      <p class="text-2">{{ _("Подключайтесь к учителю Monday Academy, отслеживайте прогноз балла и закрепляйте сложные темы на занятиях.") }}</p>
+    </article>
+  </div>
+</section>
+
+{# --------------------------------------------------------------------------- 6. Exam Directions & Lead Form #}
 <section>
   <div class="pub-section-head">
     <div>
@@ -92,21 +326,6 @@
       </article>
     {% endfor %}
   </div>
-</section>
-
-<section class="pub-grid-2">
-  <article class="card stack-sm">
-    <span class="eyebrow">{{ _("Очное обучение") }}</span>
-    <h3>{{ _("Офлайн-курсы и филиалы") }}</h3>
-    <p class="text-2">{{ _("Занятия в мини-группах с преподавателем, разбор сложных задач у доски и контроль домашних работ на платформе.") }}</p>
-    <div><a class="btn btn--secondary" href="{{ url_for('public_site.offline_courses') }}">{{ _("Подробнее об офлайн-курсах") }}</a></div>
-  </article>
-  <article class="card stack-sm">
-    <span class="eyebrow">{{ _("Дистанционное обучение") }}</span>
-    <h3>{{ _("Онлайн-курсы из любой точки") }}</h3>
-    <p class="text-2">{{ _("Живые уроки с преподавателем, интерактивная доска и единый цифровой кабинет ученика.") }}</p>
-    <div><a class="btn btn--secondary" href="{{ url_for('public_site.online_courses') }}">{{ _("Подробнее об онлайн-форматах") }}</a></div>
-  </article>
 </section>
 
 {% include "public/_lead_form.html" %}
