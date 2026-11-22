@@ -187,20 +187,22 @@ def test_admin_priority_rail_order_and_non_admin_isolation():
     _login(c_adm, "adm@monday.kg")
     html = c_adm.get("/admin/").get_data(as_text=True)
 
-    assert 'class="rail rail--admin"' in html
-    assert '<body class="admin-nav"' in html
-    rail_chunk = html.split('<nav class="rail')[1].split("</nav>")[0]
+    assert 'class="rail"' in html
+    assert "rail--admin" not in html and "admin-nav" not in html
+    rail_chunk = html.split('<nav class="rail"')[1].split("</nav>")[0]
+    assert "УПРАВЛЕНИЕ" not in rail_chunk and "КОНТЕНТ" not in rail_chunk
+    assert 'class="rail__sep"' in rail_chunk
+    assert 'aria-label="Исправления"' in rail_chunk
 
-    # Exact priority order inside Admin .rail
+    # Exact priority order inside Admin .rail (separated by rail__sep)
     ordered_labels = [
-        "УПРАВЛЕНИЕ",
         "Админ",
         "Аналитика",
         "CRM",
         "Расписание",
-        "КОНТЕНТ",
+        "rail__sep",
         "Модерация",
-        "Исправления",
+        "Правки",
         "Вопросы",
         "Карта",
         "Настройки",
@@ -225,9 +227,10 @@ def test_admin_priority_rail_order_and_non_admin_isolation():
         assert c_adm.get(url).status_code == 200, f"Admin {url} failed"
     assert 'title="' not in rail_chunk, "Rail links should not carry redundant title attributes"
 
-    # Mobile .nav-drawer mirrors the 2 groups and .acct-menu does not duplicate the 8 links
+    # Mobile .nav-drawer mirrors priority order and .acct-menu does not duplicate the 8 links
     drawer_chunk = html.split('<div class="nav-drawer"')[1].split("</aside>")[0]
-    d_pos = [drawer_chunk.index(lbl) for lbl in ordered_labels]
+    drawer_labels = ["Админ", "Аналитика", "CRM", "Расписание", "Модерация", "Исправления", "Вопросы", "Карта", "Настройки"]
+    d_pos = [drawer_chunk.index(lbl) for lbl in drawer_labels]
     assert d_pos == sorted(d_pos)
     acct_chunk = html.split('<details class="acct-menu"')[1].split("</details>")[0]
     assert "Администратор" in acct_chunk

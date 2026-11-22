@@ -179,11 +179,12 @@ def test_analytics_permissions_and_ui_rendering():
     assert "page-sky" in adm_html
     assert "/admin/analytics/" in adm_html
 
-    # Admin left rail organizes all 8 Admin items by priority (Управление / Контент) + Настройки,
-    # while leaving .acct-menu clean (no duplicate nav links).
-    rail_chunk = adm_html.split('<nav class="rail')[1].split("</nav>")[0]
-    for admin_label in ("УПРАВЛЕНИЕ", "Админ", "Аналитика", "CRM", "Расписание", "КОНТЕНТ", "Модерация", "Исправления", "Вопросы", "Карта", "Настройки"):
+    # Admin left rail keeps all 8 Admin items in priority order (native Student .rail) + Настройки,
+    # without УПРАВЛЕНИЕ/КОНТЕНТ headings and while leaving .acct-menu clean.
+    rail_chunk = adm_html.split('<nav class="rail"')[1].split("</nav>")[0]
+    for admin_label in ("Админ", "Аналитика", "CRM", "Расписание", "Модерация", "Правки", "Вопросы", "Карта", "Настройки"):
         assert admin_label in rail_chunk
+    assert "УПРАВЛЕНИЕ" not in rail_chunk and "КОНТЕНТ" not in rail_chunk
     acct_chunk = adm_html.split('<details class="acct-menu"')[1].split("</details>")[0]
     assert "Администратор" in acct_chunk
     assert "Карта" not in acct_chunk and "Модерация" not in acct_chunk

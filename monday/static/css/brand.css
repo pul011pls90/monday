@@ -1193,7 +1193,7 @@ kbd { font: 700 10px var(--font); padding: 1px 5px; border-radius: 4px; border: 
   .topbar { height: 52px; padding: 0 16px; }
 }
 @media (max-width: 760px), (orientation: landscape) and (max-height: 520px) {
-  .rail__item--extra, .rail__foot, .rail-group__label { display: none !important; }
+  .rail__item--extra, .rail__foot { display: none !important; }
   .rail__label { display: inline; }
   .rail { overflow-x: visible; justify-content: space-around; padding-left: 8px; padding-right: 8px; }
   .rail__item { flex: 1 1 0; width: auto; height: auto; max-width: 92px; padding: 8px 2px; font-size: 11px; gap: 4px; border-radius: 14px; display: flex; flex-direction: column; }
@@ -1221,9 +1221,8 @@ kbd { font: 700 10px var(--font); padding: 1px 5px; border-radius: 4px; border: 
   .nav-drawer__logo span:nth-child(6) { color: #020B29; }
   [data-theme="dark"] .nav-drawer__logo span:nth-child(6) { color: #BBCFF4; }
   .nav-drawer__list { display: flex; flex-direction: column; gap: 4px; }
-  .nav-drawer__group { padding: 10px 14px 4px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
   .nav-drawer__sep { height: 1px; background: var(--line); margin: 8px 6px 4px; }
-  .nav-drawer__item { display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 0 14px; border-radius: 14px;
+  .nav-drawer__item { display: flex; align-items: center; gap: 14px; min-height: 52px; padding: 0 14px; border-radius: 14px;
     font-weight: 600; font-size: 16px; color: var(--text); text-decoration: none; }
   .nav-drawer__item:hover { background: var(--surface-2); text-decoration: none; }
   .nav-drawer__item.is-active { background: var(--accent-soft); color: var(--accent); }
@@ -5389,107 +5388,8 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .shell-range { width: 170px; accent-color: var(--accent); cursor: pointer; }
 .shell-alpha-val { min-width: 44px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
 
-/* Priority-Ordered Admin Narrow Vertical Left Rail + Admin Settings (.admin-nav / .adm-*) */
+/* Role badge inside top-right profile popover & Admin Settings 2-column layout matching /manager/account */
 .acct-menu__role { display: inline-block; margin-top: 3px; font-style: normal; font-size: 11px; font-weight: 700; letter-spacing: .03em; color: var(--accent); background: var(--accent-soft); padding: 2px 8px; border-radius: 999px; }
-.rail-groups { width: 100%; margin-top: 22px; display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1 0 auto; }
-.rail-group__label { font-size: 9.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); text-align: center; line-height: 1.1; margin: 2px 0 4px; user-select: none; width: 100%; }
-.rail-group__label--divided { width: 64px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
-[data-theme="dark"] .rail-group__label--divided { border-top-color: rgba(255, 255, 255, .14); }
-@media (min-width: 1024px) {
-  body.admin-nav { --rail: 100px; }
-  body.admin-nav .rail--admin {
-    width: 86px;
-    top: 16px;
-    height: calc(100vh - 28px);
-    margin: 16px 0 12px 12px;
-    padding: 12px 6px;
-    gap: 4px;
-    border-radius: 22px;
-    border: 1px solid var(--line);
-    background: color-mix(in srgb, var(--surface) 90%, transparent);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-    box-shadow: var(--card-shadow);
-    align-items: center;
-    overflow-y: auto;
-  }
-  [data-theme="dark"] body.admin-nav .rail--admin {
-    background: color-mix(in srgb, var(--surface) 90%, transparent);
-    border-color: rgba(255, 255, 255, .14);
-    box-shadow: none;
-  }
-  body.admin-nav .rail__logo {
-    width: 40px;
-    height: 40px;
-    flex: none;
-    margin: 2px 0 0;
-  }
-  body.admin-nav .rail--admin .rail__item {
-    position: relative;
-    width: 72px;
-    height: auto;
-    min-height: 44px;
-    margin-inline: auto;
-    padding: 5px 4px;
-    border-radius: 12px;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 3px;
-    font-size: 10.5px;
-    font-weight: 600;
-    line-height: 1.15;
-    letter-spacing: -.01em;
-    text-align: center;
-    color: var(--text-2);
-  }
-  body.admin-nav .rail--admin .rail__item .ic {
-    --ic: 18px;
-    width: 18px;
-    height: 18px;
-    flex: none;
-  }
-  body.admin-nav .rail--admin .rail__item svg { stroke-width: 1.75; }
-  body.admin-nav .rail--admin .rail__label {
-    font-size: 10.5px;
-    font-weight: inherit;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  body.admin-nav .rail--admin .rail__count { position: absolute; top: 3px; right: 6px; }
-  body.admin-nav .rail--admin .rail__item:hover { background: var(--surface-2); color: var(--text); text-decoration: none; }
-  [data-theme="dark"] body.admin-nav .rail--admin .rail__item:hover { background: var(--surface-3); }
-  body.admin-nav .rail--admin .rail__item.is-active,
-  [data-theme="dark"] body.admin-nav .rail--admin .rail__item.is-active {
-    background: #E8F6EE;
-    color: #116A3F;
-    border-radius: 12px;
-    font-weight: 700;
-  }
-  body.admin-nav .rail--admin .rail__item.is-active .ic,
-  body.admin-nav .rail--admin .rail__item.is-active .rail__label,
-  body.admin-nav .rail--admin .rail__item.is-active svg { color: #116A3F; }
-  [data-theme="dark"] body.admin-nav .rail--admin .rail__item.is-active {
-    background: rgba(34, 197, 94, 0.16);
-    color: #86EFAC;
-  }
-  [data-theme="dark"] body.admin-nav .rail--admin .rail__item.is-active .ic,
-  [data-theme="dark"] body.admin-nav .rail--admin .rail__item.is-active .rail__label,
-  [data-theme="dark"] body.admin-nav .rail--admin .rail__item.is-active svg { color: #86EFAC; }
-  body.admin-nav .rail--admin .rail__foot {
-    width: 64px;
-    align-items: center;
-    padding-top: 8px;
-    margin-top: 6px;
-    border-top: 1px solid var(--line);
-    gap: 4px;
-  }
-  [data-theme="dark"] body.admin-nav .rail--admin .rail__foot { border-top-color: rgba(255, 255, 255, .14); }
-}
-
-/* Admin Settings 2-column layout matching /manager/account */
 .adm-account-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
 .adm-account-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 @media (max-width: 900px) { .adm-account-grid { grid-template-columns: minmax(0, 1fr); } }
