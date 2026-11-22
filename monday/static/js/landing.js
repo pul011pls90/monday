@@ -1,4 +1,4 @@
-/* Monday Academy — CSP-safe controller for public landing page & floating header. */
+/* Monday Academy — CSP-safe controller for public landing page, ORT mini-test & floating header. */
 (function () {
   "use strict";
 
@@ -46,22 +46,7 @@
     });
   }
 
-  // 2. Horizontal Exam Strip Left/Right Scroll Buttons
-  document.querySelectorAll("[data-strip]").forEach((strip) => {
-    const track = strip.querySelector("[data-strip-track]");
-    if (!track) return;
-    strip.addEventListener("click", (e) => {
-      const btn = e.target.closest("[data-strip-scroll]");
-      if (!btn) return;
-      const dir = btn.getAttribute("data-strip-scroll") === "left" ? -1 : 1;
-      track.scrollBy({
-        left: dir * 280,
-        behavior: prefersReducedMotion() ? "auto" : "smooth",
-      });
-    });
-  });
-
-  // 2b. FAQ Accordion smooth toggle (closes sibling items when opening a new question)
+  // 2. FAQ Accordion smooth toggle (closes sibling items when opening a new question)
   document.querySelectorAll("[data-faq-list]").forEach((faqList) => {
     const items = Array.from(faqList.querySelectorAll("details[data-faq-item]"));
     items.forEach((detail) => {
@@ -76,12 +61,17 @@
     });
   });
 
-  // 3. Sandbox Mode Switcher (Математика | Экзамены) + Exam Subject Tabs
+  // 3. Sandbox Mode Switcher (Мини-тест ОРТ | По темам) + Subject Tabs + ORT Mini-Test
   const root = document.querySelector("[data-landing-challenge]");
   const modeBtns = root ? Array.from(root.querySelectorAll("[data-mode-btn]")) : [];
   const modePanels = root ? Array.from(root.querySelectorAll("[data-mode-panel]")) : [];
   const subjectTabs = root ? Array.from(root.querySelectorAll("[data-subject-tab]")) : [];
   const subjectPanels = root ? Array.from(root.querySelectorAll("[data-subject-panel]")) : [];
+
+  const ortRoot = root ? root.querySelector("[data-ort-minitest]") : null;
+  const ortSteps = ortRoot ? Array.from(ortRoot.querySelectorAll("[data-ort-step]")) : [];
+  const ortCards = ortRoot ? Array.from(ortRoot.querySelectorAll("[data-ort-q]")) : [];
+  const ortProgress = ortRoot ? ortRoot.querySelector("[data-ort-progress]") : null;
 
   function activateMode(modeKey) {
     if (!root || !modeKey) return;
@@ -110,16 +100,38 @@
     });
   }
 
+  function activateOrtQuestion(indexStr) {
+    if (!ortRoot) return;
+    const key = String(indexStr);
+    ortSteps.forEach((btn) => {
+      const active = btn.getAttribute("data-ort-step") === key;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    ortCards.forEach((card) => {
+      const show = card.getAttribute("data-ort-q") === key;
+      card.hidden = !show;
+    });
+    if (ortProgress && ortCards.length) {
+      const idxNum = Number(key) + 1;
+      ortProgress.textContent = idxNum + " / " + ortCards.length;
+    }
+  }
+
   // 4. Global smooth-scroll & Fanned Hero Card click-to-challenge
   document.addEventListener("click", (e) => {
     const heroCard = e.target.closest("[data-hero-card]");
     if (heroCard) {
       e.preventDefault();
-      const targetMode = heroCard.getAttribute("data-challenge-mode") || "math";
+      const targetMode = heroCard.getAttribute("data-challenge-mode") || "ort";
       const targetTab = heroCard.getAttribute("data-challenge-tab");
+      const targetOrt = heroCard.getAttribute("data-ort-goto");
       activateMode(targetMode);
       if (targetTab) {
         activateSubjectTab(targetTab);
+      }
+      if (targetOrt !== null && targetOrt !== "") {
+        activateOrtQuestion(targetOrt);
       }
       smoothScrollTo("#try-challenge");
       return;
@@ -136,118 +148,62 @@
 
   if (!root) return;
 
-  // 5. Interactive Tile-Slot Algebra Builder (Mode 1: Математика)
-  const builder = root.querySelector("[data-tile-builder]");
-  if (builder) {
-    const slots = Array.from(builder.querySelectorAll("[data-slot]"));
-    const tiles = Array.from(builder.querySelectorAll("[data-tile]"));
-    const explainEl = builder.querySelector("[data-tiles-explain]");
-    const statusEl = builder.querySelector("[data-tiles-status]");
-
-    function clearValidation() {
-      slots.forEach((s) => s.classList.remove("is-right", "is-wrong"));
-      if (explainEl) explainEl.hidden = true;
-    }
-
-    function evaluateSlots() {
-      const allFilled = slots.every((s) => Boolean(s.getAttribute("data-value")));
-      if (!allFilled) {
-        clearValidation();
+  // 5. Authentic ORT Mini-Test Bubble Sheet Controller (Mode 1: Мини-тест ОРТ)
+  if (ortRoot) {
+    ortRoot.addEventListener("click", (e) => {
+      const stepBtn = e.target.closest("[data-ort-step]");
+      if (stepBtn) {
+        activateOrtQuestion(stepBtn.getAttribute("data-ort-step"));
         return;
       }
 
-      // Linear group slots (accept "2x 4x" without duplicate use of same term)
-      const linSlots = slots.filter((s) => s.getAttribute("data-group") === "lin");
-      const linValues = linSlots.map((s) => s.getAttribute("data-value"));
-      const has2x = linValues.includes("2x");
-      const has4x = linValues.includes("4x");
+      const nextBtn = e.target.closest("[data-ort-next]");
+      if (nextBtn) {
+        activateOrtQuestion(nextBtn.getAttribute("data-ort-next"));
+        return;
+      }
 
-      let allCorrect = true;
-      slots.forEach((slot) => {
-        const val = slot.getAttribute("data-value") || "";
-        const accepted = (slot.getAttribute("data-accept") || "").split(/\s+/).filter(Boolean);
-        let slotOk = accepted.includes(val);
-        if (slot.getAttribute("data-group") === "lin" && !(has2x && has4x)) {
-          // If duplicate or missing linear partner, mark only slots not matching distinct 2x/4x
-          const firstIdx = linValues.indexOf(val);
-          const myIdx = linSlots.indexOf(slot);
-          if (!accepted.includes(val) || firstIdx !== myIdx) {
-            slotOk = false;
-          }
+      const bubbleBtn = e.target.closest("[data-ort-bubble]");
+      if (!bubbleBtn) return;
+
+      const qCard = bubbleBtn.closest("[data-ort-q]");
+      if (!qCard) return;
+
+      const qIdx = qCard.getAttribute("data-ort-q");
+      const allBubbles = Array.from(qCard.querySelectorAll("[data-ort-bubble]"));
+      const isCorrect = bubbleBtn.getAttribute("data-correct") === "true";
+
+      allBubbles.forEach((b) => {
+        b.classList.remove("is-selected", "is-right", "is-wrong");
+        if (b === bubbleBtn) {
+          b.classList.add("is-selected", isCorrect ? "is-right" : "is-wrong");
+        } else if (b.getAttribute("data-correct") === "true") {
+          b.classList.add("is-right");
         }
-        slot.classList.toggle("is-right", slotOk);
-        slot.classList.toggle("is-wrong", !slotOk);
-        if (!slotOk) allCorrect = false;
+        b.setAttribute("aria-pressed", b === bubbleBtn ? "true" : "false");
       });
 
+      const stepDot = ortSteps.find((s) => s.getAttribute("data-ort-step") === qIdx);
+      if (stepDot) {
+        stepDot.classList.toggle("is-ok", isCorrect);
+        stepDot.classList.toggle("is-bad", !isCorrect);
+      }
+
+      const explainEl = qCard.querySelector("[data-ort-explain]");
+      const statusEl = qCard.querySelector("[data-ort-status]");
       if (statusEl) {
-        statusEl.textContent = allCorrect
+        statusEl.textContent = isCorrect
           ? statusEl.getAttribute("data-ok-text") || "Верно!"
-          : statusEl.getAttribute("data-bad-text") || "Почти! Проверьте выделенные места:";
-        statusEl.className = "br-explain__status " + (allCorrect ? "is-ok" : "is-bad");
+          : statusEl.getAttribute("data-bad-text") || "Почти! Посмотрите разбор:";
+        statusEl.className = "br-explain__status " + (isCorrect ? "is-ok" : "is-bad");
       }
       if (explainEl) {
         explainEl.hidden = false;
       }
-    }
-
-    function resetBuilder() {
-      slots.forEach((slot) => {
-        slot.textContent = "?";
-        slot.removeAttribute("data-value");
-        slot.removeAttribute("data-tile-index");
-        slot.classList.remove("is-filled", "is-right", "is-wrong");
-      });
-      tiles.forEach((tile) => {
-        tile.disabled = false;
-        tile.classList.remove("is-used");
-      });
-      if (explainEl) explainEl.hidden = true;
-    }
-
-    builder.addEventListener("click", (e) => {
-      const resetBtn = e.target.closest("[data-tiles-reset]");
-      if (resetBtn) {
-        resetBuilder();
-        return;
-      }
-
-      const slotBtn = e.target.closest("[data-slot]");
-      if (slotBtn) {
-        const tileIdx = slotBtn.getAttribute("data-tile-index");
-        if (tileIdx !== null && tileIdx !== "") {
-          const originTile = tiles[Number(tileIdx)];
-          if (originTile) {
-            originTile.disabled = false;
-            originTile.classList.remove("is-used");
-          }
-        }
-        slotBtn.textContent = "?";
-        slotBtn.removeAttribute("data-value");
-        slotBtn.removeAttribute("data-tile-index");
-        slotBtn.classList.remove("is-filled", "is-right", "is-wrong");
-        clearValidation();
-        return;
-      }
-
-      const tileBtn = e.target.closest("[data-tile]");
-      if (tileBtn && !tileBtn.disabled) {
-        const emptySlot = slots.find((s) => !s.getAttribute("data-value"));
-        if (!emptySlot) return;
-        const val = tileBtn.getAttribute("data-tile") || tileBtn.textContent.trim();
-        const tIdx = tiles.indexOf(tileBtn);
-        emptySlot.textContent = val;
-        emptySlot.setAttribute("data-value", val);
-        emptySlot.setAttribute("data-tile-index", String(tIdx));
-        emptySlot.classList.add("is-filled");
-        tileBtn.disabled = true;
-        tileBtn.classList.add("is-used");
-        evaluateSlots();
-      }
     });
   }
 
-  // 6. Mode Switcher & Exam Mini-Problems (Mode 2: Экзамены)
+  // 6. Mode Switcher & Topic Mini-Problems (Mode 2: По темам)
   root.addEventListener("click", (e) => {
     const modeBtn = e.target.closest("[data-mode-btn]");
     if (modeBtn) {

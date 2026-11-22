@@ -33,7 +33,7 @@
   </p>
 
   <div class="mp-fan" aria-label="{{ _('Примеры задач Monday') }}">
-    <a class="mp-fan__item" href="#try-challenge" data-hero-card data-challenge-mode="exam" data-challenge-tab="ort" aria-label="{{ _('Дроби: открыть тренажёр') }}">
+    <a class="mp-fan__item" href="#try-challenge" data-hero-card data-challenge-mode="ort" data-ort-goto="0" aria-label="{{ _('Дроби: открыть тренажёр') }}">
       <span class="mp-fan__card">
         <span class="mp-fan__art">
           <svg viewBox="0 0 140 96" aria-hidden="true">
@@ -48,7 +48,7 @@
         <span class="mp-fan__cap">{{ _("Закрасьте 1/2 фигуры") }}</span>
       </span>
     </a>
-    <a class="mp-fan__item" href="#try-challenge" data-hero-card data-challenge-mode="math" aria-label="{{ _('Площадь прямоугольника: открыть тренажёр') }}">
+    <a class="mp-fan__item" href="#try-challenge" data-hero-card data-challenge-mode="ort" data-ort-goto="1" aria-label="{{ _('Алгебра: открыть тренажёр') }}">
       <span class="mp-fan__card">
         <span class="mp-fan__art">
           <svg viewBox="0 0 140 96" aria-hidden="true">
@@ -82,7 +82,7 @@
         <span class="mp-fan__cap">f(x) = x² − 4x + 5</span>
       </span>
     </a>
-    <a class="mp-fan__item" href="#try-challenge" data-hero-card data-challenge-mode="exam" data-challenge-tab="geometry" aria-label="{{ _('Прямоугольный треугольник: открыть тренажёр') }}">
+    <a class="mp-fan__item" href="#try-challenge" data-hero-card data-challenge-mode="ort" data-ort-goto="2" aria-label="{{ _('Прямоугольный треугольник: открыть тренажёр') }}">
       <span class="mp-fan__card">
         <span class="mp-fan__art">
           <svg viewBox="0 0 140 96" aria-hidden="true">
@@ -128,7 +128,7 @@
         <span class="mp-fan__cap">{{ _("5 учеников → сколько рукопожатий?") }}</span>
       </span>
     </a>
-    <a class="mp-fan__item" href="#try-challenge" data-hero-card data-challenge-mode="exam" data-challenge-tab="ort" aria-label="{{ _('Прогноз балла: открыть тренажёр') }}">
+    <a class="mp-fan__item" href="#try-challenge" data-hero-card data-challenge-mode="ort" data-ort-goto="0" aria-label="{{ _('Прогноз балла: открыть тренажёр') }}">
       <span class="mp-fan__card">
         <span class="mp-fan__art">
           <svg viewBox="0 0 140 96" aria-hidden="true">
@@ -147,23 +147,22 @@
   </div>
 </section>
 
-{# =========================================================================== 2. Horizontal exam strip #}
-<section class="mp-strip" data-strip aria-label="{{ _('Направления подготовки') }}">
-  <div class="mp-strip__inner">
-    <button class="mp-strip__btn" type="button" data-strip-scroll="left" aria-label="{{ _('Прокрутить влево') }}">‹</button>
-    <div class="mp-strip__track" data-strip-track>
-      {% for ex in stats.exam_cards %}
-        {% set badge = {'OLYMP': '★', 'CALC1': '∫'}.get(ex.code, ex.label) %}
-        <a class="mp-strip__item" href="{{ url_for('public_site.question_bank') }}">
-          <span class="mp-strip__badge" aria-hidden="true">{{ badge }}</span>
-          <span class="mp-strip__text">
+{# =========================================================================== 2. Seamless Infinite Exam Marquee (no arrows, no counts) #}
+<section class="mp-strip" aria-label="{{ _('Направления подготовки') }}">
+  <div class="mp-marquee">
+    <div class="mp-marquee__track">
+      {% for copy_idx in (1, 2) %}
+      <div class="mp-marquee__group"{% if copy_idx == 2 %} aria-hidden="true"{% endif %}>
+        {% for ex in stats.exam_cards %}
+          {% set badge = {'OLYMP': '★', 'CALC1': '∫'}.get(ex.code, ex.label) %}
+          <a class="mp-strip__item" href="{{ url_for('public_site.question_bank') }}"{% if copy_idx == 2 %} tabindex="-1"{% endif %}>
+            <span class="mp-strip__badge" aria-hidden="true">{{ badge }}</span>
             <span class="mp-strip__label">{{ ex.label }}</span>
-            <span class="mp-strip__count num">{{ ex.count }} {{ _("зад.") }}</span>
-          </span>
-        </a>
+          </a>
+        {% endfor %}
+      </div>
       {% endfor %}
     </div>
-    <button class="mp-strip__btn" type="button" data-strip-scroll="right" aria-label="{{ _('Прокрутить вправо') }}">›</button>
   </div>
 </section>
 
@@ -175,23 +174,23 @@
   <div class="mp-metric"><b class="num">{{ LANGUAGES|length }}</b><span>{{ _("языков интерфейса") }}</span></div>
 </section>
 
-{# =========================================================================== 4. Interactive sandbox #}
+{# =========================================================================== 4. Interactive Sandbox: Authentic ORT Mini-Test + Topic Tabs #}
 <section id="try-challenge" class="mp-section mp-sandbox" data-landing-challenge aria-labelledby="mp-try-h">
   <div class="mp-wrap">
     <div class="mp-head">
       <span class="mp-badge-glow">{{ _("Интерактивный тренажёр") }}</span>
       <h2 id="mp-try-h" class="mp-h2">{{ _("Интерактивный тренажёр, а не просто ответы") }}</h2>
-      <p class="mp-head__lead">{{ _("Нажимайте, собирайте и проверяйте — разбор открывается сразу после ответа.") }}</p>
+      <p class="mp-head__lead">{{ _("Отметьте кружок на бланке ответов ОРТ — проверка и пошаговое решение откроются мгновенно.") }}</p>
       <div class="mp-seg" role="tablist" aria-label="{{ _('Режим тренажёра') }}">
-        <button type="button" class="mp-seg__btn is-active" role="tab" aria-selected="true" data-mode-btn="math">{{ _("Математика") }}</button>
-        <button type="button" class="mp-seg__btn" role="tab" aria-selected="false" tabindex="-1" data-mode-btn="exam">{{ _("Экзамены") }}</button>
+        <button type="button" class="mp-seg__btn is-active" role="tab" aria-selected="true" data-mode-btn="ort">{{ _("Мини-тест ОРТ") }}</button>
+        <button type="button" class="mp-seg__btn" role="tab" aria-selected="false" tabindex="-1" data-mode-btn="exam">{{ _("По темам") }}</button>
       </div>
     </div>
 
     <div class="mp-split">
       <div class="mp-copy">
         <h3>{{ _("Как Monday учит шаг за шагом") }}</h3>
-        <p>{{ _("Каждая задача — с проверкой и разбором. Формулы отображаются как в учебнике (KaTeX), а ошибки автоматически превращаются в «Работу над ошибками» с похожими задачами.") }}</p>
+        <p>{{ _("Каждая задача — с проверкой и разбором. Формулы отображаются как в учебнике (KaTeX), а ошибки автоматически попадают в «Работу над ошибками» с похожими задачами.") }}</p>
         <ul class="mp-modes">
           {% for key, m in modes.items() if m.ready %}
           <li>
@@ -206,56 +205,177 @@
       </div>
 
       <div class="mp-stage">
-        {# ---------- Mode 1: tile-slot algebra builder #}
-        <div class="mp-stage__card" data-mode-panel="math" role="tabpanel">
-          <div class="mp-builder" data-tile-builder>
-            <div class="eyebrow">{{ _("Алгебра · Раскрытие скобок") }}</div>
-            <h3 class="mp-builder__q">{{ _("Соберите произведение по площадям прямоугольников") }}</h3>
-            <div class="mp-builder__visual" aria-hidden="true">
-              <svg viewBox="0 0 260 120" class="mp-builder__svg">
-                <rect x="40" y="16" width="120" height="64" rx="6" fill="#E8F1FB" stroke="#1F4FE0" stroke-width="1.6"/>
-                <rect x="160" y="16" width="64" height="64" rx="6" fill="#E7F6EE" stroke="#1E8E5A" stroke-width="1.6"/>
-                <rect x="40" y="80" width="120" height="32" rx="6" fill="#FDF6DD" stroke="#E8A400" stroke-width="1.6"/>
-                <rect x="160" y="80" width="64" height="32" rx="6" fill="#F1EAFE" stroke="#7C4DDB" stroke-width="1.6"/>
-                <text x="100" y="54" text-anchor="middle" font-size="18" font-weight="800" fill="#0A1A5C">x²</text>
-                <text x="192" y="54" text-anchor="middle" font-size="16" font-weight="800" fill="#116A3F">?</text>
-                <text x="100" y="101" text-anchor="middle" font-size="16" font-weight="800" fill="#7A5200">?</text>
-                <text x="192" y="101" text-anchor="middle" font-size="16" font-weight="800" fill="#5B33B8">?</text>
-                <text x="100" y="11" text-anchor="middle" font-size="11" font-weight="700" fill="var(--pub-muted)">x</text>
-                <text x="192" y="11" text-anchor="middle" font-size="11" font-weight="700" fill="var(--pub-muted)">4</text>
-                <text x="30" y="52" text-anchor="middle" font-size="11" font-weight="700" fill="var(--pub-muted)">x</text>
-                <text x="30" y="100" text-anchor="middle" font-size="11" font-weight="700" fill="var(--pub-muted)">2</text>
-              </svg>
-            </div>
-            <div class="mp-eq" aria-label="{{ _('Уравнение с пустыми местами') }}">
-              <span>(x + 4)(x + 2) = x² +</span>
-              <button type="button" class="mp-slot" data-slot data-accept="2x 4x" data-group="lin" aria-label="{{ _('Пустое место 1') }}">?</button>
-              <span>+</span>
-              <button type="button" class="mp-slot" data-slot data-accept="2x 4x" data-group="lin" aria-label="{{ _('Пустое место 2') }}">?</button>
-              <span>+</span>
-              <button type="button" class="mp-slot" data-slot data-accept="8" aria-label="{{ _('Пустое место 3') }}">?</button>
-            </div>
-            <div class="mp-tiles" role="group" aria-label="{{ _('Плитки с ответами') }}">
-              {% for t in ('2x', '4x', '8x', '2', '4', '8') %}
-              <button type="button" class="mp-tile" data-tile="{{ t }}">{{ t }}</button>
-              {% endfor %}
-            </div>
-            <div class="mp-builder__foot">
-              <span class="small muted">{{ _("Нажмите плитку, чтобы поставить её в пустое место; нажмите место, чтобы убрать.") }}</span>
-              <button type="button" class="mp-btn mp-btn--white mp-btn--sm" data-tiles-reset>{{ _("Сбросить") }}</button>
-            </div>
-            <div class="br-explain" data-tiles-explain hidden aria-live="polite">
-              <div class="br-explain__status" data-tiles-status data-ok-text="{{ _('Верно! (x + 4)(x + 2) = x² + 6x + 8.') }}" data-bad-text="{{ _('Почти! Красные места стоит заменить — вот разбор:') }}"></div>
-              <ol class="br-explain__steps">
-                <li>{{ _("Каждое слагаемое первой скобки умножаем на каждое второй: x·x, x·2, 4·x, 4·2.") }}</li>
-                <li>{{ _("Получаем x² + 2x + 4x + 8 — это площади четырёх прямоугольников, вместе x² + 6x + 8.") }}</li>
-              </ol>
-              <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Продолжить обучение →") }}</a>
-            </div>
+        {# ---------- Mode 1: Authentic Monday ORT Test Template + Bubble Sheet #}
+        <div class="mp-stage__card" data-mode-panel="ort" role="tabpanel">
+          <div class="mp-ort" data-ort-minitest>
+            <header class="mp-ort__top">
+              <span class="mp-eyebrow-pill">{{ _("ОРТ · Математика") }}</span>
+              <div class="mp-ort__steps" role="tablist" aria-label="{{ _('Вопросы мини-теста ОРТ') }}">
+                <button type="button" class="mp-ort__step is-active" data-ort-step="0" aria-selected="true">1</button>
+                <button type="button" class="mp-ort__step" data-ort-step="1" aria-selected="false">2</button>
+                <button type="button" class="mp-ort__step" data-ort-step="2" aria-selected="false">3</button>
+              </div>
+              <div class="mp-ort__meta">
+                <span class="mp-ort__progress num" data-ort-progress>1 / 3</span>
+                <span class="mp-ort__timer num" aria-label="{{ _('Таймер') }}">⏱ 02:45</span>
+              </div>
+            </header>
+
+            {# --- ORT Question 1: Quantitative Comparison (x > 1) #}
+            <article class="mp-ort__qcard" data-ort-q="0">
+              <div class="mp-ort-key">
+                <b>{{ _("Сравните величины в колонках А и Б. Ответ:") }}</b>
+                <span><i>А</i> {{ _("больше величина А") }}</span>
+                <span><i>Б</i> {{ _("больше величина Б") }}</span>
+                <span><i>В</i> {{ _("величины равны") }}</span>
+                <span><i>Г</i> {{ _("недостаточно данных") }}</span>
+              </div>
+
+              <div class="ort-q mp-ort-q">
+                <div class="ort-q__num">1.</div>
+                <div class="ort-q__body">
+                  <div class="ort-q__text math">{{ _("Дано условие:") }} $x > 1$. {{ _("Какая величина больше?") }}</div>
+                  <div class="q-columns">
+                    <div class="q-columns__col">
+                      <div class="q-columns__title">{{ _("Колонка А") }}</div>
+                      <div class="q-columns__body math">$3x + 4$</div>
+                    </div>
+                    <div class="q-columns__col">
+                      <div class="q-columns__title">{{ _("Колонка Б") }}</div>
+                      <div class="q-columns__body math">$2x + 4$</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mp-ort-sheet" aria-label="{{ _('Бланк ответов ОРТ') }}">
+                <div class="mp-ort-sheet__head">
+                  <span class="mp-ort-sheet__title">{{ _("Бланк ответов") }}</span>
+                  <span class="small muted">{{ _("Отметьте кружок:") }}</span>
+                </div>
+                <div class="mp-ort-sheet__row">
+                  <span class="mp-ort-sheet__num num">1</span>
+                  <button type="button" class="mp-bubble" data-ort-bubble data-correct="true" aria-label="А"><span>А</span></button>
+                  <button type="button" class="mp-bubble" data-ort-bubble aria-label="Б"><span>Б</span></button>
+                  <button type="button" class="mp-bubble" data-ort-bubble aria-label="В"><span>В</span></button>
+                  <button type="button" class="mp-bubble" data-ort-bubble aria-label="Г"><span>Г</span></button>
+                </div>
+              </div>
+
+              <div class="br-explain" data-ort-explain hidden aria-live="polite">
+                <div class="br-explain__status" data-ort-status data-ok-text="{{ _('Верно! На бланке ОРТ отмечен ответ (А).') }}" data-bad-text="{{ _('Почти! Правильный кружок на бланке — (А):') }}"></div>
+                <ol class="br-explain__steps">
+                  <li>{{ _("Вычтем одинаковое выражение 2x + 4 из обеих колонок: в Колонке А остаётся x, а в Колонке Б — 0.") }}</li>
+                  <li>{{ _("По условию x > 1 > 0, значит величина в Колонке А строго больше при любом x > 1.") }}</li>
+                </ol>
+                <div class="mp-ort__actions">
+                  <button type="button" class="mp-btn mp-btn--blue mp-btn--sm" data-ort-next="1">{{ _("Следующий вопрос →") }}</button>
+                  <a class="mp-btn mp-btn--soft mp-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Пройти полный вариант ОРТ →") }}</a>
+                </div>
+              </div>
+            </article>
+
+            {# --- ORT Question 2: Quantitative Comparison (a² - b²) #}
+            <article class="mp-ort__qcard" data-ort-q="1" hidden>
+              <div class="mp-ort-key">
+                <b>{{ _("Сравните величины в колонках А и Б. Ответ:") }}</b>
+                <span><i>А</i> {{ _("больше величина А") }}</span>
+                <span><i>Б</i> {{ _("больше величина Б") }}</span>
+                <span><i>В</i> {{ _("величины равны") }}</span>
+                <span><i>Г</i> {{ _("недостаточно данных") }}</span>
+              </div>
+
+              <div class="ort-q mp-ort-q">
+                <div class="ort-q__num">2.</div>
+                <div class="ort-q__body">
+                  <div class="ort-q__text math">{{ _("Известно, что") }} $a + b = 12$ {{ _("и") }} $a - b = 3$.</div>
+                  <div class="q-columns">
+                    <div class="q-columns__col">
+                      <div class="q-columns__title">{{ _("Колонка А") }}</div>
+                      <div class="q-columns__body math">$a^2 - b^2$</div>
+                    </div>
+                    <div class="q-columns__col">
+                      <div class="q-columns__title">{{ _("Колонка Б") }}</div>
+                      <div class="q-columns__body math">$36$</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mp-ort-sheet" aria-label="{{ _('Бланк ответов ОРТ') }}">
+                <div class="mp-ort-sheet__head">
+                  <span class="mp-ort-sheet__title">{{ _("Бланк ответов") }}</span>
+                  <span class="small muted">{{ _("Отметьте кружок:") }}</span>
+                </div>
+                <div class="mp-ort-sheet__row">
+                  <span class="mp-ort-sheet__num num">2</span>
+                  <button type="button" class="mp-bubble" data-ort-bubble aria-label="А"><span>А</span></button>
+                  <button type="button" class="mp-bubble" data-ort-bubble aria-label="Б"><span>Б</span></button>
+                  <button type="button" class="mp-bubble" data-ort-bubble data-correct="true" aria-label="В"><span>В</span></button>
+                  <button type="button" class="mp-bubble" data-ort-bubble aria-label="Г"><span>Г</span></button>
+                </div>
+              </div>
+
+              <div class="br-explain" data-ort-explain hidden aria-live="polite">
+                <div class="br-explain__status" data-ort-status data-ok-text="{{ _('Точно! Обе колонки равны 36 — ответ (В).') }}" data-bad-text="{{ _('Разберём за 2 шага — правильный ответ (В):') }}"></div>
+                <ol class="br-explain__steps">
+                  <li>{{ _("По формуле разности квадратов: a² − b² = (a − b)(a + b).") }}</li>
+                  <li>{{ _("Подставляем значения: 3 × 12 = 36, значит Колонка А и Колонка Б равны.") }}</li>
+                </ol>
+                <div class="mp-ort__actions">
+                  <button type="button" class="mp-btn mp-btn--blue mp-btn--sm" data-ort-next="2">{{ _("Следующий вопрос →") }}</button>
+                  <a class="mp-btn mp-btn--soft mp-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Пройти полный вариант ОРТ →") }}</a>
+                </div>
+              </div>
+            </article>
+
+            {# --- ORT Question 3: Part 2 5-choice problem (А Б В Г Д) #}
+            <article class="mp-ort__qcard" data-ort-q="2" hidden>
+              <div class="ort-q mp-ort-q">
+                <div class="ort-q__num">3.</div>
+                <div class="ort-q__body">
+                  <div class="ort-q__text math">{{ _("Гипотенуза прямоугольного треугольника равна") }} $10$, {{ _("а один из катетов равен") }} $6$. {{ _("Найдите площадь треугольника.") }}</div>
+                  <ol class="ort-q__options mp-ort-options">
+                    <li><b>(А)</b> <span class="math">$18$</span></li>
+                    <li><b>(Б)</b> <span class="math">$24$</span></li>
+                    <li><b>(В)</b> <span class="math">$30$</span></li>
+                    <li><b>(Г)</b> <span class="math">$36$</span></li>
+                    <li><b>(Д)</b> <span class="math">$48$</span></li>
+                  </ol>
+                </div>
+              </div>
+
+              <div class="mp-ort-sheet" aria-label="{{ _('Бланк ответов ОРТ') }}">
+                <div class="mp-ort-sheet__head">
+                  <span class="mp-ort-sheet__title">{{ _("Бланк ответов · Часть 2") }}</span>
+                  <span class="small muted">{{ _("Отметьте кружок:") }}</span>
+                </div>
+                <div class="mp-ort-sheet__row">
+                  <span class="mp-ort-sheet__num num">3</span>
+                  <button type="button" class="mp-bubble" data-ort-bubble aria-label="А"><span>А</span></button>
+                  <button type="button" class="mp-bubble" data-ort-bubble data-correct="true" aria-label="Б"><span>Б</span></button>
+                  <button type="button" class="mp-bubble" data-ort-bubble aria-label="В"><span>В</span></button>
+                  <button type="button" class="mp-bubble" data-ort-bubble aria-label="Г"><span>Г</span></button>
+                  <button type="button" class="mp-bubble" data-ort-bubble aria-label="Д"><span>Д</span></button>
+                </div>
+              </div>
+
+              <div class="br-explain" data-ort-explain hidden aria-live="polite">
+                <div class="br-explain__status" data-ort-status data-ok-text="{{ _('Супер! Треугольник 6–8–10 решён верно — ответ (Б).') }}" data-bad-text="{{ _('Почти! Посмотрите шаги решения — ответ (Б):') }}"></div>
+                <ol class="br-explain__steps">
+                  <li>{{ _("По теореме Пифагора второй катет равен √(10² − 6²) = √64 = 8.") }}</li>
+                  <li>{{ _("Площадь прямоугольного треугольника: S = (6 × 8) / 2 = 24.") }}</li>
+                </ol>
+                <div class="mp-ort__actions">
+                  <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Пройти полный вариант ОРТ →") }}</a>
+                  <a class="mp-btn mp-btn--soft mp-btn--sm" href="{{ url_for('public_site.question_bank') }}">{{ _("Открыть банк вопросов") }}</a>
+                </div>
+              </div>
+            </article>
           </div>
         </div>
 
-        {# ---------- Mode 2: exam quick-choice mini problems #}
+        {# ---------- Mode 2: Topic quick-choice mini problems #}
         <div class="mp-stage__card" data-mode-panel="exam" role="tabpanel" hidden>
           <div class="br-tabs" role="tablist" aria-label="{{ _('Темы мини-задач') }}">
             <button type="button" class="br-tab is-active" role="tab" aria-selected="true" data-subject-tab="ort">{{ _("ОРТ Математика") }}</button>
@@ -406,61 +526,89 @@
   </div>
 </section>
 
-{# =========================================================================== 5. Sky-blue "anywhere" band #}
+{# =========================================================================== 5. Sky-blue "anywhere" band with Desmos & Digital SAT/CSCA mockups #}
 <section class="mp-sky" aria-labelledby="mp-sky-h">
-  <div class="mp-sky__art mp-sky__art--phone mp-float" aria-hidden="true">
-    <svg viewBox="0 0 160 260">
-      <g transform="rotate(-10 80 130)">
-        <rect x="22" y="14" width="116" height="232" rx="22" fill="#0A1A5C"/>
-        <rect x="30" y="24" width="100" height="212" rx="16" fill="#FFFFFF"/>
-        <rect x="42" y="40" width="76" height="8" rx="4" fill="#E4E4E1"/>
-        <rect x="42" y="40" width="48" height="8" rx="4" fill="#1E8E5A"/>
-        <text x="80" y="80" text-anchor="middle" font-size="15" font-weight="800" fill="#0A1A5C">2x + 3 = 11</text>
-        <rect x="40" y="96" width="80" height="24" rx="10" fill="#F6F6F3" stroke="#D4D4D0"/>
-        <rect x="40" y="126" width="80" height="24" rx="10" fill="#E7F6EE" stroke="#1E8E5A" stroke-width="1.6"/>
-        <rect x="40" y="156" width="80" height="24" rx="10" fill="#F6F6F3" stroke="#D4D4D0"/>
-        <text x="80" y="112" text-anchor="middle" font-size="11" font-weight="700" fill="#3D3D3D">x = 3</text>
-        <text x="80" y="142" text-anchor="middle" font-size="11" font-weight="800" fill="#116A3F">x = 4 ✓</text>
-        <text x="80" y="172" text-anchor="middle" font-size="11" font-weight="700" fill="#3D3D3D">x = 7</text>
-        <rect x="40" y="196" width="80" height="26" rx="13" fill="#1F4FE0"/>
-        <text x="80" y="213" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF">Проверить</text>
-      </g>
-    </svg>
-  </div>
-  <div class="mp-sky__art mp-sky__art--tablet mp-float mp-float--d2" aria-hidden="true">
-    <svg viewBox="0 0 240 190">
-      <g transform="rotate(8 120 95)">
-        <rect x="16" y="16" width="208" height="158" rx="18" fill="#0A1A5C"/>
-        <rect x="26" y="26" width="188" height="138" rx="12" fill="#FFFFFF"/>
-        <text x="40" y="50" font-size="11" font-weight="800" fill="#0A1A5C">Навыки</text>
-        <rect x="40" y="62" width="150" height="10" rx="5" fill="#E4E4E1"/><rect x="40" y="62" width="120" height="10" rx="5" fill="#1F4FE0"/>
-        <rect x="40" y="84" width="150" height="10" rx="5" fill="#E4E4E1"/><rect x="40" y="84" width="84" height="10" rx="5" fill="#1E8E5A"/>
-        <rect x="40" y="106" width="150" height="10" rx="5" fill="#E4E4E1"/><rect x="40" y="106" width="56" height="10" rx="5" fill="#E8A400"/>
-        <rect x="40" y="128" width="150" height="10" rx="5" fill="#E4E4E1"/><rect x="40" y="128" width="100" height="10" rx="5" fill="#7C4DDB"/>
-      </g>
-    </svg>
-  </div>
-  <div class="mp-sky__art mp-sky__art--cube1 mp-float mp-float--d1" aria-hidden="true">
-    <svg viewBox="0 0 64 74"><polygon points="32,2 62,19 32,36 2,19" fill="#7FA3F3"/><polygon points="2,19 32,36 32,72 2,55" fill="#2B60E5"/><polygon points="32,36 62,19 62,55 32,72" fill="#153893"/><text x="32" y="24" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF">π</text></svg>
-  </div>
-  <div class="mp-sky__art mp-sky__art--cube2 mp-float mp-float--d3" aria-hidden="true">
-    <svg viewBox="0 0 64 74"><polygon points="32,2 62,19 32,36 2,19" fill="#FBD46D"/><polygon points="2,19 32,36 32,72 2,55" fill="#E8A400"/><polygon points="32,36 62,19 62,55 32,72" fill="#B37E00"/><text x="32" y="24" text-anchor="middle" font-size="14" font-weight="800" fill="#5C3D00">∑</text></svg>
-  </div>
-  <div class="mp-sky__art mp-sky__art--cube3 mp-float mp-float--d2" aria-hidden="true">
-    <svg viewBox="0 0 64 74"><polygon points="32,2 62,19 32,36 2,19" fill="#C4B0F5"/><polygon points="2,19 32,36 32,72 2,55" fill="#7C4DDB"/><polygon points="32,36 62,19 62,55 32,72" fill="#5B33B8"/><text x="32" y="24" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">x²</text></svg>
-  </div>
-  <div class="mp-sky__art mp-sky__art--badge mp-float mp-float--d1" aria-hidden="true">
-    <svg viewBox="0 0 120 44"><rect x="1" y="1" width="118" height="42" rx="21" fill="#FFFFFF" stroke="#E4E4E1"/><circle cx="22" cy="22" r="13" fill="#1E8E5A"/><path d="M16 22 L20 26 L28 18" stroke="#FFFFFF" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="42" y="27" font-size="12" font-weight="800" fill="#0A1A5C">Навык освоен</text></svg>
-  </div>
+  <div class="mp-sky__grid">
+    {# Left: Desmos Interactive Inequality Graphing Calculator Card #}
+    <div class="mp-sky__mock mp-float" aria-hidden="true">
+      <div class="mp-desmos-card">
+        <div class="mp-desmos-card__bar">
+          <span class="mp-desmos-card__title">Desmos Graphing Calculator</span>
+          <span class="mp-desmos-card__tag">SAT · CSCA</span>
+        </div>
+        <div class="mp-desmos-card__exprs">
+          <div class="mp-desmos-card__expr">
+            <span class="mp-desmos-card__dot mp-desmos-card__dot--blue"></span>
+            <code>y ≥ −x + 4</code>
+          </div>
+          <div class="mp-desmos-card__expr">
+            <span class="mp-desmos-card__dot mp-desmos-card__dot--amber"></span>
+            <code>y &gt; 3x − 2</code>
+          </div>
+        </div>
+        <svg viewBox="0 0 260 170" class="mp-desmos-card__svg">
+          <rect x="0" y="0" width="260" height="170" rx="12" fill="#FFFFFF"/>
+          <g stroke="#E2E8F0" stroke-width="1">
+            <path d="M26 0V170M65 0V170M104 0V170M143 0V170M182 0V170M221 0V170"/>
+            <path d="M0 24H260M0 58H260M0 92H260M0 126H260M0 160H260"/>
+          </g>
+          <path d="M0 126H260M65 0V170" stroke="#94A3B8" stroke-width="1.5"/>
+          {# Shaded feasible intersection region above both lines #}
+          <polygon points="0,0 162,0 124,68 0,14" fill="#1F4FE0" fill-opacity="0.16"/>
+          {# Line 1: y = -x + 4 (solid blue) #}
+          <line x1="0" y1="14" x2="230" y2="152" stroke="#1F4FE0" stroke-width="2.6"/>
+          {# Line 2: y = 3x - 2 (dashed amber) #}
+          <line x1="76" y1="162" x2="162" y2="0" stroke="#F59E0B" stroke-width="2.6" stroke-dasharray="6 4"/>
+          {# Intersection point (1.5, 2.5) #}
+          <circle cx="124" cy="68" r="5.5" fill="#1F4FE0" stroke="#FFFFFF" stroke-width="2"/>
+          {# Animated draggable point + grab hand cursor gliding along inequality region #}
+          <g class="mp-desmos-hand">
+            <circle cx="96" cy="51" r="7" fill="#1E8E5A" fill-opacity="0.22"/>
+            <circle cx="96" cy="51" r="4.5" fill="#1E8E5A" stroke="#FFFFFF" stroke-width="1.8"/>
+            <g transform="translate(94, 50)">
+              <path d="M4 2 C4 0.5 6.5 0.5 6.5 2 V7 H8 C9 5.5 11 6 11 7.5 V9 C12.5 8 14 9 14 10.5 V14.5 C14 18 11.5 20 8 20 H5 C2.5 20 1 18 0 15.5 L-2 11.5 C-2.5 10 -1 9 0.5 10 L3 12 V2 Z" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.4" stroke-linejoin="round"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
 
-  <div class="mp-sky__inner">
-    <h2 id="mp-sky-h" class="mp-h2 mp-sky__h">{{ _("Учись в любое время, с любого устройства") }}</h2>
-    <p class="mp-sky__lead">
-      {{ _("Встроенный калькулятор Desmos для SAT и CSCA, бланк ответов в формате ОРТ, еженедельный Monday Test, личные шпаргалки формул и установка Monday как приложения (PWA) на телефон и ноутбук.") }}
-    </p>
-    <div class="mp-sky__ctas">
-      <a class="mp-btn mp-btn--white" href="{{ url_for('public_site.question_bank') }}">{{ _("Открыть банк вопросов") }}</a>
-      <a class="mp-btn mp-btn--white" href="{{ url_for('auth.register') }}">{{ _("Создать аккаунт") }}</a>
+    {# Center: Headline & Dual Tactile CTAs #}
+    <div class="mp-sky__inner">
+      <span class="mp-eyebrow-pill">{{ _("SAT · CSCA · ОРТ · PWA") }}</span>
+      <h2 id="mp-sky-h" class="mp-h2 mp-sky__h">{{ _("Учись в любое время, с любого устройства") }}</h2>
+      <p class="mp-sky__lead">
+        {{ _("Встроенный калькулятор Desmos для SAT и CSCA, бланк ответов в формате ОРТ, еженедельный Monday Test, личные шпаргалки формул и установка Monday как приложения (PWA) на телефон и ноутбук.") }}
+      </p>
+      <div class="mp-sky__ctas">
+        <a class="mp-btn mp-btn--blue" href="{{ url_for('public_site.question_bank') }}">{{ _("Открыть банк вопросов") }}</a>
+        <a class="mp-btn mp-btn--card" href="{{ url_for('auth.register') }}">{{ _("Создать аккаунт") }}</a>
+      </div>
+    </div>
+
+    {# Right: Authentic Digital SAT / CSCA Test Runner Mockup + Non-Clipped Mastery Badge #}
+    <div class="mp-sky__mock mp-float mp-float--d2" aria-hidden="true">
+      <div class="mp-sat-card">
+        <div class="mp-sat-card__top">
+          <span class="mp-sat-card__mod">Digital SAT · Module 1</span>
+          <span class="mp-sat-card__timer num">⏱ 31:42</span>
+          <span class="mp-sat-card__calc">🖩 Desmos</span>
+        </div>
+        <div class="mp-sat-card__q">
+          <div class="mp-sat-card__qnum">Question 14 of 22</div>
+          <p>If <b>y ≥ −x + 4</b> and <b>y &gt; 3x − 2</b>, which ordered pair <b>(x, y)</b> is a solution to the system?</p>
+          <div class="mp-sat-card__opts">
+            <div class="mp-sat-card__opt"><span>A</span> (0, 2)</div>
+            <div class="mp-sat-card__opt is-ok"><span>B</span> (2, 5) ✓</div>
+            <div class="mp-sat-card__opt"><span>C</span> (3, 1)</div>
+            <div class="mp-sat-card__opt"><span>D</span> (4, 0)</div>
+          </div>
+        </div>
+        <div class="mp-sat-card__foot">
+          <span class="mp-sat-card__check">✓</span>
+          <span>{{ _("Навык освоен · Системы неравенств") }}</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -522,7 +670,7 @@
   </div>
 </section>
 
-{# =========================================================================== 8. Pre-footer CTA + organic blue wave #}
+{# =========================================================================== 8. Pre-footer CTA + organic blue wave with informational product cards #}
 <section class="mp-cta" aria-labelledby="mp-cta-h">
   <div class="mp-cta__inner">
     <h2 id="mp-cta-h" class="mp-h2">{{ _("Начни подготовку с Monday сегодня") }}</h2>
@@ -534,31 +682,72 @@
       <path d="M0,70 C200,10 380,10 540,56 C620,80 660,120 720,120 C780,120 820,80 900,56 C1060,10 1240,10 1440,70 L1440,300 L0,300 Z" fill="#7FA3F3" opacity=".55"/>
       <path d="M0,110 C200,50 380,46 540,92 C620,116 660,160 720,160 C780,160 820,116 900,92 C1060,46 1240,50 1440,110 L1440,300 L0,300 Z" fill="#1F4FE0"/>
     </svg>
-    <div class="mp-wave__device">
-      <div class="mp-float">
-        <svg viewBox="0 0 200 240">
-          <rect x="20" y="8" width="160" height="224" rx="26" fill="#0A1A5C"/>
-          <rect x="30" y="20" width="140" height="200" rx="18" fill="#FFFFFF"/>
-          <text x="100" y="52" text-anchor="middle" font-size="12" font-weight="800" fill="#0A1A5C">Monday Test</text>
-          <rect x="46" y="64" width="108" height="8" rx="4" fill="#E4E4E1"/><rect x="46" y="64" width="80" height="8" rx="4" fill="#1F4FE0"/>
-          <text x="100" y="102" text-anchor="middle" font-size="17" font-weight="800" fill="#0E0E0E">√64 = ?</text>
-          <rect x="46" y="118" width="50" height="28" rx="10" fill="#F6F6F3" stroke="#D4D4D0"/>
-          <rect x="104" y="118" width="50" height="28" rx="10" fill="#E7F6EE" stroke="#1E8E5A" stroke-width="1.6"/>
-          <rect x="46" y="152" width="50" height="28" rx="10" fill="#F6F6F3" stroke="#D4D4D0"/>
-          <rect x="104" y="152" width="50" height="28" rx="10" fill="#F6F6F3" stroke="#D4D4D0"/>
-          <text x="71" y="137" text-anchor="middle" font-size="12" font-weight="700" fill="#3D3D3D">6</text>
-          <text x="129" y="137" text-anchor="middle" font-size="12" font-weight="800" fill="#116A3F">8 ✓</text>
-          <text x="71" y="171" text-anchor="middle" font-size="12" font-weight="700" fill="#3D3D3D">16</text>
-          <text x="129" y="171" text-anchor="middle" font-size="12" font-weight="700" fill="#3D3D3D">32</text>
-          <rect x="46" y="190" width="108" height="20" rx="10" fill="#1F4FE0"/>
-        </svg>
+
+    <div class="mp-wave__stage">
+      {# Purposeful Floating Info Card 1 (Left): Score Forecast #}
+      <div class="mp-wave-card mp-wave-card--left mp-float mp-float--d1">
+        <div class="mp-wave-card__top">
+          <span class="mp-wave-card__eyebrow">{{ _("Прогноз ОРТ") }}</span>
+          <span class="mp-wave-card__delta num">+24</span>
+        </div>
+        <div class="mp-wave-card__val num">215 <small>/ 245</small></div>
+        <div class="mp-wave-card__bar"><span style="width:88%"></span></div>
+      </div>
+
+      {# Purposeful Floating Info Card 2 (Upper-Left): Built-in Desmos #}
+      <div class="mp-wave-card mp-wave-card--top-left mp-float mp-float--d2">
+        <span class="mp-wave-card__icon">📈</span>
+        <div>
+          <strong>{{ _("Desmos встроен") }}</strong>
+          <span>SAT · CSCA · {{ _("Графики") }}</span>
+        </div>
+      </div>
+
+      {# Center Device Frame: Realistic Monday Test Live Preview #}
+      <div class="mp-wave__device">
+        <div class="mp-float">
+          <svg viewBox="0 0 220 248">
+            <rect x="14" y="6" width="192" height="236" rx="26" fill="#0A1A5C"/>
+            <rect x="24" y="18" width="172" height="212" rx="18" fill="#FFFFFF"/>
+            <rect x="36" y="30" width="76" height="18" rx="9" fill="#EEF4FF"/>
+            <text x="74" y="42" text-anchor="middle" font-size="9.5" font-weight="800" fill="#1F4FE0">Monday Test</text>
+            <text x="182" y="42" text-anchor="end" font-size="9.5" font-weight="800" fill="#475569">18 / 20</text>
+            <rect x="36" y="54" width="148" height="6" rx="3" fill="#E2E8F0"/>
+            <rect x="36" y="54" width="130" height="6" rx="3" fill="#1F4FE0"/>
+            <text x="110" y="84" text-anchor="middle" font-size="13.5" font-weight="800" fill="#0F172A">log₂(x − 1) = 3  ⇒  x = ?</text>
+            <rect x="36" y="98" width="70" height="26" rx="9" fill="#EEF4FF" stroke="#C7DBFF"/>
+            <rect x="114" y="98" width="70" height="26" rx="9" fill="#E7F6EE" stroke="#1E8E5A" stroke-width="1.6"/>
+            <rect x="36" y="130" width="70" height="26" rx="9" fill="#EEF4FF" stroke="#C7DBFF"/>
+            <rect x="114" y="130" width="70" height="26" rx="9" fill="#EEF4FF" stroke="#C7DBFF"/>
+            <text x="71" y="115" text-anchor="middle" font-size="11" font-weight="700" fill="#334155">7</text>
+            <text x="149" y="115" text-anchor="middle" font-size="11" font-weight="800" fill="#116A3F">9 ✓</text>
+            <text x="71" y="147" text-anchor="middle" font-size="11" font-weight="700" fill="#334155">8</text>
+            <text x="149" y="147" text-anchor="middle" font-size="11" font-weight="700" fill="#334155">10</text>
+            <rect x="36" y="166" width="148" height="24" rx="8" fill="#EEF4FF"/>
+            <text x="110" y="182" text-anchor="middle" font-size="9.5" font-weight="800" fill="#1F4FE0">2³ = 8  ⇒  x = 8 + 1 = 9</text>
+            <rect x="36" y="198" width="148" height="22" rx="11" fill="#1F4FE0"/>
+            <text x="110" y="213" text-anchor="middle" font-size="9.5" font-weight="800" fill="#FFFFFF">Разбор шага открыт</text>
+          </svg>
+        </div>
+      </div>
+
+      {# Purposeful Floating Info Card 3 (Upper-Right): Mistake Journal #}
+      <div class="mp-wave-card mp-wave-card--top-right mp-float mp-float--d3">
+        <span class="mp-wave-card__icon">✓</span>
+        <div>
+          <strong>{{ _("Журнал ошибок") }}</strong>
+          <span>{{ _("Разбор каждого шага") }}</span>
+        </div>
+      </div>
+
+      {# Purposeful Floating Info Card 4 (Right): 6 UI Languages #}
+      <div class="mp-wave-card mp-wave-card--right mp-float mp-float--d1">
+        <div class="mp-wave-card__top">
+          <span class="mp-wave-card__eyebrow">{{ _("Интерфейс и задачи") }}</span>
+        </div>
+        <div class="mp-wave-card__langs">6 {{ _("языков") }} · RU · KY · KK · UZ · TG · EN</div>
       </div>
     </div>
-    <span class="mp-gem mp-gem--1 mp-float mp-float--d1"><svg viewBox="0 0 40 40"><polygon points="20,2 36,14 20,38 4,14" fill="#FBD46D"/><polygon points="20,2 36,14 20,16 4,14" fill="#FFF3C4"/><polygon points="20,16 36,14 20,38" fill="#E8A400"/></svg></span>
-    <span class="mp-gem mp-gem--2 mp-float mp-float--d3"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#F2C94C" stroke="#B37E00" stroke-width="3"/><text x="20" y="26" text-anchor="middle" font-size="15" font-weight="800" fill="#7A5200">M</text></svg></span>
-    <span class="mp-gem mp-gem--3 mp-float mp-float--d2"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#1E8E5A"/><path d="M12 20 L18 26 L29 14" stroke="#FFFFFF" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    <span class="mp-gem mp-gem--4 mp-float"><svg viewBox="0 0 40 40"><polygon points="20,2 36,14 20,38 4,14" fill="#C4B0F5"/><polygon points="20,2 36,14 20,16 4,14" fill="#EDE5FF"/><polygon points="20,16 36,14 20,38" fill="#7C4DDB"/></svg></span>
-    <span class="mp-gem mp-gem--5 mp-float mp-float--d1"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#FFFFFF"/><path d="M12 20 L18 26 L29 14" stroke="#1F4FE0" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
   </div>
 </section>
 {% endblock %}

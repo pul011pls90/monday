@@ -102,10 +102,21 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
         "sin(x) = cos(x)",
         "ОРТ / SAT прогноз баллов",
         "Интерактивный тренажёр, а не просто ответы",
+        "Мини-тест ОРТ",
+        "ОРТ · Математика",
+        "Бланк ответов",
+        "Колонка А",
+        "Колонка Б",
+        "Пройти полный вариант ОРТ →",
         "ОРТ Математика",
         "Алгебра",
         "Геометрия",
         "Логика",
+        "Desmos Graphing Calculator",
+        "y ≥ −x + 4",
+        "y &gt; 3x − 2",
+        "Digital SAT · Module 1",
+        "Навык освоен · Системы неравенств",
         "Учись в любое время, с любого устройства",
         "Для учеников",
         "Для преподавателей и родителей",
@@ -113,6 +124,9 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
         "2. Интерактивная практика",
         "3. Контроль прогресса с преподавателем",
         "Начни подготовку с Monday сегодня",
+        "Прогноз ОРТ",
+        "Desmos встроен",
+        "Журнал ошибок",
         "Начать бесплатно",
         "https://instagram.com/monday_edc",
         "mailto:temirlanmanasev@gmail.com",
@@ -121,7 +135,9 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
     ):
         assert expected in html, f"Missing expected copy on /: {expected}"
 
-    # Unfinished 'Графики' (tesla) mode must never be advertised as live
+    # Marquee strip has no arrow buttons or per-exam question count labels ('зад.'), and tesla mode is not live
+    assert "data-strip-scroll" not in html
+    assert "зад.</span>" not in html
     assert "двигай точки, меняй уравнения" not in html
 
     # Existing auth routing rules stay intact for logged-in users
@@ -170,42 +186,53 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             footer_bg = page.locator(".mp-footer").evaluate("el => getComputedStyle(el).backgroundColor")
             assert footer_bg == "rgb(0, 0, 0)"
 
-            # Verify zero horizontal overflow and centered hero H1 at 1440px, 1024px, and 390px viewports
-            for vw, vh in ((1440, 900), (1024, 800), (390, 844)):
+            # Verify zero horizontal overflow, centered hero H1, and non-clipped sky-band cards at 1440px, 1280px, 1024px, and 390px viewports
+            for vw, vh in ((1440, 900), (1280, 840), (1024, 800), (390, 844)):
                 page.set_viewport_size({"width": vw, "height": vh})
                 metrics = page.evaluate(
                     "() => {"
                     "  const r = document.querySelector('.mp-hero h1').getBoundingClientRect();"
+                    "  const satFoot = document.querySelector('.mp-sat-card__foot').getBoundingClientRect();"
                     "  return {"
                     "    scrollW: document.documentElement.scrollWidth,"
                     "    innerW: window.innerWidth,"
                     "    h1Left: r.left,"
                     "    h1Right: r.right,"
-                    "    h1Center: r.left + r.width / 2"
+                    "    h1Center: r.left + r.width / 2,"
+                    "    satLeft: satFoot.left,"
+                    "    satRight: satFoot.right"
                     "  };"
                     "}"
                 )
                 assert metrics["scrollW"] <= metrics["innerW"] + 1, f"Horizontal overflow at {vw}px: {metrics}"
                 assert metrics["h1Left"] >= 0 and metrics["h1Right"] <= metrics["innerW"] + 1, f"H1 clipped at {vw}px: {metrics}"
                 assert abs(metrics["h1Center"] - metrics["innerW"] / 2) <= 24, f"H1 not centered at {vw}px: {metrics}"
+                assert metrics["satLeft"] >= 0 and metrics["satRight"] <= metrics["innerW"] + 1, f"Mastery badge clipped at {vw}px: {metrics}"
 
             page.set_viewport_size({"width": 1280, "height": 840})
 
-            # Mode 1 (Математика): solve tile-slot algebra builder (2x, 4x, 8) -> explanation shown
-            builder = page.locator("[data-tile-builder]")
-            assert builder.is_visible()
-            builder.locator('[data-tile="2x"]').click()
-            builder.locator('[data-tile="4x"]').click()
-            builder.locator('[data-tile="8"]').click()
-            builder.locator("[data-tiles-explain]").wait_for(state="visible", timeout=5000)
-            assert "is-right" in (builder.locator("[data-slot]").nth(0).get_attribute("class") or "")
-            assert "is-right" in (builder.locator("[data-slot]").nth(2).get_attribute("class") or "")
+            # Mode 1 (Мини-тест ОРТ): click bubble А on Q1 -> highlights right + reveals explanation -> advance to Q2 -> click В -> advance to Q3 -> click Б
+            ort = page.locator("[data-ort-minitest]")
+            assert ort.is_visible()
+            q0 = ort.locator('[data-ort-q="0"]')
+            q0.locator('[data-ort-bubble][aria-label="А"]').click()
+            q0.locator("[data-ort-explain]").wait_for(state="visible", timeout=5000)
+            assert "is-right" in (q0.locator('[data-ort-bubble][aria-label="А"]').get_attribute("class") or "")
+            q0.locator('[data-ort-next="1"]').click()
 
-            # Reset builder -> slots cleared back to '?'
-            builder.locator("[data-tiles-reset]").click()
-            assert builder.locator("[data-tiles-explain]").is_hidden()
+            q1 = ort.locator('[data-ort-q="1"]')
+            q1.wait_for(state="visible", timeout=5000)
+            q1.locator('[data-ort-bubble][aria-label="В"]').click()
+            q1.locator("[data-ort-explain]").wait_for(state="visible", timeout=5000)
+            q1.locator('[data-ort-next="2"]').click()
 
-            # Switch to Mode 2 (Экзамены) -> switch subject tab -> Геометрия -> solve correctly
+            q2 = ort.locator('[data-ort-q="2"]')
+            q2.wait_for(state="visible", timeout=5000)
+            q2.locator('[data-ort-bubble][aria-label="Б"]').click()
+            q2.locator("[data-ort-explain]").wait_for(state="visible", timeout=5000)
+            assert q2.locator('a:has-text("Пройти полный вариант ОРТ")').is_visible()
+
+            # Switch to Mode 2 (По темам) -> switch subject tab -> Геометрия -> solve correctly
             page.click('[data-mode-btn="exam"]')
             page.click('[data-subject-tab="geometry"]')
             geom = page.locator('[data-subject-panel="geometry"]')
