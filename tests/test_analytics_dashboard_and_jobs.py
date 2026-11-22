@@ -62,12 +62,15 @@ def _seed_analytics_fixture(app):
         db.session.add(rec)
 
         # Learning data for student: 1 attempt, 2 answers (1 correct, 1 wrong -> 50% accuracy)
-        att = Attempt(user_id=student.id, mode="franklin", started_at=now - timedelta(hours=2), finished_at=now - timedelta(hours=1), score=1, total=2)
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        att_start = max(today_start, now - timedelta(hours=2))
+        att_end = max(today_start, now - timedelta(hours=1))
+        att = Attempt(user_id=student.id, mode="franklin", started_at=att_start, finished_at=att_end, score=1, total=2)
         db.session.add(att)
         db.session.flush()
         db.session.add_all([
-            AttemptAnswer(attempt_id=att.id, question_id=1, is_correct=True, answered_at=now - timedelta(hours=1)),
-            AttemptAnswer(attempt_id=att.id, question_id=2, is_correct=False, answered_at=now - timedelta(hours=1)),
+            AttemptAnswer(attempt_id=att.id, question_id=1, is_correct=True, answered_at=att_end),
+            AttemptAnswer(attempt_id=att.id, question_id=2, is_correct=False, answered_at=att_end),
         ])
 
         # Two visits for student (returning visitor!)
@@ -176,13 +179,14 @@ def test_analytics_permissions_and_ui_rendering():
     assert "page-sky" in adm_html
     assert "/admin/analytics/" in adm_html
 
-    # Optimized Teacher/Admin left rail keeps only the 6 core items (Сегодня, Ученики, Работы, Проверка, Банк, Настройки)
-    # while secondary/admin links live in account menu & /teacher/account settings
-    rail_chunk = adm_html.split('<nav class="rail"')[1].split("</nav>")[0]
-    for core_label in ("Сегодня", "Люди", "Работы", "Проверка", "Банк", "Настройки"):
-        assert core_label in rail_chunk
-    for secondary_label in ("Карта", "Вопросы", "Исправления", "Модерация", "Аналитика"):
-        assert secondary_label not in rail_chunk
+    # Admin left rail organizes all 8 Admin items by priority (Управление / Контент) + Настройки,
+    # while leaving .acct-menu clean (no duplicate nav links).
+    rail_chunk = adm_html.split('<nav class="rail')[1].split("</nav>")[0]
+    for admin_label in ("УПРАВЛЕНИЕ", "Админ", "Аналитика", "CRM", "Расписание", "КОНТЕНТ", "Модерация", "Исправления", "Вопросы", "Карта", "Настройки"):
+        assert admin_label in rail_chunk
+    acct_chunk = adm_html.split('<details class="acct-menu"')[1].split("</details>")[0]
+    assert "Администратор" in acct_chunk
+    assert "Карта" not in acct_chunk and "Модерация" not in acct_chunk
 
     # Student login records LoginEvent + login_count and shows in /admin/ panel
     stu_login = app.test_client()

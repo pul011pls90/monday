@@ -2,7 +2,7 @@
 {% import "partials/macros.html" as ui with context %}
 {% set ep = request.endpoint or '' %}
 
-{% block body_class %}{% if current_user.is_authenticated and request.blueprint in ('manager', 'academic') %}mgr{% endif %}{% endblock %}
+{% block body_class %}{% set _cls = [] %}{% if current_user.is_authenticated %}{% if request.blueprint in ('manager', 'academic') %}{% set _ = _cls.append('mgr') %}{% endif %}{% if current_user.role == 'admin' %}{% set _ = _cls.append('admin-nav') %}{% endif %}{% endif %}{{ _cls|join(' ') }}{% endblock %}
 {% block head %}{% if current_user.is_authenticated and request.blueprint in ('manager', 'academic') %}<link rel="stylesheet" href="{{ url_for('static', filename='css/manager.css') }}">{% endif %}{% endblock %}
 
 {% block body %}
@@ -13,13 +13,32 @@
 <script defer src="{{ url_for('static', filename='js/hero.js') }}"></script>
 {% endif %}{% endblock %}
 <div class="app">
-  <nav class="rail" aria-label="{{ _('Основное меню') }}">
+  <nav class="rail{{ ' rail--admin' if current_user.is_authenticated and current_user.role == 'admin' }}" aria-label="{{ _('Основное меню') }}">
     {% set teacher_extra = [] %}
-    {% if current_user.is_teacher %}
+    {% set admin_groups = [] %}
+    {% if current_user.role == 'admin' %}
+      <a class="rail__logo" href="{{ url_for('admin.index') }}" aria-label="Monday">M</a>
+      {% set admin_groups = [
+        (_('УПРАВЛЕНИЕ'), [
+          ('admin.index', 'shield', _('Админ'), ['admin.index', 'course.admin_course', 'roadmap.admin_roadmap', 'deploy_safety.admin_maintenance']),
+          ('analytics.dashboard', 'chart', _('Аналитика'), ['analytics.dashboard']),
+          ('manager.dashboard', 'dashboard', _('CRM'), ['manager.dashboard', 'manager.leads', 'manager.lead_detail', 'manager.pipeline', 'manager.student_detail', 'manager.finance', 'manager.audit', 'manager.account']),
+          ('academic.schedule', 'calendar', _('Расписание'), ['academic.schedule', 'academic.lesson_detail']),
+        ]),
+        (_('КОНТЕНТ'), [
+          ('review.queue', 'check', _('Модерация'), ['review.queue']),
+          ('reports.inbox', 'flag', _('Исправления'), ['reports.inbox']),
+          ('teacher.questions', 'questions', _('Вопросы'), ['teacher.questions', 'teacher.question_new', 'teacher.question_edit', 'assistant.home', 'assistant.import_preview', 'assistant.import_save', 'assistant.mine']),
+          ('teacher.tree', 'skills', _('Карта'), ['teacher.tree']),
+        ]),
+      ] %}
+      {% set items = admin_groups[0][1] + admin_groups[1][1] %}
+      {% set primary = ['admin.index', 'manager.dashboard', 'analytics.dashboard', 'academic.schedule', 'review.queue'] %}
+    {% elif current_user.is_teacher %}
       <a class="rail__logo" href="{{ url_for('teacher.dashboard') }}" aria-label="Monday">M</a>
       {% set items = [
         ('teacher.dashboard', 'home', _('Сегодня'), ['teacher.dashboard']),
-        ('teacher.students', 'users', _('Люди') if current_user.is_admin else _('Ученики'), ['teacher.students', 'teacher.student_detail']),
+        ('teacher.students', 'users', _('Ученики'), ['teacher.students', 'teacher.student_detail']),
         ('teacher.works', 'works', _('Работы'), ['teacher.works', 'teacher.work_edit', 'teacher.work_new', 'teacher.assign']),
         ('teacher.review', 'inbox', _('Проверка'), ['teacher.review', 'teacher.review_detail', 'teacher.written_review']),
         ('teacher.bank', 'collections', _('Банк'), ['teacher.bank']),
@@ -31,7 +50,6 @@
         ('reports.inbox', 'flag', _('Исправления'), ['reports.inbox']),
       ] %}
       {% if current_user.can_review %}{% set teacher_extra = teacher_extra + [('review.queue', 'check', _('Модерация'), ['review.queue'])] %}{% endif %}
-      {% if current_user.is_admin %}{% set teacher_extra = teacher_extra + [('manager.dashboard', 'dashboard', _('CRM'), ['manager.dashboard', 'manager.leads', 'manager.lead_detail', 'manager.pipeline', 'manager.student_detail', 'manager.finance', 'manager.audit', 'manager.account']), ('admin.index', 'shield', _('Админ'), ['admin.index']), ('analytics.dashboard', 'chart', _('Аналитика'), ['analytics.dashboard'])] %}{% endif %}
       {% set primary = ['teacher.dashboard', 'teacher.students', 'teacher.works', 'teacher.review', 'teacher.bank'] %}
     {% elif current_user.role in ('sales_manager', 'supervisor') %}
       <a class="rail__logo" href="{{ url_for('manager.dashboard') }}" aria-label="Monday">M</a>
@@ -71,13 +89,30 @@
       {% set primary = ['student.monday', 'student.home', 'student.sessions', 'bank.index', 'student.homework'] %}
     {% endif %}
     {% set cb = crm_badges() if current_user.role in ('sales_manager', 'supervisor', 'admin') else {'unanswered': 0, 'tasks': 0} %}
-    {% for endpoint, ic, label, active in items %}{% set on = (nav_active == endpoint) if nav_active is defined else (ep in active) %}
-      <a class="rail__item{{ ' is-active' if on }}{{ ' rail__item--extra' if endpoint not in primary }}{{ ' rail__item--key' if endpoint == 'student.monday' }}" href="{{ url_for(endpoint) }}" title="{{ label }}" aria-label="{{ label }}"{{ ' aria-current=page' if on }}>
-        {{ ui.icon(ic, 22) }}<span class="rail__label">{{ label }}</span>{% if endpoint == 'student.monday' and monday_live() %}<i class="rail__live" title="{{ _('Тест идёт сейчас') }}"></i>{% endif %}{% if endpoint == 'reports.inbox' %}{% set nr = open_reports() %}{% if nr %}<i class="rail__count">{{ nr }}</i>{% endif %}{% elif endpoint == 'manager.leads' and cb.unanswered %}<i class="rail__count">{{ cb.unanswered }}</i>{% elif endpoint == 'manager.dashboard' and cb.tasks %}<i class="rail__count">{{ cb.tasks }}</i>{% endif %}
-      </a>
-    {% endfor %}
+    {% if current_user.role == 'admin' %}
+      {% for group_label, group_items in admin_groups %}
+        <div class="rail-group__label">{{ group_label }}</div>
+        {% for endpoint, ic, label, active in group_items %}{% set on = (nav_active == endpoint) if nav_active is defined else (ep in active) %}
+          <a class="rail__item{{ ' is-active' if on }}{{ ' rail__item--extra' if endpoint not in primary }}" href="{{ url_for(endpoint) }}" title="{{ label }}" aria-label="{{ label }}"{{ ' aria-current=page' if on }}>
+            {{ ui.icon(ic, 20) }}<span class="rail__label">{{ label }}</span>{% if endpoint == 'reports.inbox' %}{% set nr = open_reports() %}{% if nr %}<i class="rail__count">{{ nr }}</i>{% endif %}{% elif endpoint == 'manager.dashboard' and cb.tasks %}<i class="rail__count">{{ cb.tasks }}</i>{% endif %}
+          </a>
+        {% endfor %}
+      {% endfor %}
+    {% else %}
+      {% for endpoint, ic, label, active in items %}{% set on = (nav_active == endpoint) if nav_active is defined else (ep in active) %}
+        <a class="rail__item{{ ' is-active' if on }}{{ ' rail__item--extra' if endpoint not in primary }}{{ ' rail__item--key' if endpoint == 'student.monday' }}" href="{{ url_for(endpoint) }}" title="{{ label }}" aria-label="{{ label }}"{{ ' aria-current=page' if on }}>
+          {{ ui.icon(ic, 22) }}<span class="rail__label">{{ label }}</span>{% if endpoint == 'student.monday' and monday_live() %}<i class="rail__live" title="{{ _('Тест идёт сейчас') }}"></i>{% endif %}{% if endpoint == 'reports.inbox' %}{% set nr = open_reports() %}{% if nr %}<i class="rail__count">{{ nr }}</i>{% endif %}{% elif endpoint == 'manager.leads' and cb.unanswered %}<i class="rail__count">{{ cb.unanswered }}</i>{% elif endpoint == 'manager.dashboard' and cb.tasks %}<i class="rail__count">{{ cb.tasks }}</i>{% endif %}
+        </a>
+      {% endfor %}
+    {% endif %}
     <div class="spacer"></div>
-    {% if current_user.is_teacher %}
+    {% if current_user.role == 'admin' %}
+      <div class="rail__foot">
+        <a class="rail__item{{ ' is-active' if ep == 'teacher.account' }}" href="{{ url_for('teacher.account') }}" title="{{ _('Настройки') }}" aria-label="{{ _('Настройки') }}"{{ ' aria-current=page' if ep == 'teacher.account' }}>
+          {{ ui.icon('settings', 20) }}<span class="rail__label">{{ _('Настройки') }}</span>
+        </a>
+      </div>
+    {% elif current_user.is_teacher %}
       <div class="rail__foot">
         {% set t_acc_on = ep == 'teacher.account' or (teacher_extra|selectattr(3)|map('last')|list and false) %}
         {% set ns_acc = namespace(on=(ep == 'teacher.account')) %}
@@ -106,7 +141,9 @@
 
   {# Phones: the bottom bar keeps five main sections; the rest live in this side menu (☰ in the top bar). #}
   {% set extras = items|rejectattr(0, 'in', primary)|list %}
-  {% if current_user.is_teacher %}
+  {% if current_user.role == 'admin' %}
+    {% set extras = extras + [('teacher.account', 'settings', _('Настройки'), ['teacher.account'])] %}
+  {% elif current_user.is_teacher %}
     {% set extras = extras + teacher_extra + [('teacher.account', 'settings', _('Настройки'), ['teacher.account'])] %}
   {% elif current_user.role in ('sales_manager', 'supervisor') %}
     {% set extras = extras + [('manager.account', 'sliders', _('Настройки'), ['manager.account'])] %}
@@ -127,9 +164,20 @@
         <button class="icon-btn" type="button" data-nav-close aria-label="{{ _('Закрыть') }}">{{ ui.icon('x') }}</button>
       </div>
       <nav class="nav-drawer__list" aria-label="{{ _('Ещё разделы') }}">
-        {% for endpoint, ic, label, active in extras %}
-          <a class="nav-drawer__item{{ ' is-active' if ep in active }}" href="{{ url_for(endpoint) }}"{{ ' aria-current=page' if ep in active }}>{{ ui.icon(ic, 22) }}<span>{{ label }}</span></a>
-        {% endfor %}
+        {% if current_user.role == 'admin' %}
+          {% for group_label, group_items in admin_groups %}
+            <div class="nav-drawer__group">{{ group_label }}</div>
+            {% for endpoint, ic, label, active in group_items %}
+              <a class="nav-drawer__item{{ ' is-active' if ep in active }}" href="{{ url_for(endpoint) }}"{{ ' aria-current=page' if ep in active }}>{{ ui.icon(ic, 20) }}<span>{{ label }}</span></a>
+            {% endfor %}
+          {% endfor %}
+          <div class="nav-drawer__sep"></div>
+          <a class="nav-drawer__item{{ ' is-active' if ep == 'teacher.account' }}" href="{{ url_for('teacher.account') }}"{{ ' aria-current=page' if ep == 'teacher.account' }}>{{ ui.icon('settings', 20) }}<span>{{ _('Настройки') }}</span></a>
+        {% else %}
+          {% for endpoint, ic, label, active in extras %}
+            <a class="nav-drawer__item{{ ' is-active' if ep in active }}" href="{{ url_for(endpoint) }}"{{ ' aria-current=page' if ep in active }}>{{ ui.icon(ic, 22) }}<span>{{ label }}</span></a>
+          {% endfor %}
+        {% endif %}
       </nav>
     </aside>
   </div>
@@ -159,8 +207,21 @@
         <details class="acct-menu" data-acct-menu>
           <summary aria-label="{{ _('Аккаунт') }}" title="{{ current_user.name }}">{{ ui.avatar(current_user, text=current_user.initials[:1]) }}</summary>
           <div class="acct-menu__pop" role="menu">
-            <div class="acct-menu__who">{{ ui.avatar(current_user) }}<div><b>{{ current_user.name }}</b><span>{{ current_user.email }}</span></div></div>
-            {% if current_user.is_teacher and teacher_extra %}
+            <div class="acct-menu__who">
+              {{ ui.avatar(current_user) }}
+              <div>
+                <b>{{ current_user.name }}</b>
+                <span>{{ current_user.email }}</span>
+                {% if current_user.role == 'admin' %}<em class="acct-menu__role">{{ _("Администратор") }}</em>{% endif %}
+              </div>
+            </div>
+            {% if current_user.role == 'admin' %}
+              <div class="acct-menu__links">
+                <a class="acct-menu__link{{ ' is-active' if ep == 'teacher.account' }}" href="{{ url_for('teacher.account') }}" role="menuitem">
+                  {{ ui.icon('settings', 16) }}<span>{{ _("Аккаунт и пароль") }}</span>
+                </a>
+              </div>
+            {% elif current_user.is_teacher and teacher_extra %}
               <div class="acct-menu__links">
                 {% for endpoint, ic, label, active in teacher_extra %}
                   <a class="acct-menu__link{{ ' is-active' if ep in active }}" href="{{ url_for(endpoint) }}" role="menuitem">

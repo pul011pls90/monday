@@ -173,3 +173,87 @@ def test_teacher_admin_rbac_and_student_untouched():
     _login(c_tch, "tch@monday.kg")
     for url in ["/admin/", "/admin/analytics/", "/admin/course", "/admin/roadmap", "/admin/maintenance"]:
         assert c_tch.get(url).status_code == 403
+
+
+def test_admin_priority_rail_order_and_non_admin_isolation():
+    app = _make_app(csrf_enabled=True)
+    _seed_user(app, "adm@monday.kg", "Главный Админ", "admin")
+    _seed_user(app, "tch@monday.kg", "Учитель", "teacher")
+    _seed_user(app, "mgr@monday.kg", "Менеджер", "sales_manager")
+    _seed_user(app, "sup@monday.kg", "Супервайзер", "supervisor")
+    _seed_user(app, "stu@monday.kg", "Ученик", "student")
+
+    c_adm = app.test_client()
+    _login(c_adm, "adm@monday.kg")
+    html = c_adm.get("/admin/").get_data(as_text=True)
+
+    assert 'class="rail rail--admin"' in html
+    assert '<body class="admin-nav"' in html
+    rail_chunk = html.split('<nav class="rail')[1].split("</nav>")[0]
+
+    # Exact priority order inside Admin .rail
+    ordered_labels = [
+        "УПРАВЛЕНИЕ",
+        "Админ",
+        "Аналитика",
+        "CRM",
+        "Расписание",
+        "КОНТЕНТ",
+        "Модерация",
+        "Исправления",
+        "Вопросы",
+        "Карта",
+        "Настройки",
+    ]
+    positions = [rail_chunk.index(lbl) for lbl in ordered_labels]
+    assert positions == sorted(positions), f"Admin rail order mismatch: {list(zip(ordered_labels, positions))}"
+
+    # All 8 admin URLs from the rail resolve 200 OK for admin
+    expected_urls = [
+        "/admin/",
+        "/admin/analytics/",
+        "/manager",
+        "/academic/schedule",
+        "/review/questions",
+        "/teacher/reports",
+        "/teacher/questions",
+        "/teacher/tree",
+        "/teacher/account",
+    ]
+    for url in expected_urls:
+        assert f'href="{url}"' in rail_chunk, f"Missing {url} in admin rail"
+        assert c_adm.get(url).status_code == 200, f"Admin {url} failed"
+
+    # Mobile .nav-drawer mirrors the 2 groups and .acct-menu does not duplicate the 8 links
+    drawer_chunk = html.split('<div class="nav-drawer"')[1].split("</aside>")[0]
+    d_pos = [drawer_chunk.index(lbl) for lbl in ordered_labels]
+    assert d_pos == sorted(d_pos)
+    acct_chunk = html.split('<details class="acct-menu"')[1].split("</details>")[0]
+    assert "Администратор" in acct_chunk
+    assert "Аккаунт и пароль" in acct_chunk
+    for nav_lbl in ("Карта", "Расписание", "Модерация", "Аналитика"):
+        assert nav_lbl not in acct_chunk
+
+    # Non-admin roles NEVER receive admin-only links in their .rail or .nav-drawer
+    non_admin_checks = [
+        ("stu@monday.kg", "/home"),
+        ("mgr@monday.kg", "/manager"),
+        ("sup@monday.kg", "/manager"),
+        ("tch@monday.kg", "/teacher/"),
+    ]
+    for email, entry_url in non_admin_checks:
+        c = app.test_client()
+        _login(c, email)
+        page_html = c.get(entry_url).get_data(as_text=True)
+        assert "admin-nav" not in page_html
+        assert "rail--admin" not in page_html
+        role_rail = page_html.split('<nav class="rail"')[1].split("</nav>")[0]
+        assert "Админ" not in role_rail
+        if email != "tch@monday.kg":
+            for forbidden in ("Модерация", "Исправления", "Аналитика"):
+                assert forbidden not in role_rail
+        else:
+            # Teacher keeps compact 6-item rail without Admin/CRM/Analytics/Moderation/Исправления
+            for forbidden in ("Админ", "Аналитика", "Модерация", "Исправления", "CRM"):
+                assert forbidden not in role_rail
+
