@@ -4,7 +4,7 @@ import sys
 from datetime import date, datetime
 
 import click
-from flask import Flask, abort, g, has_request_context, redirect, request, send_from_directory, session, url_for
+from flask import Flask, abort, g, has_request_context, make_response, redirect, render_template, request, send_from_directory, session, url_for
 from flask_babel import format_date, format_datetime
 from flask_babel import gettext as _
 from flask_login import current_user, login_required
@@ -141,6 +141,95 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     from .analytics_tracking import register_analytics_middleware
     register_analytics_middleware(app)
 
+    @app.route("/manifest.webmanifest")
+    def pwa_manifest():
+        """Serve Web App Manifest with versioned static icon URLs."""
+        import json
+        from flask import make_response
+
+        manifest = {
+            "id": "/",
+            "name": "Monday",
+            "short_name": "Monday",
+            "start_url": "/",
+            "scope": "/",
+            "display": "standalone",
+            "background_color": "#FFFFFF",
+            "theme_color": "#F7F8FB",
+            "lang": "ru",
+            "icons": [
+                {
+                    "src": url_for("static", filename="img/icon-192.png"),
+                    "sizes": "192x192",
+                    "type": "image/png",
+                    "purpose": "any",
+                },
+                {
+                    "src": url_for("static", filename="img/icon-512.png"),
+                    "sizes": "512x512",
+                    "type": "image/png",
+                    "purpose": "any",
+                },
+                {
+                    "src": url_for("static", filename="img/icon-maskable-512.png"),
+                    "sizes": "512x512",
+                    "type": "image/png",
+                    "purpose": "maskable",
+                },
+            ],
+        }
+        resp = make_response(json.dumps(manifest, ensure_ascii=False))
+        resp.headers["Content-Type"] = "application/manifest+json; charset=utf-8"
+        resp.cache_control.public = True
+        resp.cache_control.max_age = 3600
+        return resp
+
+    @app.route("/offline")
+    def pwa_offline():
+        """Serve unpersonalized Russian offline fallback shell (no session/CSRF data)."""
+        resp = make_response(render_template("offline.html"))
+        resp.headers["Content-Type"] = "text/html; charset=utf-8"
+        resp.cache_control.public = True
+        resp.cache_control.max_age = 3600
+        return resp
+
+    @app.route("/sw.js")
+    def pwa_sw():
+        """Serve root-scoped Service Worker with deterministic cache version & versioned static shell."""
+        import hashlib
+        import json
+
+        precache_urls = [
+            url_for("pwa_offline"),
+            url_for("static", filename="css/fonts.css"),
+            url_for("static", filename="vendor/katex/katex.min.css"),
+            url_for("static", filename="css/monday.css"),
+            url_for("static", filename="css/brand.css"),
+            url_for("static", filename="js/app.js"),
+            url_for("static", filename="js/pwa.js"),
+            url_for("static", filename="img/icon-192.png"),
+            url_for("static", filename="img/apple-touch-icon.png"),
+        ]
+        sw_path = os.path.join(app.static_folder, "js", "sw.js")
+        with open(sw_path, "rb") as f:
+            sw_bytes = f.read()
+        digest = hashlib.sha256()
+        digest.update(str(app.config.get("APP_VERSION") or "").encode("utf-8"))
+        digest.update(sw_bytes)
+        for u in precache_urls:
+            digest.update(u.encode("utf-8"))
+        sw_ver = "v1-" + digest.hexdigest()[:12]
+        config_banner = (
+            "self.__MONDAY_SW_CONFIG = "
+            + json.dumps({"version": sw_ver, "precacheUrls": precache_urls}, ensure_ascii=False)
+            + ";\n"
+        )
+        resp = make_response(config_banner + sw_bytes.decode("utf-8"))
+        resp.headers["Content-Type"] = "application/javascript; charset=utf-8"
+        resp.headers["Service-Worker-Allowed"] = "/"
+        resp.headers["Cache-Control"] = "no-cache, max-age=0, must-revalidate"
+        return resp
+
     @app.before_request
     def _track_user():
         """Blocked accounts are signed out; everyone else gets 'last seen' (at most every 5 minutes)."""
@@ -166,6 +255,8 @@ def create_app(config_object=Config, *, seed_if_empty=True):
         from .models import Attempt, AttemptAnswer, Question, SheetEntry, StudentRecord, User
         if not filename or filename.startswith("/") or "\\" in filename or ".." in filename.split("/"):
             abort(404)
+        if filename.startswith("support/"):
+            abort(403)
         if filename.startswith("solutions/"):
             m = re.fullmatch(r"solutions/a(\d+)_\d+_[0-9a-f]+\.[a-z0-9]+", filename)
             if not m:
@@ -256,6 +347,9 @@ def create_app(config_object=Config, *, seed_if_empty=True):
             "auth.toggle_theme",
             "auth.set_language",
             "static",
+            "pwa_manifest",
+            "pwa_sw",
+            "pwa_offline",
             "deploy_safety.api_version",
             "deploy_safety.api_site_status",
         ):
@@ -321,6 +415,7 @@ def _register_security_headers(app):
         "font-src 'self' data: https://www.desmos.com; "
         f"connect-src 'self' https://www.desmos.com https://cdn.jsdelivr.net{supabase_origin}; "
         "worker-src 'self' blob:; "
+        "manifest-src 'self'; "
         "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; "
         "frame-ancestors 'self'; "
         "object-src 'none'; "
@@ -699,6 +794,17 @@ def _register_cli(app):
         if not found:
             click.echo("No duplicate open leads found.")
 
+    @app.cli.command("support-purge-images")
+    @click.option("--days", default=90, show_default=True, type=int, help="Delete attachments for threads closed more than N days ago.")
+    @click.option("--dry-run", is_flag=True, help="Report counts without deleting files or database rows.")
+    def support_purge_images_cmd(days, dry_run):
+        """Delete support attachment files and DB rows for threads closed more than --days ago."""
+        from .support_images import purge_closed_support_images
+
+        res = purge_closed_support_images(days=days, dry_run=dry_run)
+        prefix = "[DRY RUN] " if res["dry_run"] else ""
+        click.echo(f"{prefix}Purged {res['attachments']} support attachment(s), {res['bytes_freed']} bytes (days={res['days']}).")
+
 
 def _bootstrap_admin(app):
     """Production: an empty database gets one admin (ADMIN_EMAIL / ADMIN_PASSWORD) instead of the demo data."""
@@ -724,7 +830,7 @@ def _register_speed(app):
 
     from flask_compress import Compress
     app.config.setdefault("COMPRESS_MIMETYPES", ["text/html", "text/css", "application/javascript", "text/javascript",
-                                                 "application/json", "image/svg+xml", "text/plain"])
+                                                 "application/json", "application/manifest+json", "image/svg+xml", "text/plain"])
     app.config.setdefault("COMPRESS_MIN_SIZE", 600)
     app.config.setdefault("COMPRESS_ALGORITHM", ["gzip"])
     Compress(app)

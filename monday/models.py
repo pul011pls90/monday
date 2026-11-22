@@ -811,10 +811,11 @@ class AppMeta(db.Model):
 
 
 class Report(db.Model):
-    """A student (or teacher) says something is wrong with a question or a map entry; staff fix it and reply."""
+    """A student (or staff member) reports an issue with a question, map node, or support topic."""
 
     id = db.Column(db.Integer, primary_key=True)
     author_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    sender_role = db.Column(db.String(32), nullable=False, default="student", index=True)
     question_id = db.Column(db.Integer, db.ForeignKey("question.id"), index=True)
     node_id = db.Column(db.Integer, db.ForeignKey("content_node.id"), index=True)
     kind = db.Column(db.String(12), nullable=False, default="other")  # answer | typo | unclear | other | node
@@ -830,6 +831,42 @@ class Report(db.Model):
     handled_by = db.relationship("User", foreign_keys=[handled_by_id])
     question = db.relationship("Question")
     node = db.relationship("ContentNode")
+    attachments = db.relationship(
+        "SupportAttachment",
+        backref=db.backref("message", lazy="joined"),
+        lazy="selectin",
+        order_by="SupportAttachment.id.asc()",
+        cascade="all, delete-orphan",
+    )
+
+
+class SupportAttachment(db.Model):
+    """Compressed WebP image attachment belonging to a support message (Report)."""
+
+    __tablename__ = "support_attachments"
+
+    id = db.Column(db.Integer, primary_key=True)
+    message_id = db.Column(
+        db.Integer,
+        db.ForeignKey("report.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    storage_key = db.Column(db.String(120), nullable=False, unique=True)
+    mime = db.Column(db.String(32), nullable=False, default="image/webp")
+    width = db.Column(db.Integer, nullable=False)
+    height = db.Column(db.Integer, nullable=False)
+    bytes_original = db.Column(db.Integer, nullable=False)
+    bytes_stored = db.Column(db.Integer, nullable=False)
+    sha256 = db.Column(db.String(64), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+    deleted_at = db.Column(db.DateTime, nullable=True)
+
+    def full_object_name(self) -> str:
+        return f"support/{self.storage_key}.webp"
+
+    def thumb_object_name(self) -> str:
+        return f"support/{self.storage_key}_thumb.webp"
 
 
 class ActivityDraft(db.Model):

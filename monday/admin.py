@@ -218,7 +218,9 @@ def index():
            "args": request.args, "teachers_all": User.query.filter_by(role="teacher").order_by(User.name).all()}
 
     if tab == "overview":
+        from .support_images import support_storage_stats
         ctx["ov"] = _overview()
+        ctx["support_storage"] = support_storage_stats()
     if tab in PEOPLE:
         role = PEOPLE[tab]
         users = _people(role, request.args)
@@ -415,7 +417,9 @@ def _overview_ctx(tab: str = "overview"):
         "teachers_all": User.query.filter_by(role="teacher").order_by(User.name).all(),
     }
     if tab == "overview":
+        from .support_images import support_storage_stats
         ctx["ov"] = _overview()
+        ctx["support_storage"] = support_storage_stats()
     return ctx
 
 

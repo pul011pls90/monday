@@ -174,20 +174,36 @@
       }
     });
 
-    document.addEventListener("click", (e) => {
-      const img = e.target.closest("img[data-lightbox]") || e.target.closest(".fx-card__figure")?.querySelector("img[data-lightbox]");
+    let lastOpener = null;
+    const openLightbox = (img, opener) => {
       if (!img) return;
+      lastOpener = opener || img;
       resetZoom();
       if (card) card.style.setProperty("--lb-aspect", "1.6");
-      lbImg.src = img.src;
+      lbImg.src = img.dataset.lightboxSrc || img.src;
+      lbImg.alt = img.alt || "";
       lightbox.classList.add("is-open");
       document.body.classList.add("is-lightbox-open");
+      $("[data-lb-close]", lightbox)?.focus();
+    };
+
+    const closeWithFocus = () => {
+      close();
+      if (lastOpener && typeof lastOpener.focus === "function") lastOpener.focus();
+      lastOpener = null;
+    };
+
+    document.addEventListener("click", (e) => {
+      const trig = e.target.closest("[data-lightbox-trigger]");
+      const img = (trig && trig.querySelector("img")) || e.target.closest("img[data-lightbox]") || e.target.closest(".fx-card__figure")?.querySelector("img[data-lightbox]");
+      if (!img) return;
+      openLightbox(img, trig || img);
     });
 
     lightbox.addEventListener("click", (e) => {
-      if (e.target === lightbox) close();
+      if (e.target === lightbox) closeWithFocus();
     });
-    $("[data-lb-close]", lightbox)?.addEventListener("click", close);
+    $("[data-lb-close]", lightbox)?.addEventListener("click", closeWithFocus);
     $("[data-lb-in]", lightbox)?.addEventListener("click", () => zoomTo(Math.round((scale + STEP_Z) / STEP_Z) * STEP_Z));
     $("[data-lb-out]", lightbox)?.addEventListener("click", () => zoomTo(Math.round((scale - STEP_Z) / STEP_Z) * STEP_Z));
     $("[data-lb-reset]", lightbox)?.addEventListener("click", resetZoom);

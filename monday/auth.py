@@ -5,7 +5,7 @@ import hmac
 from datetime import datetime
 from urllib.parse import urlparse
 
-from flask import Blueprint, abort, flash, make_response, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, current_app, flash, make_response, redirect, render_template, request, session, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_required, login_user, logout_user
 
@@ -369,7 +369,16 @@ def join(code):
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for("auth.login"))
+    resp = redirect(url_for("auth.login"))
+    resp.set_cookie(
+        "monday_sw_clear",
+        "1",
+        max_age=60,
+        httponly=False,
+        samesite="Lax",
+        secure=bool(current_app.config.get("SESSION_COOKIE_SECURE")),
+    )
+    return resp
 
 
 @bp.route("/pending")

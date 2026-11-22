@@ -236,7 +236,7 @@ def branch_request():
     if not parent or not name:
         flash(_("Выберите подтему и напишите название навыка."), "error")
     else:
-        db.session.add(Report(author_id=current_user.id, node_id=parent.id, kind="node",
+        db.session.add(Report(author_id=current_user.id, sender_role=current_user.role, node_id=parent.id, kind="node",
                               message=_("Нужна новая ветка: %(n)s", n=name)))
         db.session.commit()
         flash(_("Запрос отправлен администратору."), "success")

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Нет подключения · Monday</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Monday">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#F7F8FB" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0D0D0D" media="(prefers-color-scheme: dark)">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/monday.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}" sizes="any">
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+  <style>
+    @media (prefers-color-scheme: dark) {
+      html { background: #0D0D0D; color: #F2F2F2; color-scheme: dark; }
+      body { background: #0D0D0D; color: #F2F2F2; }
+      .offline-card { background: #141414 !important; border-color: rgba(255,255,255,.12) !important; color: #F2F2F2; }
+    }
+    .offline-wrap {
+      min-height: 100vh; min-height: 100dvh; display: grid; place-items: center;
+      padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+    }
+    .offline-card { max-width: 480px; width: 100%; display: flex; flex-direction: column; gap: 14px; }
+    .offline-pill {
+      display: inline-flex; align-self: flex-start; padding: 4px 10px; border-radius: 999px;
+      background: var(--accent-soft, #e8edff); color: var(--accent, #1f4fe0);
+      font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .offline-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+  </style>
+</head>
+<body>
+<main class="offline-wrap" data-offline-page>
+  <section class="card offline-card" aria-labelledby="offline-title">
+    <span class="offline-pill">Офлайн</span>
+    <h1 id="offline-title" style="margin:0;font-size:26px;line-height:1.2">Нет подключения к интернету</h1>
+    <p class="muted" style="margin:0">Проверьте Wi-Fi или мобильную связь и попробуйте обновить страницу. Как только сеть вернётся, вы сможете продолжить работу.</p>
+    <p class="field__hint" style="margin:0">Если вы отвечали на задания, несохранённые ответы остаются на устройстве и отправятся автоматически при подключении.</p>
+    <div class="offline-actions">
+      <button type="button" class="btn btn--primary" data-offline-retry>Повторить</button>
+      <a class="btn btn--secondary" href="/">На главную</a>
+    </div>
+  </section>
+</main>
+<script defer src="{{ url_for('static', filename='js/pwa.js') }}"></script>
+</body>
+</html>

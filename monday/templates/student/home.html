@@ -8,7 +8,7 @@
 <div class="flash {{ 'flash--success' if r.status == 'fixed' else 'flash--info' }} rp-reply" data-report-card>
   {{ ui.icon('flag', 18) }}
   <span><b>{{ _("Вопрос, о котором ты сообщил, исправлен. Спасибо.") if r.status == 'fixed' else _("Учитель проверил вопрос, о котором ты сообщил: ошибки в нём нет.") }}</b>
-    {% if r.reply %}{{ r.handled_by.name if r.handled_by else '' }}: «{{ r.reply }}»{% endif %}</span>
+    {% if r.reply %}{{ _("Поддержка") if (r.handled_by and r.handled_by.role == 'admin') else (r.handled_by.name if r.handled_by else '') }}: «{{ r.reply }}»{% endif %}</span>
   <button type="button" class="btn btn--ghost btn--sm" data-report-seen data-action="{{ url_for('reports.seen', report_id=r.id) }}" data-csrf="{{ csrf_token() }}">{{ _("Понятно") }}</button>
 </div>
 {% endfor %}

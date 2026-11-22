@@ -23,6 +23,9 @@ ALLOWED_DURING_LOCK_ROLES = frozenset({"admin", "sales_manager", "supervisor"})
 
 _LOCK_EXEMPT_ENDPOINTS = frozenset({
     "static",
+    "pwa_manifest",
+    "pwa_sw",
+    "pwa_offline",
     "deploy_safety.api_site_status",
     "deploy_safety.api_version",
     "deploy_safety.api_activity_save",

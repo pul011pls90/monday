@@ -24,10 +24,11 @@ def using_supabase():
     return bool(c.get("SUPABASE_URL") and c.get("SUPABASE_SERVICE_KEY"))
 
 
-def _api(path, data=None, headers=None, timeout=20):
+def _api(path, data=None, headers=None, timeout=20, method=None):
     c = current_app.config
+    req_method = method or ("POST" if data is not None else "GET")
     req = urllib.request.Request(c["SUPABASE_URL"].rstrip("/") + "/storage/v1/" + path, data=data,
-                                 method="POST" if data is not None else "GET")
+                                 method=req_method)
     key = c["SUPABASE_SERVICE_KEY"]
     auth = {"apikey": key} if key.startswith("sb_") else {"apikey": key, "Authorization": "Bearer " + key}   # new secret keys go in apikey only
     for k, v in {**auth, "Content-Type": "application/json", **(headers or {})}.items():
@@ -52,6 +53,39 @@ def save(name, data, content_type="application/octet-stream"):
     with open(path, "wb") as f:
         f.write(data)
     return name
+
+
+def read_bytes(name):
+    """Read raw object bytes from local disk or private Supabase bucket; return None when missing."""
+    if using_supabase():
+        try:
+            return _api("object/authenticated/" + _object(name), headers={}, timeout=20, method="GET")
+        except urllib.error.HTTPError as e:
+            if e.code in (400, 404):
+                return None
+            raise
+    path = os.path.join(current_app.config["UPLOAD_FOLDER"], name)
+    if not os.path.isfile(path):
+        return None
+    with open(path, "rb") as f:
+        return f.read()
+
+
+def delete(name):
+    """Remove an object from local disk or Supabase Storage (no-op if already missing)."""
+    _signed.pop(name, None)
+    if using_supabase():
+        try:
+            _api("object/" + _object(name), headers={}, timeout=20, method="DELETE")
+        except urllib.error.HTTPError as e:
+            if e.code not in (400, 404):
+                raise
+        return
+    path = os.path.join(current_app.config["UPLOAD_FOLDER"], name)
+    try:
+        os.remove(path)
+    except FileNotFoundError:
+        pass
 
 
 def signed_url(name):

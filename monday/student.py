@@ -1626,6 +1626,8 @@ def _delete_account(user):
         rec.student_user_id = None
         rec.linked_at = None
         rec.revoke_invite_code()
+    from .support_images import delete_user_support_attachments
+    delete_user_support_attachments(user.id)
     db.session.commit()
 
 
@@ -1890,29 +1892,82 @@ def formula_add(template_id):
 
 
 @bp.route("/support", methods=["GET", "POST"])
-@student_required
+@login_required
+@limiter.limit("30 per hour", methods=["POST"])
 def support():
-    """Student support page: quick contact form, FAQ, and recent submitted tickets/reports."""
+    """Support page for students and staff: quick contact form (with optional WebP images), FAQ, and recent tickets."""
+    if current_user.is_blocked:
+        abort(403)
+    if current_user.role == "teacher" and not current_user.is_approved:
+        return redirect(url_for("auth.pending"))
+    if current_user.role == "student" and not (current_user.profile and current_user.profile.onboarded):
+        return redirect(url_for("student.onboarding"))
+
     from .models import Report
+    from .support_images import (
+        MAX_SUPPORT_REQUEST_BYTES,
+        SupportImageError,
+        _peek_non_empty,
+        prepare_and_store_attachments,
+    )
+
     subjects = [
         _("Техническая проблема"),
         _("Ошибка в задаче или формуле"),
         _("Вопрос по тесту понедельника"),
         _("Идея или предложение"),
     ]
+    my_reports = (Report.query.filter(Report.author_id == current_user.id)
+                  .order_by(Report.created_at.desc()).limit(6).all())
+    wants_json = request.headers.get("X-Requested-With") == "fetch" or "application/json" in (request.headers.get("Accept") or "")
+
+    def _err(msg: str, status: int = 400):
+        if wants_json:
+            return jsonify(ok=False, error=msg), status
+        flash(msg, "error")
+        return render_template("student/support.html", subjects=subjects, my_reports=my_reports), status
+
     if request.method == "POST":
+        if request.content_length and request.content_length > MAX_SUPPORT_REQUEST_BYTES:
+            return _err(_("Общий размер запроса превышает 5 МБ."), 413)
+
         subject = (request.form.get("subject") or "").strip()
         if subject not in subjects:
             subject = subjects[0]
         message = (request.form.get("message") or "").strip()[:1800]
-        if not message:
-            flash(_("Опишите ваш вопрос или проблему."), "error")
-        else:
-            db.session.add(Report(author_id=current_user.id, kind="other", message=f"[{subject}] {message}"))
-            db.session.commit()
-            flash(_("Сообщение отправлено! Мы скоро ответим."), "success")
-            return redirect(url_for("student.support"))
 
-    my_reports = (Report.query.filter(Report.author_id == current_user.id)
-                  .order_by(Report.created_at.desc()).limit(6).all())
+        raw_files = request.files.getlist("images") or request.files.getlist("attachments")
+        files = [f for f in raw_files if f and ((getattr(f, "filename", "") or "").strip() or _peek_non_empty(f))]
+
+        if not message and not files:
+            return _err(_("Опишите ваш вопрос или прикрепите изображение."), 400)
+
+        body_text = f"[{subject}] {message}" if message else f"[{subject}]"
+        report = Report(
+            author_id=current_user.id,
+            sender_role=current_user.role,
+            kind="other",
+            message=body_text,
+        )
+        db.session.add(report)
+        try:
+            attachments = prepare_and_store_attachments(report, files, current_user.id)
+            db.session.commit()
+        except SupportImageError as exc:
+            db.session.rollback()
+            status = 413 if "5 МБ" in str(exc) else 400
+            return _err(str(exc), status)
+
+        ok_msg = _("Сообщение отправлено! Мы скоро ответим.")
+        if wants_json:
+            return jsonify(
+                ok=True,
+                message=ok_msg,
+                redirect=url_for("student.support"),
+                message_id=report.id,
+                attachment_ids=[a.id for a in attachments],
+            )
+        flash(ok_msg, "success")
+        return redirect(url_for("student.support"))
+
     return render_template("student/support.html", subjects=subjects, my_reports=my_reports)

@@ -11,13 +11,13 @@
 <div class="sup-grid">
   <section class="card sup-card" aria-labelledby="sup-form-h">
     <h2 id="sup-form-h">{{ _("Написать в поддержку") }}</h2>
-    <p class="sup-sub">{{ _("Опишите ситуацию — сообщение попадёт преподавателям и команде платформы.") }}</p>
+    <p class="sup-sub">{{ _("Опишите ситуацию или прикрепите скриншот — сообщение попадёт преподавателям и команде платформы.") }}</p>
 
-    <form method="post" action="{{ url_for('student.support') }}" class="sup-form">
+    <form method="post" action="{{ url_for('student.support') }}" enctype="multipart/form-data" class="sup-form" data-sup-form novalidate>
       {{ ui.csrf() }}
       <div class="field">
         <label for="sup-subject">{{ _("Тема обращения") }}</label>
-        <select id="sup-subject" name="subject" class="input">
+        <select id="sup-subject" name="subject" class="input select">
           {% for s in subjects %}
             <option value="{{ s }}">{{ s }}</option>
           {% endfor %}
@@ -26,11 +26,34 @@
 
       <div class="field">
         <label for="sup-message">{{ _("Сообщение") }}</label>
-        <textarea id="sup-message" name="message" rows="5" class="input" required placeholder="{{ _('Например: не открывается задача №4 в банке SAT или вопрос по таймеру…') }}"></textarea>
+        <textarea id="sup-message" name="message" rows="5" class="input textarea" placeholder="{{ _('Например: не открывается задача №4 в банке SAT или прикрепите скриншот…') }}"></textarea>
+      </div>
+
+      <div class="field">
+        <div class="sup-attach-head">
+          <span class="label">{{ _("Скриншоты или фото") }}</span>
+          <span class="sup-count" data-sup-count hidden></span>
+        </div>
+        <div class="sup-drop" data-sup-drop>
+          <input id="sup-images" name="images" type="file" accept="image/*" multiple hidden data-sup-input>
+          <button type="button" class="btn btn--secondary btn--sm sup-pick-btn" data-sup-pick>
+            {{ ui.icon('plus', 16) }}
+            <span>{{ _("Прикрепить изображение") }}</span>
+          </button>
+          <p class="sup-drop__hint">
+            {{ _("Перетащите сюда, вставьте скриншот (Ctrl/Cmd+V) или выберите с камеры/устройства. До 3 изображений (JPEG, PNG, WebP), до 5 МБ всего.") }}
+          </p>
+        </div>
+        <ul class="sup-previews" data-sup-previews hidden aria-live="polite"></ul>
+        <div class="sup-error" role="alert" data-sup-error hidden></div>
+        <div class="sup-progress" data-sup-progress hidden aria-live="polite">
+          <div class="sup-progress__track"><span class="sup-progress__bar" data-sup-bar></span></div>
+          <span class="sup-progress__label" data-sup-progress-text></span>
+        </div>
       </div>
 
       <div class="sup-form__foot">
-        <button type="submit" class="btn btn--primary btn--lg">{{ _("Отправить сообщение") }} {{ ui.icon('send', 16) }}</button>
+        <button type="submit" class="btn btn--primary btn--lg" data-sup-submit>{{ _("Отправить сообщение") }} {{ ui.icon('send', 16) }}</button>
         <span class="small muted">{{ _("Обычно отвечаем в течение рабочего дня.") }}</span>
       </div>
     </form>
@@ -78,8 +101,27 @@
                 <span class="small muted">{{ r.created_at.strftime('%d.%m.%Y') if r.created_at else '' }}</span>
               </div>
               <p class="sup-item__msg">{{ r.message or _("Сообщение об ошибке в задаче") }}</p>
+              {% if r.attachments %}
+                <div class="sup-item__atts">
+                  {% for att in r.attachments %}
+                    {% if att.deleted_at %}
+                      <span class="sup-att-deleted">{{ _("Изображение удалено") }}</span>
+                    {% else %}
+                      <button type="button" class="sup-att-btn" data-lightbox-trigger aria-label="{{ _('Открыть вложение %(n)s', n=loop.index) }}">
+                        <img
+                          src="{{ url_for('reports.attachment_view', attachment_id=att.id, size='thumb') }}"
+                          alt="{{ _('Вложение %(n)s', n=loop.index) }}"
+                          loading="lazy"
+                          data-lightbox
+                          data-lightbox-src="{{ url_for('reports.attachment_view', attachment_id=att.id) }}"
+                        >
+                      </button>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              {% endif %}
               {% if r.reply %}
-                <div class="sup-item__reply"><b>{{ _("Ответ") }}:</b> {{ r.reply }}</div>
+                <div class="sup-item__reply"><b>{{ _("Поддержка") if (r.handled_by and r.handled_by.role == 'admin') else _("Ответ") }}:</b> {{ r.reply }}</div>
               {% endif %}
             </li>
           {% endfor %}
@@ -90,4 +132,7 @@
     </section>
   </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script defer src="{{ url_for('static', filename='js/support.js') }}"></script>
 {% endblock %}

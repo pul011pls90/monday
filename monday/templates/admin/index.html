@@ -148,6 +148,21 @@
     </section>
   </div>
 
+  {% if support_storage is defined %}
+  <section class="card" aria-labelledby="sup-store-h">
+    <div class="card__head">
+      <h2 id="sup-store-h" style="font-size:18px">{{ _("Хранилище поддержки") }}</h2>
+      <a class="small" style="font-weight:700" href="{{ url_for('reports.inbox') }}">{{ _("Обращения") }} →</a>
+    </div>
+    <div class="admin-kpis">
+      <div class="card card--tight"><div class="stat-value num">{{ support_storage.total_count }}</div><div class="stat-label">{{ _("активных вложений") }}</div></div>
+      <div class="card card--tight"><div class="stat-value num">{{ support_storage.total_mb }} МБ</div><div class="stat-label">{{ _("занято места") }}</div></div>
+      <div class="card card--tight"><div class="stat-value num">{{ support_storage.avg_kb }} КБ</div><div class="stat-label">{{ _("средний размер") }}</div></div>
+      <div class="card card--tight"><div class="stat-value num">{{ support_storage.oldest_at.strftime('%d.%m.%Y') if support_storage.oldest_at else '—' }}</div><div class="stat-label">{{ _("самое старое") }}</div></div>
+    </div>
+  </section>
+  {% endif %}
+
 {% elif tab == 'apps' %}
   {# ============================================================ teacher applications #}
   {% if pending_teachers %}
