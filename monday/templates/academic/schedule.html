@@ -188,9 +188,11 @@
           <span class="small muted num">{{ d|d('d MMM') }}</span>
         </div>
         {% for l in day_lessons %}
+          {% set st = lesson_att_stats.get(l.id, {}) %}
           <a class="acad-event acad-event--{{ l.lesson_mode }}{{ ' acad-event--conflict' if l.id in conflict_ids }}" href="{{ url_for('academic.lesson_detail', lesson_id=l.id) }}">
             <span class="t-strong num">{{ l.starts_at|d('HH:mm') }} · {{ l.group.name }}</span>
             <span class="small muted">{{ l.location.name if l.location else _('Онлайн') }}{% if l.teacher %} · {{ l.teacher.name }}{% endif %}</span>
+            <span class="small muted num">{{ _("Отмечено") }}: {{ st.get('marked', 0) }}/{{ st.get('roster', 0) }} · {{ _("Был") }}: {{ st.get('present', 0) }} · {{ _("Нет") }}: {{ st.get('absent', 0) }}</span>
           </a>
         {% else %}
           <span class="small muted" style="padding:8px 0">{{ _("Нет уроков") }}</span>
@@ -302,7 +304,11 @@
               {% endif %}
             </td>
             <td>{{ l.teacher.name if l.teacher else '—' }}</td>
-            <td class="num">{{ l.attendances|length }}</td>
+            {% set st = lesson_att_stats.get(l.id, {}) %}
+            <td class="num">
+              <div>{{ st.get('marked', 0) }}/{{ st.get('roster', 0) }}</div>
+              <div class="mgr-subcell">{{ _("Был") }}: {{ st.get('present', 0) }} · {{ _("Нет") }}: {{ st.get('absent', 0) }}</div>
+            </td>
             <td>{{ mui.btn(_("Открыть"), href=url_for('academic.lesson_detail', lesson_id=l.id), variant='secondary', size='sm') }}</td>
           </tr>
           {% endfor %}

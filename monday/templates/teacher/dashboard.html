@@ -11,6 +11,7 @@
     <p>{{ _("Вот что ждёт вас сегодня: уроки, проверки и прогресс класса.") }}</p>
   </div>
   <div class="t-hero-actions">
+    <a class="btn btn--secondary btn--min" href="{{ url_for('academic.schedule') }}">{{ ui.icon('calendar', 16) }}<span>{{ _("Посещаемость") }}</span></a>
     <a class="btn btn--secondary btn--min" href="{{ url_for('teacher.bank') }}">{{ ui.icon('questions', 16) }}<span>{{ _("Банк вопросов") }}</span></a>
     <a class="btn btn--secondary btn--min" href="{{ url_for('teacher.work_new', kind='homework') }}">{{ ui.icon('plus', 16) }}<span>{{ _("Домашка") }}</span></a>
     <a class="btn btn--primary btn--min" href="{{ url_for('teacher.assign') }}">{{ ui.icon('send', 16) }}<span>{{ _("Выдать задание") }}</span></a>
@@ -72,6 +73,37 @@
     {% endif %}
   </section>
 </div>
+
+<section class="card" style="margin-top:16px">
+  <div class="card__hd">
+    <div>
+      <h2 class="card__title">{{ _("Мои уроки · Посещаемость групп") }}</h2>
+      <p class="text-3 small" style="margin:2px 0 0">{{ _("Отмечайте присутствие и отсутствие учеников на ваших занятиях.") }}</p>
+    </div>
+    <a class="btn btn--ghost btn--sm" href="{{ url_for('academic.schedule') }}">{{ _("Всё расписание") }}</a>
+  </div>
+  {% if group_lessons %}
+    <div class="t-list">
+      {% for l in group_lessons %}
+        {% set st = lesson_att_stats.get(l.id, {}) %}
+        <div class="t-item">
+          <div>
+            <strong>{{ l.group.name }}</strong>
+            <div class="small text-2 num">
+              {{ l.starts_at|d('d MMM, HH:mm') }} · {{ LESSON_MODE_LABELS.get(l.lesson_mode, l.lesson_mode) }}{% if l.topic %} · {{ l.topic }}{% endif %}
+            </div>
+            <div class="small text-3 num">
+              {{ _("Отмечено") }}: {{ st.get('marked', 0) }}/{{ st.get('roster', 0) }} · {{ _("Был") }}: {{ st.get('present', 0) }} · {{ _("Нет") }}: {{ st.get('absent', 0) }}
+            </div>
+          </div>
+          <a class="btn btn--secondary btn--sm" href="{{ url_for('academic.lesson_detail', lesson_id=l.id) }}">{{ _("Отметить") }}</a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-2">{{ _("На ближайшие дни групповых уроков пока нет.") }}</p>
+  {% endif %}
+</section>
 
 {# ------------------------------------------------------------ questions of the day #}
 <section class="card daily-t" aria-labelledby="daily-h">

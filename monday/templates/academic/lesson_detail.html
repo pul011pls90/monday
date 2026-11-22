@@ -26,6 +26,20 @@
   {% endif %}
 
   {% if roster %}
+    {% if can_mark %}
+    <form method="post" action="{{ url_for('academic.lesson_mark_attendance', lesson_id=lesson.id) }}" id="lesson-att-batch-form">
+      {{ ui.csrf() }}
+      <input type="hidden" name="batch" value="1">
+      <div class="row row--between" style="gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
+        <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+          <button type="button" class="mgr-btn mgr-btn--secondary mgr-btn--sm" onclick="document.querySelectorAll('#lesson-att-batch-form input[type=radio][value=present]').forEach(function(r){r.checked=true;});">{{ _("Все были") }}</button>
+          {% if is_retro_window_passed %}
+            <input class="input input--sm" name="reason" placeholder="{{ _('Причина ретро-правки (если меняете отмеченное)') }}" style="width:280px;min-height:34px">
+          {% endif %}
+        </div>
+        <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Сохранить посещаемость") }}</button>
+      </div>
+    {% endif %}
     {% call mui.table_wrap() %}
       <table class="mgr-table">
         <thead>
@@ -71,8 +85,11 @@
               <td>
                 {% if att %}
                   {{ mui.badge(ATTENDANCE_LABELS.get(att.status, att.status), tone=st_tone, dot=true) }}
+                  <div class="mgr-subcell">
+                    {% if att.marked_by %}{{ MARKER_ROLE_LABELS.get(att.marked_by.role, att.marked_by.role) }}: {{ att.marked_by.name }} · {% endif %}{{ (att.edited_at or att.marked_at)|d('d MMM, HH:mm') }}
+                  </div>
                 {% else %}
-                  <span class="muted">{{ _("не отмечен") }}</span>
+                  {{ mui.badge(_("Не отмечен"), tone='neutral') }}
                 {% endif %}
               </td>
               <td>
@@ -84,23 +101,17 @@
               </td>
               {% if can_mark %}
               <td>
-                <form method="post" action="{{ url_for('academic.lesson_mark_attendance', lesson_id=lesson.id) }}" class="row" style="gap:6px;flex-wrap:wrap;align-items:center">
-                  {{ ui.csrf() }}
-                  <input type="hidden" name="student_user_id" value="{{ st.id }}">
+                <div class="row" style="gap:6px;flex-wrap:wrap;align-items:center">
                   <div class="att-pills">
                     {% for s_val, s_lbl in [('present', _('Был')), ('late', _('Опоздал')), ('absent', _('Не был')), ('excused', _('Уважит.'))] %}
                       <label class="att-pill att-pill--{{ s_val }}">
-                        <input type="radio" name="status" value="{{ s_val }}" {{ 'checked' if (att and att.status == s_val) or (not att and s_val == 'present') }}>
+                        <input type="radio" name="status_{{ st.id }}" value="{{ s_val }}" {{ 'checked' if att and att.status == s_val }}>
                         <span>{{ s_lbl }}</span>
                       </label>
                     {% endfor %}
                   </div>
-                  <input class="input input--sm" name="note" value="{{ att.note if att else '' }}" placeholder="{{ _('Заметка') }}" style="width:130px;min-height:34px">
-                  {% if att and is_retro_window_passed %}
-                    <input class="input input--sm" name="reason" required placeholder="{{ _('Причина ретро-правки *') }}" style="width:170px;min-height:34px">
-                  {% endif %}
-                  <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit" style="min-height:34px">{{ _("Сохранить") }}</button>
-                </form>
+                  <input class="input input--sm" name="note_{{ st.id }}" value="{{ att.note if att else '' }}" placeholder="{{ _('Заметка') }}" style="width:140px;min-height:34px">
+                </div>
               </td>
               {% endif %}
             </tr>
@@ -108,6 +119,12 @@
         </tbody>
       </table>
     {% endcall %}
+    {% if can_mark %}
+      <div class="row row--end" style="margin-top:10px">
+        <button class="mgr-btn mgr-btn--primary" type="submit">{{ _("Сохранить посещаемость") }}</button>
+      </div>
+    </form>
+    {% endif %}
   {% else %}
     {{ mui.empty(_("В этой группе пока никого нет"), _("Добавьте учеников в группу на странице расписания."), icon_name='users') }}
   {% endif %}

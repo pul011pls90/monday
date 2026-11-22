@@ -55,6 +55,13 @@
                 {% if card.total_debt %}{{ mui.badge(_("Долг") ~ " " ~ card.total_debt, tone='bad') }}{% endif %}
               </div>
               <div class="small muted">{{ card.active_groups|join(', ') if card.active_groups else _('Нет активной группы') }}</div>
+              {% if card.last_att %}
+                {% set la_tone = 'ok' if card.last_att.status == 'present' else ('warn' if card.last_att.status in ('late', 'excused') else 'bad') %}
+                <div class="row row--between small" style="gap:6px">
+                  <span class="muted">{{ _("Последний урок") }}</span>
+                  {{ mui.badge(att_labels.get(card.last_att.status, card.last_att.status), tone=la_tone) }}
+                </div>
+              {% endif %}
               {% if card.total_att %}
                 <div class="row row--between small" style="gap:6px">
                   <span class="muted">{{ _("Посещаемость (30д)") }}</span>

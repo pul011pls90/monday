@@ -1126,6 +1126,7 @@ def pipeline():
             atts = (
                 LessonAttendance.query.join(Lesson, Lesson.id == LessonAttendance.lesson_id)
                 .filter(LessonAttendance.student_user_id.in_(student_ids), Lesson.starts_at >= since)
+                .order_by(Lesson.starts_at.desc(), LessonAttendance.id.desc())
                 .all()
             )
             for a in atts:
@@ -1170,6 +1171,7 @@ def pipeline():
                 "present_cnt": present_cnt,
                 "absent_cnt": absent_cnt,
                 "att_pct": att_pct,
+                "last_att": atts[0] if atts else None,
                 "active_pass": active_pass,
                 "total_debt": total_debt,
             }
@@ -1188,6 +1190,7 @@ def pipeline():
             mode="students",
             health_cols=health_cols,
             health_labels=health_labels,
+            att_labels={"present": _("Присутствовал"), "absent": _("Отсутствовал"), "late": _("Опоздал"), "excused": _("Уважительная")},
             managers=_crm_managers(),
             filters={"source": source, "manager": manager_id or ""},
         )
@@ -1638,6 +1641,7 @@ _AUDIT_ACTION_LABELS = {
     "manager_profile_update": "Обновление профиля",
     "role_change": "Смена роли",
     "enrollment_close": "Завершение зачисления",
+    "attendance_mark": "Отметка посещаемости",
     "attendance_retro_edit": "Ретро-правка посещаемости",
     "lead_convert": "Конвертация лида",
     "lead_status_override": "Откат статуса лида",
@@ -1659,6 +1663,8 @@ _AUDIT_KEY_LABELS = {
     "converted_student_id": "Ученик",
     "is_on_shift": "На смене",
     "student_id": "Ученик",
+    "lesson_id": "Урок",
+    "note": "Примечание",
     "plan": "Тариф",
     "agreed_price": "Цена",
     "initial_pay": "Предоплата",

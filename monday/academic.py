@@ -38,10 +38,16 @@ LESSON_MODE_LABELS = {
 }
 
 ATTENDANCE_LABELS = {
-    "present": "Был",
+    "present": "Присутствовал",
     "absent": "Отсутствовал",
     "late": "Опоздал",
-    "excused": "Уважит. причина",
+    "excused": "Уважительная",
+}
+
+MARKER_ROLE_LABELS = {
+    "teacher": "Учитель",
+    "supervisor": "Супервайзер",
+    "admin": "Админ",
 }
 
 RETRO_WINDOW_HOURS = 24
@@ -117,6 +123,31 @@ def _detect_lesson_conflicts(lessons: list[Lesson]) -> set[int]:
     return conflicts
 
 
+def compute_lesson_att_stats(lessons: list[Lesson]) -> dict[int, dict[str, int]]:
+    """Compute live roster & attendance breakdown per lesson without N+1 queries."""
+    stats: dict[int, dict[str, int]] = {}
+    for l in lessons:
+        enr_ids = {
+            e.student_user_id
+            for e in (l.group.enrollments if l.group else [])
+            if e.left_at is None or e.left_at >= l.starts_at
+        }
+        att_ids = {a.student_user_id for a in l.attendances}
+        present_cnt = sum(1 for a in l.attendances if a.status == "present")
+        late_cnt = sum(1 for a in l.attendances if a.status == "late")
+        absent_cnt = sum(1 for a in l.attendances if a.status == "absent")
+        excused_cnt = sum(1 for a in l.attendances if a.status == "excused")
+        stats[l.id] = {
+            "roster": len(enr_ids | att_ids),
+            "marked": len(l.attendances),
+            "present": present_cnt,
+            "late": late_cnt,
+            "absent": absent_cnt,
+            "excused": excused_cnt,
+        }
+    return stats
+
+
 @bp.route("/schedule")
 @permission_required("academic.schedule.read")
 def schedule():
@@ -136,6 +167,7 @@ def schedule():
 
     q = Lesson.query.options(
         joinedload(Lesson.group).joinedload(StudyGroup.course),
+        joinedload(Lesson.group).joinedload(StudyGroup.enrollments),
         joinedload(Lesson.teacher),
         joinedload(Lesson.location),
         joinedload(Lesson.attendances),
@@ -267,6 +299,7 @@ def schedule():
         LESSON_MODES=LESSON_MODES,
         LESSON_MODE_LABELS=LESSON_MODE_LABELS,
         ATTENDANCE_LABELS=ATTENDANCE_LABELS,
+        lesson_att_stats=compute_lesson_att_stats(lessons),
         filters={
             "lesson_mode": mode_filter,
             "group_id": group_id or "",
@@ -457,6 +490,7 @@ def lesson_detail(lesson_id: int):
             joinedload(Lesson.teacher),
             joinedload(Lesson.location),
             joinedload(Lesson.attendances).joinedload(LessonAttendance.student),
+            joinedload(Lesson.attendances).joinedload(LessonAttendance.marked_by),
         )
         .filter_by(id=lesson_id)
         .first()
@@ -523,6 +557,7 @@ def lesson_detail(lesson_id: int):
         LESSON_MODE_LABELS=LESSON_MODE_LABELS,
         LESSON_ATTENDANCE_STATUSES=LESSON_ATTENDANCE_STATUSES,
         ATTENDANCE_LABELS=ATTENDANCE_LABELS,
+        MARKER_ROLE_LABELS=MARKER_ROLE_LABELS,
     )
 
 
@@ -565,35 +600,20 @@ def _sync_pass_usage(lesson: Lesson, student_id: int, new_status: str, now: date
         db.session.delete(usage)
 
 
-@bp.post("/lessons/<int:lesson_id>/attendance")
-@permission_required("academic.attendance.mark")
-def lesson_mark_attendance(lesson_id: int):
-    lesson = db.session.get(Lesson, lesson_id) or abort(404)
-    if not _can_access_lesson(lesson):
-        abort(403)
-
-    student_id = request.form.get("student_user_id", type=int)
-    status = (request.form.get("status") or "").strip().lower()
-    note = (request.form.get("note") or "").strip()
-    reason = (request.form.get("reason") or "").strip()
-
-    student = db.session.get(User, student_id) if student_id else None
-    if not student or student.role != "student" or status not in LESSON_ATTENDANCE_STATUSES:
-        abort(400)
-
-    now = utcnow()
-    existing = LessonAttendance.query.filter_by(lesson_id=lesson.id, student_user_id=student.id).first()
+def _upsert_attendance_row(
+    lesson: Lesson,
+    student: User,
+    status: str,
+    note: str,
+    reason: str,
+    now: datetime,
+    existing: LessonAttendance | None,
+) -> tuple[bool, str | None]:
+    """Create or update one LessonAttendance row, sync pass usage idempotently, and write AuditLog."""
     if existing is None:
         enrolled = GroupEnrollment.query.filter_by(group_id=lesson.group_id, student_user_id=student.id).first()
         if enrolled is None:
             abort(400)
-    is_past_edit = existing is not None and lesson.starts_at < now
-    is_retro_locked = existing is not None and lesson.starts_at < (now - timedelta(hours=RETRO_WINDOW_HOURS))
-
-    if is_retro_locked and not current_user.has_perm("academic.attendance.edit_retro"):
-        abort(403)
-
-    if existing is None:
         row = LessonAttendance(
             lesson_id=lesson.id,
             student_user_id=student.id,
@@ -604,31 +624,125 @@ def lesson_mark_attendance(lesson_id: int):
             updated_at=now,
         )
         db.session.add(row)
+        db.session.flush()
         _sync_pass_usage(lesson, student.id, status, now)
-        db.session.commit()
-        flash(_("Посещаемость отмечена."), "success")
-        return redirect(url_for("academic.lesson_detail", lesson_id=lesson.id))
+        write_audit_log(
+            actor_id=current_user.id,
+            action="attendance_mark",
+            entity_type="lesson_attendance",
+            entity_id=row.id,
+            old_value=None,
+            new_value={
+                "lesson_id": lesson.id,
+                "student_id": student.id,
+                "student_user_id": student.id,
+                "status": status,
+                "note": note,
+            },
+            reason=reason,
+        )
+        return True, None
+
+    is_retro_locked = lesson.starts_at < (now - timedelta(hours=RETRO_WINDOW_HOURS))
+    if is_retro_locked and not current_user.has_perm("academic.attendance.edit_retro"):
+        abort(403)
+
+    if existing.status == status and existing.note == note:
+        return False, None
+
+    if is_retro_locked and not reason:
+        return False, _("Для ретро-правки посещаемости укажите причину.")
 
     old_val = {"status": existing.status, "note": existing.note}
-    if existing.status != status or existing.note != note:
-        if is_retro_locked and not reason:
-            flash(_("Для ретро-правки посещаемости укажите причину."), "error")
-            return redirect(url_for("academic.lesson_detail", lesson_id=lesson.id))
-        existing.status = status
-        existing.note = note
-        existing.marked_by_id = current_user.id
-        existing.updated_at = now
-        _sync_pass_usage(lesson, student.id, status, now)
-        if is_past_edit:
-            write_audit_log(
-                actor_id=current_user.id,
-                action="attendance_retro_edit",
-                entity_type="lesson_attendance",
-                entity_id=existing.id,
-                old_value=old_val,
-                new_value={"status": status, "note": note, "lesson_id": lesson.id, "student_user_id": student.id},
-                reason=reason,
+    existing.status = status
+    existing.note = note
+    existing.marked_by_id = current_user.id
+    existing.updated_at = now
+    _sync_pass_usage(lesson, student.id, status, now)
+    write_audit_log(
+        actor_id=current_user.id,
+        action="attendance_retro_edit" if is_retro_locked else "attendance_mark",
+        entity_type="lesson_attendance",
+        entity_id=existing.id,
+        old_value=old_val,
+        new_value={
+            "lesson_id": lesson.id,
+            "student_id": student.id,
+            "student_user_id": student.id,
+            "status": status,
+            "note": note,
+        },
+        reason=reason,
+    )
+    return True, None
+
+
+@bp.post("/lessons/<int:lesson_id>/attendance")
+@permission_required("academic.attendance.mark")
+def lesson_mark_attendance(lesson_id: int):
+    lesson = db.session.get(Lesson, lesson_id) or abort(404)
+    if not _can_access_lesson(lesson):
+        abort(403)
+
+    now = utcnow()
+    reason = (request.form.get("reason") or "").strip()
+
+    if request.form.get("batch") == "1":
+        enrollments = (
+            GroupEnrollment.query.options(joinedload(GroupEnrollment.student))
+            .filter(
+                GroupEnrollment.group_id == lesson.group_id,
+                (GroupEnrollment.left_at.is_(None)) | (GroupEnrollment.left_at >= lesson.starts_at),
             )
+            .all()
+        )
+        existing_rows = {a.student_user_id: a for a in LessonAttendance.query.filter_by(lesson_id=lesson.id).all()}
+        students_by_id: dict[int, User] = {e.student_user_id: e.student for e in enrollments if e.student and e.student.role == "student"}
+        for a in existing_rows.values():
+            if a.student and a.student.role == "student":
+                students_by_id.setdefault(a.student_user_id, a.student)
+
+        changed = 0
+        for st_id in sorted(students_by_id):
+            status = (request.form.get(f"status_{st_id}") or "").strip().lower()
+            if not status:
+                continue
+            if status not in LESSON_ATTENDANCE_STATUSES:
+                db.session.rollback()
+                abort(400)
+            note = (request.form.get(f"note_{st_id}") or "").strip()[:255]
+            did_change, err = _upsert_attendance_row(
+                lesson, students_by_id[st_id], status, note, reason, now, existing_rows.get(st_id)
+            )
+            if err:
+                db.session.rollback()
+                flash(err, "error")
+                return redirect(url_for("academic.lesson_detail", lesson_id=lesson.id))
+            if did_change:
+                changed += 1
+
         db.session.commit()
-        flash(_("Посещаемость обновлена."), "success")
+        flash(
+            _("Посещаемость сохранена (обновлено записей: %(n)s).", n=changed) if changed else _("Изменений в посещаемости нет."),
+            "success" if changed else "info",
+        )
+        return redirect(url_for("academic.lesson_detail", lesson_id=lesson.id))
+
+    student_id = request.form.get("student_user_id", type=int)
+    status = (request.form.get("status") or "").strip().lower()
+    note = (request.form.get("note") or "").strip()[:255]
+
+    student = db.session.get(User, student_id) if student_id else None
+    if not student or student.role != "student" or status not in LESSON_ATTENDANCE_STATUSES:
+        abort(400)
+
+    existing = LessonAttendance.query.filter_by(lesson_id=lesson.id, student_user_id=student.id).first()
+    did_change, err = _upsert_attendance_row(lesson, student, status, note, reason, now, existing)
+    if err:
+        db.session.rollback()
+        flash(err, "error")
+        return redirect(url_for("academic.lesson_detail", lesson_id=lesson.id))
+    if did_change:
+        db.session.commit()
+        flash(_("Посещаемость отмечена.") if existing is None else _("Посещаемость обновлена."), "success")
     return redirect(url_for("academic.lesson_detail", lesson_id=lesson.id))

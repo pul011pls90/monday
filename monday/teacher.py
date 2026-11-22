@@ -141,10 +141,12 @@ def _handed_in_empty(attempt):
 @bp.route("/")
 @teacher_required
 def dashboard():
+    from .academic import LESSON_MODE_LABELS, compute_lesson_att_stats
     from .daily import teacher_daily
     from .insights import class_dots, fresh_mistakes, homework_week, monday_results
-    from .models import Attendance
+    from .models import Attendance, Lesson, StudyGroup
     from .services import week_start
+    from sqlalchemy.orm import joinedload
     records = _my_records().all()
     today = local_today()
     weekday = today.weekday()
@@ -169,11 +171,32 @@ def dashboard():
     offset = request.args.get("week", 0, type=int)
     start = week_start(today) + timedelta(weeks=offset)
     pending_q = Question.query.filter_by(author_id=current_user.id, status="pending").count()
+    group_lessons = (
+        Lesson.query.join(StudyGroup, StudyGroup.id == Lesson.group_id)
+        .options(
+            joinedload(Lesson.group).joinedload(StudyGroup.course),
+            joinedload(Lesson.group).joinedload(StudyGroup.enrollments),
+            joinedload(Lesson.location),
+            joinedload(Lesson.attendances),
+        )
+        .filter((Lesson.teacher_id == current_user.id) | (StudyGroup.teacher_id == current_user.id))
+        .order_by(Lesson.starts_at.desc())
+        .limit(12)
+        .all()
+    )
     return render_template("teacher/dashboard.html", today_lessons=today_lessons, marks=marks, next_lesson=next_lesson,
                            to_check=to_check, behind=behind, records=records, pending_q=pending_q,
                            week=homework_week(current_user.id, start), week_offset=offset, today=today,
                            mistakes=fresh_mistakes(records), dots=class_dots(current_user, records),
-                           monday=monday_results(records), daily=teacher_daily(current_user, records))
+                           monday=monday_results(records), daily=teacher_daily(current_user, records),
+                           group_lessons=group_lessons, lesson_att_stats=compute_lesson_att_stats(group_lessons),
+                           LESSON_MODE_LABELS=LESSON_MODE_LABELS)
+
+
+@bp.route("/lessons")
+@teacher_required
+def lessons():
+    return redirect(url_for("academic.schedule"))
 
 
 @bp.route("/daily/<int:pick_id>/remove", methods=["POST"])
