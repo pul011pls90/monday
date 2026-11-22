@@ -70,6 +70,7 @@ class User(UserMixin, db.Model):
     total_visits = db.Column(db.Integer, nullable=False, default=0)  # cached by daily analytics job
     average_visit_duration = db.Column(db.Integer, nullable=False, default=0)  # average seconds per visit
     legacy_access_until = db.Column(db.DateTime, nullable=True)  # grandfathered full bank access deadline for pre-Stage-4 unlinked students
+    stripe_customer_id = db.Column(db.String(64), nullable=True, index=True)  # Stripe customer ID (never card data)
     created_at = db.Column(db.DateTime, default=utcnow)
 
     profile = db.relationship("StudentProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
@@ -1665,6 +1666,7 @@ class SubscriptionPlan(db.Model):
     currency = db.Column(db.String(8), nullable=False, default="USD")
     billing_period = db.Column(db.String(16), nullable=False, default="monthly")
     duration_days = db.Column(db.Integer, nullable=False, default=30)
+    stripe_price_id = db.Column(db.String(64), nullable=True)  # optional Stripe recurring Price ID
     is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
 
@@ -1675,12 +1677,17 @@ class Subscription(db.Model):
     __tablename__ = "bank_subscriptions"
     __table_args__ = (
         db.Index("ix_bank_subscriptions_user_status", "user_id", "status"),
+        UniqueConstraint("provider_subscription_id", name="uq_bank_subscriptions_provider_sub_id"),
     )
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     plan_id = db.Column(db.Integer, db.ForeignKey("subscription_plans.id", ondelete="RESTRICT"), nullable=False, index=True)
     status = db.Column(db.String(20), nullable=False, default="active", index=True)
+    provider = db.Column(db.String(24), nullable=False, default="manual")  # manual | stripe
+    provider_subscription_id = db.Column(db.String(64), nullable=True)
+    provider_customer_id = db.Column(db.String(64), nullable=True, index=True)
+    cancel_at_period_end = db.Column(db.Boolean, nullable=False, default=False)
     starts_at = db.Column(db.DateTime, nullable=False, default=utcnow)
     current_period_end = db.Column(db.DateTime, nullable=True, index=True)
     trial_ends_at = db.Column(db.DateTime, nullable=True)
@@ -1730,6 +1737,23 @@ class DailyQuestionAccess(db.Model):
     access_date = db.Column(db.Date, nullable=False)
     question_id = db.Column(db.Integer, db.ForeignKey("question.id", ondelete="CASCADE"), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+
+class PaymentWebhookEvent(db.Model):
+    """Idempotency ledger for hosted checkout provider webhooks (never stores card PAN/CVC)."""
+
+    __tablename__ = "payment_webhook_events"
+    __table_args__ = (
+        UniqueConstraint("event_id", name="uq_payment_webhook_events_event_id"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    provider = db.Column(db.String(24), nullable=False, default="stripe")
+    event_id = db.Column(db.String(80), nullable=False)
+    event_type = db.Column(db.String(64), nullable=False, index=True)
+    status = db.Column(db.String(24), nullable=False, default="processed")
+    payload_summary = db.Column(JSONText, nullable=True)
+    processed_at = db.Column(db.DateTime, nullable=False, default=utcnow)
 
 
 # Safety net for PostgreSQL, which (unlike SQLite) rejects a string longer than its column:

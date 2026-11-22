@@ -109,7 +109,22 @@
     activeFocusReturn.delete(root);
   }
 
+  function loadingSkeletonHtml() {
+    return (
+      '<div class="drawer-skel" role="status" aria-busy="true" aria-label="Загрузка карточки">' +
+      '<div class="drawer-skel__card">' +
+      '<div class="drawer-skel__head"><span class="drawer-skel__avatar"></span><div class="drawer-skel__lines"><span class="drawer-skel__line drawer-skel__line--lg"></span><span class="drawer-skel__line drawer-skel__line--sm"></span></div></div>' +
+      '<span class="drawer-skel__line drawer-skel__line--btn"></span>' +
+      "</div>" +
+      '<div class="drawer-skel__card"><span class="drawer-skel__line drawer-skel__line--sm"></span><span class="drawer-skel__line"></span><span class="drawer-skel__line"></span></div>' +
+      '<div class="drawer-skel__card"><span class="drawer-skel__line drawer-skel__line--sm"></span><span class="drawer-skel__line drawer-skel__line--btn"></span></div>' +
+      "</div>"
+    );
+  }
+
   async function loadDrawerUrl(root, url, opener, fallbackHref) {
+    const cleanUrl = (url || "").trim();
+    if (!cleanUrl) return;
     const bodyEl = root.querySelector("[data-drawer-body]");
     const actionsSlot = root.querySelector("[data-drawer-actions]");
     const footSlot = root.querySelector("[data-drawer-foot]");
@@ -127,13 +142,17 @@
       footSlot.innerHTML = "";
       footSlot.hidden = true;
     }
+    const titleSlot = root.querySelector("[data-drawer-title]");
+    if (titleSlot && root.hasAttribute("data-person-panel")) {
+      titleSlot.textContent = "Загрузка…";
+    }
     if (bodyEl) {
-      bodyEl.innerHTML = '<div class="drawer__loading" role="status"><span class="small muted">Загрузка…</span></div>';
+      bodyEl.innerHTML = loadingSkeletonHtml();
     }
     showDrawer(root, opener);
 
     try {
-      const targetUrl = new URL(url, window.location.origin);
+      const targetUrl = new URL(cleanUrl, window.location.origin);
       targetUrl.searchParams.set("fragment", "1");
       const res = await fetch(targetUrl, {
         credentials: "same-origin",
@@ -165,6 +184,20 @@
   }
 
   document.addEventListener("click", (e) => {
+    const copyBtn = e.target.closest("[data-copy-text]");
+    if (copyBtn) {
+      const txt = (copyBtn.getAttribute("data-copy-text") || "").trim();
+      if (txt && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(() => {
+          const orig = copyBtn.dataset.origLabel || copyBtn.textContent;
+          copyBtn.dataset.origLabel = orig;
+          copyBtn.textContent = copyBtn.getAttribute("data-copy-done") || "Скопировано";
+          setTimeout(() => { copyBtn.textContent = orig; }, 1600);
+        }).catch(() => {});
+      }
+      return;
+    }
+
     const closeBtn = e.target.closest("[data-drawer-close]");
     if (closeBtn) {
       const targetId = closeBtn.getAttribute("data-drawer-close");
@@ -178,9 +211,17 @@
 
     const trigger = e.target.closest("[data-drawer-open]");
     if (trigger) {
-      const drawerId = trigger.getAttribute("data-drawer-open");
+      if (trigger.closest(".admin-stats, .admin-kpis")) return;
+      const drawerId = (trigger.getAttribute("data-drawer-open") || "").trim();
       const root = drawerId ? document.getElementById(drawerId) : null;
       if (!root) return;
+
+      const url = (trigger.getAttribute("data-drawer-url") || "").trim();
+      const requiresUser = root.hasAttribute("data-person-panel") || root.dataset.drawerRequiresUser === "1";
+      const userId = (trigger.getAttribute("data-user-id") || "").trim();
+      if (requiresUser && (!url || !userId)) return;
+      if (trigger.hasAttribute("data-drawer-url") && !url) return;
+
       e.preventDefault();
       const parentMenu = trigger.closest("details.menu");
       if (parentMenu) parentMenu.removeAttribute("open");
@@ -191,11 +232,10 @@
         if (titleSlot) titleSlot.textContent = drawerTitle;
       }
 
-      const url = trigger.getAttribute("data-drawer-url");
       if (url && window.fetch) {
         const fallbackHref = trigger.getAttribute("href") || "";
         loadDrawerUrl(root, url, trigger, fallbackHref);
-      } else {
+      } else if (!requiresUser) {
         showDrawer(root, trigger);
         if (window.MondayCombobox && typeof window.MondayCombobox.init === "function") {
           window.MondayCombobox.init(root);

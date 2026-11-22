@@ -33,6 +33,12 @@ services:
         value: "0"
       - key: SELF_STUDY_SIGNUP_ENABLED
         value: "0"
+      - key: STRIPE_ENABLED
+        value: "0"
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
       - key: LEGAL_ENTITY_NAME
         sync: false
       - key: LEGAL_ENTITY_ID

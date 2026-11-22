@@ -2110,7 +2110,8 @@ def support():
 @bp.route("/subscription")
 @student_required
 def subscription():
-    """Student subscription status, grandfathering details, and plan comparison (checkout on hold until Stage 5)."""
+    """Student subscription status, grandfathering details, and hosted Stripe Checkout plans."""
+    from .billing import is_stripe_checkout_ready
     from .models import SubscriptionPlan
 
     status = subscription_status_summary(current_user)
@@ -2119,6 +2120,7 @@ def subscription():
         fallback_amount = int(current_app.config.get("PUBLIC_QBANK_PRICE_AMOUNT", 800) or 800)
         fallback_currency = (current_app.config.get("PUBLIC_QBANK_PRICE_CURRENCY") or "USD").strip().upper()
         plans_view = [{
+            "id": None,
             "name": _("Подписка на банк вопросов"),
             "description": _("Полный самостоятельный доступ к банку вопросов, сессиям и сборникам."),
             "price_amount": fallback_amount,
@@ -2128,6 +2130,7 @@ def subscription():
     else:
         plans_view = [
             {
+                "id": pl.id,
                 "name": pl.name,
                 "description": pl.description,
                 "price_amount": pl.price_amount,
@@ -2141,4 +2144,7 @@ def subscription():
         status=status,
         plans=plans_view,
         course_included=bool(current_app.config.get("COURSE_INCLUDED_IN_SUBSCRIPTION", True)),
+        stripe_ready=is_stripe_checkout_ready(),
+        has_stripe_customer=bool((current_user.stripe_customer_id or "").strip()),
+        checkout_state=request.args.get("checkout"),
     )

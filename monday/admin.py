@@ -260,8 +260,7 @@ def index():
                    last_login=last_login,
                    last={u.id: max([d for d in (u.last_seen_at, last.get(u.id)) if d] or [None]) for u in shown})
     user_id = request.args.get("user", type=int)
-    if user_id:
-        ctx["panel"] = _panel(user_id)
+    ctx["panel"] = _panel(user_id) if user_id else None
     if request.args.get("fragment") and user_id:
         return render_template("admin/_panel_body.html", **ctx)
     return render_template("admin/index.html", **ctx)
@@ -335,8 +334,17 @@ def _panel(user_id):
     elif u.role == "assistant":
         data["astats"] = _assistant_stats(u.id)
     elif u.role == "teacher":
+        from .student_links import teacher_open_records_query
+
         records = StudentRecord.query.filter_by(teacher_id=u.id).order_by(StudentRecord.name).all()
+        open_records = teacher_open_records_query(u.id).all()
+        subj_set = {r.exam for r in open_records if getattr(r, "exam", None)}
+        for r in open_records:
+            if getattr(r, "course", None) and getattr(r.course, "name", None):
+                subj_set.add(r.course.name)
         data["records"] = records
+        data["active_students_count"] = len(open_records)
+        data["teacher_subjects"] = sorted(subj_set)
         data["works"] = Work.query.filter_by(author_id=u.id).count()
         data["questions"] = Question.query.filter_by(author_id=u.id).count()
     return data
@@ -717,6 +725,7 @@ def subscription_plan_create():
     price_amount = request.form.get("price_amount", type=int)
     currency = (request.form.get("currency") or "USD").strip().upper()[:8]
     duration_days = max(1, int(request.form.get("duration_days", type=int) or 30))
+    stripe_price_id = (request.form.get("stripe_price_id") or "").strip()[:64] or None
     if not code or not name or price_amount is None or price_amount < 0:
         abort(400)
     if SubscriptionPlan.query.filter_by(code=code).first():
@@ -728,6 +737,7 @@ def subscription_plan_create():
         price_amount=price_amount,
         currency=currency,
         duration_days=duration_days,
+        stripe_price_id=stripe_price_id,
         is_active=True,
     )
     db.session.add(plan)
@@ -737,7 +747,7 @@ def subscription_plan_create():
         action="subscription_plan_created",
         entity_type="subscription_plan",
         entity_id=plan.id,
-        new_value={"code": plan.code, "price_amount": plan.price_amount, "currency": plan.currency, "duration_days": duration_days},
+        new_value={"code": plan.code, "price_amount": plan.price_amount, "currency": plan.currency, "duration_days": duration_days, "stripe_price_id": stripe_price_id},
     )
     db.session.commit()
     if request.headers.get("X-Requested-With") == "fetch":

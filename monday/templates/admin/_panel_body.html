@@ -1,163 +1,242 @@
 {% import "partials/macros.html" as ui with context %}
 {% set u = panel.user %}
 {% set back = request.full_path.replace('&fragment=1', '').replace('fragment=1&', '') %}
-<div class="person">
-  <div class="person__head">
-    {{ ui.avatar(u, 'avatar--lg') }}
-    <div class="stack-sm" style="gap:4px;min-width:0">
-      <b class="person__name">{{ u.name }}</b>
-      <span class="small muted">{{ u.email }}</span>
-      <div class="chips">
-        <span class="tag tag--soft">{{ {'student': _('ученик'), 'teacher': _('учитель'), 'assistant': _('ассистент'), 'sales_manager': _('менеджер продаж'), 'supervisor': _('супервайзер'), 'admin': _('админ')}.get(u.role, u.role) }}</span>
-        {% if u.is_methodist and u.role == 'teacher' %}<span class="tag tag--line">{{ _("методист") }}</span>{% endif %}
-        {% if u.role == 'teacher' and not u.is_approved %}<span class="tag tag--warn">{{ _("ждёт подтверждения") }}</span>{% endif %}
-        {% if u.is_blocked %}<span class="tag tag--bad">{{ _("заблокирован") }}</span>{% endif %}
+{% set role_labels = {'student': _('ученик'), 'teacher': _('учитель'), 'assistant': _('ассистент'), 'sales_manager': _('менеджер продаж'), 'supervisor': _('супервайзер'), 'admin': _('админ')} %}
+<div class="adm-drawer-stack" data-drawer-partial>
+  <span hidden data-drawer-partial-title>{{ u.name }}</span>
+
+  {# ------------------------------------------------------------ 1. Header & Quick Simulation #}
+  <section class="adm-subcard adm-subcard--head">
+    <div class="person__head">
+      {{ ui.avatar(u, 'avatar--lg') }}
+      <div class="stack-sm" style="gap:5px;min-width:0;flex:1">
+        <b class="person__name">{{ u.name }}</b>
+        <div class="adm-email-row">
+          <span class="small muted adm-email-text">{{ u.email }}</span>
+          <button type="button"
+                  class="adm-copy-btn"
+                  data-copy-text="{{ u.email }}"
+                  data-copy-done="{{ _('Скопировано') }}">{{ _("Копировать") }}</button>
+        </div>
+        <div class="chips">
+          <span class="tag tag--soft">{{ role_labels.get(u.role, u.role) }}</span>
+          {% if u.is_methodist and u.role == 'teacher' %}<span class="tag tag--line">{{ _("методист") }}</span>{% endif %}
+          {% if u.role == 'teacher' and not u.is_approved %}<span class="tag tag--warn">{{ _("ждёт подтверждения") }}</span>{% endif %}
+          {% if u.is_blocked %}
+            <span class="tag tag--bad">{{ _("заблокирован") }}</span>
+          {% else %}
+            <span class="tag tag--ok">{{ _("активен") }}</span>
+          {% endif %}
+        </div>
       </div>
     </div>
-  </div>
-
-  <dl class="kv small">
-    <dt>{{ _("С нами с") }}</dt><dd>{{ u.created_at|d("d MMMM y") }}</dd>
-    {% set act_dt = panel.last_login.created_at if panel.last_login else panel.last %}
-    <dt>{{ _("Активность") }}</dt><dd class="num">{{ act_dt|d("HH:mm · d MMMM") if act_dt else "—" }}</dd>
-    <dt>{{ _("Всего входов") }}</dt><dd><b class="num">{{ u.login_count or 0 }}</b> · {{ _("вход через") }} {{ "Google" if u.auth_provider == "google" else _("Email / пароль") }}</dd>
-    {% if panel.last_login %}{% set ll = panel.last_login %}
-      <dt>{{ _("Последний вход") }}</dt><dd>{{ ll.created_at|d("d MMM, HH:mm") }} ({{ ll.created_at|ago }})</dd>
-      <dt>{{ _("Устройство") }}</dt><dd>{{ ll.device_type }}{% if ll.os %} · {{ ll.os }}{% endif %}{% if ll.browser %} · {{ ll.browser }}{% endif %}{% if ll.country %} · {{ ll.country }}{% if ll.city %}, {{ ll.city }}{% endif %}{% endif %}</dd>
-    {% endif %}
-    {% if u.role == 'student' and u.profile %}
-      <dt>{{ _("Экзамен") }}</dt><dd>{{ u.profile.exam|exam_label if u.profile.exam else '—' }}{% if u.profile.exam_date %} · {{ u.profile.exam_date|d("d MMM y") }}{% endif %}</dd>
-      <dt>{{ _("Цель") }}</dt><dd>{{ u.profile.goal_score or '—' }}</dd>
-      <dt>{{ _("Школа") }}</dt><dd>{{ u.profile.school or '—' }}{% if u.profile.region %} · {{ u.profile.region }}{% endif %}</dd>
-      <dt>{{ _("Учителя") }}</dt><dd>{{ panel.teachers|map(attribute='name')|join(', ') or _('нет') }}</dd>
-    {% elif u.role == 'assistant' and panel.astats %}
-      <dt>{{ _("Загружено") }}</dt><dd>{{ panel.astats.total }} · {{ _("за неделю") }} {{ panel.astats.week }}</dd>
-      <dt>{{ _("Одобрено") }}</dt><dd>{{ panel.astats.approved_pct ~ '%' if panel.astats.approved_pct is not none else '—' }}</dd>
-      <dt>{{ _("Ждут проверки") }}</dt><dd>{{ panel.astats.pending }}</dd>
-      <dt>{{ _("Темы") }}</dt><dd>{{ panel.astats.topics|map('first')|join(', ') or '—' }}</dd>
-    {% elif u.role == 'teacher' %}
-      <dt>{{ _("Учеников") }}</dt><dd>{{ panel.records|length }}</dd>
-      <dt>{{ _("Работ") }}</dt><dd>{{ panel.works }}</dd>
-      <dt>{{ _("Вопросов") }}</dt><dd>{{ panel.questions }}</dd>
-    {% endif %}
-  </dl>
-
-  {% if panel.summary %}
-  <div class="person__nums">
-    <div><b class="num">{{ panel.summary.mastery_pct }}%</b><span class="small muted">{{ _("освоено") }}</span></div>
-    <div><b class="num">{{ panel.summary.predicted }}</b><span class="small muted">{{ _("прогноз") }}</span></div>
-    <div><b class="num">{{ panel.summary.mastered }}/{{ panel.summary.total }}</b><span class="small muted">{{ _("навыков") }}</span></div>
-  </div>
-  {% endif %}
-
-  {% if panel.records %}
-  <section class="stack-sm"><h3 class="eyebrow">{{ _("Ученики") }}</h3>
-    <ul class="person__list">{% for r in panel.records[:12] %}<li><span>{{ r.name }}</span><span class="small muted">{{ r.exam|exam_label if r.exam else '' }}{% if not r.student_user_id %} · {{ _("не подключён") }}{% endif %}</span></li>{% endfor %}
-      {% if panel.records|length > 12 %}<li class="small muted">{{ _("и ещё %(n)s", n=panel.records|length - 12) }}</li>{% endif %}</ul>
-  </section>
-  {% endif %}
-
-  {% if panel.login_events %}
-  <section class="stack-sm"><h3 class="eyebrow">{{ _("История входов") }}</h3>
-    <ul class="person__list">{% for le in panel.login_events[:8] %}
-      <li>
-        <span>{{ le.device_type }}{% if le.os %} · {{ le.os }}{% endif %}{% if le.browser %} · {{ le.browser }}{% endif %}{% if le.country %} <span class="muted">({{ le.country }}{% if le.city %}, {{ le.city }}{% endif %})</span>{% endif %}</span>
-        <span class="small muted num">{{ le.created_at|d("d MMM, HH:mm") }}</span>
-      </li>
-    {% endfor %}</ul>
-  </section>
-  {% endif %}
-
-  <section class="stack-sm"><h3 class="eyebrow">{{ _("Последние результаты") }}</h3>
-    {% if panel.attempts %}
-    <ul class="person__list">{% for a in panel.attempts %}
-      <li><span>{{ a.work_version.title if a.work_version else (MODES[a.mode].name if a.mode in MODES else (_('Вопросы дня') if a.mode == 'daily' else a.mode)) }}</span>
-        <span class="small"><b class="num">{{ a.percent }}%</b> <span class="muted">· {{ a.finished_at|ago }}</span></span></li>
-    {% endfor %}</ul>
-    {% else %}<p class="small text-2">{{ _("Пока ничего не сдано.") }}</p>{% endif %}
-  </section>
-
-  {% if u.id != current_user.id %}
-  <section class="stack-sm"><h3 class="eyebrow">{{ _("Действия") }}</h3>
-    {% if not u.is_admin and not u.is_blocked %}
+    {% if u.id != current_user.id and not u.is_admin and not u.is_blocked %}
     <form method="post" action="{{ url_for('admin.simulate') }}">{{ ui.csrf() }}
       <button class="adm-btn adm-btn--primary" type="submit" name="user_id" value="{{ u.id }}" style="width:100%">{{ ui.icon('arrow-right', 15) }}<span>{{ _("Симулировать вид аккаунта") }}</span></button>
     </form>
     {% endif %}
-    <form method="post" action="{{ url_for('admin.set_role', user_id=u.id) }}" class="row" style="gap:8px">{{ ui.csrf() }}
+  </section>
+
+  {# ------------------------------------------------------------ 2. Role-Aware Stats Card #}
+  <section class="adm-subcard" data-role-stats="{{ u.role }}">
+    {% if u.role == 'student' %}
+      <h3 class="eyebrow adm-subcard__title">{{ _("Учёба и статистика") }}</h3>
+      <dl class="kv small">
+        {% if u.profile %}
+          <dt>{{ _("Экзамен") }}</dt><dd>{{ u.profile.exam|exam_label if u.profile.exam else '—' }}{% if u.profile.exam_date %} · {{ u.profile.exam_date|d("d MMM y") }}{% endif %}</dd>
+          <dt>{{ _("Цель") }}</dt><dd>{{ u.profile.goal_score or '—' }}</dd>
+          <dt>{{ _("Школа") }}</dt><dd>{{ u.profile.school or '—' }}{% if u.profile.region %} · {{ u.profile.region }}{% endif %}</dd>
+        {% endif %}
+        <dt>{{ _("Учителя") }}</dt><dd>{{ panel.teachers|map(attribute='name')|join(', ') or _('нет') }}</dd>
+      </dl>
+
+      {% if panel.summary %}
+      <div class="person__nums">
+        <div><b class="num">{{ panel.summary.mastery_pct }}%</b><span class="small muted">{{ _("освоено") }}</span></div>
+        <div><b class="num">{{ panel.summary.predicted }}</b><span class="small muted">{{ _("прогноз") }}</span></div>
+        <div><b class="num">{{ panel.summary.mastered }}/{{ panel.summary.total }}</b><span class="small muted">{{ _("навыков") }}</span></div>
+      </div>
+      {% else %}
+      <p class="small muted" style="margin:0">{{ _("Профиль экзамена ещё не выбран.") }}</p>
+      {% endif %}
+
+      <div class="adm-subcard__section">
+        <h4 class="eyebrow" style="margin:0">{{ _("Последние результаты") }}</h4>
+        {% if panel.attempts %}
+        <ul class="person__list">{% for a in panel.attempts %}
+          <li><span>{{ a.work_version.title if a.work_version else (MODES[a.mode].name if a.mode in MODES else (_('Вопросы дня') if a.mode == 'daily' else a.mode)) }}</span>
+            <span class="small"><b class="num">{{ a.percent }}%</b> <span class="muted">· {{ a.finished_at|ago }}</span></span></li>
+        {% endfor %}</ul>
+        {% else %}<p class="small text-2" style="margin:0">{{ _("Пока ничего не сдано.") }}</p>{% endif %}
+      </div>
+
+    {% elif u.role == 'teacher' %}
+      <h3 class="eyebrow adm-subcard__title">{{ _("Преподавание") }}</h3>
+      <dl class="kv small">
+        <dt>{{ _("Активных учеников") }}</dt><dd class="num">{{ panel.active_students_count }}</dd>
+        <dt>{{ _("Предметы") }}</dt><dd>{{ panel.teacher_subjects|join(', ') if panel.teacher_subjects else '—' }}</dd>
+        <dt>{{ _("Работ") }}</dt><dd class="num">{{ panel.works }}</dd>
+        <dt>{{ _("Вопросов") }}</dt><dd class="num">{{ panel.questions }}</dd>
+      </dl>
+      {% if panel.records %}
+      <div class="adm-subcard__section">
+        <h4 class="eyebrow" style="margin:0">{{ _("Ученики") }}</h4>
+        <ul class="person__list">{% for r in panel.records[:8] %}<li><span>{{ r.name }}</span><span class="small muted">{{ r.exam|exam_label if r.exam else '' }}{% if not r.student_user_id %} · {{ _("не подключён") }}{% endif %}</span></li>{% endfor %}
+          {% if panel.records|length > 8 %}<li class="small muted">{{ _("и ещё %(n)s", n=panel.records|length - 8) }}</li>{% endif %}</ul>
+      </div>
+      {% endif %}
+
+    {% elif u.role == 'assistant' and panel.astats %}
+      <h3 class="eyebrow adm-subcard__title">{{ _("Контент и модерация") }}</h3>
+      <dl class="kv small">
+        <dt>{{ _("Загружено") }}</dt><dd class="num">{{ panel.astats.total }} · {{ _("за неделю") }} {{ panel.astats.week }}</dd>
+        <dt>{{ _("Одобрено") }}</dt><dd class="num">{{ panel.astats.approved_pct ~ '%' if panel.astats.approved_pct is not none else '—' }}</dd>
+        <dt>{{ _("Ждут проверки") }}</dt><dd class="num">{{ panel.astats.pending }}</dd>
+        <dt>{{ _("Темы") }}</dt><dd>{{ panel.astats.topics|map('first')|join(', ') or '—' }}</dd>
+      </dl>
+
+    {% else %}
+      <h3 class="eyebrow adm-subcard__title">{{ _("Аккаунт и активность") }}</h3>
+      <dl class="kv small">
+        <dt>{{ _("С нами с") }}</dt><dd>{{ u.created_at|d("d MMMM y") }}</dd>
+        {% set act_dt = panel.last_login.created_at if panel.last_login else panel.last %}
+        <dt>{{ _("Последняя активность") }}</dt><dd class="num">{{ act_dt|d("HH:mm · d MMMM") if act_dt else "—" }}</dd>
+        <dt>{{ _("Всего входов") }}</dt><dd><b class="num">{{ u.login_count or 0 }}</b> · {{ "Google" if u.auth_provider == "google" else _("Email / пароль") }}</dd>
+        {% if panel.last_login %}{% set ll = panel.last_login %}
+          <dt>{{ _("Последний вход") }}</dt><dd>{{ ll.created_at|d("d MMM, HH:mm") }} ({{ ll.created_at|ago }})</dd>
+          <dt>{{ _("Устройство") }}</dt><dd>{{ ll.device_type }}{% if ll.os %} · {{ ll.os }}{% endif %}{% if ll.browser %} · {{ ll.browser }}{% endif %}{% if ll.country %} · {{ ll.country }}{% if ll.city %}, {{ ll.city }}{% endif %}{% endif %}</dd>
+        {% endif %}
+      </dl>
+    {% endif %}
+
+    {% if u.role in ('student', 'teacher', 'assistant') %}
+      <dl class="kv small adm-subcard__meta">
+        <dt>{{ _("С нами с") }}</dt><dd>{{ u.created_at|d("d MMMM y") }}</dd>
+        {% set act_dt = panel.last_login.created_at if panel.last_login else panel.last %}
+        <dt>{{ _("Активность") }}</dt><dd class="num">{{ act_dt|d("HH:mm · d MMMM") if act_dt else "—" }}</dd>
+        <dt>{{ _("Всего входов") }}</dt><dd><b class="num">{{ u.login_count or 0 }}</b> · {{ "Google" if u.auth_provider == "google" else _("Email / пароль") }}</dd>
+        {% if panel.last_login %}{% set ll = panel.last_login %}
+          <dt>{{ _("Устройство") }}</dt><dd>{{ ll.device_type }}{% if ll.os %} · {{ ll.os }}{% endif %}{% if ll.browser %} · {{ ll.browser }}{% endif %}{% if ll.country %} · {{ ll.country }}{% if ll.city %}, {{ ll.city }}{% endif %}{% endif %}</dd>
+        {% endif %}
+      </dl>
+    {% endif %}
+
+    {% if panel.login_events %}
+      <div class="adm-subcard__section">
+        <h4 class="eyebrow" style="margin:0">{{ _("История входов") }}</h4>
+        <ul class="person__list">{% for le in panel.login_events[:5] %}
+          <li>
+            <span>{{ le.device_type }}{% if le.os %} · {{ le.os }}{% endif %}{% if le.browser %} · {{ le.browser }}{% endif %}{% if le.country %} <span class="muted">({{ le.country }}{% if le.city %}, {{ le.city }}{% endif %})</span>{% endif %}</span>
+            <span class="small muted num">{{ le.created_at|d("d MMM, HH:mm") }}</span>
+          </li>
+        {% endfor %}</ul>
+      </div>
+    {% endif %}
+  </section>
+
+  {% if u.id != current_user.id %}
+  {# ------------------------------------------------------------ 3. Роль и безопасность #}
+  <section class="adm-subcard">
+    <h3 class="eyebrow adm-subcard__title">{{ _("Роль и безопасность") }}</h3>
+    <form method="post" action="{{ url_for('admin.set_role', user_id=u.id) }}" class="adm-role-row">{{ ui.csrf() }}
       <input type="hidden" name="next" value="{{ back }}">
       <label class="sr-only" for="pr-role">{{ _("Роль") }}</label>
-      <select class="select" id="pr-role" name="role" style="flex:1">
+      <select class="select" id="pr-role" name="role">
         {% for r, l in [('student', _('Ученик')), ('teacher', _('Учитель')), ('sales_manager', _('Менеджер продаж')), ('supervisor', _('Супервайзер')), ('assistant', _('Ассистент')), ('admin', _('Админ'))] %}<option value="{{ r }}" {{ 'selected' if u.role == r }}>{{ l }}</option>{% endfor %}
       </select>
-      <button class="btn btn--secondary" type="submit">{{ _("Сменить роль") }}</button>
+      <button class="btn btn--secondary btn--sm" type="submit">{{ _("Сменить роль") }}</button>
     </form>
     {% if u.role == 'teacher' %}
     <form method="post" action="{{ url_for('admin.methodist', user_id=u.id) }}">{{ ui.csrf() }}
       <input type="hidden" name="next" value="{{ back }}">
-      <button class="btn btn--secondary" name="on" value="{{ '' if u.is_methodist else '1' }}">{{ _("Снять роль методиста") if u.is_methodist else _("Назначить методистом") }}</button>
-      <p class="small muted" style="margin-top:6px">{{ _("Методист проверяет вопросы ассистентов вместе с админом.") }}</p>
+      <button class="btn btn--secondary btn--sm" name="on" value="{{ '' if u.is_methodist else '1' }}">{{ _("Снять роль методиста") if u.is_methodist else _("Назначить методистом") }}</button>
+      <p class="small muted adm-helper">{{ _("Методист проверяет вопросы ассистентов вместе с админом.") }}</p>
     </form>
     {% endif %}
     {% if not u.is_admin %}
     <form method="post" action="{{ url_for('admin.reset_password', user_id=u.id) }}" data-confirm="{{ _('Сбросить пароль? Старый перестанет работать.') }}">{{ ui.csrf() }}
       <input type="hidden" name="next" value="{{ back }}">
-      <button class="btn btn--secondary">{{ _("Сбросить пароль") }}</button>
-      <p class="small muted" style="margin-top:6px">{{ _("Покажем временный пароль один раз, его нужно передать человеку.") }}</p>
+      <button class="btn btn--secondary btn--sm">{{ _("Сбросить пароль") }}</button>
+      <p class="small muted adm-helper">{{ _("Покажем временный пароль один раз, его нужно передать человеку.") }}</p>
     </form>
     {% endif %}
-    {% if u.role == 'student' and panel.subscription_plans %}
-    <section class="stack-sm" style="padding-top:8px;border-top:1px solid var(--line)">
-      <h4 class="eyebrow" style="margin:0">{{ _("Подписка на банк вопросов") }}</h4>
-      {% set sub_st = panel.subscription_status %}
-      <div class="small muted">
-        {{ _("Уровень") }}: <b>{{ sub_st.tier }}</b>
-        {% if sub_st.legacy_access_until %} · {{ _("до") }} {{ sub_st.legacy_access_until|d("d MMM y") }}{% endif %}
-      </div>
-      <form method="post" action="{{ url_for('admin.subscription_grant', user_id=u.id) }}" class="stack-sm" style="gap:6px">{{ ui.csrf() }}
-        <input type="hidden" name="next" value="{{ back }}">
-        <div class="row" style="gap:6px;flex-wrap:wrap">
-          <select class="select" name="plan_id" style="flex:1">
-            {% for pl in panel.subscription_plans %}<option value="{{ pl.id }}">{{ pl.name }} ({{ pl.duration_days }} {{ _("дн.") }})</option>{% endfor %}
-          </select>
-          <select class="select" name="status">
+  </section>
+
+  {# ------------------------------------------------------------ 4. Подписка на банк вопросов #}
+  {% if u.role == 'student' and panel.subscription_plans %}
+  {% set sub_st = panel.subscription_status %}
+  <section class="adm-subcard">
+    <div class="row row--between" style="gap:8px;flex-wrap:wrap">
+      <h3 class="eyebrow adm-subcard__title" style="margin:0">{{ _("Подписка на банк вопросов") }}</h3>
+      <span class="tag tag--soft tag--xs">
+        {{ _("Уровень") }}: {{ sub_st.tier }}
+        {% if sub_st.active_subscription and sub_st.active_subscription.current_period_end %}
+          · {{ _("до") }} {{ sub_st.active_subscription.current_period_end|d("d MMM y") }}
+        {% elif sub_st.legacy_access_until %}
+          · {{ _("до") }} {{ sub_st.legacy_access_until|d("d MMM y") }}
+        {% endif %}
+      </span>
+    </div>
+
+    <form method="post" action="{{ url_for('admin.subscription_grant', user_id=u.id) }}" class="stack-sm" style="gap:8px">{{ ui.csrf() }}
+      <input type="hidden" name="next" value="{{ back }}">
+      <label class="small muted" for="adm-sub-plan">{{ _("Тариф") }}</label>
+      <select class="select" id="adm-sub-plan" name="plan_id" style="width:100%">
+        {% for pl in panel.subscription_plans %}<option value="{{ pl.id }}">{{ pl.name }} ({{ pl.duration_days }} {{ _("дн.") }})</option>{% endfor %}
+      </select>
+      <div class="adm-grid-2">
+        <div class="stack-sm" style="gap:4px">
+          <label class="small muted" for="adm-sub-status">{{ _("Статус") }}</label>
+          <select class="select" id="adm-sub-status" name="status">
             <option value="active">active</option>
             <option value="trialing">trialing</option>
           </select>
-          <input class="input" type="number" name="days" min="1" max="365" placeholder="{{ _('дней') }}" style="width:82px">
         </div>
-        <button class="btn btn--primary btn--sm" type="submit">{{ _("Выдать подписку вручную") }}</button>
-      </form>
-      {% for sub in panel.subscriptions %}
-        <div class="card card--tight stack-sm" style="gap:6px">
-          <div class="row row--between small">
-            <b>{{ sub.plan.name }}</b>
-            <span class="tag tag--line">{{ sub.status }}</span>
-          </div>
-          {% if sub.status in ('active', 'trialing') %}
-          <div class="row" style="gap:6px;flex-wrap:wrap">
-            <form method="post" action="{{ url_for('admin.subscription_change_plan', sub_id=sub.id) }}" class="row" style="gap:6px">{{ ui.csrf() }}
-              <input type="hidden" name="next" value="{{ back }}">
-              <select class="select" name="plan_id">
-                {% for pl in panel.subscription_plans %}<option value="{{ pl.id }}" {{ 'selected' if pl.id == sub.plan_id }}>{{ pl.name }}</option>{% endfor %}
-              </select>
-              <button class="btn btn--secondary btn--sm" type="submit">{{ _("Сменить план") }}</button>
-            </form>
-            <form method="post" action="{{ url_for('admin.subscription_cancel', sub_id=sub.id) }}">{{ ui.csrf() }}
-              <input type="hidden" name="next" value="{{ back }}">
-              <button class="btn btn--danger-line btn--sm" type="submit">{{ _("Отменить") }}</button>
-            </form>
-          </div>
-          {% endif %}
+        <div class="stack-sm" style="gap:4px">
+          <label class="small muted" for="adm-sub-days">{{ _("Дней") }}</label>
+          <input class="input" id="adm-sub-days" type="number" name="days" min="1" max="365" placeholder="30">
         </div>
-      {% endfor %}
-    </section>
-    {% endif %}
+      </div>
+      <button class="btn btn--primary btn--sm" type="submit" style="width:100%">{{ _("Выдать подписку вручную") }}</button>
+    </form>
+
+    {% for sub in panel.subscriptions %}
+      <div class="adm-subrow">
+        <div class="row row--between small">
+          <b>{{ sub.plan.name }}</b>
+          <span class="tag tag--line tag--xs">{{ sub.status }}</span>
+        </div>
+        {% if sub.status in ('active', 'trialing') %}
+        <div class="row" style="gap:6px;flex-wrap:wrap">
+          <form method="post" action="{{ url_for('admin.subscription_change_plan', sub_id=sub.id) }}" class="row" style="gap:6px;flex:1">{{ ui.csrf() }}
+            <input type="hidden" name="next" value="{{ back }}">
+            <select class="select" name="plan_id" style="flex:1">
+              {% for pl in panel.subscription_plans %}<option value="{{ pl.id }}" {{ 'selected' if pl.id == sub.plan_id }}>{{ pl.name }}</option>{% endfor %}
+            </select>
+            <button class="btn btn--secondary btn--sm" type="submit">{{ _("Сменить план") }}</button>
+          </form>
+          <form method="post" action="{{ url_for('admin.subscription_cancel', sub_id=sub.id) }}">{{ ui.csrf() }}
+            <input type="hidden" name="next" value="{{ back }}">
+            <button class="btn btn--danger-line btn--sm" type="submit">{{ _("Отменить") }}</button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {# ------------------------------------------------------------ 5. Опасная зона #}
+  <section class="adm-subcard adm-subcard--danger">
+    <h3 class="eyebrow adm-subcard__title" style="color:var(--bad)">{{ _("Опасная зона") }}</h3>
     <form method="post" action="{{ url_for('admin.block', user_id=u.id) }}">{{ ui.csrf() }}
       <input type="hidden" name="next" value="{{ back }}">
-      {% if u.is_blocked %}<button class="btn btn--secondary" name="on" value="">{{ _("Разблокировать") }}</button>
-      {% else %}<button class="btn btn--danger-line" name="on" value="1">{{ _("Заблокировать аккаунт") }}</button>
-        <p class="small muted" style="margin-top:6px">{{ _("Человек не сможет войти, данные сохранятся.") }}</p>{% endif %}
+      {% if u.is_blocked %}
+        <button class="btn btn--secondary btn--sm" name="on" value="">{{ _("Разблокировать аккаунт") }}</button>
+      {% else %}
+        <button class="btn btn--danger-line btn--sm" name="on" value="1" style="width:100%">{{ _("Заблокировать аккаунт") }}</button>
+        <p class="small muted adm-helper">{{ _("Человек не сможет войти, данные сохранятся.") }}</p>
+      {% endif %}
     </form>
   </section>
   {% endif %}

@@ -116,6 +116,8 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     app.register_blueprint(fx.bp)
     from . import public_site
     app.register_blueprint(public_site.bp)
+    from . import billing
+    app.register_blueprint(billing.bp)
     from services.crm_bot.telegram_bot import bot_bp as crm_telegram_bot_bp
     app.register_blueprint(crm_telegram_bot_bp)
     from .trig_formulas import init_trig_block

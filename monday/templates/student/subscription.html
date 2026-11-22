@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% import "partials/macros.html" as ui with context %}
 {% block title %}{{ _("Подписка на банк вопросов") }}{% endblock %}
 {% block context %}{{ _("Подписка на банк вопросов") }}{% endblock %}
 
@@ -8,6 +9,16 @@
     <span class="eyebrow">{{ _("Самостоятельная подготовка") }}</span>
     <h1 style="margin:0">{{ _("Подписка на банк вопросов") }}</h1>
   </header>
+
+  {% if checkout_state == 'success' %}
+  <div class="alert alert--ok" role="status">
+    {{ _("Оплата оформлена через Stripe. Как только вебхук подтвердит платёж, статус подписки обновится автоматически.") }}
+  </div>
+  {% elif checkout_state == 'cancelled' %}
+  <div class="alert alert--info" role="status">
+    {{ _("Оформление подписки было отменено. Вы можете вернуться к оплате в любой момент.") }}
+  </div>
+  {% endif %}
 
   <article class="card stack-sm">
     <div class="row row--between" style="flex-wrap:wrap;gap:12px">
@@ -36,11 +47,24 @@
         {{ _("Тариф") }}: <b>{{ sub.plan.name }}</b>
         {% if sub.current_period_end %} · {{ _("Действует до") }} {{ sub.current_period_end|d("d MMMM y") }}{% endif %}
         {% if sub.trial_ends_at %} · {{ _("Пробный период до") }} {{ sub.trial_ends_at|d("d MMMM y") }}{% endif %}
+        {% if sub.cancel_at_period_end %} · <span class="badge">{{ _("Продление отменено — доступ до конца периода") }}</span>{% endif %}
       </p>
+      {% if stripe_ready and (sub.provider == 'stripe' or has_stripe_customer) %}
+      <form method="post" action="{{ url_for('billing.portal') }}" style="margin:4px 0 0">
+        {{ ui.csrf() }}
+        <button class="btn btn--secondary btn--sm" type="submit">{{ _("Управлять подпиской / отменить в Stripe") }}</button>
+      </form>
+      {% endif %}
     {% elif status.tier == 'free' %}
       <p class="small text-2" style="margin:0">
         {{ _("На бесплатном тарифе доступно до %(n)s уникальных задач в день (сброс в полночь) и публичные примеры.", n=status.daily_limit) }}
       </p>
+      {% if stripe_ready and has_stripe_customer %}
+      <form method="post" action="{{ url_for('billing.portal') }}" style="margin:4px 0 0">
+        {{ ui.csrf() }}
+        <button class="btn btn--ghost btn--sm" type="submit">{{ _("Биллинг-портал Stripe") }}</button>
+      </form>
+      {% endif %}
     {% endif %}
   </article>
 
@@ -60,7 +84,16 @@
         <li>{{ _("Экспорт прогресса и журнал ошибок") }}</li>
         {% if course_included %}<li>{{ _("Интерактивные уроки теории SAT") }}</li>{% endif %}
       </ul>
-      <div class="small muted">{{ _("Онлайн-оплата будет подключена на следующем этапе. Сейчас доступ оформляется через администратора школы.") }}</div>
+      {% if status.tier in ('free', 'legacy') and stripe_ready %}
+      <form method="post" action="{{ url_for('billing.checkout') }}" style="margin:4px 0 0">
+        {{ ui.csrf() }}
+        {% if p.id %}<input type="hidden" name="plan_id" value="{{ p.id }}">{% endif %}
+        <button class="btn btn--primary btn--sm" type="submit">{{ _("Оформить подписку через Stripe") }}</button>
+      </form>
+      <div class="small muted">{{ _("Безопасная оплата на защищённой странице Stripe Checkout. Данные карты на сайте Monday не сохраняются.") }}</div>
+      {% elif status.tier in ('free', 'legacy') %}
+      <div class="small muted">{{ _("Онлайн-оплата временно отключена. Сейчас доступ оформляется через администратора школы.") }}</div>
+      {% endif %}
     </article>
     {% endfor %}
   </div>

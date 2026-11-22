@@ -21,6 +21,34 @@
 <div class="page-sky" data-hero data-hero-bg aria-hidden="true"><canvas class="hero__canvas" data-hero-dots></canvas></div>
 <script defer src="{{ url_for('static', filename='js/hero.js') }}"></script>
 
+{% if current_user.is_authenticated and current_user.is_admin and session.get('_adm_public_preview') %}
+<div class="pub-preview-bar" role="region" aria-label="{{ _('Предпросмотр публичного сайта') }}">
+  <div class="pub-preview-bar__inner">
+    <div class="pub-preview-bar__left">
+      <span class="tag tag--ok">{{ _("Демо-предпросмотр") }}</span>
+      <span class="small">{{ _("Режим просмотра нового сайта (виден только админу)") }}</span>
+    </div>
+    <nav class="pub-preview-bar__nav" aria-label="{{ _('Страницы предпросмотра') }}">
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='landing') }}">{{ _("О Monday (Главная)") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='about') }}">{{ _("О школе") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='question-bank') }}">{{ _("Банк вопросов") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='pricing') }}">{{ _("Тарифы") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='offline') }}">{{ _("Офлайн") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='online') }}">{{ _("Онлайн") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='faq') }}">{{ _("FAQ") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='contact') }}">{{ _("Контакты") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='terms') }}">{{ _("Условия") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='privacy') }}">{{ _("Приватность") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='refund') }}">{{ _("Возврат") }}</a>
+    </nav>
+    <form method="post" action="{{ url_for('public_site.admin_preview_exit') }}" style="margin:0">
+      {{ ui.csrf() }}
+      <button class="btn btn--primary btn--sm" type="submit">{{ _("← Вернуться в админку") }}</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
 <div class="pub-shell">
   <header class="pub-header">
     <div class="pub-header__inner">

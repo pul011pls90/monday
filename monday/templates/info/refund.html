@@ -1,4 +1,4 @@
-{% extends "layout.html" if current_user.is_authenticated else ("public/_base.html" if public_site_active else "info/_public.html") %}
+{% extends "public/_base.html" if (public_site_active and (not current_user.is_authenticated or admin_preview_active)) else ("layout.html" if current_user.is_authenticated else "info/_public.html") %}
 {% import "partials/macros.html" as ui with context %}
 {% block title %}{{ _("Возврат и отмена подписки") }}{% endblock %}
 {% block page_class %}page--narrow info-page{% endblock %}

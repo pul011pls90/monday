@@ -12,6 +12,7 @@ from flask_babel import gettext as _
 
 from . import storage
 from .abuse import check_404_probe_guard, rate_limit_value, record_404_probe
+from .access import admin_required
 from .constants import COLLECTION_EXAMS, CONTACTS, EXAMS, MODES, OLYMPIAD_EXAM, UNIVERSITY_EXAM
 from .extensions import limiter
 from .manager import MODE_PREF_LABELS
@@ -104,6 +105,12 @@ def collect_site_preflight_blockers(
         from .legal import collect_legal_config_blockers
 
         blockers.extend(collect_legal_config_blockers())
+
+    if current_app.config.get("STRIPE_ENABLED", False):
+        if not (current_app.config.get("STRIPE_SECRET_KEY") or "").strip():
+            blockers.append("STRIPE_ENABLED=1 but STRIPE_SECRET_KEY is missing.")
+        if not (current_app.config.get("STRIPE_WEBHOOK_SECRET") or "").strip():
+            blockers.append("STRIPE_ENABLED=1 but STRIPE_WEBHOOK_SECRET is missing.")
 
     contacts = contacts_override if contacts_override is not None else CONTACTS
     empty_contacts = [k for k in ("instagram", "telegram", "whatsapp", "trial_lesson", "address") if not str(contacts.get(k) or "").strip()]
@@ -332,8 +339,20 @@ def _seo_context(*, title: str, description: str, endpoint_url: str | None = Non
     }
 
 
+def is_admin_public_preview() -> bool:
+    """True only when an active unblocked Admin explicitly launched public-site preview mode."""
+    from flask import session
+    from flask_login import current_user
+
+    if not current_user.is_authenticated:
+        return False
+    if not getattr(current_user, "is_admin", False) or getattr(current_user, "is_blocked", False):
+        return False
+    return bool(session.get("_adm_public_preview"))
+
+
 def _require_public_flag():
-    if not is_public_site_enabled():
+    if not is_public_site_enabled() and not is_admin_public_preview():
         abort(404)
 
 
@@ -621,3 +640,67 @@ def sitemap_xml():
     resp = make_response("\n".join(body) + "\n", 200)
     resp.headers["Content-Type"] = "application/xml; charset=utf-8"
     return resp
+
+
+_ADMIN_PREVIEW_TARGETS = {
+    "landing": "auth.index",
+    "about": "auth.about",
+    "question-bank": "public_site.question_bank",
+    "pricing": "public_site.pricing",
+    "offline": "public_site.offline_courses",
+    "online": "public_site.online_courses",
+    "faq": "public_site.faq",
+    "contact": "public_site.contact",
+    "terms": "auth.terms",
+    "privacy": "auth.privacy",
+    "refund": "auth.refund",
+}
+
+
+@bp.route("/admin/preview")
+@admin_required
+def admin_preview():
+    """Enable Admin-only public website preview mode and open the requested page (defaults to landing about Monday)."""
+    from flask import redirect, session
+
+    session["_adm_public_preview"] = True
+    page = (request.args.get("page") or "landing").strip().lower()
+    endpoint = _ADMIN_PREVIEW_TARGETS.get(page, "auth.index")
+    return redirect(url_for(endpoint))
+
+
+@bp.route("/admin/preview/exit", methods=["POST"])
+@admin_required
+def admin_preview_exit():
+    """Leave Admin public-site preview mode and return cleanly to /admin/."""
+    from flask import redirect, session
+
+    session.pop("_adm_public_preview", None)
+    return redirect(url_for("admin.index"))
+
+
+@bp.route("/admin/preview/subscription", methods=["POST"])
+@admin_required
+def admin_preview_subscription():
+    """Jump straight into simulated Student view on /subscription to inspect Checkout & plans UI."""
+    from flask import redirect, session
+    from flask_login import current_user, login_user
+    from .admin import _resolve_dummy_user
+    from .audit import write_audit_log
+    from .extensions import db
+
+    real_admin = current_user._get_current_object()
+    target = _resolve_dummy_user("student")
+    write_audit_log(
+        actor_id=real_admin.id,
+        action="admin_simulate_start",
+        entity_type="user",
+        entity_id=target.id,
+        new_value={"role": target.role, "target": "student.subscription"},
+    )
+    db.session.commit()
+    session.pop("_adm_public_preview", None)
+    session["_sim_admin_id"] = real_admin.id
+    session["_sim_admin_ver"] = int(real_admin.session_version or 1)
+    login_user(target)
+    return redirect(url_for("student.subscription"))

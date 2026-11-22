@@ -72,10 +72,12 @@ def link_invite_code(user, code):
 
 @bp.route("/")
 def index():
+    from .public_site import is_admin_public_preview, is_public_site_enabled, render_landing_page
+
+    if is_admin_public_preview():
+        return render_landing_page()
     if current_user.is_authenticated:
         return redirect(_home_for(current_user))
-    from .public_site import is_public_site_enabled, render_landing_page
-
     if is_public_site_enabled():
         return render_landing_page()
     return redirect(url_for("auth.login"))
@@ -449,9 +451,9 @@ def toggle_theme():
 
 @bp.route("/about")
 def about():
-    from .public_site import is_public_site_enabled, render_about_page
+    from .public_site import is_admin_public_preview, is_public_site_enabled, render_about_page
 
-    if is_public_site_enabled() and not current_user.is_authenticated:
+    if (is_public_site_enabled() and not current_user.is_authenticated) or is_admin_public_preview():
         return render_about_page()
     return render_template("info/about.html")
 
@@ -459,39 +461,45 @@ def about():
 @bp.route("/terms")
 def terms():
     from .legal import get_legal_context
-    from .public_site import _public_pricing_meta, is_public_site_enabled
+    from .public_site import _public_pricing_meta, is_admin_public_preview, is_public_site_enabled
 
+    preview = is_admin_public_preview()
     return render_template(
         "info/terms.html",
         legal=get_legal_context(),
         pricing=_public_pricing_meta(),
-        public_site_active=is_public_site_enabled(),
+        public_site_active=(is_public_site_enabled() or preview),
+        admin_preview_active=preview,
     )
 
 
 @bp.route("/privacy")
 def privacy():
     from .legal import get_legal_context
-    from .public_site import _public_pricing_meta, is_public_site_enabled
+    from .public_site import _public_pricing_meta, is_admin_public_preview, is_public_site_enabled
 
+    preview = is_admin_public_preview()
     return render_template(
         "info/privacy.html",
         legal=get_legal_context(),
         pricing=_public_pricing_meta(),
-        public_site_active=is_public_site_enabled(),
+        public_site_active=(is_public_site_enabled() or preview),
+        admin_preview_active=preview,
     )
 
 
 @bp.route("/refund")
 def refund():
     from .legal import get_legal_context
-    from .public_site import _public_pricing_meta, is_public_site_enabled
+    from .public_site import _public_pricing_meta, is_admin_public_preview, is_public_site_enabled
 
+    preview = is_admin_public_preview()
     return render_template(
         "info/refund.html",
         legal=get_legal_context(),
         pricing=_public_pricing_meta(),
-        public_site_active=is_public_site_enabled(),
+        public_site_active=(is_public_site_enabled() or preview),
+        admin_preview_active=preview,
     )
 
 

@@ -10,6 +10,7 @@
   <div class="page-head__text"><h1>{{ _("Администрирование") }}</h1>
     <p>{{ _("Команда, ученики, заявки на преподавание и проверка новых заданий.") }}</p></div>
   <div class="row" style="gap:8px;flex-wrap:wrap">
+    <a class="adm-btn adm-btn--primary" href="{{ url_for('public_site.admin_preview', page='landing') }}">{{ ui.icon('arrow-right', 15) }}<span>{{ _("Демо-сайт (О Monday)") }}</span></a>
     <a class="btn btn--primary" href="{{ url_for('analytics.dashboard') }}">{{ ui.icon('chart', 16) }}{{ _("Аналитика визитов") }}</a>
     <a class="btn btn--secondary" href="{{ url_for('course.admin_course') }}">{{ _("Конструктор курса") }}</a>
     <a class="btn btn--secondary" href="{{ url_for('roadmap.admin_roadmap') }}">{{ _("Роадмап") }}</a>
@@ -25,6 +26,32 @@
     </form>
   </div>
 </div>
+
+{# ------------------------------------------------------------ admin design & public-site demo showcase bar #}
+<section class="card adm-sim-bar adm-preview-bar" aria-label="{{ _('Демо-предпросмотр новых страниц и дизайна') }}">
+  <div class="adm-sim-bar__top">
+    <div class="adm-sim-bar__info">
+      <strong>{{ _("Демо-просмотр сайта о Monday и новых страниц") }}</strong>
+      <span class="small muted">{{ _("Откройте новый дизайн публичного сайта, страниц о школе, тарифов, Stripe-подписки и юридических разделов (работает для админа даже при выключенном флаге публикации).") }}</span>
+    </div>
+    <div class="adm-sim-bar__btns">
+      <a class="adm-btn adm-btn--primary adm-btn--sm" href="{{ url_for('public_site.admin_preview', page='landing') }}">{{ ui.icon('arrow-right', 14) }}<span>{{ _("Главная о Monday") }}</span></a>
+      <a class="adm-btn adm-btn--secondary adm-btn--sm" href="{{ url_for('public_site.admin_preview', page='about') }}">{{ _("О школе") }}</a>
+      <a class="adm-btn adm-btn--secondary adm-btn--sm" href="{{ url_for('public_site.admin_preview', page='question-bank') }}">{{ _("Банк вопросов") }}</a>
+      <a class="adm-btn adm-btn--secondary adm-btn--sm" href="{{ url_for('public_site.admin_preview', page='pricing') }}">{{ _("Тарифы") }}</a>
+      <a class="adm-btn adm-btn--secondary adm-btn--sm" href="{{ url_for('public_site.admin_preview', page='offline') }}">{{ _("Офлайн") }}</a>
+      <a class="adm-btn adm-btn--secondary adm-btn--sm" href="{{ url_for('public_site.admin_preview', page='online') }}">{{ _("Онлайн") }}</a>
+      <a class="adm-btn adm-btn--secondary adm-btn--sm" href="{{ url_for('public_site.admin_preview', page='faq') }}">{{ _("FAQ") }}</a>
+      <a class="adm-btn adm-btn--secondary adm-btn--sm" href="{{ url_for('public_site.admin_preview', page='contact') }}">{{ _("Контакты") }}</a>
+      <a class="adm-btn adm-btn--secondary adm-btn--sm" href="{{ url_for('public_site.admin_preview', page='terms') }}">{{ _("Условия") }}</a>
+      <a class="adm-btn adm-btn--secondary adm-btn--sm" href="{{ url_for('public_site.admin_preview', page='privacy') }}">{{ _("Приватность") }}</a>
+      <a class="adm-btn adm-btn--secondary adm-btn--sm" href="{{ url_for('public_site.admin_preview', page='refund') }}">{{ _("Возврат") }}</a>
+      <form method="post" action="{{ url_for('public_site.admin_preview_subscription') }}" style="margin:0">{{ ui.csrf() }}
+        <button class="adm-btn adm-btn--primary adm-btn--sm" type="submit">{{ ui.icon('arrow-right', 14) }}<span>{{ _("Подписка и Stripe (вид ученика)") }}</span></button>
+      </form>
+    </div>
+  </div>
+</section>
 
 {# ------------------------------------------------------------ instant role simulation bar #}
 <section class="card adm-sim-bar" aria-label="{{ _('Симуляция ролей') }}">
@@ -245,7 +272,7 @@
   <div class="people">
     {% for u in users %}{% set ex = extra.get(u.id, {}) %}
       <div class="people__row{{ ' is-blocked' if u.is_blocked }}">
-        <a class="people__who" href="{{ qs({'user': u.id}) }}" data-drawer-open="admin-person-drawer" data-drawer-url="{{ qs({'user': u.id, 'fragment': '1'}) }}">
+        <a class="people__who" href="{{ qs({'user': u.id}) }}" data-user-id="{{ u.id }}" data-drawer-open="admin-person-drawer" data-drawer-url="{{ qs({'user': u.id, 'fragment': '1'}) }}">
           {{ ui.avatar(u) }}
           <span class="people__name"><b>{{ u.name }}{% if u.id == current_user.id %} <span class="small muted">({{ _("вы") }})</span>{% endif %}</b><span class="small muted">{{ u.email }}</span></span>
         </a>
@@ -279,7 +306,7 @@
         <details class="menu">
           <summary class="icon-btn icon-btn--sm" aria-label="{{ _('Действия: %(n)s', n=u.name) }}">⋯</summary>
           <div class="menu__pop">
-            <a href="{{ qs({'user': u.id}) }}" data-drawer-open="admin-person-drawer" data-drawer-url="{{ qs({'user': u.id, 'fragment': '1'}) }}">{{ _("Открыть карточку") }}</a>
+            <a href="{{ qs({'user': u.id}) }}" data-user-id="{{ u.id }}" data-drawer-open="admin-person-drawer" data-drawer-url="{{ qs({'user': u.id, 'fragment': '1'}) }}">{{ _("Открыть карточку") }}</a>
             {% if not u.is_admin and not u.is_blocked %}
               <form method="post" action="{{ url_for('admin.simulate') }}">{{ ui.csrf() }}
                 <button type="submit" name="user_id" value="{{ u.id }}">{{ _("Симулировать вид") }}</button></form>
@@ -319,10 +346,10 @@
   'admin-person-drawer',
   aria_label=_('Карточка пользователя'),
   title=_('Карточка'),
-  open=(panel is not none),
+  open=(panel is defined and panel),
   close_href=qs({'user': ''}),
   url_param='user',
-  attrs='data-person-panel'
+  attrs='data-person-panel data-drawer-requires-user="1"'
 ) %}
   {% if panel %}{% include "admin/_panel_body.html" %}{% endif %}
 {% endcall %}

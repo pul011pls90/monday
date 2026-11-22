@@ -175,3 +175,12 @@ class Config:
     QBANK_SCRAPE_MAX_PER_HOUR = int(os.environ.get("QBANK_SCRAPE_MAX_PER_HOUR", "600") or "600")
     ABUSE_404_WINDOW_SECONDS = int(os.environ.get("ABUSE_404_WINDOW_SECONDS", "60") or "60")
     ABUSE_404_MAX_PER_WINDOW = int(os.environ.get("ABUSE_404_MAX_PER_WINDOW", "30") or "30")
+
+    # Stage 5: Stripe Hosted Checkout & Webhooks (no card data ever stored on Monday)
+    STRIPE_ENABLED = os.environ.get("STRIPE_ENABLED", "0") == "1"
+    STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "").strip()
+    STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY", "").strip()
+    STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
+    STRIPE_API_VERSION = os.environ.get("STRIPE_API_VERSION", "2024-06-20").strip() or "2024-06-20"
+    STRIPE_WEBHOOK_TOLERANCE_SECONDS = int(os.environ.get("STRIPE_WEBHOOK_TOLERANCE_SECONDS", "300") or "300")
+    STRIPE_TRIAL_DAYS = int(os.environ.get("STRIPE_TRIAL_DAYS", "0") or "0")
