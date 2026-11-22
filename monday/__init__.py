@@ -102,6 +102,7 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     app.add_template_filter(content_i18n.localize, 'loc')
     from . import deploy_safety
     app.register_blueprint(deploy_safety.bp)
+    deploy_safety.register_maintenance_lock(app)
     from . import roadmap
     app.register_blueprint(roadmap.bp)
     from . import course

@@ -269,7 +269,7 @@
     if (connectionLost) {
       text = "Связь потеряна. Не закрывайте страницу — ответы сохраняются локально.";
       tone = "warn";
-    } else if (state === "active") {
+    } else if (state === "active" || state === "locked") {
       const mins = lastMaint.expected_minutes || 15;
       text = lastMaint.message
         ? `${lastMaint.message} (~${mins} мин). Ваши ответы сохранены на этом устройстве и отправятся автоматически, как только сайт вернётся.`
@@ -293,25 +293,47 @@
       tone = "info";
     }
 
-    updateServerActionLock(state === "active");
+    updateServerActionLock(state === "active" || state === "locked");
 
+    const bannerSig =
+      state === "active" || state === "scheduled" || state === "locked"
+        ? `${state}|${lastMaint.updated_at || ""}|${lastMaint.message || ""}|${lastMaint.expected_minutes || ""}`
+        : connectionLost
+        ? "offline"
+        : showSavedRecovery
+        ? "saved"
+        : newVersionAvailable
+        ? "version"
+        : "";
     if (!text) {
       host.innerHTML = "";
       host.hidden = true;
       return;
     }
 
-    const collapsed = window.sessionStorage.getItem(DISMISS_BANNER_KEY) === "1" && state !== "active" && !connectionLost;
+    let hiddenSig = "";
+    try {
+      hiddenSig = window.sessionStorage.getItem(DISMISS_BANNER_KEY) || "";
+    } catch (_e) {}
+    if (hiddenSig && hiddenSig === bannerSig) {
+      host.innerHTML = "";
+      host.hidden = true;
+      return;
+    }
+
+    if (state === "locked") {
+      tone = "warn";
+    }
     host.hidden = false;
     host.innerHTML = `
-      <div class="ds-banner ds-banner--${tone}${collapsed ? " is-collapsed" : ""}" role="status" aria-live="polite">
+      <div class="ds-banner ds-banner--${tone}" role="status" aria-live="polite">
         <div class="ds-banner__body">
           <span class="ds-banner__dot" aria-hidden="true"></span>
           <span class="ds-banner__text">${escapeHtml(text)}</span>
         </div>
         <div class="ds-banner__actions">
           ${showReload ? `<button type="button" class="btn btn--primary btn--sm ds-banner__btn" data-ds-reload>Обновить</button>` : ""}
-          <button type="button" class="btn btn--ghost btn--sm ds-banner__btn" data-ds-toggle aria-expanded="${collapsed ? "false" : "true"}">${collapsed ? "Показать" : "Свернуть"}</button>
+          <button type="button" class="btn btn--ghost btn--sm ds-banner__btn" data-ds-toggle aria-label="Скрыть уведомление">Скрыть</button>
         </div>
       </div>
     `;
@@ -319,8 +341,9 @@
     const toggleBtn = host.querySelector("[data-ds-toggle]");
     if (toggleBtn) {
       toggleBtn.addEventListener("click", () => {
-        const next = !collapsed;
-        window.sessionStorage.setItem(DISMISS_BANNER_KEY, next ? "1" : "0");
+        try {
+          window.sessionStorage.setItem(DISMISS_BANNER_KEY, bannerSig);
+        } catch (_e) {}
         renderBanner();
       });
     }

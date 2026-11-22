@@ -13,6 +13,15 @@
     <a class="btn btn--secondary" href="{{ url_for('course.admin_course') }}">{{ _("Конструктор курса") }}</a>
     <a class="btn btn--secondary" href="{{ url_for('roadmap.admin_roadmap') }}">{{ _("Роадмап") }}</a>
     <a class="btn btn--secondary" href="{{ url_for('deploy_safety.admin_maintenance') }}">{{ _("Обслуживание сайта") }}</a>
+    <form method="post" action="{{ url_for('deploy_safety.admin_maintenance') }}" style="display:inline;margin:0">
+      {{ ui.csrf() }}
+      <input type="hidden" name="next" value="{{ url_for('admin.index') }}">
+      {% if site_maint and site_maint.state == 'locked' %}
+        <button class="btn btn--primary" type="submit" name="action" value="unlock">{{ ui.icon('check', 16) }}<span>{{ _("Открыть сайт для всех") }}</span></button>
+      {% else %}
+        <button class="btn btn--danger" type="submit" name="action" value="lock" data-confirm="{{ _('Закрыть вход на сайт для всех пользователей, кроме администратора и менеджеров?') }}">{{ ui.icon('shield', 16) }}<span>{{ _("Закрыть доступ на сайт") }}</span></button>
+      {% endif %}
+    </form>
   </div>
 </div>
 

@@ -29,6 +29,15 @@ from .services import content_gaps, progress_summary, temporary_password
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
 
+
+@bp.context_processor
+def _inject_site_maint():
+    from .deploy_safety import get_maintenance_state
+    try:
+        return {"site_maint": get_maintenance_state()}
+    except Exception:
+        return {"site_maint": None}
+
 TABS = ("overview", "apps", "moderation", "students", "teachers", "managers", "supervisors", "assistants", "admins")
 PEOPLE = {
     "students": "student",

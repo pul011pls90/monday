@@ -1,48 +1,24 @@
 {% extends "layout.html" %}
+{% import "partials/settings_ui.html" as sui with context %}
 {% block title %}{{ _("Настройки") }}{% endblock %}
 {% block page_class %}page--settings{% endblock %}
 {% block content %}
-{# Settings: a header card with who you are, tabs, and one row per setting —
-   title and a line of explanation, the current value on the left, the action on the right.
-   «Изменить» opens the row in place; choices (theme, goal, …) save as soon as they change. #}
+{# Student Settings — templated with partials/settings_ui.html matching the Manager Account Settings card design #}
 {% set theme = current_user.theme %}
 {% set days = PREFS.get('study_days') or [0, 1, 2, 3, 4, 5, 6] %}
 {% set exam = EXAMS[p.exam] if p.exam in EXAMS else None %}
 {% set second = PREFS.get('second_exam') if PREFS.get('second_exam') != p.exam else None %}
 
-{% macro row(icon, title, desc, cls='') -%}
-<section class="set-row {{ cls }}">
-  <div class="set-row__head">{{ ui.icon(icon, 20) }}<h3>{{ title }}</h3></div>
-  {% if desc %}<p class="set-row__desc">{{ desc }}</p>{% endif %}
-  {{ caller() }}
-</section>
-{%- endmacro %}
-
-{# a value with «Изменить»; the form opens under it #}
-{% macro edit(field, tab, shown, label=_('Изменить'), auto=false) -%}
-<details class="set-edit">
-  <summary><span class="set-edit__value">{{ shown }}</span><span class="btn btn--secondary btn--sm">{{ label }}</span></summary>
-  <form method="post" class="set-edit__form"{% if auto %} data-autosave{% endif %}>
-    {{ ui.csrf() }}<input type="hidden" name="action" value="field"><input type="hidden" name="field" value="{{ field }}"><input type="hidden" name="tab" value="{{ tab }}">
-    {{ caller() }}
-    {% if auto %}<noscript><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></noscript>
-    {% else %}<button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button>{% endif %}
-  </form>
-</details>
-{%- endmacro %}
-
-<section class="set-hero">
-  <form method="post" action="{{ url_for('auth.set_avatar') }}" enctype="multipart/form-data" class="set-hero__photo" data-avatar-form>
-    {{ ui.csrf() }}<input type="hidden" name="next" value="{{ request.path }}">
-    <label class="profile-head__pick" title="{{ _('Изменить фото') }}">
-      {{ ui.avatar(current_user, 'avatar--xl') }}
-      <span class="profile-head__overlay">{{ ui.icon('camera', 20) }}<span>{{ _("Фото") }}</span></span>
-      <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" class="sr-only" data-avatar-input>
-    </label>
-  </form>
-  <div class="set-hero__who"><h1>{{ current_user.name }}</h1><span>{{ current_user.email }}</span></div>
-  {% if exam %}<span class="set-hero__badge">{{ ui.icon('flag', 16) }}{{ exam.label }}{% if p.goal_score %} · {{ _("цель") }} {{ p.goal_score }}{% endif %}</span>{% endif %}
-</section>
+{{ sui.hero(
+  subtitle=current_user.email,
+  badge_icon='flag',
+  badge_text=(exam.label ~ (' · ' ~ _('цель') ~ ' ' ~ p.goal_score if p.goal_score else '')) if exam else '',
+  back_href=url_for('student.home'),
+  back_label=_("На главную"),
+  back_icon='home',
+  avatar_upload=true,
+  next_path=request.path
+) }}
 
 <nav class="set-tabs" role="tablist" aria-label="{{ _('Разделы настроек') }}" data-set-tabs>
   {% for key, label in [('profile', _('Профиль')), ('exam', _('Экзамен')), ('look', _('Оформление')), ('study', _('Учёба')), ('security', _('Безопасность'))] %}
@@ -52,81 +28,72 @@
 
 {# ------------------------------------------------------------ Профиль #}
 <div class="set-pane" data-set-pane="profile" role="tabpanel">
-  {% call row('edit', _('Имя'), _('Так тебя видят учителя и так ты подписан в работах.')) %}
-    {% call edit('name', 'profile', current_user.name) %}<input class="input" name="value" value="{{ current_user.name }}" minlength="2" required aria-label="{{ _('Имя и фамилия') }}">{% endcall %}
-  {% endcall %}
-  {% call row('inbox', _('Почта'), _('Почта для входа в аккаунт.')) %}
-    <details class="set-edit">
-      <summary><span class="set-edit__value">{{ current_user.email }}</span><span class="btn btn--secondary btn--sm">{{ _("Изменить") }}</span></summary>
-      <form method="post" class="set-edit__form">
-        {{ ui.csrf() }}<input type="hidden" name="action" value="email">
-        <input class="input" type="email" name="email" autocomplete="email" required placeholder="{{ _('Новая почта') }}" aria-label="{{ _('Новая почта') }}">
-        <input class="input" type="password" name="password" autocomplete="current-password" required placeholder="{{ _('Текущий пароль') }}" aria-label="{{ _('Текущий пароль') }}">
-        <button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button>
-      </form>
-    </details>
-  {% endcall %}
-  {% call row('camera', _('Фото'), _('Нажми на фото в шапке, чтобы загрузить новое.')) %}
-    <div class="set-line"><span class="set-edit__value">{{ _("Загружено") if current_user.avatar_path else _("Без фото видны инициалы") }}</span>
+  {% call sui.card('users', _("Профиль и контакты"), _("Так тебя видят учителя, а по этой почте ты входишь в аккаунт.")) %}
+    {% call sui.field_edit('name', 'profile', current_user.name, hint=_("Имя и фамилия")) %}
+      <input class="input" name="value" value="{{ current_user.name }}" minlength="2" required aria-label="{{ _('Имя и фамилия') }}">
+    {% endcall %}
+    {% call sui.edit(current_user.email, hint=_("Почта для входа")) %}
+      <input type="hidden" name="action" value="email">
+      <input class="input" type="email" name="email" autocomplete="email" required placeholder="{{ _('Новая почта') }}" aria-label="{{ _('Новая почта') }}">
+      <input class="input" type="password" name="password" autocomplete="current-password" required placeholder="{{ _('Текущий пароль') }}" aria-label="{{ _('Текущий пароль') }}">
+      <button class="set-btn set-btn--primary set-btn--sm" type="submit">{{ _("Сохранить") }}</button>
+    {% endcall %}
+    {% call sui.line(_("Фото профиля"), hint=_("Нажми на фото в шапке, чтобы загрузить новое.") if not current_user.avatar_path else _("Фотография загружена")) %}
       {% if current_user.avatar_path %}
-      <form method="post" action="{{ url_for('auth.set_avatar') }}">
-        {{ ui.csrf() }}<input type="hidden" name="next" value="{{ request.path }}"><input type="hidden" name="remove" value="1">
-        <button class="btn btn--secondary btn--sm" type="submit">{{ _("Удалить фото") }}</button>
-      </form>{% endif %}</div>
-  {% endcall %}
-  {% call row('globe', _('Язык'), _('Язык интерфейса и объяснений. Переводы, кроме русского, появятся позже.')) %}
-    {% call edit('language', 'profile', LANGUAGES[current_user.language] if current_user.language in LANGUAGES else current_user.language) %}
+        <form method="post" action="{{ url_for('auth.set_avatar') }}">
+          {{ ui.csrf() }}<input type="hidden" name="next" value="{{ request.path }}"><input type="hidden" name="remove" value="1">
+          <button class="set-btn set-btn--secondary set-btn--sm" type="submit">{{ _("Удалить фото") }}</button>
+        </form>
+      {% else %}
+        <span class="small muted">{{ _("Без фото видны инициалы") }}</span>
+      {% endif %}
+    {% endcall %}
+    {% call sui.field_edit('language', 'profile', LANGUAGES[current_user.language] if current_user.language in LANGUAGES else current_user.language, hint=_("Язык интерфейса")) %}
       <select class="select" name="value" aria-label="{{ _('Язык') }}">{% for code, label in LANGUAGES.items() %}<option value="{{ code }}" {{ 'selected' if current_user.language == code }}>{{ label }}</option>{% endfor %}</select>
     {% endcall %}
+    {% call sui.field_edit('region', 'profile', p.region or _('Не указан'), hint=_("Город или область")) %}
+      <input class="input" name="value" value="{{ p.region or '' }}" aria-label="{{ _('Город или область') }}">
+    {% endcall %}
+    {% call sui.field_edit('school', 'profile', p.school or _('Не указана'), hint=_("Школа")) %}
+      <input class="input" name="value" value="{{ p.school or '' }}" aria-label="{{ _('Школа') }}">
+    {% endcall %}
   {% endcall %}
-  {% call row('pin', _('Город или область'), '') %}
-    {% call edit('region', 'profile', p.region or _('Не указан')) %}<input class="input" name="value" value="{{ p.region or '' }}" aria-label="{{ _('Город или область') }}">{% endcall %}
-  {% endcall %}
-  {% call row('home', _('Школа'), '') %}
-    {% call edit('school', 'profile', p.school or _('Не указана')) %}<input class="input" name="value" value="{{ p.school or '' }}" aria-label="{{ _('Школа') }}">{% endcall %}
-  {% endcall %}
-  {% call row('users', _('Мои учителя'), _('Учитель видит твои результаты и выдаёт задания. Подключиться можно по коду от менеджера или учителя.')) %}
+
+  {% call sui.card('users', _('Мои учителя'), _('Учитель видит твои результаты и выдаёт задания. Подключиться можно по коду от менеджера или учителя.')) %}
     {% if current_teachers %}
       {% for ct in current_teachers %}
-        <div class="set-line"><span class="author">{{ ui.avatar(ct.teacher, 'avatar--sm') }}{{ _("Мой преподаватель") }}: <b>{{ ct.teacher.name }}</b></span>
-          <span class="small muted">{% if ct.course %}{{ ct.course.name }}{% endif %}{% if ct.record.lesson_time %}{% if ct.course %} · {% endif %}{{ _("урок в") }} {{ ct.record.lesson_time }}{% endif %}{% if ct.record.goal_label %} · {{ ct.record.goal_label }}{% endif %}</span></div>
+        <div class="set-line">
+          <span class="author">{{ ui.avatar(ct.teacher, 'avatar--sm') }}{{ _("Мой преподаватель") }}: <b>{{ ct.teacher.name }}</b></span>
+          <span class="small muted">{% if ct.course %}{{ ct.course.name }}{% endif %}{% if ct.record.lesson_time %}{% if ct.course %} · {% endif %}{{ _("урок в") }} {{ ct.record.lesson_time }}{% endif %}{% if ct.record.goal_label %} · {{ ct.record.goal_label }}{% endif %}</span>
+        </div>
       {% endfor %}
     {% else %}
-      <p class="small muted">{{ _("Преподаватель пока не назначен — введи код подключения ниже.") }}</p>
+      <p class="small muted" style="margin-top:8px">{{ _("Преподаватель пока не назначен — введи код подключения ниже.") }}</p>
     {% endif %}
-    <details class="set-edit"{% if not current_teachers %} open{% endif %}>
-      <summary><span class="set-edit__value">{{ _("Пока ни одного учителя") if not current_teachers else _("Подключиться по коду") }}</span><span class="btn btn--secondary btn--sm">{{ _("Ввести код") }}</span></summary>
-      <form method="post" class="set-edit__form">
-        {{ ui.csrf() }}<input type="hidden" name="action" value="join">
-        <input class="input input--mono" name="invite_code" placeholder="MND-XXXX" autocapitalize="characters" required aria-label="{{ _('Код подключения') }}">
-        <button class="btn btn--primary" type="submit">{{ _("Подключиться") }}</button>
-      </form>
-    </details>
+    {% call sui.edit(_("Пока ни одного учителя") if not current_teachers else _("Подключиться по коду"), label=_("Ввести код"), open=(not current_teachers)) %}
+      <input type="hidden" name="action" value="join">
+      <input class="input input--mono" name="invite_code" placeholder="MND-XXXX" autocapitalize="characters" required aria-label="{{ _('Код подключения') }}">
+      <button class="set-btn set-btn--primary set-btn--sm" type="submit">{{ _("Подключиться") }}</button>
+    {% endcall %}
   {% endcall %}
 </div>
 
 {# ------------------------------------------------------------ Экзамен #}
 <div class="set-pane" data-set-pane="exam" role="tabpanel">
-  {% call row('flag', _('Экзамен'), _('Экзамен, к которому готовишься. От него зависят задания и тесты.')) %}
-    {% call edit('exam', 'exam', (exam.label ~ ' · ' ~ exam.country) if exam else '—') %}
+  {% call sui.card('flag', _('Цель и экзамен'), _('Экзамен, к которому готовишься. От него зависят задания и тесты.')) %}
+    {% call sui.field_edit('exam', 'exam', (exam.label ~ ' · ' ~ exam.country) if exam else '—', hint=_("Основной экзамен")) %}
       <select class="select" name="value" aria-label="{{ _('Экзамен') }}">{% for code, e in EXAMS.items() %}<option value="{{ code }}" {{ 'selected' if p.exam == code }}>{{ e.label }} · {{ e.country }}</option>{% endfor %}</select>
     {% endcall %}
-  {% endcall %}
-  {% call row('calendar', _('Дата экзамена'), _('По ней считаются дни до экзамена на главной.')) %}
-    {% call edit('exam_date', 'exam', p.exam_date.strftime('%d.%m.%Y') if p.exam_date else _('Не указана')) %}
+    {% call sui.field_edit('exam_date', 'exam', p.exam_date.strftime('%d.%m.%Y') if p.exam_date else _('Не указана'), hint=_("Дата экзамена — по ней считаются дни на главной")) %}
       <input class="input" type="date" name="value" value="{{ p.exam_date.isoformat() if p.exam_date }}" aria-label="{{ _('Дата экзамена') }}">
     {% endcall %}
-  {% endcall %}
-  {% call row('chart', _('Целевой балл'), (_('Сколько хочешь набрать: от %(a)s до %(b)s.', a=exam.min, b=exam.max) if exam else _('Сколько хочешь набрать.'))) %}
-    {% call edit('goal_score', 'exam', p.goal_score or _('Не указан')) %}
+    {% call sui.field_edit('goal_score', 'exam', p.goal_score or _('Не указан'), hint=(_('Целевой балл: от %(a)s до %(b)s', a=exam.min, b=exam.max) if exam else _('Целевой балл'))) %}
       <input class="input" type="number" name="value" value="{{ p.goal_score or '' }}" min="{{ exam.min if exam else 0 }}" max="{{ exam.max if exam else 1600 }}" aria-label="{{ _('Целевой балл') }}">
     {% endcall %}
-  {% endcall %}
-  {% call row('skills', _('Класс'), '') %}
-    {% call edit('grade', 'exam', p.grade or _('Не указан')) %}<input class="input" name="value" value="{{ p.grade or '' }}" aria-label="{{ _('Класс') }}">{% endcall %}
-  {% endcall %}
-  {% call row('collections', _('Второй предмет'), _('Если готовишься к двум экзаменам. Переключатель появится вверху страницы, цель и дата у каждого свои.')) %}
-    {% call edit('second_exam', 'exam', (second|exam_label) if second else _('Не выбран'), auto=true) %}
+    {% call sui.field_edit('grade', 'exam', p.grade or _('Не указан'), hint=_("Класс")) %}
+      <input class="input" name="value" value="{{ p.grade or '' }}" aria-label="{{ _('Класс') }}">
+    {% endcall %}
+    {% call sui.field_edit('second_exam', 'exam', (second|exam_label) if second else _('Не выбран'), auto=true, hint=_("Второй предмет — переключатель появится вверху страницы")) %}
       <select class="select" name="value" aria-label="{{ _('Второй предмет') }}">
         <option value="">{{ _("Не выбран") }}</option>
         {% for code, e in EXAMS.items() if code != p.exam %}<option value="{{ code }}" {{ 'selected' if second == code }}>{{ e.label }} · {{ e.country }}</option>{% endfor %}
@@ -138,116 +105,144 @@
 
 {# ------------------------------------------------------------ Оформление: saves on change #}
 <div class="set-pane" data-set-pane="look" role="tabpanel">
-  <form method="post" data-autosave class="set-stack">
-    {{ ui.csrf() }}<input type="hidden" name="action" value="appearance">
-    {% call row('sun', _('Тема'), _('Светлая, тёмная или как настроено на устройстве.')) %}
-      <div class="set-line"><span class="set-edit__value">{{ {'light': _('Светлая'), 'dark': _('Тёмная'), 'system': _('Как на устройстве')}[theme] }}</span>
+  {% call sui.card('settings', _("Интерфейс и отображение"), _("Настройте тему, размер текста, анимацию и прозрачность подложки под себя.")) %}
+    <form method="post" data-autosave class="set-stack" style="gap:0">
+      {{ ui.csrf() }}<input type="hidden" name="action" value="appearance">
+      <div class="set-line">
+        <div class="set-line__main">
+          <div class="set-edit__value">{{ {'light': _('Светлая тема'), 'dark': _('Тёмная тема'), 'system': _('Системная тема')}[theme] }}</div>
+          <div class="small muted set-edit__sub">{{ _("Светлая, тёмная или как настроено на устройстве.") }}</div>
+        </div>
         <div class="settings-chips">
           <label class="cb-chip"><input type="radio" name="theme" value="light" {{ 'checked' if theme == 'light' }}><span>{{ _("Светлая") }}</span></label>
           <label class="cb-chip"><input type="radio" name="theme" value="dark" {{ 'checked' if theme == 'dark' }}><span>{{ _("Тёмная") }}</span></label>
           <label class="cb-chip"><input type="radio" name="theme" value="system" {{ 'checked' if theme == 'system' }}><span>{{ _("Как на устройстве") }}</span></label>
-        </div></div>
-    {% endcall %}
-    {% call row('search', _('Размер текста'), _('Крупный текст немного увеличивает весь интерфейс.')) %}
-      <div class="set-line"><span class="set-edit__value">{{ _("Крупный") if PREFS.text == 'large' else _("Обычный") }}</span>
+        </div>
+      </div>
+      <div class="set-line">
+        <div class="set-line__main">
+          <div class="set-edit__value">{{ _("Размер текста") }}: {{ _("Крупный") if PREFS.text == 'large' else _("Обычный") }}</div>
+          <div class="small muted set-edit__sub">{{ _("Крупный текст немного увеличивает весь интерфейс.") }}</div>
+        </div>
         <div class="settings-chips">
           <label class="cb-chip"><input type="radio" name="text" value="normal" {{ 'checked' if PREFS.text != 'large' }}><span>{{ _("Обычный") }}</span></label>
           <label class="cb-chip"><input type="radio" name="text" value="large" {{ 'checked' if PREFS.text == 'large' }}><span>{{ _("Крупный") }}</span></label>
-        </div></div>
-    {% endcall %}
-    {% call row('bolt', _('Анимация'), _('Выключает плавные переходы и движение на страницах.')) %}
-      <div class="set-line"><span class="set-edit__value">{{ _("Меньше анимации") if PREFS.motion == 'reduce' else _("Обычная") }}</span>
-        <label class="set-switch"><input type="checkbox" name="motion" value="reduce" {{ 'checked' if PREFS.motion == 'reduce' }}><span aria-hidden="true"></span><b class="sr-only">{{ _("Меньше анимации") }}</b></label></div>
-    {% endcall %}
-    <noscript><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></noscript>
-  </form>
+        </div>
+      </div>
+      <div class="set-line">
+        <div class="set-line__main">
+          <div class="set-edit__value">{{ _("Анимация") }}: {{ _("Меньше анимации") if PREFS.motion == 'reduce' else _("Обычная") }}</div>
+          <div class="small muted set-edit__sub">{{ _("Выключает плавные переходы и движение на страницах.") }}</div>
+        </div>
+        <label class="set-switch"><input type="checkbox" name="motion" value="reduce" {{ 'checked' if PREFS.motion == 'reduce' }}><span aria-hidden="true"></span><b class="sr-only">{{ _("Меньше анимации") }}</b></label>
+      </div>
+      <noscript><div style="margin-top:12px"><button class="set-btn set-btn--primary set-btn--sm" type="submit">{{ _("Сохранить") }}</button></div></noscript>
+    </form>
+    {{ sui.shell_alpha_row() }}
+  {% endcall %}
 </div>
 
 {# ------------------------------------------------------------ Учёба: saves on change #}
 <div class="set-pane" data-set-pane="study" role="tabpanel">
-  <form method="post" data-autosave class="set-stack">
-    {{ ui.csrf() }}<input type="hidden" name="action" value="study">
-    {% call row('timer', _('Цель в день'), _('Сколько минут заниматься в день. На главной видно, сколько уже сделано.')) %}
-      <div class="set-line"><span class="set-edit__value">{{ p.daily_goal or 15 }} {{ _("мин") }}</span>
+  {% call sui.card('calendar', _('План занятий'), _('Настройте ежедневную цель и дни подготовки — выходные не сбрасывают серию.')) %}
+    <form method="post" data-autosave class="set-stack" style="gap:0">
+      {{ ui.csrf() }}<input type="hidden" name="action" value="study">
+      <div class="set-line">
+        <div class="set-line__main">
+          <div class="set-edit__value">{{ _("Цель в день") }}: {{ p.daily_goal or 15 }} {{ _("мин") }}</div>
+          <div class="small muted set-edit__sub">{{ _("На главной видно, сколько минут уже выполнено.") }}</div>
+        </div>
         <div class="settings-chips">{% for m in (10, 15, 20, 30, 45, 60) %}
           <label class="cb-chip"><input type="radio" name="daily_goal" value="{{ m }}" {{ 'checked' if (p.daily_goal or 15) == m }}><span>{{ m }}</span></label>{% endfor %}
-        </div></div>
-    {% endcall %}
-    {% call row('calendar', _('Дни занятий'), _('Выходные дни не прерывают серию дней с выполненной целью.')) %}
-      <div class="set-line"><span class="set-edit__value">{{ days|length }} {{ _("из 7") }}</span>
+        </div>
+      </div>
+      <div class="set-line">
+        <div class="set-line__main">
+          <div class="set-edit__value">{{ _("Дни занятий") }}: {{ days|length }} {{ _("из 7") }}</div>
+          <div class="small muted set-edit__sub">{{ _("Выходные дни не прерывают серию дней.") }}</div>
+        </div>
         <div class="settings-chips">{% for d in WEEKDAYS %}
           <label class="cb-chip"><input type="checkbox" name="study_days" value="{{ loop.index0 }}" {{ 'checked' if loop.index0 in days }}><span>{{ d }}</span></label>{% endfor %}
-        </div></div>
-    {% endcall %}
-    <noscript><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></noscript>
-  </form>
-  <form method="post" data-autosave class="set-stack">
-    {{ ui.csrf() }}<input type="hidden" name="action" value="practice">
-    {% call row('clock', _('Таймер в банке вопросов'), _('Показывает, сколько времени ушло на вопрос.')) %}
-      <div class="set-line"><span class="set-edit__value">{{ _("Выключен") if PREFS.bank_timer == false else _("Включён") }}</span>
-        <label class="set-switch"><input type="checkbox" name="bank_timer" value="1" {{ 'checked' if PREFS.bank_timer != false }}><span aria-hidden="true"></span><b class="sr-only">{{ _("Таймер") }}</b></label></div>
-    {% endcall %}
-    {% call row('calculator', _('Калькулятор сразу'), _('Открывать калькулятор при входе в вопрос, где он разрешён (SAT).')) %}
-      <div class="set-line"><span class="set-edit__value">{{ _("Включено") if PREFS.calc_open else _("Выключено") }}</span>
-        <label class="set-switch"><input type="checkbox" name="calc_open" value="1" {{ 'checked' if PREFS.calc_open }}><span aria-hidden="true"></span><b class="sr-only">{{ _("Калькулятор") }}</b></label></div>
-    {% endcall %}
-    {% call row('check', _('Показывать ответ'), _('Что выбрано заранее, когда собираешь свою сессию. Перед стартом можно поменять.')) %}
-      <div class="set-line"><span class="set-edit__value">{{ _("В конце") if PREFS.session_explain == 'end' else _("Сразу") }}</span>
+        </div>
+      </div>
+      <noscript><div style="margin-top:12px"><button class="set-btn set-btn--primary set-btn--sm" type="submit">{{ _("Сохранить") }}</button></div></noscript>
+    </form>
+  {% endcall %}
+
+  {% call sui.card('check', _('Практика и банк вопросов'), _('Поведение таймера, калькулятора и отображения ответов во время решения.')) %}
+    <form method="post" data-autosave class="set-stack" style="gap:0">
+      {{ ui.csrf() }}<input type="hidden" name="action" value="practice">
+      <div class="set-line">
+        <div class="set-line__main">
+          <div class="set-edit__value">{{ _("Таймер в банке вопросов") }}: {{ _("Выключен") if PREFS.bank_timer == false else _("Включён") }}</div>
+          <div class="small muted set-edit__sub">{{ _("Показывает, сколько времени ушло на вопрос.") }}</div>
+        </div>
+        <label class="set-switch"><input type="checkbox" name="bank_timer" value="1" {{ 'checked' if PREFS.bank_timer != false }}><span aria-hidden="true"></span><b class="sr-only">{{ _("Таймер") }}</b></label>
+      </div>
+      <div class="set-line">
+        <div class="set-line__main">
+          <div class="set-edit__value">{{ _("Калькулятор сразу") }}: {{ _("Включено") if PREFS.calc_open else _("Выключено") }}</div>
+          <div class="small muted set-edit__sub">{{ _("Открывать калькулятор при входе в вопрос, где он разрешён (SAT).") }}</div>
+        </div>
+        <label class="set-switch"><input type="checkbox" name="calc_open" value="1" {{ 'checked' if PREFS.calc_open }}><span aria-hidden="true"></span><b class="sr-only">{{ _("Калькулятор") }}</b></label>
+      </div>
+      <div class="set-line">
+        <div class="set-line__main">
+          <div class="set-edit__value">{{ _("Показывать ответ") }}: {{ _("В конце") if PREFS.session_explain == 'end' else _("Сразу") }}</div>
+          <div class="small muted set-edit__sub">{{ _("Что выбрано заранее при сборке сессии.") }}</div>
+        </div>
         <div class="settings-chips">
           <label class="cb-chip"><input type="radio" name="session_explain" value="now" {{ 'checked' if PREFS.session_explain != 'end' }}><span>{{ _("Сразу") }}</span></label>
           <label class="cb-chip"><input type="radio" name="session_explain" value="end" {{ 'checked' if PREFS.session_explain == 'end' }}><span>{{ _("В конце") }}</span></label>
-        </div></div>
-    {% endcall %}
-    {% call row('list', _('Вид вопросов в банке'), _('Как открывать вопросы: страницами с листом ответов или по одному.')) %}
-      <div class="set-line"><span class="set-edit__value">{{ _("По одному") if PREFS.bank_view == 'one' else _("Страницами") }}</span>
+        </div>
+      </div>
+      <div class="set-line">
+        <div class="set-line__main">
+          <div class="set-edit__value">{{ _("Вид вопросов в банке") }}: {{ _("По одному") if PREFS.bank_view == 'one' else _("Страницами") }}</div>
+          <div class="small muted set-edit__sub">{{ _("Открывать вопросы страницами с листом ответов или по одному.") }}</div>
+        </div>
         <div class="settings-chips">
           <label class="cb-chip"><input type="radio" name="bank_view" value="sheet" {{ 'checked' if PREFS.bank_view != 'one' }}><span>{{ _("Страницами") }}</span></label>
           <label class="cb-chip"><input type="radio" name="bank_view" value="one" {{ 'checked' if PREFS.bank_view == 'one' }}><span>{{ _("По одному") }}</span></label>
-        </div></div>
-    {% endcall %}
-    <noscript><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></noscript>
-  </form>
+        </div>
+      </div>
+      <noscript><div style="margin-top:12px"><button class="set-btn set-btn--primary set-btn--sm" type="submit">{{ _("Сохранить") }}</button></div></noscript>
+    </form>
+  {% endcall %}
 </div>
 
 {# ------------------------------------------------------------ Безопасность #}
 <div class="set-pane" data-set-pane="security" role="tabpanel">
-  {% call row('shield', _('Пароль'), _('Не короче 8 символов.')) %}
-    <details class="set-edit">
-      <summary><span class="set-edit__value">••••••••</span><span class="btn btn--secondary btn--sm">{{ _("Изменить пароль") }}</span></summary>
-      <form method="post" class="set-edit__form">
-        {{ ui.csrf() }}<input type="hidden" name="action" value="password">
-        <input class="input" type="password" name="current" autocomplete="current-password" placeholder="{{ _('Текущий пароль') }}" aria-label="{{ _('Текущий пароль') }}" required>
-        <input class="input" type="password" name="new" autocomplete="new-password" minlength="8" placeholder="{{ _('Новый пароль') }}" aria-label="{{ _('Новый пароль') }}" required>
-        <button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button>
-      </form>
-    </details>
+  {{ sui.password_card(min_len=8, desc=_('Не короче 8 символов.'), shown_label='••••••••', btn_label=_('Изменить пароль'), submit_label=_('Сохранить')) }}
+
+  {% call sui.card('users', _('Приватность в рейтингах'), _('Другие ученики не увидят твоё имя и балл. Своё место ты видишь как обычно.')) %}
+    <form method="post" data-autosave>
+      {{ ui.csrf() }}<input type="hidden" name="action" value="privacy">
+      <div class="set-line">
+        <div class="set-line__main"><div class="set-edit__value">{{ _("Скрыт из рейтингов") if PREFS.hide_rank else _("Виден всем") }}</div></div>
+        <label class="set-switch"><input type="checkbox" name="hide_rank" value="1" {{ 'checked' if PREFS.hide_rank }}><span aria-hidden="true"></span><b class="sr-only">{{ _("Скрыть меня из рейтингов") }}</b></label>
+      </div>
+      <noscript><div style="margin-top:10px"><button class="set-btn set-btn--primary set-btn--sm" type="submit">{{ _("Сохранить") }}</button></div></noscript>
+    </form>
   {% endcall %}
-  <form method="post" data-autosave class="set-stack">
-    {{ ui.csrf() }}<input type="hidden" name="action" value="privacy">
-    {% call row('users', _('Скрыть меня из рейтингов'), _('Другие ученики не увидят твоё имя и балл. Своё место ты видишь как обычно.')) %}
-      <div class="set-line"><span class="set-edit__value">{{ _("Скрыт") if PREFS.hide_rank else _("Виден всем") }}</span>
-        <label class="set-switch"><input type="checkbox" name="hide_rank" value="1" {{ 'checked' if PREFS.hide_rank }}><span aria-hidden="true"></span><b class="sr-only">{{ _("Скрыть меня из рейтингов") }}</b></label></div>
+
+  {% call sui.card('arrow-down', _('Мои результаты и сессия'), _('Все пройденные тесты и сессии одной таблицей: CSV для Excel или оформленный PDF.')) %}
+    {% call sui.line('CSV', hint=_('Таблица для Excel')) %}<a class="set-btn set-btn--secondary set-btn--sm" href="{{ url_for('student.profile_export') }}">{{ _("Скачать") }}</a>{% endcall %}
+    {% call sui.line('PDF', hint=_('Готовый отчёт для печати')) %}<a class="set-btn set-btn--secondary set-btn--sm" href="{{ url_for('student.profile_export_pdf') }}">{{ _("Скачать") }}</a>{% endcall %}
+    {% call sui.line(current_user.email, hint=_('Выйти из аккаунта на этом устройстве')) %}
+      <form method="post" action="{{ url_for('auth.logout') }}">{{ ui.csrf() }}<button class="set-btn set-btn--secondary set-btn--sm" type="submit">{{ ui.icon('logout', 14) }}<span>{{ _("Выйти") }}</span></button></form>
     {% endcall %}
-    <noscript><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></noscript>
-  </form>
-  {% call row('arrow-down', _('Мои результаты'), _('Все пройденные тесты и сессии одной таблицей: CSV для Excel или оформленный PDF.')) %}
-    <div class="set-line"><span class="set-edit__value">CSV</span><a class="btn btn--secondary btn--sm" href="{{ url_for('student.profile_export') }}">{{ _("Скачать") }}</a></div>
-    <div class="set-line"><span class="set-edit__value">PDF</span><a class="btn btn--secondary btn--sm" href="{{ url_for('student.profile_export_pdf') }}">{{ _("Скачать") }}</a></div>
   {% endcall %}
-  {% call row('logout', _('Выйти'), _('Выйти из аккаунта на этом устройстве.')) %}
-    <div class="set-line"><span class="set-edit__value">{{ current_user.email }}</span>
-      <form method="post" action="{{ url_for('auth.logout') }}">{{ ui.csrf() }}<button class="btn btn--secondary btn--sm" type="submit">{{ _("Выйти") }}</button></form></div>
-  {% endcall %}
-  {% call row('trash', _('Удалить аккаунт'), _('Имя, почта и фото стираются, войти снова будет нельзя. Результаты остаются у учителя без твоего имени.'), 'set-row--danger') %}
-    <details class="set-edit">
-      <summary><span class="set-edit__value">{{ _("Нужен пароль для подтверждения") }}</span><span class="btn btn--danger btn--sm">{{ _("Удалить") }}</span></summary>
-      <form method="post" class="set-edit__form" data-confirm="{{ _('Удалить аккаунт? Имя, почта и фото будут стёрты, войти снова будет нельзя.') }}">
-        {{ ui.csrf() }}<input type="hidden" name="action" value="delete">
-        <input class="input" type="password" name="password" autocomplete="current-password" placeholder="{{ _('Пароль') }}" aria-label="{{ _('Пароль для подтверждения') }}" required>
-        <button class="btn btn--danger" type="submit">{{ _("Удалить аккаунт") }}</button>
-      </form>
-    </details>
+
+  {% call sui.card('trash', _('Удалить аккаунт'), _('Имя, почта и фото стираются, войти снова будет нельзя. Результаты остаются у учителя без твоего имени.'), cls='set-row--danger') %}
+    {% call sui.edit(_("Нужен пароль для подтверждения"), label=_("Удалить"), btn_variant='danger') %}
+      <input type="hidden" name="action" value="delete">
+      <input class="input" type="password" name="password" autocomplete="current-password" placeholder="{{ _('Пароль') }}" aria-label="{{ _('Пароль для подтверждения') }}" required>
+      <button class="set-btn set-btn--danger set-btn--sm" type="submit" data-confirm="{{ _('Удалить аккаунт? Имя, почта и фото будут стёрты, войти снова будет нельзя.') }}">{{ _("Удалить аккаунт") }}</button>
+    {% endcall %}
   {% endcall %}
 </div>
+
+{{ sui.settings_shell_script() }}
 {% endblock %}
 {% block scripts %}<script defer src="{{ url_for('static', filename='js/settings.js') }}"></script>{% endblock %}

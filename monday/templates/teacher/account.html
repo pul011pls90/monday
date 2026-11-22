@@ -1,108 +1,106 @@
 {% extends "layout.html" %}
+{% import "partials/settings_ui.html" as sui with context %}
 {% block title %}{{ _("Аккаунт") }}{% endblock %}
-{% block page_class %}page--narrow{% endblock %}
+{% block page_class %}page--settings{% endblock %}
 {% block content %}
-{% with subtitle=_('администратор') if current_user.is_admin else _('учитель') %}{% include "partials/profile_head.html" %}{% endwith %}
-<div class="grid grid-4">
-  <div class="card card--tight"><div class="stat-value num">{{ stats.students }}</div><div class="stat-label">{{ _("учеников в таблице") }}</div></div>
-  <div class="card card--tight"><div class="stat-value num">{{ stats.linked }}</div><div class="stat-label">{{ _("подключили аккаунт") }}</div></div>
-  <div class="card card--tight"><div class="stat-value num">{{ stats.questions }}</div><div class="stat-label">{{ _("вопросов в банке") }}</div></div>
-  <div class="card card--tight"><div class="stat-value num">{{ stats.works }}</div><div class="stat-label">{{ _("опубликованных работ") }}</div></div>
-</div>
+  {% set role_sub = _('Администратор') if current_user.is_admin else (_('Ассистент') if current_user.is_assistant else _('Преподаватель')) %}
+  {{ sui.hero(
+    subtitle=current_user.email ~ ' · ' ~ role_sub,
+    badge_icon='shield' if current_user.is_admin else 'users',
+    badge_text=role_sub,
+    back_href=url_for('teacher.dashboard') if current_user.is_teacher else url_for('assistant.home'),
+    back_label=_("На главную"),
+    back_icon='home',
+    avatar_upload=true,
+    next_path=request.path
+  ) }}
 
-<section class="card t-tools-card" aria-labelledby="t-tools-h">
-  <div class="hc__head">
-    <span class="hc__ic" style="width:40px;height:40px;border-radius:12px">{{ ui.icon('skills', 18) }}</span>
-    <h2 id="t-tools-h">{{ _("Инструменты и разделы") }}</h2>
+  <div class="grid grid-4">
+    <div class="card card--tight"><div class="stat-value num">{{ stats.students }}</div><div class="stat-label">{{ _("учеников в таблице") }}</div></div>
+    <div class="card card--tight"><div class="stat-value num">{{ stats.linked }}</div><div class="stat-label">{{ _("подключили аккаунт") }}</div></div>
+    <div class="card card--tight"><div class="stat-value num">{{ stats.questions }}</div><div class="stat-label">{{ _("вопросов в банке") }}</div></div>
+    <div class="card card--tight"><div class="stat-value num">{{ stats.works }}</div><div class="stat-label">{{ _("опубликованных работ") }}</div></div>
   </div>
-  <div class="t-tools-grid">
-    <a class="t-tool-link" href="{{ url_for('teacher.tree') }}">
-      <span class="t-tool-link__ic">{{ ui.icon('skills', 18) }}</span>
-      <span><b>{{ _("Карта тем") }}</b><small>{{ _("Дерево навыков и тем") }}</small></span>
-      {{ ui.icon('arrow-right', 16) }}
-    </a>
-    <a class="t-tool-link" href="{{ url_for('teacher.questions') }}">
-      <span class="t-tool-link__ic">{{ ui.icon('questions', 18) }}</span>
-      <span><b>{{ _("Мои вопросы") }}</b><small>{{ _("Созданные и загруженные задачи") }}</small></span>
-      {{ ui.icon('arrow-right', 16) }}
-    </a>
-    <a class="t-tool-link" href="{{ url_for('reports.inbox') }}">
-      <span class="t-tool-link__ic">{{ ui.icon('flag', 18) }}</span>
-      <span><b>{{ _("Исправления") }}</b><small>{{ _("Сообщения об ошибках от учеников") }}</small></span>
-      {% set nr = open_reports() %}{% if nr %}<span class="tag tag--warn tag--xs num">{{ nr }}</span>{% endif %}
-      {{ ui.icon('arrow-right', 16) }}
-    </a>
-    {% if current_user.can_review %}
-    <a class="t-tool-link" href="{{ url_for('review.queue') }}">
-      <span class="t-tool-link__ic">{{ ui.icon('check', 18) }}</span>
-      <span><b>{{ _("Модерация") }}</b><small>{{ _("Проверка вопросов ассистентов") }}</small></span>
-      {{ ui.icon('arrow-right', 16) }}
-    </a>
-    {% endif %}
-    {% if current_user.is_admin %}
-    <a class="t-tool-link" href="{{ url_for('admin.index') }}">
-      <span class="t-tool-link__ic">{{ ui.icon('shield', 18) }}</span>
-      <span><b>{{ _("Администрирование") }}</b><small>{{ _("Пользователи, заявки и модерация") }}</small></span>
-      {{ ui.icon('arrow-right', 16) }}
-    </a>
-    <a class="t-tool-link" href="{{ url_for('analytics.dashboard') }}">
-      <span class="t-tool-link__ic">{{ ui.icon('chart', 18) }}</span>
-      <span><b>{{ _("Аналитика визитов") }}</b><small>{{ _("Трафик, Retention, GeoIP и профили") }}</small></span>
-      {{ ui.icon('arrow-right', 16) }}
-    </a>
-    {% endif %}
+
+  <div class="set-stack">
+    {% call sui.card('users', _("Настройки профиля"), _("Это имя видят ученики, коллеги и редакторы банка вопросов.")) %}
+      {% call sui.edit(current_user.name, label=_("Изменить имя"), hint=_("Имя и фамилия")) %}
+        <input type="hidden" name="action" value="profile">
+        <input class="input" id="name" name="name" value="{{ current_user.name }}" minlength="2" required aria-label="{{ _('Имя и фамилия') }}">
+        <input type="hidden" name="language" value="{{ current_user.language }}">
+        <button class="set-btn set-btn--primary set-btn--sm" type="submit">{{ _("Сохранить") }}</button>
+      {% endcall %}
+      {% call sui.line(_("Фото профиля"), hint=_("Нажмите на фото в шапке, чтобы загрузить новое.") if not current_user.avatar_path else _("Фотография загружена")) %}
+        {% if current_user.avatar_path %}
+          <form method="post" action="{{ url_for('auth.set_avatar') }}">
+            {{ ui.csrf() }}<input type="hidden" name="next" value="{{ request.path }}"><input type="hidden" name="remove" value="1">
+            <button class="set-btn set-btn--secondary set-btn--sm" type="submit">{{ _("Удалить фото") }}</button>
+          </form>
+        {% else %}
+          <span class="small muted">{{ _("Без фото видны инициалы") }}</span>
+        {% endif %}
+      {% endcall %}
+      {% call sui.edit(LANGUAGES[current_user.language] if current_user.language in LANGUAGES else current_user.language, label=_("Изменить"), hint=_("Язык интерфейса")) %}
+        <input type="hidden" name="action" value="profile">
+        <input type="hidden" name="name" value="{{ current_user.name }}">
+        <select class="select" id="language" name="language" aria-label="{{ _('Язык интерфейса') }}">{% for code, label in LANGUAGES.items() %}<option value="{{ code }}" {{ 'selected' if current_user.language == code }}>{{ label }}</option>{% endfor %}</select>
+        <button class="set-btn set-btn--primary set-btn--sm" type="submit">{{ _("Сохранить") }}</button>
+      {% endcall %}
+    {% endcall %}
+
+    {% call sui.card('settings', _("Интерфейс и отображение"), _("Настройте тему и прозрачность подложки рабочего окна.")) %}
+      {{ sui.theme_row() }}
+      {{ sui.shell_alpha_row() }}
+    {% endcall %}
+
+    {{ sui.password_card(min_len=12) }}
+
+    {% call sui.card('skills', _("Инструменты и разделы"), _("Быстрый доступ к карте тем, вопросам, исправлениям и расписанию.")) %}
+      <div class="t-tools-grid" style="margin-top:8px">
+        <a class="t-tool-link" href="{{ url_for('teacher.tree') }}">
+          <span class="t-tool-link__ic">{{ ui.icon('skills', 18) }}</span>
+          <span><b>{{ _("Карта тем") }}</b><small>{{ _("Дерево навыков и тем") }}</small></span>
+          {{ ui.icon('arrow-right', 16) }}
+        </a>
+        <a class="t-tool-link" href="{{ url_for('teacher.questions') }}">
+          <span class="t-tool-link__ic">{{ ui.icon('questions', 18) }}</span>
+          <span><b>{{ _("Мои вопросы") }}</b><small>{{ _("Созданные и загруженные задачи") }}</small></span>
+          {{ ui.icon('arrow-right', 16) }}
+        </a>
+        <a class="t-tool-link" href="{{ url_for('reports.inbox') }}">
+          <span class="t-tool-link__ic">{{ ui.icon('flag', 18) }}</span>
+          <span><b>{{ _("Исправления") }}</b><small>{{ _("Сообщения об ошибках от учеников") }}</small></span>
+          {% set nr = open_reports() %}{% if nr %}<span class="tag tag--warn tag--xs num">{{ nr }}</span>{% endif %}
+          {{ ui.icon('arrow-right', 16) }}
+        </a>
+        {% if current_user.can_review %}
+        <a class="t-tool-link" href="{{ url_for('review.queue') }}">
+          <span class="t-tool-link__ic">{{ ui.icon('check', 18) }}</span>
+          <span><b>{{ _("Модерация") }}</b><small>{{ _("Проверка вопросов ассистентов") }}</small></span>
+          {{ ui.icon('arrow-right', 16) }}
+        </a>
+        {% endif %}
+        {% if current_user.is_admin %}
+        <a class="t-tool-link" href="{{ url_for('admin.index') }}">
+          <span class="t-tool-link__ic">{{ ui.icon('shield', 18) }}</span>
+          <span><b>{{ _("Администрирование") }}</b><small>{{ _("Пользователи, заявки и модерация") }}</small></span>
+          {{ ui.icon('arrow-right', 16) }}
+        </a>
+        <a class="t-tool-link" href="{{ url_for('analytics.dashboard') }}">
+          <span class="t-tool-link__ic">{{ ui.icon('chart', 18) }}</span>
+          <span><b>{{ _("Аналитика визитов") }}</b><small>{{ _("Трафик, Retention, GeoIP и профили") }}</small></span>
+          {{ ui.icon('arrow-right', 16) }}
+        </a>
+        {% endif %}
+      </div>
+    {% endcall %}
+
+    {% call sui.card('logout', _("Сессия"), _("Выйти из аккаунта на этом устройстве.")) %}
+      {% call sui.line(current_user.email) %}
+        <form method="post" action="{{ url_for('auth.logout') }}">{{ ui.csrf() }}<button class="set-btn set-btn--danger set-btn--sm" type="submit">{{ ui.icon('logout', 15) }}<span>{{ _("Выйти") }}</span></button></form>
+      {% endcall %}
+    {% endcall %}
   </div>
-</section>
-<section class="card">
-  <h2>{{ _("Оформление рабочего окна") }}</h2>
-  <div class="shell-row-line">
-    <div>
-      <div><b>{{ _("Прозрачность подложки") }}</b></div>
-      <div class="small muted">{{ _("Регулирует, насколько мягко фон просвечивает через рабочую панель.") }}</div>
-    </div>
-    <div class="shell-alpha-ctrl">
-      <input class="shell-range" type="range" id="shell-alpha-slider" min="60" max="100" step="5" value="80" aria-label="{{ _('Прозрачность подложки') }}">
-      <span class="shell-alpha-val num" id="shell-alpha-value">80%</span>
-    </div>
-  </div>
-</section>
-<form method="post" class="card">
-  {{ ui.csrf() }}<input type="hidden" name="action" value="profile">
-  <h2>{{ _("Настройки") }}</h2>
-  <div class="grid grid-2">
-    <div class="field"><label for="name">{{ _("Имя и фамилия") }}</label><input class="input" id="name" name="name" value="{{ current_user.name }}"></div>
-    <div class="field"><label for="language">{{ _("Язык интерфейса") }}</label>
-      <select class="select" id="language" name="language">{% for code, label in LANGUAGES.items() %}<option value="{{ code }}" {{ 'selected' if current_user.language == code }}>{{ label }}</option>{% endfor %}</select></div>
-  </div>
-  <div><button class="btn btn--primary" type="submit">{{ _("Сохранить") }}</button></div>
-</form>
-<form method="post" class="card">
-  {{ ui.csrf() }}<input type="hidden" name="action" value="password">
-  <h2>{{ _("Пароль") }}</h2>
-  <div class="grid grid-2">
-    <div class="field"><label for="current">{{ _("Текущий пароль") }}</label><input class="input" type="password" id="current" name="current" autocomplete="current-password" required></div>
-    <div class="field"><label for="new">{{ _("Новый пароль (от 12 символов)") }}</label><input class="input" type="password" id="new" name="new" autocomplete="new-password" minlength="12" required></div>
-  </div>
-  <div><button class="btn btn--secondary" type="submit">{{ _("Изменить пароль") }}</button></div>
-</form>
-<form method="post" action="{{ url_for('auth.logout') }}">{{ ui.csrf() }}<button class="btn btn--danger" type="submit">{{ ui.icon('logout', 18) }}{{ _("Выйти") }}</button></form>
-<script>
-(function(){
-  const s = document.getElementById('shell-alpha-slider');
-  const out = document.getElementById('shell-alpha-value');
-  if (!s || !out) return;
-  const apply = (raw) => {
-    const v = Math.min(100, Math.max(60, parseInt(raw, 10) || 80));
-    s.value = String(v);
-    out.textContent = v + '%';
-    document.documentElement.style.setProperty('--shell-alpha', String(v));
-    return v;
-  };
-  apply(localStorage.getItem('monday_shell_alpha') || '80');
-  s.addEventListener('input', () => {
-    const v = apply(s.value);
-    try { localStorage.setItem('monday_shell_alpha', String(v)); } catch (_) {}
-  });
-})();
-</script>
+
+  {{ sui.settings_shell_script() }}
 {% endblock %}

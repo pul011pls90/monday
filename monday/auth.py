@@ -91,6 +91,10 @@ def login():
         if user.is_blocked:
             flash(_("Аккаунт заблокирован. Напиши администратору."), "error")
             return render_template("auth/welcome.html", tab="login", form=request.form), 403
+        from .deploy_safety import ALLOWED_DURING_LOCK_ROLES, get_maintenance_state, render_site_locked_response
+        maint_row = get_maintenance_state()
+        if maint_row.state == "locked" and user.role not in ALLOWED_DURING_LOCK_ROLES:
+            return render_site_locked_response(maint_row)
         if user.auth_provider != "password":
             user.auth_provider = "password"
             db.session.commit()
@@ -259,6 +263,10 @@ def google_callback():
     elif user.is_blocked:
         flash(_("Аккаунт заблокирован. Напиши администратору."), "error")
         return redirect(url_for("auth.login"))
+    from .deploy_safety import ALLOWED_DURING_LOCK_ROLES, get_maintenance_state, render_site_locked_response
+    maint_row = get_maintenance_state()
+    if maint_row.state == "locked" and user.role not in ALLOWED_DURING_LOCK_ROLES:
+        return render_site_locked_response(maint_row)
     code = session.pop("invite_code", None)
     next_url = _safe_next(session.pop("google_next", None))
     session.clear()

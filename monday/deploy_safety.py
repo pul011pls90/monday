@@ -6,18 +6,100 @@ import hmac
 import json
 from datetime import datetime, timedelta
 
-from flask import Blueprint, current_app, jsonify, make_response, render_template, request
+from flask import Blueprint, current_app, jsonify, make_response, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_required
 from flask_wtf.csrf import validate_csrf
 
 from .access import admin_required
+from .audit import write_audit_log
 from .models import ActivityDraft, ClientOp, MaintenanceLog, MaintenanceState, db, utcnow
 
 bp = Blueprint("deploy_safety", __name__)
 
 VALID_ACTIVITY_TYPES = {"test", "bank", "session", "homework", "practice"}
-VALID_MAINT_STATES = {"off", "scheduled", "active"}
+VALID_MAINT_STATES = {"off", "scheduled", "active", "locked"}
+ALLOWED_DURING_LOCK_ROLES = frozenset({"admin", "sales_manager", "supervisor"})
+
+_LOCK_EXEMPT_ENDPOINTS = frozenset({
+    "static",
+    "deploy_safety.api_site_status",
+    "deploy_safety.api_version",
+    "deploy_safety.api_activity_save",
+    "deploy_safety.api_activity_complete",
+    "auth.login",
+    "auth.logout",
+    "auth.google_login",
+    "auth.google_callback",
+    "auth.toggle_theme",
+    "auth.set_language",
+    "admin.simulate_stop",
+})
+
+
+def maintenance_message_text(row: MaintenanceState) -> str:
+    """Build the same human-facing notification text shown in the banner and lockout screen."""
+    mins = int(row.expected_minutes or 15)
+    custom = (row.message or "").strip()
+    if row.state == "scheduled":
+        if custom:
+            return f"{custom} (~{mins} мин). Ответы сохраняются автоматически — вы сможете продолжить после перерыва."
+        return f"Плановое обновление (~{mins} мин). Ответы сохраняются автоматически — вы сможете продолжить после перерыва."
+    if custom:
+        return f"{custom} (~{mins} мин). Ваши ответы сохранены на этом устройстве и отправятся автоматически, как только сайт вернётся."
+    return f"Идёт обновление платформы (~{mins} мин). Ваши ответы сохранены на этом устройстве и отправятся автоматически, как только сайт вернётся."
+
+
+def is_site_locked_for(user) -> bool:
+    """Return True iff site lock is active and `user` is not an active admin or manager."""
+    try:
+        row = get_maintenance_state()
+    except Exception:
+        return False
+    if row.state != "locked":
+        return False
+    if user and getattr(user, "is_authenticated", False) and not getattr(user, "is_blocked", False):
+        if getattr(user, "role", None) in ALLOWED_DURING_LOCK_ROLES:
+            return False
+    return True
+
+
+def render_site_locked_response(row: MaintenanceState | None = None):
+    """Render 503 lockout screen or JSON error showing the active maintenance notification."""
+    if row is None:
+        row = get_maintenance_state()
+    notice = maintenance_message_text(row)
+    if request.path.startswith("/api/") or request.is_json:
+        resp = jsonify({"ok": False, "error": "site_locked", "message": notice})
+        resp.status_code = 503
+        resp.headers["Cache-Control"] = "no-store, max-age=0"
+        return resp
+    resp = make_response(
+        render_template("maintenance_locked.html", maint=row, notice_text=notice),
+        503,
+    )
+    resp.headers["Cache-Control"] = "no-store, max-age=0"
+    return resp
+
+
+def register_maintenance_lock(app) -> None:
+    """Enforce site-wide lockout when MaintenanceState.state == 'locked' (admin & managers exempt)."""
+
+    @app.before_request
+    def _enforce_site_lock():
+        ep = request.endpoint or ""
+        if ep in _LOCK_EXEMPT_ENDPOINTS or ep.startswith("static"):
+            return None
+        try:
+            row = get_maintenance_state()
+        except Exception:
+            return None
+        if row.state != "locked":
+            return None
+        if current_user.is_authenticated and not current_user.is_blocked:
+            if current_user.role in ALLOWED_DURING_LOCK_ROLES:
+                return None
+        return render_site_locked_response(row)
 
 
 def ensure_deploy_safety_tables() -> None:
@@ -309,7 +391,8 @@ def admin_maintenance():
     error = ""
     if request.method == "POST":
         action = (request.form.get("action") or "save").strip()
-        if action == "clear":
+        old_state = row.state
+        if action in ("clear", "unlock"):
             _update_maintenance(
                 state="off",
                 message="",
@@ -319,6 +402,41 @@ def admin_maintenance():
                 actor_name=current_user.name or current_user.email,
                 source="admin",
             )
+            write_audit_log(
+                actor_id=current_user.id,
+                action="site_maintenance_update",
+                entity_type="maintenance",
+                entity_id=row.id,
+                old_value={"state": old_state},
+                new_value={"state": "off"},
+            )
+            db.session.commit()
+            saved = True
+        elif action == "lock":
+            msg = request.form.get("message")
+            message_val = row.message if msg is None else msg
+            try:
+                mins_val = int(request.form.get("expected_minutes") or row.expected_minutes or 15)
+            except ValueError:
+                mins_val = row.expected_minutes or 15
+            _update_maintenance(
+                state="locked",
+                message=message_val,
+                expected_minutes=mins_val,
+                starts_at=None,
+                actor_id=current_user.id,
+                actor_name=current_user.name or current_user.email,
+                source="admin",
+            )
+            write_audit_log(
+                actor_id=current_user.id,
+                action="site_maintenance_update",
+                entity_type="maintenance",
+                entity_id=row.id,
+                old_value={"state": old_state},
+                new_value={"state": "locked", "expected_minutes": mins_val},
+            )
+            db.session.commit()
             saved = True
         else:
             state = (request.form.get("state") or "off").strip().lower()
@@ -340,8 +458,20 @@ def admin_maintenance():
                     actor_name=current_user.name or current_user.email,
                     source="admin",
                 )
+                write_audit_log(
+                    actor_id=current_user.id,
+                    action="site_maintenance_update",
+                    entity_type="maintenance",
+                    entity_id=row.id,
+                    old_value={"state": old_state},
+                    new_value={"state": state, "expected_minutes": expected_minutes},
+                )
+                db.session.commit()
                 saved = True
         row = get_maintenance_state()
+        next_target = (request.form.get("next") or "").strip()
+        if saved and next_target.startswith("/admin") and not next_target.startswith("//"):
+            return redirect(next_target)
 
     logs = MaintenanceLog.query.order_by(MaintenanceLog.created_at.desc()).limit(30).all()
     return render_template("admin/maintenance.html", maint=row, logs=logs, saved=saved, error=error)

@@ -1,0 +1,187 @@
+{# Shared templated account settings UI (modeled on Manager Account Settings: stacked row-cards, .set-hero, inline collapsible editors).
+   Import with: {% import "partials/settings_ui.html" as sui with context %} #}
+{% import "partials/macros.html" as ui with context %}
+
+{% macro hero(subtitle='', badge_icon='', badge_text='', back_href='', back_label='', back_icon='home', avatar_upload=false, next_path='') -%}
+<section class="set-hero">
+  {% if avatar_upload %}
+  <form method="post" action="{{ url_for('auth.set_avatar') }}" enctype="multipart/form-data" class="set-hero__photo" data-avatar-form>
+    {{ ui.csrf() }}<input type="hidden" name="next" value="{{ next_path or request.path }}">
+    <label class="profile-head__pick" title="{{ _('Изменить фото') }}">
+      {{ ui.avatar(current_user, 'avatar--xl') }}
+      <span class="profile-head__overlay">{{ ui.icon('camera', 20) }}<span>{{ _("Фото") }}</span></span>
+      <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" class="sr-only" data-avatar-input>
+    </label>
+  </form>
+  {% else %}
+  <div class="set-hero__photo">
+    {{ ui.avatar(current_user, 'avatar--lg') }}
+  </div>
+  {% endif %}
+  <div class="set-hero__who">
+    <h1>{{ current_user.name }}</h1>
+    <span>{{ subtitle or current_user.email }}</span>
+  </div>
+  {% if badge_text %}
+  <span class="set-hero__badge">
+    {% if badge_icon %}{{ ui.icon(badge_icon, 16) }}{% endif %}
+    <span>{{ badge_text }}</span>
+  </span>
+  {% endif %}
+  {% if back_href and back_label %}
+  <a class="set-btn set-btn--secondary set-btn--sm" href="{{ back_href }}">
+    {% if back_icon %}{{ ui.icon(back_icon, 15) }}{% endif %}<span>{{ back_label }}</span>
+  </a>
+  {% endif %}
+</section>
+{%- endmacro %}
+
+{% macro card(icon, title, desc='', cls='') -%}
+<section class="set-row{{ ' ' ~ cls if cls }}">
+  <div class="set-row__head">{% if icon %}{{ ui.icon(icon, 20) }}{% endif %}<h3>{{ title }}</h3></div>
+  {% if desc %}<p class="set-row__desc">{{ desc }}</p>{% endif %}
+  {{ caller() }}
+</section>
+{%- endmacro %}
+
+{% macro line(shown, hint='', right_text='') -%}
+<div class="set-line">
+  <div class="set-line__main">
+    <div class="set-edit__value">{{ shown }}</div>
+    {% if hint %}<div class="small muted set-edit__sub">{{ hint }}</div>{% endif %}
+  </div>
+  {% if caller is defined %}
+    {{ caller() }}
+  {% elif right_text %}
+    <span class="small muted">{{ right_text }}</span>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro edit(shown, label=_('Изменить'), open=false, action_url='', hint='', btn_variant='secondary', extra_cls='') -%}
+<details class="set-edit{{ ' ' ~ extra_cls if extra_cls }}"{% if open %} open{% endif %}>
+  <summary>
+    <div class="set-line__main">
+      <div class="set-edit__value">{{ shown }}</div>
+      {% if hint %}<div class="small muted set-edit__sub">{{ hint }}</div>{% endif %}
+    </div>
+    <span class="set-btn set-btn--{{ btn_variant }} set-btn--sm">{{ label }}</span>
+  </summary>
+  <form method="post"{% if action_url %} action="{{ action_url }}"{% endif %} class="set-edit__form">
+    {{ ui.csrf() }}
+    {{ caller() }}
+  </form>
+</details>
+{%- endmacro %}
+
+{% macro field_edit(field, tab, shown, label=_('Изменить'), auto=false, hint='') -%}
+<details class="set-edit">
+  <summary>
+    <div class="set-line__main">
+      <div class="set-edit__value">{{ shown }}</div>
+      {% if hint %}<div class="small muted set-edit__sub">{{ hint }}</div>{% endif %}
+    </div>
+    <span class="set-btn set-btn--secondary set-btn--sm">{{ label }}</span>
+  </summary>
+  <form method="post" class="set-edit__form"{% if auto %} data-autosave{% endif %}>
+    {{ ui.csrf() }}<input type="hidden" name="action" value="field"><input type="hidden" name="field" value="{{ field }}"><input type="hidden" name="tab" value="{{ tab }}">
+    {{ caller() }}
+    {% if auto %}<noscript><button class="set-btn set-btn--primary set-btn--sm" type="submit">{{ _("Сохранить") }}</button></noscript>
+    {% else %}<button class="set-btn set-btn--primary set-btn--sm" type="submit">{{ _("Сохранить") }}</button>{% endif %}
+  </form>
+</details>
+{%- endmacro %}
+
+{% macro theme_row(next_url='') -%}
+<div class="set-line">
+  <div class="set-line__main">
+    <div class="set-edit__value">{{ _("Тёмная тема") if current_user.theme == 'dark' else (_("Системная тема") if current_user.theme == 'system' else _("Светлая тема")) }}</div>
+    <div class="small muted set-edit__sub">{{ _("Выбранная тема сохраняется для всех ваших разделов.") }}</div>
+  </div>
+  <div class="row" style="gap:8px">
+    <form method="post" action="{{ url_for('auth.toggle_theme') }}">
+      {{ ui.csrf() }}
+      <input type="hidden" name="theme" value="light">
+      <input type="hidden" name="next" value="{{ next_url or request.full_path }}">
+      <button class="set-btn {{ 'set-btn--primary' if current_user.theme != 'dark' else 'set-btn--secondary' }} set-btn--sm" type="submit">{{ ui.icon('sun', 14) }}<span>{{ _("Светлая") }}</span></button>
+    </form>
+    <form method="post" action="{{ url_for('auth.toggle_theme') }}">
+      {{ ui.csrf() }}
+      <input type="hidden" name="theme" value="dark">
+      <input type="hidden" name="next" value="{{ next_url or request.full_path }}">
+      <button class="set-btn {{ 'set-btn--primary' if current_user.theme == 'dark' else 'set-btn--secondary' }} set-btn--sm" type="submit">{{ ui.icon('moon', 14) }}<span>{{ _("Тёмная") }}</span></button>
+    </form>
+  </div>
+</div>
+{%- endmacro %}
+
+{% macro shell_alpha_row() -%}
+<div class="set-line">
+  <div class="set-line__main">
+    <div class="set-edit__value">{{ _("Прозрачность подложки") }}</div>
+    <div class="small muted set-edit__sub">{{ _("Насколько заметно фон просвечивает через рабочую панель.") }}</div>
+  </div>
+  <div class="shell-alpha-ctrl">
+    <input class="shell-range" type="range" id="shell-alpha-slider" min="60" max="100" step="5" value="80" aria-label="{{ _('Прозрачность подложки') }}">
+    <span class="shell-alpha-val num" id="shell-alpha-value">80%</span>
+  </div>
+</div>
+{%- endmacro %}
+
+{% macro password_card(min_len=8, desc='', action_url='', shown_label='', btn_label=_('Изменить'), submit_label=_('Обновить пароль'), edit_cls='') -%}
+{% call card('shield', _("Безопасность и пароль"), desc or _("Для защиты данных используйте пароль не короче %(n)s символов.", n=min_len)) %}
+  {% call edit(shown_label or _("Надёжно защищён (после смены нужно войти заново на других устройствах)"), label=btn_label, action_url=action_url, extra_cls=edit_cls) %}
+    <input type="hidden" name="action" value="password">
+    <input class="input" type="password" name="current" autocomplete="current-password" required placeholder="{{ _('Текущий пароль') }}" aria-label="{{ _('Текущий пароль') }}">
+    <input class="input" type="password" name="new" autocomplete="new-password" minlength="{{ min_len }}" required placeholder="{{ _('Новый пароль (от %(n)s символов)', n=min_len) }}" aria-label="{{ _('Новый пароль') }}">
+    <button class="set-btn set-btn--primary set-btn--sm" type="submit">{{ submit_label }}</button>
+  {% endcall %}
+{% endcall %}
+{%- endmacro %}
+
+{% macro settings_shell_script() -%}
+<script>
+(function(){
+  const cb = document.getElementById('crm-compact-toggle');
+  if (cb) {
+    const applyCompact = (on) => document.body.classList.toggle('is-compact', on);
+    const saved = localStorage.getItem('monday_crm_compact') === '1';
+    cb.checked = saved;
+    applyCompact(saved);
+    cb.addEventListener('change', () => {
+      const on = cb.checked;
+      localStorage.setItem('monday_crm_compact', on ? '1' : '0');
+      applyCompact(on);
+    });
+  }
+
+  const alphaSlider = document.getElementById('shell-alpha-slider');
+  const alphaOut = document.getElementById('shell-alpha-value');
+  if (alphaSlider && alphaOut) {
+    const applyAlpha = (raw) => {
+      const v = Math.min(100, Math.max(60, parseInt(raw, 10) || 80));
+      alphaSlider.value = String(v);
+      alphaOut.textContent = v + '%';
+      document.documentElement.style.setProperty('--shell-alpha', String(v));
+      return v;
+    };
+    applyAlpha(localStorage.getItem('monday_shell_alpha') || '80');
+    alphaSlider.addEventListener('input', () => {
+      const v = applyAlpha(alphaSlider.value);
+      try { localStorage.setItem('monday_shell_alpha', String(v)); } catch (_) {}
+    });
+  }
+
+  ['crm-currency-select', 'adm-currency-select'].forEach((id) => {
+    const curSel = document.getElementById(id);
+    if (!curSel) return;
+    const allowed = ['KGS', 'USD', 'EUR', 'KZT', 'RUB'];
+    const savedCur = (localStorage.getItem('monday_display_currency') || 'KGS').toUpperCase();
+    curSel.value = allowed.includes(savedCur) ? savedCur : 'KGS';
+    curSel.addEventListener('change', () => {
+      try { localStorage.setItem('monday_display_currency', curSel.value); } catch (_) {}
+    });
+  });
+})();
+</script>
+{%- endmacro %}

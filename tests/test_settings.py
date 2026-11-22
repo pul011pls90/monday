@@ -170,3 +170,31 @@ def test_top_logo_goes_home_on_pages_but_not_while_solving():
     r = c.post("/bank/start", data={"exam": "ORT"})
     body = ok(c, r.location).data.decode()
     assert "session-bar__brand" in body and not re.search(r'<a [^>]*session-bar__brand', body)
+
+
+def test_unified_settings_template_across_accounts_and_student_saves():
+    # Student /profile uses shared settings UI (.set-hero + .set-row + shell-alpha-slider) and persists settings
+    c_stu, email = new_student("templated")
+    prof_html = ok(c_stu, "/profile").data.decode()
+    assert 'class="set-hero"' in prof_html
+    assert 'class="set-row"' in prof_html
+    assert 'id="shell-alpha-slider"' in prof_html
+    post(c_stu, action="field", field="region", value="Ош", tab="profile")
+    post(c_stu, action="field", field="school", value="Лицей №5", tab="profile")
+    post(c_stu, action="appearance", theme="dark", text="large", motion="reduce")
+    with APP.app_context():
+        u = user(email)
+        assert u.profile.region == "Ош"
+        assert u.profile.school == "Лицей №5"
+        assert u.theme == "dark"
+        assert u.pref("text") == "large"
+        assert u.pref("motion") == "reduce"
+
+    # Teacher & Admin account settings use the exact same shared templated UI
+    c_tch = login(client(), "aibek@monday.kg", "teacher123")
+    tch_html = ok(c_tch, "/teacher/account").data.decode()
+    assert 'class="set-hero"' in tch_html and 'class="set-row"' in tch_html and 'id="shell-alpha-slider"' in tch_html
+
+    c_adm = login(client(), "admin@monday.kg", "monday2026")
+    adm_html = ok(c_adm, "/admin/account").data.decode()
+    assert 'class="set-hero"' in adm_html and 'class="set-row"' in adm_html and 'id="shell-alpha-slider"' in adm_html

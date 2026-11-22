@@ -1,33 +1,26 @@
 {% extends "layout.html" %}
 {% import "manager/_ui.html" as mui with context %}
+{% import "partials/settings_ui.html" as sui with context %}
 {% block title %}{{ _("Настройки · CRM") }}{% endblock %}
 {% block context %}{{ _("Настройки аккаунта") }}{% endblock %}
 {% block content %}
-  {# Top Identity Hero Banner matching Student /profile .set-hero #}
-  <section class="set-hero">
-    <div class="set-hero__photo">
-      {{ ui.avatar(current_user, 'avatar--lg') }}
-    </div>
-    <div class="set-hero__who">
-      <h1>{{ current_user.name }}</h1>
-      <span>{{ current_user.email }} · {{ role_label }}</span>
-    </div>
-    <span class="set-hero__badge">
-      {{ ui.icon('clock', 16) }}
-      <span>{{ _("На смене") if current_user.is_on_shift else _("Не на смене") }}</span>
-    </span>
-    {{ mui.btn(_("CRM · Сегодня"), href=url_for('manager.dashboard'), variant='secondary', size='sm', icon_name='home') }}
-  </section>
+  {{ sui.hero(
+    subtitle=current_user.email ~ ' · ' ~ role_label,
+    badge_icon='clock',
+    badge_text=_("На смене") if current_user.is_on_shift else _("Не на смене"),
+    back_href=url_for('manager.dashboard'),
+    back_label=_("CRM · Сегодня"),
+    back_icon='home'
+  ) }}
 
-  {# Stacked Row-Cards matching Student /profile with collapsible «Изменить» actions #}
-  <div class="mgr-row-stack">
-    {% call mui.row_card('users', _("Профиль и права"), _("Это имя видят коллеги в карточках лидов, задачах и журнале.")) %}
-      {% call mui.row_edit(current_user.name, label=_("Изменить"), action_url=url_for('manager.account')) %}
+  <div class="set-stack mgr-row-stack">
+    {% call sui.card('users', _("Профиль и права"), _("Это имя видят коллеги в карточках лидов, задачах и журнале.")) %}
+      {% call sui.edit(current_user.name, label=_("Изменить"), action_url=url_for('manager.account'), extra_cls='mgr-row-edit') %}
         <input type="hidden" name="action" value="profile">
         <input class="input" name="name" value="{{ current_user.name }}" minlength="2" maxlength="120" required aria-label="{{ _('Отображаемое имя') }}">
-        <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Сохранить") }}</button>
+        <button class="set-btn set-btn--primary set-btn--sm" type="submit">{{ _("Сохранить") }}</button>
       {% endcall %}
-      {{ mui.row_line(current_user.email ~ ' · ' ~ role_label) }}
+      {{ sui.line(current_user.email ~ ' · ' ~ role_label) }}
       <div style="margin-top:8px">
         <div class="eyebrow" style="margin-bottom:6px">{{ _("Ваши права в CRM") }}</div>
         <ul class="crm-perm-list">
@@ -38,44 +31,10 @@
       </div>
     {% endcall %}
 
-    {% call mui.row_card('settings', _("Интерфейс и отображение"), _("Настройте тему, прозрачность подложки, валюту и плотность экрана под себя.")) %}
-      <div class="mgr-row-line">
-        <div>
-          <div class="mgr-row-val">{{ _("Тёмная тема") if current_user.theme == 'dark' else (_("Системная тема") if current_user.theme == 'system' else _("Светлая тема")) }}</div>
-          <div class="small muted">{{ _("Выбранная тема сохраняется для всех ваших разделов.") }}</div>
-        </div>
-        <div class="row" style="gap:8px">
-          <form method="post" action="{{ url_for('auth.toggle_theme') }}">
-            {{ ui.csrf() }}
-            <input type="hidden" name="theme" value="light">
-            <input type="hidden" name="next" value="{{ request.full_path }}">
-            <button class="mgr-btn {{ 'mgr-btn--primary' if current_user.theme != 'dark' else 'mgr-btn--secondary' }} mgr-btn--sm" type="submit">{{ ui.icon('sun', 14) }}<span>{{ _("Светлая") }}</span></button>
-          </form>
-          <form method="post" action="{{ url_for('auth.toggle_theme') }}">
-            {{ ui.csrf() }}
-            <input type="hidden" name="theme" value="dark">
-            <input type="hidden" name="next" value="{{ request.full_path }}">
-            <button class="mgr-btn {{ 'mgr-btn--primary' if current_user.theme == 'dark' else 'mgr-btn--secondary' }} mgr-btn--sm" type="submit">{{ ui.icon('moon', 14) }}<span>{{ _("Тёмная") }}</span></button>
-          </form>
-        </div>
-      </div>
-
-      <div class="mgr-row-line">
-        <div>
-          <div class="mgr-row-val">{{ _("Прозрачность подложки") }}</div>
-          <div class="small muted">{{ _("Насколько заметно фон просвечивает через основную панель.") }}</div>
-        </div>
-        <div class="mgr-alpha-ctrl">
-          <input class="mgr-range" type="range" id="shell-alpha-slider" min="60" max="100" step="5" value="80" aria-label="{{ _('Прозрачность подложки') }}">
-          <span class="mgr-alpha-val num" id="shell-alpha-value">80%</span>
-        </div>
-      </div>
-
-      <div class="mgr-row-line">
-        <div>
-          <div class="mgr-row-val">{{ _("Валюта отображения") }}</div>
-          <div class="small muted">{{ _("Пересчитывает суммы на странице финансов по курсу НБКР. В базе всё остаётся в сомах (KGS).") }}</div>
-        </div>
+    {% call sui.card('settings', _("Интерфейс и отображение"), _("Настройте тему, прозрачность подложки, валюту и плотность экрана под себя.")) %}
+      {{ sui.theme_row() }}
+      {{ sui.shell_alpha_row() }}
+      {% call sui.line(_("Валюта отображения"), hint=_("Пересчитывает суммы на странице финансов по курсу НБКР. В базе всё остаётся в сомах (KGS).")) %}
         <select class="select input--sm" id="crm-currency-select" aria-label="{{ _('Валюта отображения') }}" style="width:auto;min-width:165px">
           <option value="KGS">KGS — Кыргызский сом</option>
           <option value="USD">USD — Доллар США ($)</option>
@@ -83,31 +42,19 @@
           <option value="KZT">KZT — Тенге (₸)</option>
           <option value="RUB">RUB — Российский рубль (₽)</option>
         </select>
-      </div>
-
-      <div class="mgr-row-line">
-        <div>
-          <div class="mgr-row-val">{{ _("Компактный режим") }}</div>
-          <div class="small muted">{{ _("Делает таблицы и карточки компактнее, чтобы на экране помещалось больше.") }}</div>
-        </div>
+      {% endcall %}
+      {% call sui.line(_("Компактный режим"), hint=_("Делает таблицы и карточки компактнее, чтобы на экране помещалось больше.")) %}
         <label class="set-switch" aria-label="{{ _('Компактный режим') }}">
           <input type="checkbox" id="crm-compact-toggle">
           <span></span>
         </label>
-      </div>
-    {% endcall %}
-
-    {% call mui.row_card('shield', _("Безопасность и пароль"), _("Для защиты данных используйте пароль не короче %(n)s символов.", n=min_pw_len|default(12))) %}
-      {% call mui.row_edit(_("Надёжно защищён (после смены нужно войти заново на других устройствах)"), label=_("Изменить"), action_url=url_for('manager.account')) %}
-        <input type="hidden" name="action" value="password">
-        <input class="input" type="password" name="current" required placeholder="{{ _('Текущий пароль') }}" aria-label="{{ _('Текущий пароль') }}">
-        <input class="input" type="password" name="new" minlength="{{ min_pw_len|default(12) }}" required placeholder="{{ _('Новый пароль (от %(n)s символов)', n=min_pw_len|default(12)) }}" aria-label="{{ _('Новый пароль') }}">
-        <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Обновить пароль") }}</button>
       {% endcall %}
     {% endcall %}
 
-    {% call mui.row_card('clock', _("Нужные разделы и норма ответа"), _("Быстрый доступ к работе и напоминание о первом контакте.")) %}
-      <div class="mgr-row-line">
+    {{ sui.password_card(min_len=min_pw_len|default(12), action_url=url_for('manager.account'), edit_cls='mgr-row-edit') }}
+
+    {% call sui.card('clock', _("Нужные разделы и норма ответа"), _("Быстрый доступ к работе и напоминание о первом контакте.")) %}
+      <div class="set-line">
         <div class="row" style="gap:8px;flex-wrap:wrap">
           {{ mui.btn(_("Список лидов"), href=url_for('manager.leads'), variant='secondary', size='sm', icon_name='users') }}
           {{ mui.btn(_("Воронка продаж"), href=url_for('manager.pipeline'), variant='secondary', size='sm', icon_name='kanban') }}
@@ -124,47 +71,5 @@
     {% endcall %}
   </div>
 
-<script>
-(function(){
-  const cb = document.getElementById('crm-compact-toggle');
-  if (cb) {
-    const applyCompact = (on) => document.body.classList.toggle('is-compact', on);
-    const saved = localStorage.getItem('monday_crm_compact') === '1';
-    cb.checked = saved;
-    applyCompact(saved);
-    cb.addEventListener('change', () => {
-      const on = cb.checked;
-      localStorage.setItem('monday_crm_compact', on ? '1' : '0');
-      applyCompact(on);
-    });
-  }
-
-  const alphaSlider = document.getElementById('shell-alpha-slider');
-  const alphaOut = document.getElementById('shell-alpha-value');
-  if (alphaSlider && alphaOut) {
-    const applyAlpha = (raw) => {
-      const v = Math.min(100, Math.max(60, parseInt(raw, 10) || 80));
-      alphaSlider.value = String(v);
-      alphaOut.textContent = v + '%';
-      document.documentElement.style.setProperty('--shell-alpha', String(v));
-      return v;
-    };
-    applyAlpha(localStorage.getItem('monday_shell_alpha') || '80');
-    alphaSlider.addEventListener('input', () => {
-      const v = applyAlpha(alphaSlider.value);
-      try { localStorage.setItem('monday_shell_alpha', String(v)); } catch (_) {}
-    });
-  }
-
-  const curSel = document.getElementById('crm-currency-select');
-  if (curSel) {
-    const allowed = ['KGS', 'USD', 'EUR', 'KZT', 'RUB'];
-    const savedCur = (localStorage.getItem('monday_display_currency') || 'KGS').toUpperCase();
-    curSel.value = allowed.includes(savedCur) ? savedCur : 'KGS';
-    curSel.addEventListener('change', () => {
-      try { localStorage.setItem('monday_display_currency', curSel.value); } catch (_) {}
-    });
-  }
-})();
-</script>
+  {{ sui.settings_shell_script() }}
 {% endblock %}

@@ -28,6 +28,7 @@
           <option value="off" {{ 'selected' if maint.state == 'off' }}>{{ _("Выключено (off)") }}</option>
           <option value="scheduled" {{ 'selected' if maint.state == 'scheduled' }}>{{ _("Запланировано (scheduled)") }}</option>
           <option value="active" {{ 'selected' if maint.state == 'active' }}>{{ _("Идёт сейчас (active)") }}</option>
+          <option value="locked" {{ 'selected' if maint.state == 'locked' }}>{{ _("Закрыт для пользователей (locked — только админ и менеджер)") }}</option>
         </select>
       </div>
       <div class="field">
@@ -46,6 +47,11 @@
       </div>
       <div class="row" style="gap:10px;flex-wrap:wrap">
         <button class="btn btn--primary" type="submit" name="action" value="save" style="min-height:44px">{{ _("Сохранить") }}</button>
+        {% if maint.state == 'locked' %}
+          <button class="btn btn--secondary" type="submit" name="action" value="unlock" style="min-height:44px">{{ _("Открыть сайт для всех") }}</button>
+        {% else %}
+          <button class="btn btn--danger" type="submit" name="action" value="lock" style="min-height:44px">{{ _("Закрыть сайт для всех (кроме админа и менеджера)") }}</button>
+        {% endif %}
         <button class="btn btn--secondary" type="submit" name="action" value="clear" style="min-height:44px">{{ _("Снять уведомление") }}</button>
       </div>
     </form>
@@ -119,6 +125,12 @@
       previewText.textContent = custom
         ? `${custom} (через ${mins} мин). Ответы сохраняются автоматически — вы сможете продолжить после перерыва.`
         : `Плановое обновление через ${mins} мин. Ответы сохраняются автоматически — вы сможете продолжить после перерыва.`;
+    } else if (st === "locked") {
+      preview.style.opacity = "1";
+      previewText.textContent = (custom
+        ? `${custom} (~${mins} мин). Ваши ответы сохранены на этом устройстве и отправятся автоматически, как только сайт вернётся.`
+        : `Идёт обновление платформы (~${mins} мин). Ваши ответы сохранены на этом устройстве и отправятся автоматически, как только сайт вернётся.`)
+        + " [Доступ закрыт: войти могут только админ и менеджер]";
     } else {
       preview.style.opacity = "1";
       previewText.textContent = custom
