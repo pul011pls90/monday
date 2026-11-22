@@ -1,13 +1,13 @@
 {% extends "layout.html" %}
 {% block title %}{{ _("Админ") }}{% endblock %}
 {% block context %}{{ _("Администрирование") }}{% endblock %}
+{% macro qs(extra) -%}{{ url_for('admin.index', **dict(args.to_dict(), **extra)) }}{%- endmacro %}
 {% block content %}
 {% set here = request.full_path %}
-{% macro qs(extra) -%}{{ url_for('admin.index', **dict(args.to_dict(), **extra)) }}{%- endmacro %}
 
 <div class="page-head">
   <div class="page-head__text"><h1>{{ _("Администрирование") }}</h1>
-    <p>{{ _("Люди, заявки учителей, модерация вопросов и здоровье контента.") }}</p></div>
+    <p>{{ _("Команда, ученики, заявки на преподавание и проверка новых заданий.") }}</p></div>
   <div class="row" style="gap:8px;flex-wrap:wrap">
     <a class="btn btn--primary" href="{{ url_for('analytics.dashboard') }}">{{ ui.icon('chart', 16) }}{{ _("Аналитика визитов") }}</a>
     <a class="btn btn--secondary" href="{{ url_for('course.admin_course') }}">{{ _("Конструктор курса") }}</a>
@@ -178,6 +178,9 @@
             {% if u.is_methodist %}<span class="tag tag--soft tag--xs">{{ _("методист") }}</span>{% endif %}
             <span>{{ ex.students }} {{ ex.students|plural_ru(_("ученик"), _("ученика"), _("учеников")) }} · {{ ex.works }} {{ ex.works|plural_ru(_("работа"), _("работы"), _("работ")) }}</span>
             {% if not u.is_approved %}<span class="tag tag--warn tag--xs">{{ _("ждёт подтверждения") }}</span>{% endif %}
+          {% elif u.role in ('sales_manager', 'supervisor') %}
+            <span class="tag {{ 'tag--soft' if u.role == 'supervisor' else 'tag--line' }} tag--xs">{{ _("супервайзер") if u.role == 'supervisor' else _("менеджер продаж") }}</span>
+            <span class="tag {{ 'tag--ok' if u.is_on_shift else 'tag--line' }} tag--xs">{{ _("на смене") if u.is_on_shift else _("не на смене") }}</span>
           {% endif %}
         </span>
         <span class="people__seen small muted" title="{{ _('Последняя активность и входы') }}">
@@ -223,7 +226,8 @@
     <div class="empty"><h3>{{ _("Никого не нашли") }}</h3><p>{{ _("Поменяй поиск или фильтры.") }}</p></div>
   {% endif %}
 {% endif %}
-
+{% endblock %}
+{% block body_end %}
 {# ------------------------------------------------------------ person card (slides in from the right) #}
 <aside class="drawer drawer--panel" data-person-panel {{ 'hidden' if not panel }} aria-label="{{ _('Карточка пользователя') }}">
   <div class="drawer__head"><h2>{{ _("Карточка") }}</h2>

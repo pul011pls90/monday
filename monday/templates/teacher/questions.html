@@ -2,7 +2,7 @@
 {% block title %}{{ _("Вопросы") }}{% endblock %}
 {% block content %}
 <section class="card t-hero-bar">
-  <div class="t-hero-bar__title"><h1>{{ _("Банк вопросов") }}</h1><p>{{ _("Ваши вопросы и общий банк Monday. Правка вопроса не меняет уже опубликованные работы.") }}</p></div>
+  <div class="t-hero-bar__title"><h1>{{ _("Банк вопросов") }}</h1><p>{{ _("Ваши задачи и общие материалы академии — уже выданные работы останутся без изменений.") }}</p></div>
   <div class="t-hero-actions">
     <a class="btn btn--secondary btn--min" href="{{ url_for('assistant.home') }}">{{ ui.icon('copy', 16) }}<span>{{ _("Вставить тест целиком") }}</span></a>
     <a class="btn btn--primary btn--min" href="{{ url_for('teacher.question_new', node=node_id) if node_id else url_for('teacher.question_new') }}">{{ ui.icon('plus', 16) }}<span>{{ _("Новый вопрос") }}</span></a>

@@ -7,7 +7,7 @@
   <div class="t-hero-bar" style="padding:0;border:0;border-radius:0;box-shadow:none">
     <div class="t-hero-bar__title">
       <h1>{{ _("Пользователи") }}</h1>
-      <p>{{ _("Все активные пользователи платформы: сортировка по ролям, способу входа и странице, которую они видят.") }}</p>
+      <p>{{ _("Вся команда и ученики в одном списке: удобно фильтровать по ролям, входу и активности.") }}</p>
     </div>
     <div class="t-hero-actions">
       <a class="btn btn--secondary btn--min" href="{{ url_for('analytics.dashboard') }}">{{ ui.icon('chart', 16) }}<span>{{ _("Аналитика визитов") }}</span></a>
@@ -75,7 +75,7 @@
             </div>
           </td>
           <td>
-            <span class="tag {{ 'tag--accent' if u.role == 'admin' else ('tag--soft' if u.role == 'student' else 'tag--line') }}">
+            <span class="tag {{ 'tag--accent' if u.role == 'admin' else ('tag--ok' if u.role == 'teacher' else ('tag--warn' if u.role == 'assistant' else ('tag--soft' if u.role == 'student' else 'tag--line'))) }}">
               {{ role_labels.get(u.role, u.role) }}
             </span>
             {% if u.profile and u.profile.exam %}<span class="tag tag--line tag--xs">{{ u.profile.exam }}</span>{% endif %}
@@ -129,7 +129,7 @@
   <div class="t-hero-bar" style="padding:0;border:0;border-radius:0;box-shadow:none">
     <div class="t-hero-bar__title">
       <h1>{{ _("Ученики") }}</h1>
-      <p>{{ _("Ваша таблица учеников. Подключённые аккаунты обновляют прогресс автоматически.") }}</p>
+      <p>{{ _("Ваш журнал учеников: когда ученик подключает аккаунт, его прогресс обновляется сам.") }}</p>
     </div>
     <div class="t-hero-actions">
       <a class="btn btn--primary btn--min" href="#add">{{ ui.icon('plus', 16) }}<span>{{ _("Добавить ученика") }}</span></a>

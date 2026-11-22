@@ -8,6 +8,7 @@
 <section class="card t-hero-bar">
   <div class="t-hero-bar__title">
     <h1>{{ _("Добрый день, %(name)s", name=current_user.first_name) }}</h1>
+    <p>{{ _("Вот что ждёт вас сегодня: уроки, проверки и прогресс класса.") }}</p>
   </div>
   <div class="t-hero-actions">
     <a class="btn btn--secondary btn--min" href="{{ url_for('teacher.bank') }}">{{ ui.icon('questions', 16) }}<span>{{ _("Банк вопросов") }}</span></a>
@@ -49,7 +50,7 @@
       {% endfor %}
       </div>
     {% else %}
-      <p class="text-2">{{ _("Сегодня уроков нет. Дни уроков задаются в таблице учеников.") }}</p>
+      <p class="text-2">{{ _("Сегодня уроков нет — можно спокойно проверить работы или задать расписание в таблице учеников.") }}</p>
     {% endif %}
   </section>
 
@@ -67,7 +68,7 @@
       {% endfor %}
       </div>
     {% else %}
-      <p class="text-2">{{ _("Нет новых сданных работ.") }}</p>
+      <p class="text-2">{{ _("Все сданные работы уже проверены — новых пока нет.") }}</p>
     {% endif %}
   </section>
 </div>

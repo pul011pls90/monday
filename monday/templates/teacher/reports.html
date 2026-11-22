@@ -4,7 +4,7 @@
 <div class="page-head">
   <div class="page-head__text">
     <h1>{{ _("Исправления") }}</h1>
-    <p>{{ _("Ученики сообщают об ошибках в вопросах. Откройте вопрос, исправьте его и ответьте — ученик увидит ответ на главной.") }}</p>
+    <p>{{ _("Замечания учеников по заданиям. Поправьте вопрос и оставьте ответ — ученик сразу увидит его у себя.") }}</p>
   </div>
   <div class="chips">
     <a class="chip{{ ' is-active' if tab == 'open' }}" href="{{ url_for('reports.inbox', tab='open') }}">{{ _("Открытые") }} <span class="chip__count">{{ counts.open }}</span></a>

@@ -53,6 +53,19 @@
     {% endif %}
   </div>
 </section>
+<section class="card">
+  <h2>{{ _("Оформление рабочего окна") }}</h2>
+  <div class="shell-row-line">
+    <div>
+      <div><b>{{ _("Прозрачность подложки") }}</b></div>
+      <div class="small muted">{{ _("Регулирует, насколько мягко фон просвечивает через рабочую панель.") }}</div>
+    </div>
+    <div class="shell-alpha-ctrl">
+      <input class="shell-range" type="range" id="shell-alpha-slider" min="60" max="100" step="5" value="80" aria-label="{{ _('Прозрачность подложки') }}">
+      <span class="shell-alpha-val num" id="shell-alpha-value">80%</span>
+    </div>
+  </div>
+</section>
 <form method="post" class="card">
   {{ ui.csrf() }}<input type="hidden" name="action" value="profile">
   <h2>{{ _("Настройки") }}</h2>
@@ -73,4 +86,23 @@
   <div><button class="btn btn--secondary" type="submit">{{ _("Изменить пароль") }}</button></div>
 </form>
 <form method="post" action="{{ url_for('auth.logout') }}">{{ ui.csrf() }}<button class="btn btn--danger" type="submit">{{ ui.icon('logout', 18) }}{{ _("Выйти") }}</button></form>
+<script>
+(function(){
+  const s = document.getElementById('shell-alpha-slider');
+  const out = document.getElementById('shell-alpha-value');
+  if (!s || !out) return;
+  const apply = (raw) => {
+    const v = Math.min(100, Math.max(60, parseInt(raw, 10) || 80));
+    s.value = String(v);
+    out.textContent = v + '%';
+    document.documentElement.style.setProperty('--shell-alpha', String(v));
+    return v;
+  };
+  apply(localStorage.getItem('monday_shell_alpha') || '80');
+  s.addEventListener('input', () => {
+    const v = apply(s.value);
+    try { localStorage.setItem('monday_shell_alpha', String(v)); } catch (_) {}
+  });
+})();
+</script>
 {% endblock %}

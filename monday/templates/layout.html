@@ -178,7 +178,10 @@
     {% endblock %}
 
     {% block page %}
-    {% set _use_shell = current_user.is_authenticated and request.blueprint in ('manager', 'academic') %}
+    {% set _use_shell = current_user.is_authenticated and (
+      request.blueprint in ('manager', 'academic', 'teacher', 'assistant', 'review', 'admin', 'analytics')
+      or ep in ('reports.inbox', 'course.admin_course', 'roadmap.admin_roadmap', 'deploy_safety.admin_maintenance')
+    ) %}
     <main class="page {% block page_class %}{% endblock %}">
       {% if one_time_notice %}<div class="flash flash--success" role="status">{{ one_time_notice }}</div>{% endif %}
       {{ ui.flashes() }}

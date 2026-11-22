@@ -387,9 +387,9 @@
   };
 
   /* ------------------------------------------------------------ Slide-out Drawer */
-  const drawer = root.querySelector("[data-an-drawer]");
-  const drawerTitle = root.querySelector("[data-drawer-title]");
-  const drawerBody = root.querySelector("[data-drawer-body]");
+  const drawer = document.querySelector("[data-an-drawer]");
+  const drawerTitle = drawer?.querySelector("[data-drawer-title]");
+  const drawerBody = drawer?.querySelector("[data-drawer-body]");
 
   const closeDrawer = () => {
     if (drawer) drawer.hidden = true;
@@ -604,7 +604,7 @@
     loadVisits();
   });
 
-  root.addEventListener("click", async (e) => {
+  const handleClick = async (e) => {
     const pagerBtn = e.target.closest("[data-page]");
     if (pagerBtn) {
       state.page = parseInt(pagerBtn.dataset.page, 10) || 1;
@@ -645,7 +645,11 @@
     if (visitRow) {
       openVisitDrawer(visitRow.dataset.openVisit);
     }
-  });
+  };
+  root.addEventListener("click", handleClick);
+  if (drawer && !root.contains(drawer)) {
+    drawer.addEventListener("click", handleClick);
+  }
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && drawer && !drawer.hidden) closeDrawer();

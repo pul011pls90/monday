@@ -25,7 +25,7 @@
         <a class="btn btn--ghost btn--sm" href="{{ url_for('admin.index') }}">{{ ui.icon('arrow-left', 16) }}{{ _("Админка") }}</a>
       </div>
       <h1>{{ _("Аналитика визитов") }}</h1>
-      <p>{{ _("Посещаемость, география по GeoIP без хранения сырых IP, активность по часам и профили учеников.") }}</p>
+      <p>{{ _("Кто заходит на платформу, из каких регионов и в какие часы занимается активнее.") }}</p>
     </div>
 
     <div class="an-head__actions">
@@ -285,7 +285,10 @@
       <p class="small muted">{{ _("Загрузка ленты…") }}</p>
     </div>
   </section>
+</div>
+{% endblock %}
 
+{% block body_end %}
   {# ============================================================ SLIDE-OUT DRAWER #}
   <aside class="drawer drawer--panel" data-an-drawer hidden aria-label="{{ _('Карточка посетителя') }}">
     <div class="drawer__head">
@@ -294,7 +297,6 @@
     </div>
     <div class="drawer__body" data-drawer-body></div>
   </aside>
-</div>
 {% endblock %}
 
 {% block scripts %}

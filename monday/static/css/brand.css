@@ -5363,3 +5363,26 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
     gap: 14px;
   }
 }
+
+[data-theme="dark"] .app-shell-panel .card,
+[data-theme="dark"] .app-shell-panel .people,
+[data-theme="dark"] .app-shell-panel .table-wrap,
+[data-theme="dark"] .app-shell-panel .admin-tabs,
+[data-theme="dark"] .app-shell-panel .empty,
+[data-theme="dark"] .app-shell-panel fieldset {
+  background: var(--surface);
+  border-color: rgba(255, 255, 255, .14);
+}
+[data-theme="dark"] .app-shell-panel .an-live,
+[data-theme="dark"] .app-shell-panel .an-row,
+[data-theme="dark"] .app-shell-panel .pub-card.is-expanded .pub-work,
+[data-theme="dark"] .app-shell-panel .t-tool-link {
+  background: var(--surface-2);
+  border-color: rgba(255, 255, 255, .12);
+}
+
+/* Shared Shell Opacity Slider (Teacher & Admin Account Settings) */
+.shell-row-line { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.shell-alpha-ctrl { display: inline-flex; align-items: center; gap: 12px; }
+.shell-range { width: 170px; accent-color: var(--accent); cursor: pointer; }
+.shell-alpha-val { min-width: 44px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
