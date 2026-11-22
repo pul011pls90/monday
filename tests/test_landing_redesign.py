@@ -32,7 +32,21 @@ def _make_app(tmp_path, *, public_enabled: bool = True, csrf_enabled: bool = Fal
 
 def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
     inline_handler_re = re.compile(r"\bon(?:click|change|input|submit|load|keydown|keyup|focus|blur)=", re.I)
-    for rel in ("monday/templates/public/landing.html", "monday/templates/public/_base.html"):
+    for rel in (
+        "monday/templates/public/landing.html",
+        "monday/templates/public/_base.html",
+        "monday/templates/public/question_bank.html",
+        "monday/templates/public/offline_courses.html",
+        "monday/templates/public/online_courses.html",
+        "monday/templates/public/pricing.html",
+        "monday/templates/public/faq.html",
+        "monday/templates/public/contact.html",
+        "monday/templates/public/about.html",
+        "monday/templates/info/_legal_header.html",
+        "monday/templates/info/terms.html",
+        "monday/templates/info/privacy.html",
+        "monday/templates/info/refund.html",
+    ):
         raw = (ROOT_DIR / rel).read_text(encoding="utf-8")
         assert "javascript:" not in raw.lower(), f"javascript: URL in {rel}"
         assert not inline_handler_re.search(raw), f"inline event handler in {rel}"
@@ -52,6 +66,26 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
 
     # Logged-out public landing renders floating pill navbar, hero + fanned arc, sandbox, sky band, wave CTA, and black footer
     anon = app.test_client()
+    for pub_url in (
+        "/",
+        "/question-bank",
+        "/offline-courses",
+        "/online",
+        "/pricing",
+        "/faq",
+        "/contact",
+        "/about",
+        "/terms",
+        "/privacy",
+        "/refund",
+        "/login",
+        "/register",
+    ):
+        resp = anon.get(pub_url)
+        assert resp.status_code == 200, f"{pub_url} returned {resp.status_code}"
+        if pub_url not in ("/login", "/register"):
+            assert "mp-footer" in resp.data.decode("utf-8"), f"Missing unified black footer on {pub_url}"
+
     r = anon.get("/")
     assert r.status_code == 200
     html = r.data.decode("utf-8")
@@ -128,9 +162,34 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             assert page.locator(".mp-hero h1").is_visible()
             assert page.locator(".mp-fan").is_visible()
 
-            # Verify footer is strictly jet-black (#000000 -> rgb(0, 0, 0))
+            # Verify White (#FFFFFF) canvas, Soft Light Blue (#EEF4FF -> rgb(238, 244, 255)) hero pill, and strictly black (#000000) footer
+            body_bg = page.locator("body.pub-body").evaluate("el => getComputedStyle(el).backgroundColor")
+            assert body_bg == "rgb(255, 255, 255)"
+            pill_bg = page.locator(".mp-hero__pill").evaluate("el => getComputedStyle(el).backgroundColor")
+            assert pill_bg == "rgb(238, 244, 255)"
             footer_bg = page.locator(".mp-footer").evaluate("el => getComputedStyle(el).backgroundColor")
             assert footer_bg == "rgb(0, 0, 0)"
+
+            # Verify zero horizontal overflow and centered hero H1 at 1440px, 1024px, and 390px viewports
+            for vw, vh in ((1440, 900), (1024, 800), (390, 844)):
+                page.set_viewport_size({"width": vw, "height": vh})
+                metrics = page.evaluate(
+                    "() => {"
+                    "  const r = document.querySelector('.mp-hero h1').getBoundingClientRect();"
+                    "  return {"
+                    "    scrollW: document.documentElement.scrollWidth,"
+                    "    innerW: window.innerWidth,"
+                    "    h1Left: r.left,"
+                    "    h1Right: r.right,"
+                    "    h1Center: r.left + r.width / 2"
+                    "  };"
+                    "}"
+                )
+                assert metrics["scrollW"] <= metrics["innerW"] + 1, f"Horizontal overflow at {vw}px: {metrics}"
+                assert metrics["h1Left"] >= 0 and metrics["h1Right"] <= metrics["innerW"] + 1, f"H1 clipped at {vw}px: {metrics}"
+                assert abs(metrics["h1Center"] - metrics["innerW"] / 2) <= 24, f"H1 not centered at {vw}px: {metrics}"
+
+            page.set_viewport_size({"width": 1280, "height": 840})
 
             # Mode 1 (Математика): solve tile-slot algebra builder (2x, 4x, 8) -> explanation shown
             builder = page.locator("[data-tile-builder]")

@@ -54,7 +54,10 @@
   {# ------------------------------------------------------------------ floating pill navbar #}
   <header class="mp-header">
     <div class="mp-header__pill">
-      <a class="mp-brand" href="{{ url_for('auth.index') }}" aria-label="Monday Academy">MONDAY</a>
+      <a class="mp-brand" href="{{ url_for('auth.index') }}" aria-label="Monday Academy">
+        <span class="mp-brand__mark" aria-hidden="true">M</span>
+        <span>MONDAY</span>
+      </a>
 
       <nav class="mp-nav" aria-label="{{ _('Навигация по сайту') }}">
         <a class="mp-nav__link {{ 'is-active' if ep == 'public_site.question_bank' }}" href="{{ url_for('public_site.question_bank') }}">{{ _("Банк вопросов") }}</a>

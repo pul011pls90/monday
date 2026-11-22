@@ -61,6 +61,21 @@
     });
   });
 
+  // 2b. FAQ Accordion smooth toggle (closes sibling items when opening a new question)
+  document.querySelectorAll("[data-faq-list]").forEach((faqList) => {
+    const items = Array.from(faqList.querySelectorAll("details[data-faq-item]"));
+    items.forEach((detail) => {
+      detail.addEventListener("toggle", () => {
+        if (!detail.open) return;
+        items.forEach((other) => {
+          if (other !== detail && other.open) {
+            other.open = false;
+          }
+        });
+      });
+    });
+  });
+
   // 3. Sandbox Mode Switcher (Математика | Экзамены) + Exam Subject Tabs
   const root = document.querySelector("[data-landing-challenge]");
   const modeBtns = root ? Array.from(root.querySelectorAll("[data-mode-btn]")) : [];

@@ -6,34 +6,58 @@
 {% endblock %}
 
 {% block content %}
-<section class="card stack-sm">
-  <span class="eyebrow">{{ _("Очное обучение") }}</span>
-  <h1 style="margin:0">{{ _("Офлайн-курсы и филиалы Monday Academy") }}</h1>
-  <p class="text-2">{{ _("Занятия с преподавателем в аудитории дополняются ежедневной практикой и тестами на платформе Monday.") }}</p>
+<section class="mp-page-hero">
+  <div>
+    <span class="mp-eyebrow-pill">{{ _("Очное обучение") }}</span>
+    <h1>{{ _("Офлайн-курсы и филиалы Monday Academy") }}</h1>
+    <p class="mp-page-hero__lead">{{ _("Занятия с преподавателем в аудитории дополняются ежедневной практикой, домашними заданиями и пробными тестами на платформе Monday.") }}</p>
+    <div class="pub-hero__ctas">
+      <a class="mp-btn mp-btn--blue" href="#apply-form" data-scroll-to="#apply-form">{{ _("Записаться на пробный урок") }}</a>
+      <a class="mp-btn mp-btn--card" href="{{ url_for('public_site.online_courses') }}">{{ _("Смотреть онлайн-курсы") }}</a>
+    </div>
+  </div>
+  <div class="pub-hero__card">
+    <span class="mp-eyebrow-pill">{{ _("Формат занятий") }}</span>
+    <ul class="mp-check-list">
+      <li>{{ _("Мини-группы по уровню и целевому экзамену (ОРТ, SAT, ЕГЭ, ЕНТ)") }}</li>
+      <li>{{ _("Еженедельный Monday Test и разбор ошибок с преподавателем") }}</li>
+      <li>{{ _("Полный доступ к банку вопросов Monday включён для учеников школы") }}</li>
+    </ul>
+  </div>
 </section>
 
 <section>
+  <div class="pub-section-head">
+    <div>
+      <span class="mp-eyebrow-pill">{{ _("Кампусы и аудитории") }}</span>
+      <h2>{{ _("Наши филиалы") }}</h2>
+    </div>
+  </div>
   {% if locations %}
     <div class="pub-grid-2">
       {% for loc in locations %}
-        <article class="card stack-sm">
+        <article class="mp-subcard">
           {% if loc.photo %}
-            <img src="{{ loc.photo }}" alt="{{ loc.name }}" width="640" height="360" loading="lazy" style="width:100%;height:auto;border-radius:12px;object-fit:cover">
+            <img src="{{ loc.photo }}" alt="{{ loc.name }}" width="640" height="360" loading="lazy" style="width:100%;height:auto;border-radius:14px;object-fit:cover">
           {% endif %}
-          <h2 style="margin:0">{{ loc.name }}</h2>
+          <span class="mp-eyebrow-pill">{{ _("Филиал Monday") }}</span>
+          <h2>{{ loc.name }}</h2>
           {% if loc.address %}<p class="text-2" style="margin:0">{{ loc.address }}</p>{% endif %}
           {% if loc.working_hours %}<p class="small muted" style="margin:0">{{ _("Часы работы:") }} {{ loc.working_hours }}</p>{% endif %}
-          {% if loc.phone %}<p class="small num" style="margin:0">{{ loc.phone }}</p>{% endif %}
-          {% if loc.map_url %}
-            <div><a class="btn btn--secondary btn--sm" href="{{ loc.map_url }}" target="_blank" rel="noopener noreferrer">{{ _("Открыть на карте") }}</a></div>
-          {% endif %}
+          {% if loc.phone %}<p class="small num" style="margin:0;font-weight:700">{{ loc.phone }}</p>{% endif %}
+          <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:auto;padding-top:6px">
+            <a class="mp-btn mp-btn--blue mp-btn--sm" href="#apply-form" data-scroll-to="#apply-form">{{ _("Записаться в филиал") }}</a>
+            {% if loc.map_url %}
+              <a class="mp-btn mp-btn--soft mp-btn--sm" href="{{ loc.map_url }}" target="_blank" rel="noopener noreferrer">{{ _("Открыть на карте") }}</a>
+            {% endif %}
+          </div>
         </article>
       {% endfor %}
     </div>
   {% else %}
-    <section class="card">
-      <h2 style="margin-top:0">{{ _("Расписание и адреса очных групп") }}</h2>
-      <p class="text-2" style="margin-bottom:0">{{ _("Актуальные адреса открытых аудиторий и свободные места в группах уточняйте через форму ниже — менеджер подскажет ближайший филиал.") }}</p>
+    <section class="mp-subcard mp-subcard--soft">
+      <h2>{{ _("Расписание и адреса очных групп") }}</h2>
+      <p class="text-2" style="margin:0">{{ _("Актуальные адреса открытых аудиторий и свободные места в группах уточняйте через форму ниже — менеджер подскажет ближайший филиал.") }}</p>
     </section>
   {% endif %}
 </section>

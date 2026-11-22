@@ -1,24 +1,29 @@
 {% extends "public/_base.html" %}
 {% block content %}
-<section class="stack-sm">
-  <span class="eyebrow">{{ _("Связаться с нами") }}</span>
-  <h1 style="margin:0">{{ _("Контакты и запись в Monday Academy") }}</h1>
-  <p class="text-2">{{ _("Оставьте заявку или напишите нам в удобный мессенджер.") }}</p>
+<section class="mp-page-hero mp-page-hero--single">
+  <div>
+    <span class="mp-eyebrow-pill">{{ _("Связаться с нами") }}</span>
+    <h1>{{ _("Контакты и запись в Monday Academy") }}</h1>
+    <p class="mp-page-hero__lead" style="margin-bottom:0">{{ _("Оставьте заявку на консультацию или свяжитесь с нами напрямую через соцсети и службу поддержки.") }}</p>
+  </div>
 </section>
 
 <section class="pub-grid-2">
-  <article class="card stack-sm">
-    <h2 style="margin:0">{{ _("Мессенджеры и соцсети") }}</h2>
+  <article class="mp-subcard mp-subcard--soft">
+    <span class="mp-eyebrow-pill">{{ _("Прямая связь") }}</span>
+    <h2>{{ _("Мессенджеры и соцсети") }}</h2>
     <div class="row" style="gap:10px;flex-wrap:wrap">
-      {% if CONTACTS.telegram %}<a class="btn btn--secondary" href="{{ CONTACTS.telegram }}" target="_blank" rel="noopener noreferrer">Telegram</a>{% endif %}
-      {% if CONTACTS.instagram %}<a class="btn btn--secondary" href="{{ CONTACTS.instagram }}" target="_blank" rel="noopener noreferrer">Instagram</a>{% endif %}
-      {% if CONTACTS.whatsapp %}<a class="btn btn--secondary" href="{{ CONTACTS.whatsapp }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>{% endif %}
+      {% if CONTACTS.instagram %}<a class="mp-btn mp-btn--card mp-btn--sm" href="{{ CONTACTS.instagram }}" target="_blank" rel="noopener noreferrer">Instagram · @monday_edc</a>{% endif %}
+      {% if CONTACTS.telegram %}<a class="mp-btn mp-btn--card mp-btn--sm" href="{{ CONTACTS.telegram }}" target="_blank" rel="noopener noreferrer">Telegram</a>{% endif %}
+      {% if CONTACTS.whatsapp %}<a class="mp-btn mp-btn--card mp-btn--sm" href="{{ CONTACTS.whatsapp }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>{% endif %}
+      <a class="mp-btn mp-btn--card mp-btn--sm" href="mailto:temirlanmanasev@gmail.com">temirlanmanasev@gmail.com</a>
     </div>
-    {% if CONTACTS.address %}<p class="small muted" style="margin:0">{{ CONTACTS.address }}</p>{% endif %}
+    {% if CONTACTS.address %}<p class="small muted" style="margin:4px 0 0">{{ CONTACTS.address }}</p>{% endif %}
   </article>
 
-  <article class="card stack-sm">
-    <h2 style="margin:0">{{ _("Публичные филиалы") }}</h2>
+  <article class="mp-subcard">
+    <span class="mp-eyebrow-pill">{{ _("Кампусы") }}</span>
+    <h2>{{ _("Публичные филиалы") }}</h2>
     {% if locations %}
       {% for loc in locations %}
         <div>
