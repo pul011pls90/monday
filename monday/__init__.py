@@ -149,6 +149,8 @@ def create_app(config_object=Config, *, seed_if_empty=True):
         if current_user.is_blocked:
             logout_user()
             return redirect(url_for("auth.login"))
+        if session.get("_sim_admin_id"):
+            return None
         now = utcnow()
         if not current_user.last_seen_at or now - current_user.last_seen_at > timedelta(minutes=5):
             current_user.last_seen_at = now
@@ -239,6 +241,8 @@ def create_app(config_object=Config, *, seed_if_empty=True):
         if not current_user.is_authenticated:
             return None
         if not getattr(current_user, "must_change_password", False):
+            return None
+        if session.get("_sim_admin_id"):
             return None
         ep = request.endpoint or ""
         if ep in (
@@ -387,15 +391,20 @@ def _register_template_helpers(app):
 
     @app.context_processor
     def inject_globals():
+        from .admin import SIM_ROLES, verified_sim_admin
+
         if current_user.is_authenticated:
             theme = current_user.theme
         else:
             theme = request.cookies.get("theme", "light")
         prefs = (current_user.prefs or {}) if current_user.is_authenticated else {}
+        sim_admin = verified_sim_admin()
         return {
             "THEME": theme if theme in ("light", "dark") else "light",
             "THEME_AUTO": theme == "system",
             "PREFS": prefs,
+            "SIM_ADMIN": sim_admin,
+            "SIM_ROLES": SIM_ROLES,
             "SHOW_JOURNAL": bool(app.config.get("SHOW_JOURNAL", False)),
             "LANGUAGES": app.config["LANGUAGES"],
             "CURRENT_LANG": select_locale(),

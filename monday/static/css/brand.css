@@ -5447,3 +5447,39 @@ body:has(.rv-foot) .site-foot { padding-bottom: 96px; }
 .adm-quick-link:hover { border-color: #96D4B2; background: #E8F6EE; color: #116A3F; text-decoration: none; }
 [data-theme="dark"] .adm-quick-link { background: #1B1B1B; border-color: #262626; }
 [data-theme="dark"] .adm-quick-link:hover { border-color: rgba(74, 222, 128, .4); background: rgba(34, 197, 94, .14); color: #86EFAC; }
+
+/* Admin role simulation bar + persistent top exit banner */
+.adm-sim-bar { display: flex; flex-direction: column; align-items: stretch; gap: 12px; padding: 16px 20px; text-align: left; }
+.adm-sim-bar__top { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.adm-sim-bar__info { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+.adm-sim-bar__btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.adm-sim-bar__btns form, .sim-banner__actions form, .adm-sim-table form { margin: 0; }
+.adm-sim-creds { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.adm-sim-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.adm-sim-table th, .adm-sim-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+.adm-sim-table tr:last-child td { border-bottom: 0; }
+.adm-sim-table code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; padding: 2px 7px; border-radius: 7px; background: var(--surface-2); border: 1px solid var(--line); user-select: all; }
+[data-theme="dark"] .adm-sim-table code { background: #1B1B1B; border-color: #262626; }
+.sim-banner-host { position: sticky; top: 0; z-index: 120; padding: 8px 14px 0; pointer-events: none; }
+.sim-banner {
+  pointer-events: auto;
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-left: 4px solid #1E9E6A;
+  box-shadow: 0 6px 20px rgba(2, 11, 41, .1);
+  color: var(--text);
+  font-size: 13.5px;
+}
+[data-theme="dark"] .sim-banner { background: #141414; border-color: #262626; border-left-color: #22C55E; box-shadow: none; }
+.sim-banner__who { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.sim-banner__dot { width: 8px; height: 8px; border-radius: 999px; background: #1E9E6A; flex: none; }
+.sim-banner__actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }

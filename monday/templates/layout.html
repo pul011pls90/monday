@@ -170,7 +170,7 @@
     {% macro exam_switch() -%}
     {% set other = PREFS.get('second_exam') %}
     {% if other == UNIVERSITY_EXAM %}<a class="topbar__switch" href="{{ url_for('bank.index', exam=other) }}">{{ other|exam_label }}</a>
-    {% elif other and other != current_user.profile.exam %}<form method="post" action="{{ url_for('student.switch_exam') }}" class="topbar__switch-form">{{ ui.csrf() }}<button class="topbar__switch" type="submit" title="{{ _('Переключиться на %(exam)s', exam=other|exam_label) }}">{{ other|exam_label }}</button></form>{% endif %}
+    {% elif other and (not current_user.profile or other != current_user.profile.exam) %}<form method="post" action="{{ url_for('student.switch_exam') }}" class="topbar__switch-form">{{ ui.csrf() }}<button class="topbar__switch" type="submit" title="{{ _('Переключиться на %(exam)s', exam=other|exam_label) }}">{{ other|exam_label }}</button></form>{% endif %}
     {%- endmacro %}
     {% block topbar scoped %}
     <header class="topbar">

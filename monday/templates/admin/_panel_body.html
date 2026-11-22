@@ -79,6 +79,11 @@
 
   {% if u.id != current_user.id %}
   <section class="stack-sm"><h3 class="eyebrow">{{ _("Действия") }}</h3>
+    {% if not u.is_admin and not u.is_blocked %}
+    <form method="post" action="{{ url_for('admin.simulate') }}">{{ ui.csrf() }}
+      <button class="adm-btn adm-btn--primary" type="submit" name="user_id" value="{{ u.id }}" style="width:100%">{{ ui.icon('arrow-right', 15) }}<span>{{ _("Симулировать вид аккаунта") }}</span></button>
+    </form>
+    {% endif %}
     <form method="post" action="{{ url_for('admin.set_role', user_id=u.id) }}" class="row" style="gap:8px">{{ ui.csrf() }}
       <input type="hidden" name="next" value="{{ back }}">
       <label class="sr-only" for="pr-role">{{ _("Роль") }}</label>

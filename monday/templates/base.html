@@ -26,6 +26,28 @@
       data-version-url="{{ url_for('deploy_safety.api_version') }}"
       data-confirm-ok="{{ _('Да') }}" data-confirm-cancel="{{ _('Отмена') }}"
       data-date-empty="{{ _('Выбрать дату') }}" data-date-today="{{ _('Сегодня') }}" data-date-clear="{{ _('Очистить') }}" data-date-prev="{{ _('Предыдущий месяц') }}" data-date-next="{{ _('Следующий месяц') }}">
+  {% if SIM_ADMIN %}
+  <div class="sim-banner-host" role="region" aria-label="{{ _('Режим симуляции') }}">
+    <div class="sim-banner">
+      <div class="sim-banner__who">
+        <span class="sim-banner__dot" aria-hidden="true"></span>
+        <span><b>{{ _("Симуляция:") }}</b> {{ {'student': _('Ученик'), 'teacher': _('Учитель'), 'assistant': _('Ассистент'), 'sales_manager': _('Менеджер продаж'), 'supervisor': _('Супервайзер')}.get(current_user.role, current_user.role) }} · <span class="muted">{{ current_user.email }}</span></span>
+      </div>
+      <div class="sim-banner__actions">
+        {% for s_role, s_lbl, _p_email, _s_email, _s_name in SIM_ROLES %}
+          <form method="post" action="{{ url_for('admin.simulate') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="adm-btn adm-btn--sm {{ 'adm-btn--primary' if current_user.role == s_role else 'adm-btn--secondary' }}" type="submit" name="role" value="{{ s_role }}">{{ _(s_lbl) }}</button>
+          </form>
+        {% endfor %}
+        <form method="post" action="{{ url_for('admin.simulate_exit') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn--primary btn--sm" type="submit">{{ _("Вернуться в админку") }}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
   <div id="ds-banner-host" class="ds-banner-host" hidden></div>
   {% block body %}{% endblock %}
   <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="{{ _('Рисунок') }}">

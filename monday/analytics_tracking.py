@@ -304,6 +304,10 @@ def _get_or_create_cookie_id() -> tuple[str, bool]:
 
 def _link_active_visit_on_login(sender, user, **extra) -> None:
     """Record login_count + LoginEvent for every user, and link active anonymous Visit for non-admins."""
+    from flask import has_request_context, session
+
+    if has_request_context() and session.get("_sim_admin_id"):
+        return
     try:
         raw_ip = get_client_ip()
         country, city = resolve_geoip(raw_ip)

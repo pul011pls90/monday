@@ -241,7 +241,7 @@ def query_filtered_visits(args, page: int = 1, per_page: int = 25, paginate: boo
         query = query.filter(Visit.ended_at >= online_cutoff)
 
     # Apply SQL-free attribute filters (accurate Cyrillic casefold + profile joins without duplicate rows)
-    rows = query.all()
+    rows = query.limit(5000).all()
     filtered: list[Visit] = []
     for v in rows:
         u = v.user

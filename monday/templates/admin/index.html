@@ -16,6 +16,64 @@
   </div>
 </div>
 
+{# ------------------------------------------------------------ instant role simulation bar #}
+<section class="card adm-sim-bar" aria-label="{{ _('Симуляция ролей') }}">
+  <div class="adm-sim-bar__top">
+    <div class="adm-sim-bar__info">
+      <strong>{{ _("Симуляция ролей (демо-аккаунты)") }}</strong>
+      <span class="small muted">{{ _("Откройте интерфейс любой роли одним нажатием или получите логины и пароли для входа.") }}</span>
+    </div>
+    <div class="adm-sim-bar__btns">
+      {% for s_role, s_lbl, _p_email, _s_email, _s_name in SIM_ROLES %}
+        <form method="post" action="{{ url_for('admin.simulate') }}">
+          {{ ui.csrf() }}
+          <button class="adm-btn adm-btn--primary adm-btn--sm" type="submit" name="role" value="{{ s_role }}">{{ ui.icon('arrow-right', 14) }}<span>{{ _(s_lbl) }}</span></button>
+        </form>
+      {% endfor %}
+      <form method="post" action="{{ url_for('admin.simulate_credentials') }}">
+        {{ ui.csrf() }}
+        <button class="adm-btn adm-btn--secondary adm-btn--sm" type="submit" name="role" value="all">{{ ui.icon('shield', 14) }}<span>{{ _("Пароли ролей") }}</span></button>
+      </form>
+    </div>
+  </div>
+  {% if dummy_creds %}
+    <div class="adm-sim-creds">
+      <div class="adm-sim-creds__note small muted">{{ _("Пароли показаны один раз (страница не кэшируется). При каждом нажатии выдаётся новый пароль.") }}</div>
+      <div class="table-wrap">
+        <table class="mgr-table adm-sim-table">
+          <thead>
+            <tr>
+              <th>{{ _("Роль") }}</th>
+              <th>Email</th>
+              <th>{{ _("Пароль") }}</th>
+              <th>{{ _("Действия") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dc in dummy_creds %}
+              <tr>
+                <td><b>{{ _(dc.label) }}</b></td>
+                <td class="num"><code>{{ dc.email }}</code></td>
+                <td class="num"><code>{{ dc.password }}</code></td>
+                <td>
+                  <div class="row" style="gap:6px;flex-wrap:wrap">
+                    <form method="post" action="{{ url_for('admin.simulate') }}">{{ ui.csrf() }}
+                      <button class="adm-btn adm-btn--primary adm-btn--sm" type="submit" name="user_id" value="{{ dc.user_id }}">{{ _("Войти") }}</button>
+                    </form>
+                    <form method="post" action="{{ url_for('admin.simulate_credentials') }}">{{ ui.csrf() }}
+                      <button class="adm-btn adm-btn--secondary adm-btn--sm" type="submit" name="role" value="{{ dc.role }}">{{ _("Обновить пароль") }}</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+</section>
+
 {# ------------------------------------------------------------ four numbers, each opens its list #}
 <div class="admin-stats">
   <a class="card admin-stat" href="{{ url_for('admin.index', tab='students') }}">
@@ -197,7 +255,11 @@
           <summary class="icon-btn icon-btn--sm" aria-label="{{ _('Действия: %(n)s', n=u.name) }}">⋯</summary>
           <div class="menu__pop">
             <a href="{{ qs({'user': u.id}) }}" data-panel-link>{{ _("Открыть карточку") }}</a>
-            {% for r, l in [('student', _('Сделать учеником')), ('teacher', _('Сделать учителем')), ('assistant', _('Сделать ассистентом')), ('admin', _('Сделать админом'))] if r != u.role %}
+            {% if not u.is_admin and not u.is_blocked %}
+              <form method="post" action="{{ url_for('admin.simulate') }}">{{ ui.csrf() }}
+                <button type="submit" name="user_id" value="{{ u.id }}">{{ _("Симулировать вид") }}</button></form>
+            {% endif %}
+            {% for r, l in [('student', _('Сделать учеником')), ('teacher', _('Сделать учителем')), ('sales_manager', _('Сделать менеджером')), ('supervisor', _('Сделать супервайзером')), ('assistant', _('Сделать ассистентом')), ('admin', _('Сделать админом'))] if r != u.role %}
               <form method="post" action="{{ url_for('admin.set_role', user_id=u.id) }}">{{ ui.csrf() }}<input type="hidden" name="next" value="{{ here }}">
                 <button name="role" value="{{ r }}">{{ l }}</button></form>
             {% endfor %}
