@@ -1,0 +1,164 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Настройки администратора") }}{% endblock %}
+{% block context %}{{ _("Настройки аккаунта") }}{% endblock %}
+{% block content %}
+  <section class="set-hero">
+    <div class="set-hero__photo">
+      {{ ui.avatar(current_user, 'avatar--lg') }}
+    </div>
+    <div class="set-hero__who">
+      <h1>{{ current_user.name }}</h1>
+      <span>{{ current_user.email }} · {{ _("Администратор") }}</span>
+    </div>
+    <span class="set-hero__badge">
+      {{ ui.icon('shield', 16) }}
+      <span>{{ _("Администратор") }}</span>
+    </span>
+    <a class="adm-btn adm-btn--secondary adm-btn--sm" href="{{ url_for('admin.index') }}">{{ ui.icon('arrow-left', 15) }}<span>{{ _("Админка") }}</span></a>
+  </section>
+
+  <div class="adm-account-grid">
+    <div class="adm-account-col">
+      <section class="adm-card">
+        <div class="adm-card__head">{{ ui.icon('users', 20) }}<h2>{{ _("Профиль администратора") }}</h2></div>
+        <p class="adm-card__desc">{{ _("Отображаемое имя видно в журнале аудита, вопросах и уведомлениях команды.") }}</p>
+        <div class="adm-row-line">
+          <span class="adm-row-val">{{ current_user.email }}</span>
+          <span class="tag tag--accent">{{ _("Администратор") }}</span>
+        </div>
+        <details class="adm-row-edit">
+          <summary><span class="adm-row-val">{{ current_user.name }}</span><span class="adm-btn adm-btn--secondary adm-btn--sm">{{ _("Изменить") }}</span></summary>
+          <form method="post" action="{{ url_for('admin.account') }}" class="adm-row-edit__form">
+            {{ ui.csrf() }}
+            <input type="hidden" name="action" value="profile">
+            <input class="input" name="name" value="{{ current_user.name }}" minlength="2" maxlength="120" required aria-label="{{ _('Отображаемое имя') }}">
+            <button class="adm-btn adm-btn--primary adm-btn--sm" type="submit">{{ _("Сохранить") }}</button>
+          </form>
+        </details>
+      </section>
+
+      <section class="adm-card">
+        <div class="adm-card__head">{{ ui.icon('settings', 20) }}<h2>{{ _("Интерфейс и отображение") }}</h2></div>
+        <p class="adm-card__desc">{{ _("Настройте тему, прозрачность подложки и валюту для финансовых отчётов.") }}</p>
+
+        <div class="adm-row-line">
+          <div>
+            <div class="adm-row-val">{{ _("Тёмная тема") if current_user.theme == 'dark' else (_("Системная тема") if current_user.theme == 'system' else _("Светлая тема")) }}</div>
+            <div class="small muted">{{ _("Сохраняется для всех ваших разделов.") }}</div>
+          </div>
+          <div class="row" style="gap:8px">
+            <form method="post" action="{{ url_for('auth.toggle_theme') }}">
+              {{ ui.csrf() }}
+              <input type="hidden" name="theme" value="light">
+              <input type="hidden" name="next" value="{{ request.full_path }}">
+              <button class="adm-btn {{ 'adm-btn--primary' if current_user.theme != 'dark' else 'adm-btn--secondary' }} adm-btn--sm" type="submit">{{ ui.icon('sun', 14) }}<span>{{ _("Светлая") }}</span></button>
+            </form>
+            <form method="post" action="{{ url_for('auth.toggle_theme') }}">
+              {{ ui.csrf() }}
+              <input type="hidden" name="theme" value="dark">
+              <input type="hidden" name="next" value="{{ request.full_path }}">
+              <button class="adm-btn {{ 'adm-btn--primary' if current_user.theme == 'dark' else 'adm-btn--secondary' }} adm-btn--sm" type="submit">{{ ui.icon('moon', 14) }}<span>{{ _("Тёмная") }}</span></button>
+            </form>
+          </div>
+        </div>
+
+        <div class="adm-row-line">
+          <div>
+            <div class="adm-row-val">{{ _("Прозрачность подложки") }}</div>
+            <div class="small muted">{{ _("Насколько фон просвечивает через рабочую панель.") }}</div>
+          </div>
+          <div class="shell-alpha-ctrl">
+            <input class="shell-range" type="range" id="shell-alpha-slider" min="60" max="100" step="5" value="80" aria-label="{{ _('Прозрачность подложки') }}">
+            <span class="shell-alpha-val num" id="shell-alpha-value">80%</span>
+          </div>
+        </div>
+
+        <div class="adm-row-line">
+          <div>
+            <div class="adm-row-val">{{ _("Валюта отображения") }}</div>
+            <div class="small muted">{{ _("Пересчитывает суммы на странице финансов по курсу НБКР. В базе всё остаётся в сомах (KGS).") }}</div>
+          </div>
+          <select class="select input--sm" id="adm-currency-select" aria-label="{{ _('Валюта отображения') }}" style="width:auto;min-width:165px">
+            <option value="KGS">KGS — Кыргызский сом</option>
+            <option value="USD">USD — Доллар США ($)</option>
+            <option value="EUR">EUR — Евро (€)</option>
+            <option value="KZT">KZT — Тенге (₸)</option>
+            <option value="RUB">RUB — Российский рубль (₽)</option>
+          </select>
+        </div>
+      </section>
+    </div>
+
+    <div class="adm-account-col">
+      <section class="adm-card">
+        <div class="adm-card__head">{{ ui.icon('shield', 20) }}<h2>{{ _("Безопасность и пароль") }}</h2></div>
+        <p class="adm-card__desc">{{ _("Пароль от %(n)s символов. После смены все остальные активные сессии завершаются.", n=min_pw_len|default(12)) }}</p>
+        <form method="post" action="{{ url_for('admin.account') }}" class="stack" style="gap:12px;margin-top:8px">
+          {{ ui.csrf() }}
+          <input type="hidden" name="action" value="password">
+          <div class="field">
+            <label for="adm-cur-pw">{{ _("Текущий пароль") }}</label>
+            <input class="input" id="adm-cur-pw" type="password" name="current" autocomplete="current-password" required placeholder="{{ _('Текущий пароль') }}">
+          </div>
+          <div class="field">
+            <label for="adm-new-pw">{{ _("Новый пароль (от %(n)s символов)", n=min_pw_len|default(12)) }}</label>
+            <input class="input" id="adm-new-pw" type="password" name="new" minlength="{{ min_pw_len|default(12) }}" autocomplete="new-password" required placeholder="{{ _('Новый пароль') }}">
+          </div>
+          <div class="row" style="justify-content:flex-end">
+            <button class="adm-btn adm-btn--primary adm-btn--sm" type="submit">{{ _("Обновить пароль") }}</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="adm-card">
+        <div class="adm-card__head">{{ ui.icon('dashboard', 20) }}<h2>{{ _("Быстрый доступ") }}</h2></div>
+        <p class="adm-card__desc">{{ _("Ключевые разделы управления платформой, аналитики и команды.") }}</p>
+        <div class="adm-quick-grid" style="margin-top:8px">
+          <a class="adm-quick-link" href="{{ url_for('admin.index') }}">
+            {{ ui.icon('users', 16) }}<span>{{ _("Пользователи и роли") }}</span>
+          </a>
+          <a class="adm-quick-link" href="{{ url_for('manager.audit') }}">
+            {{ ui.icon('shield-check', 16) }}<span>{{ _("Журнал аудита") }}</span>
+          </a>
+          <a class="adm-quick-link" href="{{ url_for('analytics.dashboard') }}">
+            {{ ui.icon('chart', 16) }}<span>{{ _("Аналитика") }}</span>
+          </a>
+          <a class="adm-quick-link" href="{{ url_for('manager.dashboard') }}">
+            {{ ui.icon('dashboard', 16) }}<span>{{ _("CRM") }}</span>
+          </a>
+        </div>
+      </section>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const alphaSlider = document.getElementById('shell-alpha-slider');
+  const alphaOut = document.getElementById('shell-alpha-value');
+  if (alphaSlider && alphaOut) {
+    const applyAlpha = (raw) => {
+      const v = Math.min(100, Math.max(60, parseInt(raw, 10) || 80));
+      alphaSlider.value = String(v);
+      alphaOut.textContent = v + '%';
+      document.documentElement.style.setProperty('--shell-alpha', String(v));
+      return v;
+    };
+    applyAlpha(localStorage.getItem('monday_shell_alpha') || '80');
+    alphaSlider.addEventListener('input', () => {
+      const v = applyAlpha(alphaSlider.value);
+      try { localStorage.setItem('monday_shell_alpha', String(v)); } catch (_) {}
+    });
+  }
+
+  const curSel = document.getElementById('adm-currency-select');
+  if (curSel) {
+    const allowed = ['KGS', 'USD', 'EUR', 'KZT', 'RUB'];
+    const savedCur = (localStorage.getItem('monday_display_currency') || 'KGS').toUpperCase();
+    curSel.value = allowed.includes(savedCur) ? savedCur : 'KGS';
+    curSel.addEventListener('change', () => {
+      try { localStorage.setItem('monday_display_currency', curSel.value); } catch (_) {}
+    });
+  }
+})();
+</script>
+{% endblock %}

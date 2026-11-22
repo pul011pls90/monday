@@ -12,69 +12,75 @@ body.mgr {
 }
 @media (min-width: 1024px) {
   body.mgr {
-    --rail: 204px;
+    --rail: 100px;
   }
   body.mgr .rail {
-    top: 0;
-    height: 100vh;
-    margin: 0;
-    padding: 18px 12px 16px;
-    gap: 4px;
-    border-radius: 0;
-    border: 0;
-    border-right: 1px solid var(--line);
-    background: color-mix(in srgb, var(--surface) 92%, transparent);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    box-shadow: none;
-    align-items: stretch;
+    width: 86px;
+    top: 16px;
+    height: calc(100vh - 28px);
+    margin: 16px 0 12px 12px;
+    padding: 12px 6px;
+    gap: 6px;
+    border-radius: 22px;
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--card-shadow);
+    align-items: center;
+    overflow-y: auto;
   }
   [data-theme="dark"] body.mgr .rail {
-    background: color-mix(in srgb, var(--surface) 92%, transparent);
-    border-right-color: rgba(255, 255, 255, .14);
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    border-color: rgba(255, 255, 255, .14);
+    box-shadow: none;
   }
   body.mgr .rail__logo {
-    width: 38px;
-    height: 38px;
-    margin: 0 4px 16px;
+    width: 40px;
+    height: 40px;
+    flex: none;
+    margin: 0 0 10px;
   }
   body.mgr .rail__item {
-    width: 100%;
+    position: relative;
+    width: 72px;
     height: auto;
-    min-height: 40px;
-    margin-inline: 0;
-    padding: 10px 12px;
+    min-height: 48px;
+    margin-inline: auto;
+    padding: 6px 4px;
     border-radius: 12px;
-    flex-direction: row;
-    justify-content: flex-start;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: 10px;
-    font-size: 14px;
+    gap: 4px;
+    font-size: 10.5px;
     font-weight: 600;
-    line-height: 1.25;
+    line-height: 1.15;
     letter-spacing: -.01em;
-    text-align: left;
+    text-align: center;
     color: var(--text-2);
   }
   body.mgr .rail__item .ic {
-    --ic: 18px;
-    width: 18px;
-    height: 18px;
+    --ic: 19px;
+    width: 19px;
+    height: 19px;
     flex: none;
   }
   body.mgr .rail__item svg {
     stroke-width: 1.75;
   }
   body.mgr .rail__label {
-    font-size: 14px;
+    font-size: 10.5px;
     font-weight: inherit;
-    flex: 1;
-    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   body.mgr .rail__count {
-    position: static;
-    margin-left: auto;
-    flex: none;
+    position: absolute;
+    top: 3px;
+    right: 6px;
   }
   body.mgr .rail__item:hover {
     background: var(--surface-2);
@@ -105,10 +111,10 @@ body.mgr {
     color: #86EFAC;
   }
   body.mgr .rail__foot {
-    width: 100%;
-    align-items: stretch;
-    padding-top: 10px;
-    margin-top: 6px;
+    width: 64px;
+    align-items: center;
+    padding-top: 8px;
+    margin-top: 4px;
     border-top: 1px solid var(--line);
     gap: 4px;
   }

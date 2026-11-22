@@ -4,12 +4,13 @@ from datetime import timedelta
 
 from flask import Blueprint, abort, flash, make_response, redirect, render_template, request, url_for
 from flask_babel import gettext as _
-from flask_login import current_user
+from flask_login import current_user, login_user
 from sqlalchemy import func
 
-from .access import ROLES, admin_required
+from .access import ROLES, admin_required, min_password_length
+from .audit import write_audit_log
 from .constants import EXAMS
-from .extensions import db
+from .extensions import db, limiter
 from .models import (Attempt, ContentNode, LoginEvent, Question, StudentProfile, StudentRecord, User, Work, utcnow)
 from .services import content_gaps, progress_summary, temporary_password
 
@@ -289,6 +290,60 @@ def review_work(work_id):
     flash(_("«%(t)s» опубликован.", t=w.title) if w.status == "published"
           else _("«%(t)s» возвращён автору в черновики.", t=w.title), "success")
     return redirect(url_for("admin.index", tab="moderation"))
+
+
+@bp.route("/account", methods=["GET", "POST"])
+@limiter.limit("20 per minute", methods=["POST"])
+@admin_required
+def account():
+    """Admin settings & account preferences matching /manager/account layout."""
+    min_len = min_password_length(current_user.role)
+    if request.method == "POST":
+        action = request.form.get("action")
+        if action == "profile":
+            new_name = (request.form.get("name") or "").strip()
+            if len(new_name) < 2 or len(new_name) > 120:
+                flash(_("Имя должно быть от 2 до 120 символов."), "error")
+            else:
+                user_obj = current_user._get_current_object()
+                old_name = user_obj.name
+                if new_name != old_name:
+                    user_obj.name = new_name
+                    write_audit_log(
+                        actor_id=user_obj.id,
+                        action="admin_profile_update",
+                        entity_type="user",
+                        entity_id=user_obj.id,
+                        old_value={"name": old_name},
+                        new_value={"name": new_name},
+                    )
+                    db.session.commit()
+                flash(_("Профиль обновлён."), "success")
+        elif action == "password":
+            cur_pw = request.form.get("current", "")
+            new_pw = request.form.get("new", "")
+            if not current_user.check_password(cur_pw):
+                flash(_("Текущий пароль неверный."), "error")
+            elif len(new_pw) < min_len:
+                flash(_("Новый пароль должен быть не короче %(n)s символов.", n=min_len), "error")
+            else:
+                user_obj = current_user._get_current_object()
+                user_obj.set_password(new_pw)
+                user_obj.must_change_password = False
+                write_audit_log(
+                    actor_id=user_obj.id,
+                    action="admin_password_change",
+                    entity_type="user",
+                    entity_id=user_obj.id,
+                    old_value=None,
+                    new_value={"session_version": user_obj.session_version},
+                )
+                db.session.commit()
+                login_user(user_obj)
+                flash(_("Пароль изменён."), "success")
+        return redirect(url_for("admin.account"))
+
+    return render_template("admin/account.html", min_pw_len=min_len)
 
 
 @bp.app_template_filter("ago")

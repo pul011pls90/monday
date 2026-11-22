@@ -208,7 +208,7 @@ def test_admin_priority_rail_order_and_non_admin_isolation():
     positions = [rail_chunk.index(lbl) for lbl in ordered_labels]
     assert positions == sorted(positions), f"Admin rail order mismatch: {list(zip(ordered_labels, positions))}"
 
-    # All 8 admin URLs from the rail resolve 200 OK for admin
+    # All 8 admin URLs + /admin/account from the rail resolve 200 OK for admin
     expected_urls = [
         "/admin/",
         "/admin/analytics/",
@@ -218,11 +218,12 @@ def test_admin_priority_rail_order_and_non_admin_isolation():
         "/teacher/reports",
         "/teacher/questions",
         "/teacher/tree",
-        "/teacher/account",
+        "/admin/account",
     ]
     for url in expected_urls:
         assert f'href="{url}"' in rail_chunk, f"Missing {url} in admin rail"
         assert c_adm.get(url).status_code == 200, f"Admin {url} failed"
+    assert 'title="' not in rail_chunk, "Rail links should not carry redundant title attributes"
 
     # Mobile .nav-drawer mirrors the 2 groups and .acct-menu does not duplicate the 8 links
     drawer_chunk = html.split('<div class="nav-drawer"')[1].split("</aside>")[0]
@@ -256,4 +257,62 @@ def test_admin_priority_rail_order_and_non_admin_isolation():
             # Teacher keeps compact 6-item rail without Admin/CRM/Analytics/Moderation/Исправления
             for forbidden in ("Админ", "Аналитика", "Модерация", "Исправления", "CRM"):
                 assert forbidden not in role_rail
+
+
+def test_admin_account_settings_2col_shell_csrf_and_rbac():
+    app = _make_app(csrf_enabled=True)
+    adm_id = _seed_user(app, "adm@monday.kg", "Админ Старт", "admin")
+    _seed_user(app, "tch@monday.kg", "Учитель", "teacher")
+    _seed_user(app, "mgr@monday.kg", "Менеджер", "sales_manager")
+    _seed_user(app, "stu@monday.kg", "Ученик", "student")
+
+    # 403 for non-admin roles
+    for email in ("stu@monday.kg", "tch@monday.kg", "mgr@monday.kg"):
+        c_role = app.test_client()
+        _login(c_role, email)
+        assert c_role.get("/admin/account").status_code == 403
+        assert c_role.post("/admin/account", data={"action": "profile", "name": "Hack"}).status_code in (400, 403)
+
+    c_adm = app.test_client()
+    _login(c_adm, "adm@monday.kg")
+    res = c_adm.get("/admin/account")
+    assert res.status_code == 200
+    html = res.get_data(as_text=True)
+
+    assert '<div class="app-shell-panel">' in html
+    assert '<div class="adm-account-grid">' in html
+    assert 'id="shell-alpha-slider"' in html
+    assert 'id="adm-currency-select"' in html
+    for cur in ("KGS", "USD", "EUR", "KZT", "RUB"):
+        assert f'value="{cur}"' in html
+    for quick in ("Пользователи и роли", "Журнал аудита", "Аналитика", "CRM"):
+        assert quick in html
+    # Every POST form has CSRF token
+    assert html.count('name="csrf_token"') >= 4
+
+    csrf = re.search(r'name="csrf_token"[^>]*value="([^"]+)"', html).group(1)
+
+    # Profile name update works and persists
+    r_prof = c_adm.post(
+        "/admin/account",
+        data={"action": "profile", "name": "Админ Новый", "csrf_token": csrf},
+        follow_redirects=True,
+    )
+    assert r_prof.status_code == 200
+    assert "Админ Новый" in r_prof.get_data(as_text=True)
+
+    # Password update works and bumps session_version
+    with app.app_context():
+        old_ver = db.session.get(User, adm_id).session_version
+    r_pw = c_adm.post(
+        "/admin/account",
+        data={"action": "password", "current": "StrongStaff12!", "new": "NewAdminPass99!", "csrf_token": csrf},
+        follow_redirects=True,
+    )
+    assert r_pw.status_code == 200
+    with app.app_context():
+        u = db.session.get(User, adm_id)
+        assert u.session_version == old_ver + 1
+        assert u.check_password("NewAdminPass99!")
+
 
