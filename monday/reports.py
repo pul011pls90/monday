@@ -14,6 +14,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from . import storage
 from .access import admin_required, teacher_required
+from .audit import write_audit_log
 from .constants import REPORT_KINDS
 from .extensions import db
 from .models import ContentNode, Question, Report, StudentRecord, SupportAttachment, User, utcnow
@@ -276,3 +277,56 @@ def attachment_delete(attachment_id):
             role=(request.form.get("role") or "").strip() or None,
         )
     )
+
+
+@bp.route("/admin/support/<int:request_id>/delete", methods=["POST", "DELETE"])
+@admin_required
+def request_delete(request_id):
+    """Admin-only deletion of a support request, dependent attachments, and storage objects with AuditLog."""
+    r = db.session.get(Report, request_id)
+    if not r:
+        abort(404)
+
+    storage_objects = []
+    for att in r.attachments:
+        storage_objects.append(att.full_object_name())
+        storage_objects.append(att.thumb_object_name())
+
+    author = r.author
+    write_audit_log(
+        actor_id=current_user.id,
+        action="support_request_delete",
+        entity_type="support_request",
+        entity_id=r.id,
+        old_value={
+            "request_id": r.id,
+            "author_id": r.author_id,
+            "author_name": author.name if author else None,
+            "author_email": author.email if author else None,
+            "sender_role": r.sender_role,
+            "kind": r.kind,
+            "status": r.status,
+            "message_snippet": (r.message or "")[:160],
+            "attachment_count": len(r.attachments),
+        },
+        new_value=None,
+        reason="admin_delete",
+    )
+    db.session.delete(r)
+    db.session.commit()
+
+    for obj_name in storage_objects:
+        storage.delete(obj_name)
+
+    wants_json = (
+        request.method == "DELETE"
+        or request.headers.get("X-Requested-With") in ("fetch", "XMLHttpRequest")
+        or "application/json" in (request.headers.get("Accept") or "")
+    )
+    if wants_json:
+        return jsonify({"ok": True, "deleted_id": request_id})
+
+    flash(_("Обращение удалено."), "success")
+    tab = (request.form.get("tab") or request.args.get("tab") or "open").strip() or "open"
+    role = (request.form.get("role") or request.args.get("role") or "").strip() or None
+    return redirect(url_for("reports.inbox", tab=tab, role=role))

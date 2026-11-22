@@ -2595,6 +2595,7 @@ _AUDIT_ACTION_LABELS = {
     "lead_status_override": "Откат статуса лида",
     "lead_reassign": "Переназначение лида",
     "lead_delete": "Удаление лида",
+    "support_request_delete": "Удаление обращения поддержки",
     "lead_merge": "Объединение дубликата",
     "manager_shift_toggle": "Статус смены",
     "pass_issue": "Выдача абонемента",

@@ -48,6 +48,14 @@
       </span>
       <span class="spacer"></span>
       {% if r.status != 'open' %}<span class="tag {{ 'tag--ok' if r.status == 'fixed' else 'tag--line' }}">{{ _("Исправлено") if r.status == 'fixed' else _("Отклонено") }}</span>{% endif %}
+      {% if current_user.is_admin %}
+        <form method="post" action="{{ url_for('reports.request_delete', request_id=r.id) }}" data-confirm="{{ _('Удалить обращение и все его вложения? Действие запишется в аудит.') }}">
+          {{ ui.csrf() }}
+          <input type="hidden" name="tab" value="{{ tab }}">
+          <input type="hidden" name="role" value="{{ role_filter }}">
+          <button class="btn btn--danger-line btn--sm" type="submit" aria-label="{{ _('Удалить обращение') }}">{{ ui.icon('trash', 15) }}<span>{{ _("Удалить") }}</span></button>
+        </form>
+      {% endif %}
     </header>
     {% if r.message %}<blockquote class="rp__msg">{{ r.message }}</blockquote>{% endif %}
 
