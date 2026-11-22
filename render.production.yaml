@@ -28,10 +28,12 @@ services:
       - key: PUBLIC_SAMPLE_MEDIA_FOLDER
         value: /var/data/public_sample_media
       - key: PUBLIC_SITE_ENABLED
-        value: "0"
+        value: "1"
       - key: PUBLIC_LEGAL_REVIEWED
         value: "0"
       - key: SELF_STUDY_SIGNUP_ENABLED
+        value: "0"
+      - key: SUBSCRIPTION_REQUIRED
         value: "0"
       - key: STRIPE_ENABLED
         value: "0"

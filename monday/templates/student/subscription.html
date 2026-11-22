@@ -30,6 +30,8 @@
           <strong style="font-size:18px">{{ _("Активна подписка на банк вопросов") }} ({{ status.active_subscription.status }})</strong>
         {% elif status.tier == 'legacy' and status.legacy_access_until %}
           <strong style="font-size:18px">{{ _("Ранний полный доступ до") }} {{ status.legacy_access_until|d("d MMMM y") }}</strong>
+        {% elif status.tier == 'open' %}
+          <strong style="font-size:18px">{{ _("Открытый бесплатный доступ") }}</strong>
         {% else %}
           <strong style="font-size:18px">{{ _("Бесплатный доступ") }}</strong>
         {% endif %}
@@ -40,6 +42,12 @@
         <span class="tag">{{ _("Полный доступ открыт") }}</span>
       {% endif %}
     </div>
+
+    {% if status.tier == 'open' %}
+      <p class="small text-2" style="margin:0">
+        {{ _("Сейчас полный доступ к банку вопросов, тренировкам и курсам открыт для всех без подписки.") }}
+      </p>
+    {% endif %}
 
     {% if status.active_subscription %}
       {% set sub = status.active_subscription %}

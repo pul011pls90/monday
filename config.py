@@ -141,7 +141,8 @@ class Config:
 
     # Public website & question-bank product flags (Stage 2+)
     IS_PRODUCTION = False
-    PUBLIC_SITE_ENABLED = os.environ.get("PUBLIC_SITE_ENABLED", "0") == "1"
+    PUBLIC_SITE_ENABLED = os.environ.get("PUBLIC_SITE_ENABLED", "1") == "1"
+    PUBLIC_PREFLIGHT_STRICT = os.environ.get("PUBLIC_PREFLIGHT_STRICT", "0") == "1"
     PUBLIC_LEGAL_REVIEWED = os.environ.get("PUBLIC_LEGAL_REVIEWED", "0") == "1"
     LEGAL_ENTITY_NAME = os.environ.get("LEGAL_ENTITY_NAME", "").strip()
     LEGAL_ENTITY_ID = os.environ.get("LEGAL_ENTITY_ID", "").strip()
@@ -151,6 +152,7 @@ class Config:
     LEGAL_EFFECTIVE_DATE = os.environ.get("LEGAL_EFFECTIVE_DATE", "").strip()
     LEGAL_REFUND_WINDOW_DAYS = int(os.environ.get("LEGAL_REFUND_WINDOW_DAYS", "0") or "0")
     SELF_STUDY_SIGNUP_ENABLED = os.environ.get("SELF_STUDY_SIGNUP_ENABLED", "0") == "1"
+    SUBSCRIPTION_REQUIRED = os.environ.get("SUBSCRIPTION_REQUIRED", "0") == "1"
     LEGACY_ACCESS_DAYS = int(os.environ.get("LEGACY_ACCESS_DAYS", "30") or "30")
     FREE_DAILY_QUESTION_LIMIT = int(os.environ.get("FREE_DAILY_QUESTION_LIMIT", "10") or "10")
     COURSE_INCLUDED_IN_SUBSCRIPTION = os.environ.get("COURSE_INCLUDED_IN_SUBSCRIPTION", "1") == "1"

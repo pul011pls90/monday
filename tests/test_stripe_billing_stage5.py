@@ -37,6 +37,7 @@ def _make_app(tmp_path, **overrides):
         RATELIMIT_ENABLED = False
         PUBLIC_SITE_ENABLED = True
         PUBLIC_LEGAL_REVIEWED = True
+        SUBSCRIPTION_REQUIRED = True
         STRIPE_ENABLED = True
         STRIPE_SECRET_KEY = "sk_test_mock_key"
         STRIPE_WEBHOOK_SECRET = "whsec_test_mock_secret"

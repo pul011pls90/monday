@@ -47,6 +47,14 @@ def free_daily_question_limit() -> int:
         return 10
 
 
+def subscriptions_enforced() -> bool:
+    """Return True when subscription / daily-quota gating is active; False grants open access to all students."""
+    try:
+        return bool(current_app.config.get("SUBSCRIPTION_REQUIRED", False))
+    except RuntimeError:
+        return False
+
+
 def course_included_in_subscription() -> bool:
     try:
         return bool(current_app.config.get("COURSE_INCLUDED_IN_SUBSCRIPTION", True))
@@ -133,13 +141,15 @@ def has_valid_legacy_access(user: User | None, *, at: datetime | None = None) ->
 
 
 def has_question_bank_access(user: User | None) -> bool:
-    """Central access helper (Stage 4): full access via staff role, enrollment branch, active/trialing subscription, or legacy grace."""
+    """Central access helper (Stage 4): open to all active students unless SUBSCRIPTION_REQUIRED=1."""
     if not user or not getattr(user, "is_authenticated", False) or getattr(user, "is_blocked", False):
         return False
     if is_content_staff(user):
         return True
     if getattr(user, "role", None) != "student":
         return False
+    if not subscriptions_enforced():
+        return True
     if is_enrolled_monday_student(user):
         return True
     if active_subscription_for_user(user) is not None:
@@ -150,13 +160,15 @@ def has_question_bank_access(user: User | None) -> bool:
 
 
 def has_course_access(user: User | None) -> bool:
-    """SAT theory course access: always open to enrolled Monday students & staff; controlled by COURSE_INCLUDED_IN_SUBSCRIPTION for subscribers."""
+    """SAT theory course access: open to all active students unless SUBSCRIPTION_REQUIRED=1."""
     if not user or not getattr(user, "is_authenticated", False) or getattr(user, "is_blocked", False):
         return False
     if is_content_staff(user):
         return True
     if getattr(user, "role", None) != "student":
         return False
+    if not subscriptions_enforced():
+        return True
     if is_enrolled_monday_student(user):
         return True
     if not course_included_in_subscription():
@@ -330,15 +342,17 @@ def subscription_status_summary(user: User | None) -> dict:
         tier = "subscription"
     elif legacy_ok:
         tier = "legacy"
+    elif not subscriptions_enforced():
+        tier = "open"
     else:
         tier = "free"
 
     return {
         "tier": tier,
-        "has_full_access": enrolled or (active_sub is not None) or legacy_ok,
+        "has_full_access": enrolled or (active_sub is not None) or legacy_ok or (not subscriptions_enforced()),
         "has_teacher_link": teacher_linked,
         "active_subscription": active_sub,
-        "legacy_access_until": user.legacy_access_until if (legacy_ok and not enrolled and active_sub is None) else None,
+        "legacy_access_until": user.legacy_access_until if (legacy_ok and not enrolled and active_sub is None and subscriptions_enforced()) else None,
         "daily_used": used,
         "daily_limit": limit,
         "daily_remaining": remaining,

@@ -210,6 +210,8 @@ def enforce_public_site_prod_guard(app) -> None:
     app.config["_PUBLIC_SITE_BLOCKED_IN_PROD"] = False
     if not app.config.get("PUBLIC_SITE_ENABLED", False) or not is_production_mode(app):
         return
+    if not app.config.get("IS_PRODUCTION") and not app.config.get("PUBLIC_PREFLIGHT_STRICT", False):
+        return
     try:
         blockers = collect_site_preflight_blockers()
     except Exception as exc:

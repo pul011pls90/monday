@@ -53,6 +53,7 @@ def _make_app(tmp_path, **overrides):
         RATELIMIT_ENABLED = False
         PUBLIC_SITE_ENABLED = True
         PUBLIC_LEGAL_REVIEWED = True
+        SUBSCRIPTION_REQUIRED = True
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{tmp_path / 'stage4.db'}"
         UPLOAD_FOLDER = str(tmp_path / "uploads")
         PUBLIC_SAMPLE_MEDIA_FOLDER = str(tmp_path / "public_sample_media")
