@@ -298,6 +298,7 @@ def _assignee_combobox_options() -> list[dict]:
 
 def _leads_scope(query=None):
     q = query if query is not None else Lead.query
+    q = q.filter(Lead.is_archived.is_(False))
     if not current_user.has_perm("crm.leads.view_all"):
         q = q.filter(Lead.assigned_manager_id == current_user.id)
     return q
@@ -2595,6 +2596,9 @@ _AUDIT_ACTION_LABELS = {
     "lead_status_override": "Откат статуса лида",
     "lead_reassign": "Переназначение лида",
     "lead_delete": "Удаление лида",
+    "bot_lead_create": "Бот: новый лид",
+    "bot_lead_update": "Бот: обновление лида",
+    "bot_lead_archive": "Бот: архивация спама",
     "support_request_delete": "Удаление обращения поддержки",
     "lead_merge": "Объединение дубликата",
     "manager_shift_toggle": "Статус смены",

@@ -1,0 +1,29 @@
+{% extends "public/_base.html" %}
+{% block json_ld %}
+<script type="application/ld+json">{{ faq_json_ld|tojson }}</script>
+{% endblock %}
+
+{% block content %}
+<section class="stack-sm">
+  <span class="eyebrow">{{ _("Помощь и ответы") }}</span>
+  <h1 style="margin:0">{{ _("Частые вопросы") }}</h1>
+  <p class="text-2">{{ _("Ответы на ключевые вопросы о курсах Monday Academy и подписке на банк вопросов.") }}</p>
+</section>
+
+<section class="pub-faq-list">
+  {% for item in faqs %}
+    <details class="pub-faq-item"{% if loop.first %} open{% endif %}>
+      <summary>{{ item.q }}</summary>
+      <p>{{ item.a }}</p>
+    </details>
+  {% endfor %}
+</section>
+
+<section class="card row row--between" style="flex-wrap:wrap;gap:12px">
+  <div>
+    <h3 style="margin:0">{{ _("Остались вопросы?") }}</h3>
+    <p class="small text-2" style="margin:4px 0 0">{{ _("Напишите менеджеру через форму записи или в мессенджер.") }}</p>
+  </div>
+  <a class="btn btn--primary" href="{{ url_for('public_site.contact') }}#apply-form">{{ _("Связаться с нами") }}</a>
+</section>
+{% endblock %}

@@ -117,27 +117,28 @@ def find_existing_lead_for_intake(phone_e164: str | None, messenger_norm: str | 
     """Return (open_duplicate_lead, latest_closed_lead) matching normalized phone_e164 or messenger_norm."""
     open_match = None
     closed_match = None
+    active_filter = Lead.is_archived.is_(False)
     if phone_e164:
         open_match = (
-            Lead.query.filter(Lead.phone_e164 == phone_e164, Lead.status.notin_(("won", "lost")))
+            Lead.query.filter(active_filter, Lead.phone_e164 == phone_e164, Lead.status.notin_(("won", "lost")))
             .order_by(Lead.id.desc())
             .first()
         )
         if not open_match:
             closed_match = (
-                Lead.query.filter(Lead.phone_e164 == phone_e164, Lead.status.in_(("won", "lost")))
+                Lead.query.filter(active_filter, Lead.phone_e164 == phone_e164, Lead.status.in_(("won", "lost")))
                 .order_by(Lead.id.desc())
                 .first()
             )
     if not open_match and messenger_norm:
         open_match = (
-            Lead.query.filter(Lead.messenger_norm == messenger_norm, Lead.status.notin_(("won", "lost")))
+            Lead.query.filter(active_filter, Lead.messenger_norm == messenger_norm, Lead.status.notin_(("won", "lost")))
             .order_by(Lead.id.desc())
             .first()
         )
         if not open_match and not closed_match:
             closed_match = (
-                Lead.query.filter(Lead.messenger_norm == messenger_norm, Lead.status.in_(("won", "lost")))
+                Lead.query.filter(active_filter, Lead.messenger_norm == messenger_norm, Lead.status.in_(("won", "lost")))
                 .order_by(Lead.id.desc())
                 .first()
             )
@@ -289,7 +290,17 @@ def create_incoming_lead(
 @limiter.limit("5 per minute; 30 per hour", methods=["POST"])
 def public_apply():
     """Public site lead inquiry form (CSRF-protected & rate-limited)."""
+    from urllib.parse import urlparse
+
     if request.method == "POST":
+        nxt_raw = (request.form.get("next") or "").strip()
+        nxt_parsed = urlparse(nxt_raw) if nxt_raw else None
+        safe_back = (
+            nxt_raw
+            if nxt_parsed and not nxt_parsed.scheme and not nxt_parsed.netloc and nxt_raw.startswith("/")
+            else None
+        )
+
         # Simple anti-spam honeypot: bots filling hidden `website` get silent 200
         if (request.form.get("website") or "").strip():
             return render_template("manager/apply.html", submitted=True, MODE_PREF_LABELS=MODE_PREF_LABELS)
@@ -306,9 +317,24 @@ def public_apply():
             errors.append(_("Укажите ваше имя (минимум 2 символа)."))
         if not phone and not messenger_handle:
             errors.append(_("Укажите номер телефона или Telegram / WhatsApp."))
+        if request.form.get("consent_required") == "1" and request.form.get("consent") != "1":
+            errors.append(_("Необходимо согласие на обработку персональных данных."))
+
+        utm_pairs = []
+        for utm_k in ("utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"):
+            v = (request.form.get(utm_k) or "").strip()[:120]
+            if v:
+                utm_pairs.append(f"{utm_k}={v}")
+        full_note = note
+        if utm_pairs:
+            utm_line = "UTM: " + ", ".join(utm_pairs)
+            full_note = f"{note}\n{utm_line}" if note else utm_line
+
         if errors:
             for e in errors:
                 flash(e, "error")
+            if safe_back:
+                return redirect(safe_back), 302
             return (
                 render_template(
                     "manager/apply.html",
@@ -326,8 +352,11 @@ def public_apply():
             source="site",
             interest=interest,
             mode_preference=mode_pref,
-            note=note,
+            note=full_note,
         )
+        if safe_back:
+            sep = "&" if "?" in safe_back else "?"
+            return redirect(f"{safe_back}{sep}sent=1")
         return redirect(url_for("crm_intake.public_apply", sent="1"))
 
     return render_template(

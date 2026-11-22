@@ -36,6 +36,11 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     from werkzeug.middleware.proxy_fix import ProxyFix
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+    app.config.setdefault(
+        "PUBLIC_SAMPLE_MEDIA_FOLDER",
+        os.path.join(os.path.dirname(app.config["UPLOAD_FOLDER"]), "public_sample_media"),
+    )
+    os.makedirs(app.config["PUBLIC_SAMPLE_MEDIA_FOLDER"], exist_ok=True)
 
     db.init_app(app)
     migrate.init_app(app, db, directory=MIGRATIONS_DIR, render_as_batch=True)
@@ -109,6 +114,10 @@ def create_app(config_object=Config, *, seed_if_empty=True):
     app.register_blueprint(course.bp)
     from . import fx
     app.register_blueprint(fx.bp)
+    from . import public_site
+    app.register_blueprint(public_site.bp)
+    from services.crm_bot.telegram_bot import bot_bp as crm_telegram_bot_bp
+    app.register_blueprint(crm_telegram_bot_bp)
     from .trig_formulas import init_trig_block
     init_trig_block(app)
 
@@ -303,30 +312,69 @@ def create_app(config_object=Config, *, seed_if_empty=True):
             abort(403)
         q = Question.query.filter_by(image_path=filename).first()
         if q is None:
+            from .abuse import record_404_probe
+            record_404_probe("uploaded_file")
             abort(404)
+        from .subscriptions import has_question_bank_access as _has_qbank, has_unlocked_image_today, is_content_staff
         if q.status == "published":
-            return
+            if (
+                is_content_staff(current_user)
+                or _has_qbank(current_user)
+                or q.is_public_sample
+                or (current_user.role == "student" and has_unlocked_image_today(current_user.id, filename))
+            ):
+                if not q.is_public_sample:
+                    from .abuse import enforce_question_scrape_guard
+                    enforce_question_scrape_guard(current_user, [q.id], source="uploaded_file")
+                return
+            abort(403)
         if current_user.is_admin or q.author_id == current_user.id or (current_user.can_review and q.status == "pending"):
             return
         abort(403)
 
+    from .abuse import abuse_rate_key, check_404_probe_guard, rate_limit_value
+
     @app.route("/uploads/<path:filename>")
+    @limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
+    @access.question_bank_access_required(tier="free_quota")
     @login_required
     def uploaded_file(filename):
         """Pack figures come from the repository; everything else from the uploads folder or Supabase Storage."""
         from . import storage
+        check_404_probe_guard()
         if filename.startswith("packs/"):
             parts = filename.split("/")
             if len(parts) != 3 or not parts[1] or not parts[2] or ".." in parts:
+                from .abuse import record_404_probe
+                record_404_probe("uploaded_file")
                 abort(404)
             _, pack, name = parts
             from .packs import PACK_DIR, available
             if pack not in available():
+                from .abuse import record_404_probe
+                record_404_probe("uploaded_file")
                 abort(404)
+            from .models import Question
+            from .subscriptions import has_question_bank_access as _has_qbank, has_unlocked_image_today, is_content_staff
+            q_pack = Question.query.filter_by(image_path=filename).first()
+            if not (
+                is_content_staff(current_user)
+                or _has_qbank(current_user)
+                or Question.query.filter_by(image_path=filename, is_public_sample=True, status="published").first() is not None
+                or (current_user.role == "student" and has_unlocked_image_today(current_user.id, filename))
+            ):
+                abort(403)
+            if q_pack and not q_pack.is_public_sample:
+                from .abuse import enforce_question_scrape_guard
+                enforce_question_scrape_guard(current_user, [q_pack.id], source="uploaded_file_pack")
             return send_from_directory(os.path.join(PACK_DIR, pack, "figures"), name)
         _authorize_upload(filename)
         if storage.using_supabase():
-            url = storage.signed_url(filename)
+            try:
+                url = storage.signed_url(filename)
+            except Exception as exc:
+                app.logger.error("Storage signed_url failed (%s)", type(exc).__name__)
+                abort(503)
             if not url:
                 abort(404)
             return redirect(url)
@@ -360,7 +408,7 @@ def create_app(config_object=Config, *, seed_if_empty=True):
         return redirect(url_for("auth.force_password_change"))
 
     with app.app_context():
-        if "reset-db" in sys.argv or "db" in sys.argv or "create-manager" in sys.argv:  # CLI commands manage schema/actions directly
+        if any(cmd in sys.argv for cmd in ("reset-db", "db", "create-manager", "legacy-access-report")):  # CLI commands manage schema/actions directly without startup seeding
             return app
         from sqlalchemy import inspect as _sa_inspect
         if app.config.get("TESTING"):
@@ -392,6 +440,8 @@ def create_app(config_object=Config, *, seed_if_empty=True):
             refresh_demo_mondays()  # demo Monday tests + demo students' results follow the calendar
         from .analytics_jobs import start_daily_maintenance_if_due
         start_daily_maintenance_if_due(app)
+        from .public_site import enforce_public_site_prod_guard
+        enforce_public_site_prod_guard(app)
 
     return app
 
@@ -425,6 +475,8 @@ def _register_security_headers(app):
 
     @app.after_request
     def _set_security_headers(response):
+        from flask import request as _req
+
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
@@ -432,6 +484,18 @@ def _register_security_headers(app):
         response.headers.setdefault("Content-Security-Policy", csp)
         if app.config.get("SESSION_COOKIE_SECURE"):
             response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+
+        ep = _req.endpoint or ""
+        view_fn = app.view_functions.get(ep)
+        is_gated = bool(view_fn and getattr(view_fn, "_question_bank_gated", False))
+        bp_name = _req.blueprint or ""
+        if is_gated or bp_name in (
+            "bank", "daily", "student", "course", "roadmap",
+            "teacher", "assistant", "review", "admin", "manager", "academic", "reports",
+        ) or _req.path.startswith("/uploads/"):
+            response.headers.setdefault("X-Robots-Tag", "noindex, nofollow, noarchive")
+            if ep != "uploaded_file" and "Cache-Control" not in response.headers:
+                response.headers["Cache-Control"] = "private, no-store"
         return response
 
 
@@ -499,12 +563,31 @@ def _register_template_helpers(app):
             theme = request.cookies.get("theme", "light")
         prefs = (current_user.prefs or {}) if current_user.is_authenticated else {}
         sim_admin = verified_sim_admin()
+        if current_user.is_authenticated:
+            from .subscriptions import subscription_status_summary
+
+            sub_status = subscription_status_summary(current_user)
+        else:
+            sub_status = {
+                "tier": "anonymous",
+                "has_full_access": False,
+                "has_teacher_link": False,
+                "active_subscription": None,
+                "legacy_access_until": None,
+                "daily_used": 0,
+                "daily_limit": int(app.config.get("FREE_DAILY_QUESTION_LIMIT", 10) or 10),
+                "daily_remaining": int(app.config.get("FREE_DAILY_QUESTION_LIMIT", 10) or 10),
+            }
         return {
             "THEME": theme if theme in ("light", "dark") else "light",
             "THEME_AUTO": theme == "system",
             "PREFS": prefs,
             "SIM_ADMIN": sim_admin,
             "SIM_ROLES": SIM_ROLES,
+            "SUBSCRIPTION_STATUS": sub_status,
+            "HAS_TEACHER_LINK": bool(sub_status["has_teacher_link"]),
+            "LEGACY_ACCESS_UNTIL": sub_status["legacy_access_until"],
+            "COURSE_INCLUDED_IN_SUBSCRIPTION": bool(app.config.get("COURSE_INCLUDED_IN_SUBSCRIPTION", True)),
             "SHOW_JOURNAL": bool(app.config.get("SHOW_JOURNAL", False)),
             "LANGUAGES": app.config["LANGUAGES"],
             "CURRENT_LANG": select_locale(),
@@ -628,6 +711,29 @@ def _register_errors(app):
     @app.errorhandler(413)
     def too_large(e):
         return render_template("errors/error.html", code=413, message=_("Файл слишком большой (максимум 8 МБ).")), 413
+
+    @app.errorhandler(429)
+    def too_many_requests(e):
+        is_json_req = (
+            request.path.startswith("/api/")
+            or request.is_json
+            or request.headers.get("X-Requested-With") == "fetch"
+            or (request.accept_mimetypes.best == "application/json" and not request.accept_mimetypes.accept_html)
+        )
+        if is_json_req:
+            resp = make_response(jsonify({"ok": False, "error": "too_many_requests"}), 429)
+            resp.headers.setdefault("Retry-After", "60")
+            return resp
+        resp = make_response(
+            render_template(
+                "errors/error.html",
+                code=429,
+                message=_("Слишком много запросов подряд. Подождите минуту и попробуйте снова."),
+            ),
+            429,
+        )
+        resp.headers.setdefault("Retry-After", "60")
+        return resp
 
     @app.errorhandler(503)
     def service_unavailable(e):
@@ -804,6 +910,88 @@ def _register_cli(app):
         res = purge_closed_support_images(days=days, dry_run=dry_run)
         prefix = "[DRY RUN] " if res["dry_run"] else ""
         click.echo(f"{prefix}Purged {res['attachments']} support attachment(s), {res['bytes_freed']} bytes (days={res['days']}).")
+
+    @app.cli.command("seed-crm-macros")
+    def seed_crm_macros_cmd():
+        """Idempotently seed Optima-style ReplyTemplate macros from docs/crm_bot/reply_macros.md."""
+        from services.crm_bot.macros_loader import seed_reply_templates
+
+        created = seed_reply_templates()
+        click.echo(f"Seeded CRM reply macros (created={created}).")
+
+    @app.cli.command("run-telegram-bot")
+    @click.option("--allow-fallback", is_flag=True, help="Allow heuristic classification if GEMINI_API_KEY is unset.")
+    def run_telegram_bot_cmd(allow_fallback):
+        """Start the CRM Telegram Lead Bot via local long polling."""
+        from services.crm_bot.classifier import CrmBotConfigError
+        from services.crm_bot.telegram_bot import run_polling_bot
+
+        try:
+            click.echo("Starting Monday CRM Telegram Bot (long polling)...")
+            run_polling_bot(app, allow_fallback=allow_fallback)
+        except CrmBotConfigError as exc:
+            raise click.ClickException(str(exc))
+
+    @app.cli.command("site-preflight")
+    def site_preflight_cmd():
+        """List every launch blocker for the public website; exits non-zero if any blocker exists."""
+        from .public_site import collect_site_preflight_blockers
+
+        blockers = collect_site_preflight_blockers()
+        if blockers:
+            click.echo(f"Found {len(blockers)} launch blocker(s):")
+            for item in blockers:
+                click.echo(f" - {item}")
+            raise SystemExit(1)
+        click.echo("OK: public site preflight passed (0 blockers).")
+
+    @app.cli.command("site-media-smoke")
+    def site_media_smoke_cmd():
+        """Smoke test media storage: upload, read back, list, and delete a temporary object."""
+        import secrets
+        from . import storage
+
+        backend = "supabase" if storage.using_supabase() else "local_disk"
+        prefix = "smoke-tests"
+        key = f"{prefix}/smoke_{secrets.token_hex(8)}.txt"
+        payload = f"monday-smoke-{secrets.token_hex(6)}".encode("utf-8")
+        try:
+            storage.save(key, payload, "text/plain")
+            got = storage.read_bytes(key)
+            if got != payload:
+                raise RuntimeError("Read-back payload mismatch.")
+            if storage.using_supabase():
+                listed = storage.list_all_objects(prefix)
+                if key not in listed:
+                    raise RuntimeError("Uploaded smoke key missing from Supabase Storage list API.")
+            else:
+                smoke_dir = os.path.join(app.config["UPLOAD_FOLDER"], prefix)
+                fname = os.path.basename(key)
+                if not os.path.isdir(smoke_dir) or fname not in os.listdir(smoke_dir):
+                    raise RuntimeError("Uploaded smoke file missing from local disk directory.")
+            storage.delete(key)
+            if storage.read_bytes(key) is not None:
+                raise RuntimeError("Deleted smoke key still readable.")
+        except Exception as exc:
+            click.echo(f"FAIL ({backend}): {type(exc).__name__}: {exc}", err=True)
+            raise SystemExit(1)
+        click.echo(f"OK: site-media-smoke passed on backend '{backend}' (uploaded, read, listed, deleted).")
+
+    @app.cli.command("legacy-access-report")
+    def legacy_access_report_cmd():
+        """Read-only report of student accounts affected by legacy_access_until grandfathering."""
+        from .subscriptions import count_legacy_backfill_candidates
+
+        stats = count_legacy_backfill_candidates()
+        click.echo(f"Schema has user.legacy_access_until: {stats['schema_has_legacy_column']}")
+        click.echo(f"LEGACY_ACCESS_DAYS={app.config.get('LEGACY_ACCESS_DAYS', 30)}")
+        click.echo(f"Total active student accounts: {stats['total_students']}")
+        click.echo(f"Already enrolled / teacher-linked students: {stats['enrolled_students']}")
+        click.echo(f"Unlinked students still needing backfill (legacy_access_until IS NULL): {stats['would_backfill_if_null']}")
+        click.echo(f"Unlinked students already grandfathered (legacy_access_until SET): {stats['already_grandfathered']}")
+        click.echo(
+            f"Total unlinked non-enrolled student accounts: {stats['would_backfill_if_null'] + stats['already_grandfathered']}"
+        )
 
 
 def _bootstrap_admin(app):

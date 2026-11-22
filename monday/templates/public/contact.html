@@ -1,0 +1,37 @@
+{% extends "public/_base.html" %}
+{% block content %}
+<section class="stack-sm">
+  <span class="eyebrow">{{ _("Связаться с нами") }}</span>
+  <h1 style="margin:0">{{ _("Контакты и запись в Monday Academy") }}</h1>
+  <p class="text-2">{{ _("Оставьте заявку или напишите нам в удобный мессенджер.") }}</p>
+</section>
+
+<section class="pub-grid-2">
+  <article class="card stack-sm">
+    <h2 style="margin:0">{{ _("Мессенджеры и соцсети") }}</h2>
+    <div class="row" style="gap:10px;flex-wrap:wrap">
+      {% if CONTACTS.telegram %}<a class="btn btn--secondary" href="{{ CONTACTS.telegram }}" target="_blank" rel="noopener noreferrer">Telegram</a>{% endif %}
+      {% if CONTACTS.instagram %}<a class="btn btn--secondary" href="{{ CONTACTS.instagram }}" target="_blank" rel="noopener noreferrer">Instagram</a>{% endif %}
+      {% if CONTACTS.whatsapp %}<a class="btn btn--secondary" href="{{ CONTACTS.whatsapp }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>{% endif %}
+    </div>
+    {% if CONTACTS.address %}<p class="small muted" style="margin:0">{{ CONTACTS.address }}</p>{% endif %}
+  </article>
+
+  <article class="card stack-sm">
+    <h2 style="margin:0">{{ _("Публичные филиалы") }}</h2>
+    {% if locations %}
+      {% for loc in locations %}
+        <div>
+          <strong>{{ loc.name }}</strong>
+          {% if loc.address %}<div class="small text-2">{{ loc.address }}</div>{% endif %}
+          {% if loc.working_hours %}<div class="small muted">{{ loc.working_hours }}</div>{% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-2" style="margin:0">{{ _("Актуальные адреса и расписание групп уточняются при подтверждении заявки.") }}</p>
+    {% endif %}
+  </article>
+</section>
+
+{% include "public/_lead_form.html" %}
+{% endblock %}

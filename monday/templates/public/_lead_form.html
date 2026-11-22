@@ -1,0 +1,74 @@
+{% import "partials/macros.html" as ui with context %}
+<section class="card" id="apply-form">
+  {% if sent %}
+    <div class="stack-sm">
+      <span class="eyebrow">{{ _("Заявка принята") }}</span>
+      <h2>{{ _("Спасибо! Мы уже получили вашу заявку") }}</h2>
+      <p class="text-2">{{ _("Менеджер Monday Academy свяжется с вами в ближайшее время и подберёт удобный формат и расписание.") }}</p>
+      <div>
+        <a class="btn btn--secondary btn--sm" href="{{ next_url or request.path }}">{{ _("Отправить ещё одну заявку") }}</a>
+      </div>
+    </div>
+  {% else %}
+    <div class="stack-sm" style="margin-bottom:16px">
+      <span class="eyebrow">{{ _("Запись на консультацию и пробный урок") }}</span>
+      <h2 style="margin:0">{{ form_title or _("Оставьте заявку — подберём группу и формат") }}</h2>
+      <p class="small muted" style="margin:0">{{ _("Менеджер ответит в течение 15 минут в рабочее время.") }}</p>
+    </div>
+    <form method="post" action="{{ url_for('crm_intake.public_apply') }}" class="stack">
+      {{ ui.csrf() }}
+      <input type="hidden" name="next" value="{{ next_url or request.path }}">
+      <input type="hidden" name="consent_required" value="1">
+      <input type="hidden" name="utm_source" value="{{ (utm or {}).get('utm_source', '') }}">
+      <input type="hidden" name="utm_medium" value="{{ (utm or {}).get('utm_medium', '') }}">
+      <input type="hidden" name="utm_campaign" value="{{ (utm or {}).get('utm_campaign', '') }}">
+      <input type="hidden" name="utm_content" value="{{ (utm or {}).get('utm_content', '') }}">
+      <input type="hidden" name="utm_term" value="{{ (utm or {}).get('utm_term', '') }}">
+      <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px" aria-hidden="true">
+
+      <div class="pub-grid-2">
+        <div class="field">
+          <label for="pub-name">{{ _("Имя и фамилия") }} *</label>
+          <input class="input" id="pub-name" name="full_name" required placeholder="{{ _('Например, Айдана Асанова') }}">
+        </div>
+        <div class="field">
+          <label for="pub-phone">{{ _("Телефон") }} *</label>
+          <input class="input" id="pub-phone" name="phone" placeholder="+996 700 123 456">
+        </div>
+      </div>
+
+      <div class="pub-grid-3">
+        <div class="field">
+          <label for="pub-msg">{{ _("Telegram / WhatsApp") }}</label>
+          <input class="input" id="pub-msg" name="messenger_handle" placeholder="@username">
+        </div>
+        <div class="field">
+          <label for="pub-int">{{ _("Экзамен или курс") }}</label>
+          <input class="input" id="pub-int" name="interest" value="{{ default_interest or '' }}" placeholder="ОРТ / SAT / ЕНТ / ЕГЭ">
+        </div>
+        <div class="field">
+          <label for="pub-mode">{{ _("Формат") }}</label>
+          <select class="select" id="pub-mode" name="mode_preference">
+            {% for m, lbl in MODE_PREF_LABELS.items() %}
+              <option value="{{ m }}" {{ 'selected' if default_mode == m }}>{{ lbl }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="pub-note">{{ _("Комментарий") }}</label>
+        <textarea class="textarea" id="pub-note" name="note" rows="2" placeholder="{{ _('Класс, цель по баллам или удобное время') }}"></textarea>
+      </div>
+
+      <label class="pub-consent">
+        <input type="checkbox" name="consent" value="1" required>
+        <span class="small text-2">{{ _("Соглашаюсь с") }} <a href="{{ url_for('auth.privacy') }}">{{ _("Политикой конфиденциальности") }}</a> {{ _("и обработкой заявки") }} *</span>
+      </label>
+
+      <div>
+        <button class="btn btn--primary btn--lg" type="submit">{{ _("Оставить заявку") }}</button>
+      </div>
+    </form>
+  {% endif %}
+</section>

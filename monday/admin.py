@@ -319,6 +319,19 @@ def _panel(user_id):
         ]
         exam = u.profile.exam if u.profile else None
         data["summary"] = progress_summary(u.id, exam) if exam else None
+        from .models import Subscription, SubscriptionPlan
+        from .subscriptions import get_or_create_default_plan, subscription_status_summary
+
+        get_or_create_default_plan()
+        db.session.flush()
+        data["subscription_status"] = subscription_status_summary(u)
+        data["subscription_plans"] = SubscriptionPlan.query.filter_by(is_active=True).order_by(SubscriptionPlan.price_amount.asc()).all()
+        data["subscriptions"] = (
+            Subscription.query.filter_by(user_id=u.id)
+            .order_by(Subscription.id.desc())
+            .limit(5)
+            .all()
+        )
     elif u.role == "assistant":
         data["astats"] = _assistant_stats(u.id)
     elif u.role == "teacher":
@@ -578,6 +591,159 @@ def review_work(work_id):
     flash(_("«%(t)s» опубликован.", t=w.title) if w.status == "published"
           else _("«%(t)s» возвращён автору в черновики.", t=w.title), "success")
     return redirect(url_for("admin.index", tab="moderation"))
+
+
+@bp.route("/questions/<int:question_id>/public-sample", methods=["POST"])
+@limiter.limit("30 per minute")
+@admin_required
+def toggle_public_sample(question_id):
+    """Toggle a published question as a public sample and sync/delete its copied stem media."""
+    from .public_samples import set_question_public_sample
+
+    q = db.session.get(Question, question_id) or abort(404)
+    enabled = (request.form.get("enabled") or "").strip() == "1"
+    was_enabled = bool(q.is_public_sample)
+    old_key = q.public_image_key
+    try:
+        set_question_public_sample(q, enabled)
+    except ValueError as exc:
+        if request.headers.get("X-Requested-With") == "fetch":
+            return {"ok": False, "error": str(exc)}, 400
+        flash(str(exc), "error")
+        return _back()
+
+    write_audit_log(
+        actor_id=current_user.id,
+        action="question_public_sample_toggle",
+        entity_type="question",
+        entity_id=q.id,
+        old_value={"is_public_sample": was_enabled, "public_image_key": old_key},
+        new_value={"is_public_sample": q.is_public_sample, "public_image_key": q.public_image_key},
+    )
+    db.session.commit()
+    if request.headers.get("X-Requested-With") == "fetch":
+        return {"ok": True, "is_public_sample": q.is_public_sample, "public_image_key": q.public_image_key}
+    flash(
+        _("Вопрос добавлен в бесплатные примеры.") if q.is_public_sample else _("Вопрос убран из бесплатных примеров."),
+        "success",
+    )
+    return _back()
+
+
+@bp.route("/users/<int:user_id>/subscription/grant", methods=["POST"])
+@limiter.limit("30 per minute")
+@admin_required
+def subscription_grant(user_id):
+    """Manually grant an active or trialing question-bank subscription (audited)."""
+    from .models import SubscriptionPlan
+    from .subscriptions import get_or_create_default_plan, grant_manual_subscription
+
+    u = db.session.get(User, user_id) or abort(404)
+    if u.role != "student":
+        abort(400)
+    plan_id = request.form.get("plan_id", type=int)
+    plan = db.session.get(SubscriptionPlan, plan_id) if plan_id else get_or_create_default_plan()
+    if not plan:
+        abort(404)
+    status = (request.form.get("status") or "active").strip()
+    days = request.form.get("days", type=int)
+    note = (request.form.get("note") or "").strip()
+    try:
+        sub = grant_manual_subscription(
+            current_user._get_current_object(),
+            u,
+            plan,
+            status=status,
+            duration_days=days,
+            note=note,
+        )
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return _back()
+    db.session.commit()
+    if request.headers.get("X-Requested-With") == "fetch":
+        return {"ok": True, "subscription_id": sub.id, "status": sub.status}
+    flash(_("Подписка на банк вопросов выдана."), "success")
+    return _back()
+
+
+@bp.route("/subscriptions/<int:sub_id>/plan", methods=["POST"])
+@limiter.limit("30 per minute")
+@admin_required
+def subscription_change_plan(sub_id):
+    """Change the SubscriptionPlan on an existing subscription (audited)."""
+    from .models import Subscription, SubscriptionPlan
+    from .subscriptions import change_subscription_plan
+
+    sub = db.session.get(Subscription, sub_id) or abort(404)
+    plan_id = request.form.get("plan_id", type=int) or abort(400)
+    plan = db.session.get(SubscriptionPlan, plan_id) or abort(404)
+    note = (request.form.get("note") or "").strip()
+    change_subscription_plan(current_user._get_current_object(), sub, plan, note=note)
+    db.session.commit()
+    if request.headers.get("X-Requested-With") == "fetch":
+        return {"ok": True, "subscription_id": sub.id, "plan_id": sub.plan_id}
+    flash(_("Тариф подписки обновлён."), "success")
+    return _back()
+
+
+@bp.route("/subscriptions/<int:sub_id>/cancel", methods=["POST"])
+@limiter.limit("30 per minute")
+@admin_required
+def subscription_cancel(sub_id):
+    """Immediately cancel a subscription (audited)."""
+    from .models import Subscription
+    from .subscriptions import cancel_subscription
+
+    sub = db.session.get(Subscription, sub_id) or abort(404)
+    note = (request.form.get("note") or "").strip()
+    cancel_subscription(current_user._get_current_object(), sub, note=note)
+    db.session.commit()
+    if request.headers.get("X-Requested-With") == "fetch":
+        return {"ok": True, "subscription_id": sub.id, "status": sub.status}
+    flash(_("Подписка отменена."), "info")
+    return _back()
+
+
+@bp.route("/subscriptions/plans", methods=["POST"])
+@limiter.limit("20 per minute")
+@admin_required
+def subscription_plan_create():
+    """Create a configurable SubscriptionPlan (audited)."""
+    from .models import SubscriptionPlan
+
+    code = (request.form.get("code") or "").strip().lower()[:48]
+    name = (request.form.get("name") or "").strip()[:120]
+    price_amount = request.form.get("price_amount", type=int)
+    currency = (request.form.get("currency") or "USD").strip().upper()[:8]
+    duration_days = max(1, int(request.form.get("duration_days", type=int) or 30))
+    if not code or not name or price_amount is None or price_amount < 0:
+        abort(400)
+    if SubscriptionPlan.query.filter_by(code=code).first():
+        abort(409)
+    plan = SubscriptionPlan(
+        code=code,
+        name=name,
+        description=(request.form.get("description") or "").strip(),
+        price_amount=price_amount,
+        currency=currency,
+        duration_days=duration_days,
+        is_active=True,
+    )
+    db.session.add(plan)
+    db.session.flush()
+    write_audit_log(
+        actor_id=current_user.id,
+        action="subscription_plan_created",
+        entity_type="subscription_plan",
+        entity_id=plan.id,
+        new_value={"code": plan.code, "price_amount": plan.price_amount, "currency": plan.currency, "duration_days": duration_days},
+    )
+    db.session.commit()
+    if request.headers.get("X-Requested-With") == "fetch":
+        return {"ok": True, "plan_id": plan.id}
+    flash(_("План подписки создан."), "success")
+    return _back()
 
 
 @bp.route("/account", methods=["GET", "POST"])

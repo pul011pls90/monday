@@ -7,7 +7,19 @@ from monday.extensions import db
 from monday.models import ReferenceSheet, User
 from monday.taxonomy import exam_view, keyset
 from test_app import APP, client, login, ok
-from test_settings import new_student
+from test_settings import new_student as _raw_new_student
+
+
+def new_student(tag, exam="ORT"):
+    from datetime import timedelta
+    from monday.models import utcnow
+
+    c, email = _raw_new_student(tag, exam=exam)
+    with APP.app_context():
+        u = User.query.filter_by(email=email).first()
+        u.legacy_access_until = utcnow() + timedelta(days=7)
+        db.session.commit()
+    return c, email
 
 IMAGES = os.path.join(os.path.dirname(fx.__file__), "static", "img", "formulas")
 

@@ -17,7 +17,7 @@ from flask_babel import gettext as _
 from flask_login import current_user
 from werkzeug.utils import secure_filename
 
-from .access import reviewer_required, staff_required
+from .access import question_bank_access_required, reviewer_required, staff_required
 from .constants import EXAMS
 from .extensions import db
 from .importer import find_duplicates, guess_skill, parse, problems
@@ -50,6 +50,7 @@ def _status_for_new():
 
 
 @bp.route("/", methods=["GET"])
+@question_bank_access_required
 @staff_required
 def home():
     mine = Question.query.filter_by(author_id=current_user.id)
@@ -71,6 +72,7 @@ def home():
 
 
 @bp.route("/import", methods=["POST"])
+@question_bank_access_required
 @staff_required
 def import_preview():
     raw = request.form.get("raw", "")
@@ -100,6 +102,7 @@ def _save_image(file):
 
 
 @bp.route("/import/save", methods=["POST"])
+@question_bank_access_required
 @staff_required
 def import_save():
     f = request.form
@@ -186,6 +189,7 @@ MINE_TABS = ("pending", "returned", "draft", "published")
 
 
 @bp.route("/mine")
+@question_bank_access_required
 @staff_required
 def mine():
     tab = request.args.get("tab", "pending")
@@ -209,6 +213,7 @@ def mine():
 
 
 @bp.route("/gaps")
+@question_bank_access_required
 @staff_required
 def gaps():
     exam = request.args.get("exam") if request.args.get("exam") in EXAMS else None
@@ -217,6 +222,7 @@ def gaps():
 
 
 @bp.route("/fixes")
+@question_bank_access_required
 @staff_required
 def fixes():
     """Open error reports on questions. A correction goes through the same review as a new question."""
@@ -228,6 +234,7 @@ def fixes():
 
 
 @bp.route("/branch-request", methods=["POST"])
+@question_bank_access_required
 @staff_required
 def branch_request():
     """«Нужной ветки нет»: the request reaches the admins' «Исправления» as a note on the parent subtopic."""
@@ -245,14 +252,18 @@ def branch_request():
 
 def publish_reviewed(q):
     """Approve a question. A correction is copied onto the question it fixes (same id) and its reports are closed."""
+    from .public_samples import sync_question_public_sample
+
     q.status, q.review_note, q.reviewed_by_id, q.reviewed_at = "published", None, current_user.id, utcnow()
     orig = q.replaces
     if not orig:
+        sync_question_public_sample(q)
         return q
     for field in ("text", "options", "correct", "explanation", "material", "image_path", "answer_type", "input_formats",
                   "precision", "difficulty", "skill_id", "exams", "weight", "tags"):
         setattr(orig, field, getattr(q, field))
     orig.reviewed_by_id, orig.reviewed_at = current_user.id, utcnow()
+    sync_question_public_sample(orig)
     for r in Report.query.filter_by(question_id=orig.id, status="open").all():
         r.status, r.handled_by_id, r.handled_at, r.seen = "fixed", current_user.id, utcnow(), False
         r.reply = _("Спасибо! Вопрос исправлен.")
@@ -264,6 +275,7 @@ def publish_reviewed(q):
 
 
 @review_bp.route("/questions")
+@question_bank_access_required
 @reviewer_required
 def queue():
     author = request.args.get("author", type=int)
@@ -280,6 +292,7 @@ def queue():
 
 
 @review_bp.route("/questions/<int:qid>", methods=["POST"])
+@question_bank_access_required
 @reviewer_required
 def decide(qid):
     q = db.session.get(Question, qid) or abort(404)
@@ -303,6 +316,7 @@ def decide(qid):
 
 
 @review_bp.route("/questions/approve-all", methods=["POST"])
+@question_bank_access_required
 @reviewer_required
 def approve_all():
     ids = [int(x) for x in request.form.getlist("qid") if x.isdigit()]

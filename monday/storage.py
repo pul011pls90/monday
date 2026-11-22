@@ -110,6 +110,41 @@ def signed_url(name):
     return url
 
 
+def list_all_objects(prefix: str = "", page_size: int = 100) -> list[str]:
+    """List all object keys under `prefix` via Supabase Storage paginated list API."""
+    if not using_supabase():
+        return []
+    bucket = current_app.config["SUPABASE_BUCKET"]
+    clean_prefix = (prefix or "").strip("/")
+    limit = max(1, min(1000, int(page_size or 100)))
+    offset = 0
+    names: list[str] = []
+    while True:
+        body = _api(
+            f"object/list/{urllib.parse.quote(bucket)}",
+            json.dumps({"prefix": clean_prefix, "limit": limit, "offset": offset}).encode(),
+            headers={"Content-Type": "application/json"},
+            timeout=20,
+            method="POST",
+        )
+        rows = json.loads(body or b"[]")
+        if not isinstance(rows, list) or not rows:
+            break
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            name = (row.get("name") or "").strip("/")
+            # Folder placeholders on Supabase Storage have id=None; skip directories cleanly
+            if not name or row.get("id") is None:
+                continue
+            full_key = f"{clean_prefix}/{name}" if clean_prefix else name
+            names.append(full_key)
+        if len(rows) < limit:
+            break
+        offset += limit
+    return sorted(set(names))
+
+
 def ensure_bucket():
     """Create the private bucket if it's missing (once at start-up; harmless when it exists)."""
     if not using_supabase():

@@ -11,7 +11,7 @@ from flask import Blueprint, jsonify, render_template, request
 from flask_login import current_user
 from sqlalchemy import func
 
-from .access import teacher_required
+from .access import question_bank_access_required, teacher_required
 from .constants import EXAMS
 from .extensions import db
 from .models import AttemptAnswer, Question, User, Work
@@ -122,6 +122,7 @@ def row_data(x):
 
 
 @bp.route("/")
+@question_bank_access_required
 @teacher_required
 def results():
     exam = _exam()
@@ -143,6 +144,7 @@ def results():
 
 
 @bp.route("/q/<int:qid>")
+@question_bank_access_required
 @teacher_required
 def preview(qid):
     x = db.session.get(Question, qid)
@@ -152,6 +154,7 @@ def preview(qid):
 
 
 @bp.route("/random")
+@question_bank_access_required
 @teacher_required
 def pick_random():
     """n random questions from the chosen branch and filters, skipping ones already chosen or in my works."""
@@ -166,6 +169,7 @@ def pick_random():
 
 
 @bp.route("/plan")
+@question_bank_access_required
 @teacher_required
 def plan():
     """Fill by plan: `per` questions from every topic, split easy/medium/hard by the given shares."""

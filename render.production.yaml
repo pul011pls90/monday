@@ -25,6 +25,12 @@ services:
           property: connectionString
       - key: UPLOAD_FOLDER
         value: /var/data/uploads
+      - key: PUBLIC_SAMPLE_MEDIA_FOLDER
+        value: /var/data/public_sample_media
+      - key: PUBLIC_SITE_ENABLED
+        value: "0"
+      - key: SELF_STUDY_SIGNUP_ENABLED
+        value: "0"
       - key: MONDAY_SECRET_KEY
         generateValue: true
       - key: MONDAY_DEBUG

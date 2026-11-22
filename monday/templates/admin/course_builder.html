@@ -1,11 +1,14 @@
 {% extends "layout.html" %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/skills-path.css') }}">
+{% endblock %}
 {% block title %}{{ _("Конструктор уроков") }}{% endblock %}
 {% block context %}{{ _("Администрирование · Курс SAT") }}{% endblock %}
 {% block content %}
 <div class="page-head">
   <div class="page-head__text">
     <h1>{{ _("Конструктор уроков курса") }}</h1>
-    <p>{{ _("Обновляйте теорию с формулами ($...$), видеоразборы, графики Desmos и подборки задач прямо здесь.") }}</p>
+    <p>{{ _("Обновляйте теорию с формулами") }} (<span class="no-math">$...$</span> / <span class="no-math">\(...\)</span>), {{ _("видеоразборы, графики Desmos и подборки задач прямо здесь.") }}</p>
   </div>
   <a class="btn btn--secondary" href="{{ url_for('admin.index') }}">{{ _("Назад в админку") }}</a>
 </div>
@@ -34,7 +37,7 @@
         <input class="input" id="cb-title" name="title_ru" value="{{ cur.title_ru }}">
       </div>
       <div class="field">
-        <label for="cb-article">{{ _("Статья / теория (KaTeX $...$)") }}</label>
+        <label for="cb-article">{{ _("Статья / теория") }} (<span class="no-math">KaTeX $...$, \(...\)</span>)</label>
         <textarea class="textarea" id="cb-article" name="article_md" rows="7">{{ cur.article_md }}</textarea>
       </div>
       <div class="field">
@@ -55,8 +58,12 @@
   </section>
 
   <section class="card" style="padding:20px">
-    <h2 style="margin-top:0;font-size:16px">{{ _("Предпросмотр статьи (KaTeX)") }}</h2>
-    <div id="cb-preview" class="stack math" style="gap:8px;line-height:1.55"></div>
+    <div class="row row--between" style="margin-bottom:10px;gap:8px">
+      <h2 style="margin:0;font-size:16px">{{ _("Предпросмотр статьи (KaTeX)") }}</h2>
+      <span id="cb-preview-status" class="small muted" aria-live="polite"></span>
+    </div>
+    <div id="cb-preview-err" class="flash flash--error" role="alert" hidden style="margin-bottom:10px"></div>
+    <div id="cb-preview" class="cp-article math no-math" data-preview-url="{{ url_for('course.admin_course_preview') }}">{{ initial_preview_html }}</div>
   </section>
 </div>
 
@@ -64,23 +71,69 @@
 (function(){
   const ed = document.getElementById("cb-article");
   const pv = document.getElementById("cb-preview");
+  const errBox = document.getElementById("cb-preview-err");
+  const statusEl = document.getElementById("cb-preview-status");
   if (!ed || !pv) return;
-  function render(){
-    pv.innerHTML = (ed.value || "").split("\n\n").filter(Boolean).map((p)=>{
-      const el = document.createElement("p");
-      el.textContent = p;
-      return el.outerHTML;
-    }).join("");
-    if (window.renderMathInElement) {
+  const previewUrl = pv.dataset.previewUrl;
+  const csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || "";
+  let timer = null;
+  let seq = 0;
+
+  function renderMathInPreview() {
+    if (!window.renderMathInElement) return;
+    try {
       window.renderMathInElement(pv, {
-        delimiters: [{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}],
-        throwOnError: false
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "\\[", right: "\\]", display: true },
+          { left: "$", right: "$", display: false },
+          { left: "\\(", right: "\\)", display: false }
+        ],
+        throwOnError: false,
+        trust: false
       });
+    } catch (e) {
+      if (errBox) {
+        errBox.textContent = "Ошибка KaTeX: " + (e && e.message ? e.message : "неверный синтаксис формулы");
+        errBox.hidden = false;
+      }
     }
   }
-  ed.addEventListener("input", render);
-  window.addEventListener("load", render);
-  render();
+
+  async function refreshPreview() {
+    const mySeq = ++seq;
+    if (errBox) errBox.hidden = true;
+    if (statusEl) statusEl.textContent = "Обновление…";
+    try {
+      const res = await fetch(previewUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+        body: JSON.stringify({ article_md: ed.value || "" })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      if (mySeq !== seq) return;
+      if (!data || !data.ok) throw new Error("Не удалось построить предпросмотр");
+      pv.innerHTML = data.html || "";
+      renderMathInPreview();
+      if (statusEl) statusEl.textContent = "";
+    } catch (e) {
+      if (mySeq !== seq) return;
+      if (statusEl) statusEl.textContent = "";
+      if (errBox) {
+        errBox.textContent = "Не удалось обновить предпросмотр: " + (e && e.message ? e.message : "ошибка сети");
+        errBox.hidden = false;
+      }
+    }
+  }
+
+  ed.addEventListener("input", () => {
+    clearTimeout(timer);
+    timer = setTimeout(refreshPreview, 250);
+  });
+  window.addEventListener("load", renderMathInPreview);
+  renderMathInPreview();
 })();
 </script>
 {% endblock %}

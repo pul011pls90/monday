@@ -4,7 +4,7 @@ from __future__ import annotations
 from flask import Blueprint, Response, abort, jsonify, render_template, request
 from flask_login import current_user
 
-from .access import admin_required
+from .access import admin_required, question_bank_access_required
 from .analytics_service import (
     compute_charts,
     compute_kpis,
@@ -54,6 +54,7 @@ def api_visits():
 
 
 @bp.route("/export.csv")
+@question_bank_access_required
 @admin_required
 def export_csv():
     csv_body = export_visits_csv(request.args)

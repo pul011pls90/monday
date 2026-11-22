@@ -1,0 +1,34 @@
+{% extends "public/_base.html" %}
+{% block content %}
+<section class="card stack-sm">
+  <span class="eyebrow">{{ _("Онлайн-обучение") }}</span>
+  <h1 style="margin:0">{{ _("Онлайн-курсы с преподавателем") }}</h1>
+  <p class="text-2">{{ _("Живые занятия в мини-группах или индивидуально, синхронизированные с личным кабинетом Monday, журналом ошибок и домашними заданиями.") }}</p>
+</section>
+
+<section>
+  {% if courses %}
+    <div class="pub-grid-2">
+      {% for course in courses %}
+        <article class="card stack-sm">
+          <div class="row row--between">
+            <h2 style="margin:0">{{ course.name }}</h2>
+            {% if course.exam %}<span class="tag tag--soft">{{ course.exam }}</span>{% endif %}
+          </div>
+          {% if course.public_summary %}
+            <p class="text-2" style="margin:0">{{ course.public_summary }}</p>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <section class="card">
+      <h2 style="margin-top:0">{{ _("Направления онлайн-подготовки") }}</h2>
+      <p class="text-2" style="margin-bottom:0">{{ _("Готовим онлайн по направлениям ОРТ, SAT, ЕНТ, ЕГЭ, ОГЭ и школьной математике — сейчас в банке") }} <b class="num">{{ stats.published_questions }}</b> {{ _("задач. Оставьте заявку, чтобы подобрать расписание.") }}</p>
+    </section>
+  {% endif %}
+</section>
+
+{% set default_mode = 'online' %}
+{% include "public/_lead_form.html" %}
+{% endblock %}

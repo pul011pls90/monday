@@ -13,8 +13,16 @@ from flask_babel import gettext as _
 from flask_login import current_user
 
 from .models import local_date, local_midnight_utc, today as local_today  # noqa: F401
-from .access import student_required
-from .extensions import db
+from .access import question_bank_access_required, student_required
+from .abuse import (
+    abuse_rate_key,
+    check_404_probe_guard,
+    enforce_question_scrape_guard,
+    rate_limit_value,
+    record_404_probe,
+)
+from .subscriptions import claim_free_question_access, has_question_bank_access
+from .extensions import db, limiter
 from .models import (DAILY_MAX, Attempt, AttemptAnswer, DailyAnswer, DailyPick, Question, StudentRecord, utcnow)
 from .content_i18n import localize
 from .services import display_answer, is_correct, teacher_ids_for
@@ -100,23 +108,41 @@ def _allowed(user, pick):
 
 
 @bp.route("/")
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def play():
     """The questions of the day on their own screen (the home page shows a slim card that leads here)."""
     from flask import redirect, render_template, url_for
     data = student_daily(current_user)
     if not data["items"]:
         return redirect(url_for("student.home"))
+    qids = [item["pick"].question_id for item in data["items"] if item.get("pick")]
+    if qids:
+        enforce_question_scrape_guard(current_user, qids, source="daily.play")
+    if not has_question_bank_access(current_user):
+        ok_q, _u, _r, _a = claim_free_question_access(current_user.id, qids, partial=False)
+        if not ok_q:
+            abort(403)
     return render_template("student/daily.html", daily=data)
 
 
 @bp.route("/<int:pick_id>/answer", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_ACTION", "90 per minute; 600 per hour"), key_func=abuse_rate_key)
 def answer(pick_id):
-    pick = db.session.get(DailyPick, pick_id) or abort(404)
-    if not _allowed(current_user, pick):
+    check_404_probe_guard()
+    pick = db.session.get(DailyPick, pick_id)
+    if not pick or not _allowed(current_user, pick):
+        record_404_probe("daily.answer")
         abort(404)
     q = pick.question
+    enforce_question_scrape_guard(current_user, [q.id], source="daily.answer")
+    if not has_question_bank_access(current_user):
+        ok_q, _u, _r, _a = claim_free_question_access(current_user.id, [q.id])
+        if not ok_q:
+            return jsonify(ok=False, error="daily_limit_reached"), 403
     given = (request.form.get("given") or "").strip()
     if not given:
         return jsonify(error=_("Выберите или введите ответ.")), 400

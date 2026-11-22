@@ -807,4 +807,6 @@ def refresh_demo_mondays():
             grade_version_attempt(att, v, form)
             att.finished_at = started + timedelta(minutes=rng.randint(9, 20))
             att.duration_sec = int((att.finished_at - started).total_seconds())
+    from services.crm_bot.macros_loader import seed_reply_templates
+    seed_reply_templates(commit=False)
     db.session.commit()

@@ -1,0 +1,113 @@
+{% extends "public/_base.html" %}
+{% block json_ld %}
+<script type="application/ld+json">{{ org_json_ld|tojson }}</script>
+{% endblock %}
+
+{% block content %}
+<section class="pub-hero">
+  <div>
+    <span class="eyebrow" style="color:var(--hero-muted)">Monday Academy</span>
+    <h1>{{ _("Подготовка к экзаменам по математике — в группе или самостоятельно") }}</h1>
+    <p class="pub-hero__lead">{{ _("Выберите занятия с преподавателями в Monday Academy (офлайн и онлайн) или самостоятельную тренировку по банку вопросов с разбором и прогнозом баллов.") }}</p>
+    <div class="pub-hero__ctas">
+      <a class="btn btn--primary btn--lg" href="#apply-form">{{ _("Учиться в Monday Academy") }}</a>
+      <a class="btn btn--secondary btn--lg" href="{{ url_for('public_site.question_bank') }}">{{ _("Банк вопросов без преподавателя") }}</a>
+    </div>
+  </div>
+  <div class="pub-hero__card">
+    <div class="eyebrow" style="color:var(--hero-muted)">{{ _("Два формата работы") }}</div>
+    <div>
+      <strong>{{ _("1. Курсы с преподавателем") }}</strong>
+      <p class="small" style="margin:4px 0 0;color:var(--hero-muted)">{{ _("Офлайн-аудитории и онлайн-группы: домашние задания, еженедельный тест Monday и контроль прогресса.") }}</p>
+    </div>
+    <div>
+      <strong>{{ _("2. Подписка на банк вопросов") }}</strong>
+      <p class="small" style="margin:4px 0 0;color:var(--hero-muted)">{{ _("Для самостоятельных учеников — от") }} {{ pricing.display_price }}/{{ _("мес") }} {{ _("с бесплатными примерами задач.") }}</p>
+    </div>
+  </div>
+</section>
+
+<section aria-label="{{ _('Актуальная статистика базы заданий') }}">
+  <div class="pub-stats">
+    <article class="pub-stat">
+      <div class="pub-stat__num num">{{ stats.published_questions }}</div>
+      <div class="pub-stat__lbl">{{ _("опубликованных задач в базе") }}</div>
+    </article>
+    <article class="pub-stat">
+      <div class="pub-stat__num num">{{ stats.topics_count }}</div>
+      <div class="pub-stat__lbl">{{ _("крупных тем и") }} {{ stats.skills_count }} {{ _("навыков") }}</div>
+    </article>
+    <article class="pub-stat">
+      <div class="pub-stat__num num">{{ stats.collections_count }}</div>
+      <div class="pub-stat__lbl">{{ _("готовых вариантов и сборников") }}</div>
+    </article>
+    <article class="pub-stat">
+      <div class="pub-stat__num num">{{ stats.exams_count }}</div>
+      <div class="pub-stat__lbl">{{ _("экзаменационных направлений") }}</div>
+    </article>
+  </div>
+</section>
+
+<section>
+  <div class="pub-section-head">
+    <div>
+      <span class="eyebrow">{{ _("Методика") }}</span>
+      <h2>{{ _("Как устроена подготовка в Monday") }}</h2>
+    </div>
+  </div>
+  <div class="pub-grid-3">
+    <article class="card">
+      <h3>{{ _("1. Точная диагностика") }}</h3>
+      <p class="text-2">{{ _("Определяем текущий уровень по карте тем и строим понятный маршрут к нужному экзамену.") }}</p>
+    </article>
+    <article class="card">
+      <h3>{{ _("2. Практика без воды") }}</h3>
+      <p class="text-2">{{ _("Тренировочные сессии от 5 до 30 минут, мгновенная проверка, пояснения и личный журнал ошибок.") }}</p>
+    </article>
+    <article class="card">
+      <h3>{{ _("3. Симуляция экзамена") }}</h3>
+      <p class="text-2">{{ _("Таймер, формат бланков (ОРТ) или встроенный калькулятор Desmos (SAT / CSCA) и прогноз балла.") }}</p>
+    </article>
+  </div>
+</section>
+
+<section>
+  <div class="pub-section-head">
+    <div>
+      <span class="eyebrow">{{ _("Направления") }}</span>
+      <h2>{{ _("Экзамены в базе Monday") }}</h2>
+    </div>
+    <a class="btn btn--secondary btn--sm" href="{{ url_for('public_site.question_bank') }}">{{ _("Смотреть банк вопросов") }}</a>
+  </div>
+  <div class="pub-exam-grid">
+    {% for ex in stats.exam_cards %}
+      <article class="pub-exam-card">
+        <div class="row row--between">
+          <strong>{{ ex.label }}</strong>
+          <span class="small muted num">{{ ex.count }} {{ _("зад.") }}</span>
+        </div>
+        {% if ex.country or ex.note %}
+          <div class="small muted">{{ ex.country }}{% if ex.country and ex.note %} · {% endif %}{{ ex.note }}</div>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="pub-grid-2">
+  <article class="card stack-sm">
+    <span class="eyebrow">{{ _("Очное обучение") }}</span>
+    <h3>{{ _("Офлайн-курсы и филиалы") }}</h3>
+    <p class="text-2">{{ _("Занятия в мини-группах с преподавателем, разбор сложных задач у доски и контроль домашних работ на платформе.") }}</p>
+    <div><a class="btn btn--secondary" href="{{ url_for('public_site.offline_courses') }}">{{ _("Подробнее об офлайн-курсах") }}</a></div>
+  </article>
+  <article class="card stack-sm">
+    <span class="eyebrow">{{ _("Дистанционное обучение") }}</span>
+    <h3>{{ _("Онлайн-курсы из любой точки") }}</h3>
+    <p class="text-2">{{ _("Живые уроки с преподавателем, интерактивная доска и единый цифровой кабинет ученика.") }}</p>
+    <div><a class="btn btn--secondary" href="{{ url_for('public_site.online_courses') }}">{{ _("Подробнее об онлайн-форматах") }}</a></div>
+  </article>
+</section>
+
+{% include "public/_lead_form.html" %}
+{% endblock %}

@@ -13,9 +13,17 @@ from flask import Blueprint, abort, jsonify, redirect, render_template, request,
 from flask_babel import gettext as _
 from flask_login import current_user
 
-from .access import student_required
+from .access import question_bank_access_required, student_required
+from .abuse import (
+    abuse_rate_key,
+    check_404_probe_guard,
+    enforce_question_scrape_guard,
+    rate_limit_value,
+    record_404_probe,
+)
+from .subscriptions import claim_free_question_access, has_question_bank_access
 from .constants import COLLECTION_EXAMS, EXAMS, FORMAT_FOR_EXAM, TEST_FORMATS, UNIVERSITY_EXAM
-from .extensions import db
+from .extensions import db, limiter
 from .formulas import sheets_for
 from .models import Attempt, AttemptAnswer, BankState, ContentNode, Question, Work
 from .services import content_tree, display_answer, is_correct, student_pool
@@ -178,7 +186,9 @@ def clock(seconds):
 
 
 @bp.route("/")
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def index():
     exam = _exam_arg()
     f = _filters(request.args)
@@ -221,7 +231,9 @@ def index():
 
 
 @bp.route("/start", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_ACTION", "90 per minute; 600 per hour"), key_func=abuse_rate_key)
 def start():
     exam = _exam_arg()
     f = _filters(request.form)
@@ -248,6 +260,11 @@ def start():
         from flask import flash
         flash(_("По этим фильтрам вопросов нет. Сними часть фильтров."), "error")
         return redirect(url_for("bank.index", exam=exam, **f))
+    if not has_question_bank_access(current_user):
+        ok_q, _used, _rem, allowed_plan = claim_free_question_access(current_user.id, plan, partial=True)
+        if not ok_q or not allowed_plan:
+            abort(403)
+        plan = allowed_plan
     att = Attempt(user=current_user, mode="bank", plan=plan, position=0, total=len(plan), draft={"exam": exam})
     db.session.add(att)
     db.session.commit()
@@ -257,8 +274,10 @@ def start():
 
 
 def _own_bank_attempt(attempt_id):
+    check_404_probe_guard()
     att = db.session.get(Attempt, attempt_id)
     if not att or att.user_id != current_user.id or att.mode != "bank":
+        record_404_probe("bank._own_bank_attempt")
         abort(404)
     return att
 
@@ -268,7 +287,9 @@ def _letters(exam):
 
 
 @bp.route("/s/<int:attempt_id>")
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def play(attempt_id):
     att = _own_bank_attempt(attempt_id)
     plan = att.plan or []
@@ -281,6 +302,11 @@ def play(attempt_id):
     question = db.session.get(Question, plan[i])
     if question is None:
         abort(404)
+    enforce_question_scrape_guard(current_user, [question.id], source="bank.play")
+    if not has_question_bank_access(current_user):
+        ok_q, _u, _r, _a = claim_free_question_access(current_user.id, [question.id])
+        if not ok_q:
+            abort(403)
     exam = (att.draft or {}).get("exam")
     states = _states(current_user.id, plan)
     last = _last_answers(current_user.id)
@@ -376,7 +402,9 @@ def booklet_pages(items):
 
 
 @bp.route("/s/<int:attempt_id>/sheet")
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def sheet(attempt_id):
     att = _own_bank_attempt(attempt_id)
     plan = att.plan or []
@@ -388,6 +416,14 @@ def sheet(attempt_id):
     q = request.args.get("q", type=int)  # coming from the one-question view: open the page with that question
     if q is not None:
         p = next((k for k, pg in enumerate(pages) if any(i == q for row in pg["rows"] for i, _it in row)), p)
+    if pages:
+        page_qids = [it["question_id"] for row in pages[p]["rows"] for _i, it in row if it.get("question_id")]
+        if page_qids:
+            enforce_question_scrape_guard(current_user, page_qids, source="bank.sheet")
+        if not has_question_bank_access(current_user):
+            ok_q, _u, _r, _a = claim_free_question_access(current_user.id, page_qids, partial=False)
+            if not ok_q:
+                abort(403)
     done = {}
     for a in sorted(att.answers, key=lambda a: a.id):  # the latest check of each question in this session
         done[a.index] = {"given": a.given, "ok": a.is_correct}
@@ -441,13 +477,22 @@ def _seconds_arg():
 
 
 @bp.route("/s/<int:attempt_id>/check", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_ACTION", "90 per minute; 600 per hour"), key_func=abuse_rate_key)
 def check(attempt_id):
     att = _own_bank_attempt(attempt_id)
     i = request.form.get("i", type=int)
     if i is None or not 0 <= i < len(att.plan or []):
         abort(400)
     question = db.session.get(Question, att.plan[i])
+    if question is None:
+        abort(404)
+    enforce_question_scrape_guard(current_user, [question.id], source="bank.check")
+    if not has_question_bank_access(current_user):
+        ok_q, _u, _r, _a = claim_free_question_access(current_user.id, [question.id])
+        if not ok_q:
+            return jsonify(ok=False, error="daily_limit_reached"), 403
     given = (request.form.get("given") or "").strip()
     if not given:
         return jsonify(error=_("Выберите или введите ответ.")), 400
@@ -470,13 +515,22 @@ def check(attempt_id):
 
 
 @bp.route("/s/<int:attempt_id>/reveal", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_ACTION", "90 per minute; 600 per hour"), key_func=abuse_rate_key)
 def reveal(attempt_id):
     att = _own_bank_attempt(attempt_id)
     i = request.form.get("i", type=int)
     if i is None or not 0 <= i < len(att.plan or []):
         abort(400)
     question = db.session.get(Question, att.plan[i])
+    if question is None:
+        abort(404)
+    enforce_question_scrape_guard(current_user, [question.id], source="bank.reveal")
+    if not has_question_bank_access(current_user):
+        ok_q, _u, _r, _a = claim_free_question_access(current_user.id, [question.id])
+        if not ok_q:
+            return jsonify(ok=False, error="daily_limit_reached"), 403
     st = _state_for(question.id)
     if not st.attempts:
         return jsonify(error=_("Сначала ответь — потом объяснение.")), 409
@@ -486,7 +540,9 @@ def reveal(attempt_id):
 
 
 @bp.route("/mark", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_ACTION", "90 per minute; 600 per hour"), key_func=abuse_rate_key)
 def mark():
     qid = request.form.get("question_id", type=int)
     if not qid or not db.session.get(Question, qid):
@@ -498,7 +554,9 @@ def mark():
 
 
 @bp.route("/time", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_ACTION", "90 per minute; 600 per hour"), key_func=abuse_rate_key)
 def time_spent():
     qid = request.form.get("question_id", type=int)
     if not qid or not db.session.get(Question, qid):

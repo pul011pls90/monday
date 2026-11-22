@@ -64,7 +64,7 @@
         {# Lesson / Article View #}
         <article class="cp-card">
           <h1 class="cp-title">{{ lesson.title_ru }}</h1>
-          <div class="cp-article math" id="cp-article-body">
+          <div class="cp-article math no-math" id="cp-article-body">
             {{ article_html }}
           </div>
 
@@ -207,11 +207,22 @@
     if (window.renderMathInElement && el) {
       try {
         window.renderMathInElement(el, {
-          delimiters: [{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}],
-          throwOnError: false
+          delimiters: [
+            {left:"$$",right:"$$",display:true},
+            {left:"\\[",right:"\\]",display:true},
+            {left:"$",right:"$",display:false},
+            {left:"\\(",right:"\\)",display:false}
+          ],
+          throwOnError: false,
+          trust: false
         });
       } catch (_e) {}
     }
+  }
+  const articleEl = document.getElementById("cp-article-body");
+  if (articleEl) {
+    mathRender(articleEl);
+    window.addEventListener("load", () => mathRender(articleEl));
   }
 
   // Subtle fade-in / fade-out helpers for Course Player blocks (respects prefers-reduced-motion)

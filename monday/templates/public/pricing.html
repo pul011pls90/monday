@@ -1,0 +1,66 @@
+{% extends "public/_base.html" %}
+{% block content %}
+<section class="stack-sm">
+  <span class="eyebrow">{{ _("Тарифы") }}</span>
+  <h1 style="margin:0">{{ _("Выберите удобный способ подготовки") }}</h1>
+  <p class="text-2">{{ _("Подписка на банк вопросов даёт самостоятельный доступ ко всем тренажёрам. Абонемент на занятия с преподавателем оформляется через менеджера школы.") }}</p>
+</section>
+
+<section>
+  <table class="pub-pricing-table">
+    <thead>
+      <tr>
+        <th>{{ _("Возможность") }}</th>
+        <th>{{ _("Бесплатный старт") }}</th>
+        <th>{{ _("Подписка на банк вопросов") }} ({{ pricing.display_price }}/{{ _("мес") }})</th>
+        <th>{{ _("Занятия в Monday Academy") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{ _("Примеры задач и базовые сессии") }}</td>
+        <td>{{ _("Дневной лимит после регистрации") }}</td>
+        <td>{{ _("Полный доступ") }}</td>
+        <td>{{ _("Полный доступ") }}</td>
+      </tr>
+      <tr>
+        <td>{{ _("База задач по ОРТ, SAT, ЕНТ, ЕГЭ, ОГЭ, CSCA") }}</td>
+        <td>{{ _("Ограничено сэмплами") }}</td>
+        <td>{{ stats.published_questions }} {{ _("задач") }}</td>
+        <td>{{ stats.published_questions }} {{ _("задач") }}</td>
+      </tr>
+      <tr>
+        <td>{{ _("Пробные сборники с таймером и разбором") }}</td>
+        <td>—</td>
+        <td>{{ _("Включено") }}</td>
+        <td>{{ _("Включено") }}</td>
+      </tr>
+      <tr>
+        <td>{{ _("Занятия и домашние задания с преподавателем") }}</td>
+        <td>—</td>
+        <td>—</td>
+        <td>{{ _("Включено в абонемент") }}</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="pub-grid-2">
+  <article class="card stack-sm">
+    <h3>{{ _("Подписка на банк вопросов") }}</h3>
+    <p class="text-2">{{ _("Для самостоятельной практики без учителя и расписания. Используйте бесплатные примеры на странице банка или войдите в кабинет.") }}</p>
+    <div>
+      {% if config.get('SELF_STUDY_SIGNUP_ENABLED') %}
+      <a class="btn btn--primary" href="{{ url_for('auth.register') }}">{{ _("Создать аккаунт") }}</a>
+      {% else %}
+      <a class="btn btn--primary" href="{{ url_for('auth.login') }}">{{ _("Войти в кабинет") }}</a>
+      {% endif %}
+    </div>
+  </article>
+  <article class="card stack-sm">
+    <h3>{{ _("Курсы с преподавателем") }}</h3>
+    <p class="text-2">{{ _("Групповые и индивидуальные занятия в аудиториях или онлайн — оставьте заявку на подбор группы.") }}</p>
+    <div><a class="btn btn--secondary" href="{{ url_for('public_site.contact') }}#apply-form">{{ _("Оставить заявку") }}</a></div>
+  </article>
+</section>
+{% endblock %}

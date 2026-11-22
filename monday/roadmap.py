@@ -9,7 +9,7 @@ from flask_login import current_user
 from sqlalchemy import inspect as sa_inspect, text as sa_text
 
 from . import formulas
-from .access import admin_required, student_required
+from .access import admin_required, question_bank_access_required, student_required
 from .models import (
     Attempt,
     AttemptAnswer,
@@ -342,6 +342,7 @@ def build_sat_roadmap(user_id: int, topics: list[dict], q: str = "", lang: str =
 
 
 @bp.post("/api/roadmap/node/<node_key>/complete")
+@question_bank_access_required
 @student_required
 def api_complete_node(node_key: str):
     data = request.get_json(silent=True) or {}
@@ -376,6 +377,7 @@ def api_complete_node(node_key: str):
 
 
 @bp.post("/api/roadmap/goal")
+@question_bank_access_required
 @student_required
 def api_set_goal():
     data = request.get_json(silent=True) or {}
@@ -388,6 +390,7 @@ def api_set_goal():
 
 
 @bp.post("/api/roadmap/checklist")
+@question_bank_access_required
 @student_required
 def api_checklist():
     data = request.get_json(silent=True) or {}
@@ -406,6 +409,7 @@ def api_checklist():
 
 
 @bp.route("/admin/roadmap", methods=["GET", "POST"])
+@question_bank_access_required
 @admin_required
 def admin_roadmap():
     milestones = RoadmapMilestone.query.filter_by(exam="SAT").order_by(RoadmapMilestone.step.asc()).all()

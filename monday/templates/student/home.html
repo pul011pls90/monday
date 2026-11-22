@@ -1,7 +1,9 @@
 {% extends "layout.html" %}
 {% block title %}{{ _("Главная") }}{% endblock %}
 {% block topbar_extra %}
+  {% if current_teachers %}
   <a class="icon-btn" href="{{ url_for('student.homework') }}" aria-label="{{ _('Домашние задания') }}">{{ ui.icon('bell') }}{% if assignments %}<span class="dot-badge"></span>{% endif %}</a>
+  {% endif %}
 {% endblock %}
 {% block content %}
 {% for r in replies %}
@@ -15,16 +17,14 @@
 
 {# ------------------------------------------------------------ «Сегодня»: the day's plan as one checklist, one button for the next step #}
 <h1 class="home-hello">{{ _("Привет, %(name)s", name=current_user.first_name) }}</h1>
+{% if current_teachers %}
 <div class="row small" style="gap:8px;margin-bottom:12px;flex-wrap:wrap">
   <span class="tag tag--soft">
     {{ ui.icon('users', 14) }}
-    {% if current_teachers %}
-      {{ _("Мой преподаватель") }}: <b>{% for ct in current_teachers %}{{ ct.teacher.name }}{% if ct.course %} ({{ ct.course.name }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</b>
-    {% else %}
-      {{ _("Преподаватель пока не назначен") }}
-    {% endif %}
+    {{ _("Мой преподаватель") }}: <b>{% for ct in current_teachers %}{{ ct.teacher.name }}{% if ct.course %} ({{ ct.course.name }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</b>
   </span>
 </div>
+{% endif %}
 <section id="ds-resume-card" class="ds-resume" hidden aria-label="{{ _('Продолжить работу') }}"></section>
 {% set plan = [] %}
 {% if daily['items'] %}{% set dn = daily['items']|length %}{% set dleft = dn - daily.done %}
@@ -147,6 +147,7 @@
 
 {# ------------------------------------------------------------ homework · Monday test · journal: same card style, each says what it is for #}
 <div class="hc-row hc-row--tiles">
+  {% if current_teachers %}
   <a class="card hc hc-tile" href="{{ url_for('student.homework') }}">
     <div class="hc__head"><span class="hc__ic">{{ ui.icon('homework', 20) }}</span><h2>{{ _("Домашние задания") }}</h2>{% if hw_n %}<span class="hc__pill num">{{ hw_n }}</span>{% endif %}</div>
     <p class="hc__line">{{ _("Задания от учителя, которые нужно сдать.") }}</p>
@@ -157,6 +158,7 @@
     </div>
     <span class="hc-tile__go">{{ _("Открыть домашку") }} {{ ui.icon('arrow-right', 16) }}</span>
   </a>
+  {% endif %}
   <a class="card hc hc-tile{{ ' is-live' if not monday_countdown }}" href="{{ url_for('student.monday') }}">
     <div class="hc__head"><span class="hc__ic">{{ ui.icon('timer', 20) }}</span><h2>{{ _("Тест понедельника") }}</h2>{% if not monday_countdown %}<span class="hc__pill hc__pill--live"><i></i>{{ _("идёт") }}</span>{% endif %}</div>
     <p class="hc__line">{{ _("Короткий тест каждую неделю, чтобы видеть свой рост.") }}</p>

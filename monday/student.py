@@ -11,7 +11,21 @@ from sqlalchemy.orm import joinedload
 
 from .models import local_date, local_midnight_utc, local_now, today as local_today  # noqa: F401
 from . import formulas as monday_formulas
-from .access import student_required
+from .access import question_bank_access_required, student_required
+from .abuse import (
+    abuse_rate_key,
+    check_404_probe_guard,
+    enforce_question_scrape_guard,
+    rate_limit_value,
+    record_404_probe,
+)
+from .subscriptions import (
+    claim_free_question_access,
+    has_course_access,
+    has_question_bank_access,
+    has_teacher_link,
+    subscription_status_summary,
+)
 from .auth import link_invite_code
 from .constants import EXAMS, FORMAT_FOR_EXAM, LATIN_FORMATS, UNIVERSITY_EXAM, MISTAKE_REASONS, MODES, PACE, SESSION_LEVELS, SESSION_MINUTES, WORK_CATEGORIES
 from .extensions import db, limiter
@@ -119,6 +133,7 @@ def _goal_for(exam, raw, old=None):
 
 
 @bp.route("/home")
+@question_bank_access_required(tier="free_quota")
 @student_required
 def home():
     p = current_user.profile
@@ -128,8 +143,13 @@ def home():
     since = utcnow() - timedelta(days=7)
     breakdown = mistake_breakdown(current_user.id, since)
     week_mistakes = sum(breakdown.values())
-    assignments = [a for a in student_assignments(current_user.id)
-                   if homework_state(a, current_user.id) in ("new", "in_progress", "overdue")]
+    teacher_linked = has_teacher_link(current_user)
+    assignments = (
+        [a for a in student_assignments(current_user.id)
+         if homework_state(a, current_user.id) in ("new", "in_progress", "overdue")]
+        if teacher_linked
+        else []
+    )
     last_monday = _previous_monday_work(p.exam)
     rows = monday_ranking(last_monday, limit=None, viewer_id=current_user.id)
     my_place, _a = user_rank(rows, current_user.id)
@@ -194,6 +214,7 @@ def _todays_task(exam, summary):
 
 
 @bp.route("/skills")
+@question_bank_access_required(tier="free_quota")
 @student_required
 def skills():
     own = _exam()
@@ -238,7 +259,7 @@ def skills():
     highlight = weak[0]["skill"].topic_node.id if weak and weak[0]["skill"].topic_node else None
 
     from .course import build_course
-    course = build_course(current_user.id, exam=view, q=q) if view in ("SAT", "CSCA") else None
+    course = build_course(current_user.id, exam=view, q=q) if (view in ("SAT", "CSCA") and has_course_access(current_user)) else None
     return render_template("student/skills.html", topics=topics, summary=summary, scope=scope, q=q, exam=exam,
                            view=view, own=own, highlight=highlight, course=course)
 
@@ -247,6 +268,7 @@ def skills():
 
 
 @bp.route("/sessions")
+@question_bank_access_required(tier="free_quota")
 @student_required
 def sessions():
     recent = Attempt.query.filter(Attempt.user_id == current_user.id, Attempt.mode.in_(list(MODES.keys())))
@@ -350,7 +372,9 @@ def _practice_goal(days=14):
 
 
 @bp.route("/sessions/start/<mode>", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_ACTION", "90 per minute; 600 per hour"), key_func=abuse_rate_key)
 def start_session(mode):
     if mode not in MODES or not MODES[mode]["ready"]:
         flash(_("Этот режим скоро появится."), "info")
@@ -364,15 +388,23 @@ def start_session(mode):
     if not questions:
         flash(_("Пока нет вопросов для этого режима."), "error")
         return redirect(url_for("student.sessions"))
-    att = Attempt(user=current_user, mode=mode, plan=[q.id for q in questions], position=0, total=len(questions))
+    plan = [q.id for q in questions]
+    if not has_question_bank_access(current_user):
+        ok_q, _u, _r, allowed_plan = claim_free_question_access(current_user.id, plan, partial=True)
+        if not ok_q or not allowed_plan:
+            abort(403)
+        plan = allowed_plan
+    att = Attempt(user=current_user, mode=mode, plan=plan, position=0, total=len(plan))
     db.session.add(att)
     db.session.commit()
     return redirect(url_for("student.session_play", attempt_id=att.id))
 
 
 def _own_attempt(attempt_id):
+    check_404_probe_guard()
     att = db.session.get(Attempt, attempt_id)
     if not att or att.user_id != current_user.id:
+        record_404_probe("student._own_attempt")
         abort(404)
     return att
 
@@ -455,7 +487,9 @@ def _hint_text(question):
 
 
 @bp.route("/sessions/<int:attempt_id>", methods=["GET", "POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def session_play(attempt_id):
     att = _own_attempt(attempt_id)
     if att.mode not in MODES:
@@ -465,6 +499,12 @@ def session_play(attempt_id):
     cfg = _session_cfg(att)
     idx = att.position
     question = db.session.get(Question, att.plan[idx])
+    if question:
+        enforce_question_scrape_guard(current_user, [question.id], source="student.session_play")
+    if question and not has_question_bank_access(current_user):
+        ok_q, _u, _r, _a = claim_free_question_access(current_user.id, [question.id])
+        if not ok_q:
+            abort(403)
     answer = next((a for a in att.answers if a.index == idx), None)
     hints = set(cfg.get("hints") or [])
 
@@ -515,11 +555,19 @@ def session_play(attempt_id):
 
 
 @bp.route("/sessions/<int:attempt_id>/done")
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def session_done(attempt_id):
     att = _own_attempt(attempt_id)
     cfg = _session_cfg(att)
     answers = sorted(att.answers, key=lambda a: a.index)
+    if not has_question_bank_access(current_user):
+        qids = [a.question_id for a in answers if a.question_id]
+        if qids:
+            ok_q, _u, _r, _a = claim_free_question_access(current_user.id, qids, partial=False)
+            if not ok_q:
+                abort(403)
     levels = {}
     for a in answers:
         d = (a.question.difficulty if a.question else 2) or 2
@@ -560,21 +608,31 @@ def _start_custom(cfg):
     if not questions:
         flash(_("По этим настройкам вопросов нет. Выбери другие темы или сложность."), "error")
         return redirect(url_for("student.sessions"))
-    att = Attempt(user=current_user, mode="custom", plan=[q.id for q in questions], position=0,
-                  total=cfg.get("count") or len(questions), draft={"cfg": cfg})
+    plan = [q.id for q in questions]
+    if not has_question_bank_access(current_user):
+        ok_q, _u, _r, allowed_plan = claim_free_question_access(current_user.id, plan, partial=True)
+        if not ok_q or not allowed_plan:
+            abort(403)
+        plan = allowed_plan
+    att = Attempt(user=current_user, mode="custom", plan=plan, position=0,
+                  total=min(cfg.get("count") or len(plan), len(plan)), draft={"cfg": cfg})
     db.session.add(att)
     db.session.commit()
     return redirect(url_for("student.session_play", attempt_id=att.id))
 
 
 @bp.route("/sessions/custom", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_ACTION", "90 per minute; 600 per hour"), key_func=abuse_rate_key)
 def session_custom():
     return _start_custom(_read_session_cfg(request.form))
 
 
 @bp.route("/sessions/<int:attempt_id>/again", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_ACTION", "90 per minute; 600 per hour"), key_func=abuse_rate_key)
 def session_again(attempt_id):
     """Same settings once more (custom), or the same mode."""
     att = _own_attempt(attempt_id)
@@ -585,7 +643,9 @@ def session_again(attempt_id):
 
 
 @bp.route("/sessions/<int:attempt_id>/retry", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_ACTION", "90 per minute; 600 per hour"), key_func=abuse_rate_key)
 def session_retry(attempt_id):
     """Only the questions answered wrong, in a new session."""
     att = _own_attempt(attempt_id)
@@ -597,6 +657,7 @@ def session_retry(attempt_id):
 
 
 @bp.route("/sessions/presets", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
 def session_presets():
     p = current_user.profile
@@ -616,6 +677,7 @@ def session_presets():
 
 
 @bp.route("/sessions/clear", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
 def sessions_clear():
     """Empty the «Недавние сессии» list. Only the list: answers, progress and practice time stay."""
@@ -699,6 +761,7 @@ def _sort_works(items, sort):
 
 
 @bp.route("/collections")
+@question_bank_access_required(tier="free_quota")
 @student_required
 def collections():
     exam_filter = request.args.get("exam", "")
@@ -751,10 +814,14 @@ def collections():
 
 
 @bp.route("/works/<int:work_id>")
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def work_detail(work_id):
+    check_404_probe_guard()
     work = db.session.get(Work, work_id)
     if not work or work.status != "published" or work.kind not in ("collection",):
+        record_404_probe("student.work_detail")
         abort(404)
     attempts = (Attempt.query.filter(Attempt.user_id == current_user.id,
                                      Attempt.work_version_id.in_([v.id for v in work.versions]))
@@ -763,11 +830,20 @@ def work_detail(work_id):
 
 
 @bp.route("/works/<int:work_id>/start", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_ACTION", "90 per minute; 600 per hour"), key_func=abuse_rate_key)
 def start_work(work_id):
+    check_404_probe_guard()
     work = db.session.get(Work, work_id)
     if not work or work.status != "published" or work.kind != "collection":
+        record_404_probe("student.start_work")
         abort(404)
+    if not has_question_bank_access(current_user):
+        qids = [it.get("question_id") for it in (work.current_version.items if work.current_version else []) if it.get("question_id")]
+        ok_q, _u, _r, _a = claim_free_question_access(current_user.id, qids, partial=False)
+        if not ok_q:
+            abort(403)
     open_ones = _open_collection_attempts(work)
     if open_ones and request.form.get("restart") != "1":   # one unfinished attempt at a time: carry on with it
         return redirect(url_for("student.attempt_run", attempt_id=open_ones[0].id))
@@ -788,7 +864,9 @@ def _open_collection_attempts(work):
 
 
 @bp.route("/attempts/<int:attempt_id>", methods=["GET", "POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def attempt_run(attempt_id):
     """A timed test in its format: grid navigation (SAT, CSCA, …) or pages + answer sheet (ORT).
 
@@ -797,6 +875,8 @@ def attempt_run(attempt_id):
     is closed, the server moves on by itself the next time the test is opened.
     """
     att = _own_attempt(attempt_id)
+    if att.mode == "homework" and not has_teacher_link(current_user):
+        abort(403)
     if att.mode in MODES:
         return redirect(url_for("student.session_play", attempt_id=att.id))
     if att.finished_at:
@@ -806,6 +886,18 @@ def attempt_run(attempt_id):
     if request.method == "GET":
         _resume_clock(att)
     k, mod = current_module(att, layout)
+    mod_qids = [
+        version.items[idx].get("question_id")
+        for idx in range(mod["start"], min(mod["end"], len(version.items or [])))
+        if version and version.items and version.items[idx].get("question_id")
+    ]
+    if att.mode != "homework" and mod_qids:
+        enforce_question_scrape_guard(current_user, mod_qids, source="student.attempt_run")
+    if att.mode != "homework" and not has_question_bank_access(current_user):
+        if mod_qids:
+            ok_q, _u, _r, _a = claim_free_question_access(current_user.id, mod_qids, partial=False)
+            if not ok_q:
+                abort(403)
     if request.method == "POST":
         _merge_module_answers(att, mod, request.form)
         blocked = _empty_homework(att, request.form)
@@ -884,6 +976,7 @@ def _finish_attempt(att, version):
 
 
 @bp.route("/attempts/<int:attempt_id>/next-module", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
 def attempt_next_module(attempt_id):
     att = _own_attempt(attempt_id)
@@ -924,6 +1017,7 @@ def _resume_clock(att):
 
 
 @bp.route("/attempts/<int:attempt_id>/alive", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
 def attempt_alive(attempt_id):
     """The test page is still open (sent every 15 s, and when the page is left)."""
@@ -936,6 +1030,7 @@ def attempt_alive(attempt_id):
 
 
 @bp.route("/attempts/<int:attempt_id>/save", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
 def attempt_save(attempt_id):
     """Autosave one answer (q<i>) or review mark (r<i>) while the student works.
@@ -975,6 +1070,7 @@ ALLOWED_PHOTO = {"png", "jpg", "jpeg", "webp", "heic"}
 
 
 @bp.route("/attempts/<int:attempt_id>/photo", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
 def attempt_photo(attempt_id):
     """Photo of a written solution (part 2 of ЕГЭ etc.), attached while the test is running."""
@@ -1002,6 +1098,7 @@ def attempt_photo(attempt_id):
 
 
 @bp.route("/attempts/<int:attempt_id>/assess/<int:idx>", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
 def attempt_assess(attempt_id, idx):
     """Self-assessment of a written answer by the criteria (a teacher's mark is final)."""
@@ -1025,12 +1122,22 @@ def attempt_assess(attempt_id, idx):
 
 
 @bp.route("/attempts/<int:attempt_id>/result")
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def attempt_result(attempt_id):
     att = _own_attempt(attempt_id)
+    if att.mode == "homework" and not has_teacher_link(current_user):
+        abort(403)
     if not att.finished_at:
         return redirect(url_for("student.attempt_run", attempt_id=att.id))
     items = att.work_version.items if att.work_version else []
+    if att.mode != "homework" and not has_question_bank_access(current_user):
+        qids = [items[a.index].get("question_id") for a in att.answers if a.index < len(items) and items[a.index].get("question_id")]
+        if qids:
+            ok_q, _u, _r, _a = claim_free_question_access(current_user.id, qids, partial=False)
+            if not ok_q:
+                abort(403)
     rows = [{"item": items[a.index] if a.index < len(items) else None, "answer": a}
             for a in sorted(att.answers, key=lambda a: a.index)]
     layout = version_layout(att.work_version) if att.work_version else None
@@ -1041,6 +1148,7 @@ def attempt_result(attempt_id):
 
 
 @bp.route("/homework")
+@question_bank_access_required(tier="teacher_linked")
 @student_required
 def homework():
     groups = defaultdict(list)
@@ -1105,6 +1213,7 @@ def _own_assignment(assignment_id):
 
 
 @bp.route("/homework/<int:assignment_id>")
+@question_bank_access_required(tier="teacher_linked")
 @student_required
 def homework_detail(assignment_id):
     a = _own_assignment(assignment_id)
@@ -1116,6 +1225,7 @@ def homework_detail(assignment_id):
 
 
 @bp.route("/homework/<int:assignment_id>/start", methods=["POST"])
+@question_bank_access_required(tier="teacher_linked")
 @student_required
 def homework_start(assignment_id):
     a = _own_assignment(assignment_id)
@@ -1136,6 +1246,7 @@ def homework_start(assignment_id):
 
 
 @bp.route("/journal")
+@question_bank_access_required
 @student_required
 def journal():
     if not current_app.config.get("SHOW_JOURNAL", False):
@@ -1226,7 +1337,9 @@ def _journal_mistakes(att):
 
 
 @bp.route("/journal/attempt/<int:attempt_id>")
+@question_bank_access_required
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def journal_review(attempt_id):
     """One test's mistakes, one at a time: answer vs correct, explanation, reason, «Понял, дальше»."""
     if not current_app.config.get("SHOW_JOURNAL", False):
@@ -1268,6 +1381,7 @@ def journal_review(attempt_id):
 
 
 @bp.route("/journal/attempt/<int:attempt_id>/blank-reason", methods=["POST"])
+@question_bank_access_required
 @student_required
 def journal_blank_reason(attempt_id):
     """«Всем пропущенным → Не хватило времени» in one click (only where no reason was chosen yet)."""
@@ -1285,6 +1399,7 @@ def journal_blank_reason(attempt_id):
 
 
 @bp.route("/journal/attempt/<int:attempt_id>/practice", methods=["POST"])
+@question_bank_access_required
 @student_required
 def journal_practice(attempt_id):
     """A bank session on the skills where this test's mistakes were."""
@@ -1308,6 +1423,7 @@ def journal_practice(attempt_id):
 
 
 @bp.route("/journal/<int:answer_id>", methods=["POST"])
+@question_bank_access_required
 @student_required
 def journal_update(answer_id):
     if not current_app.config.get("SHOW_JOURNAL", False):
@@ -1385,6 +1501,7 @@ def monday_window_open():
 
 
 @bp.route("/monday")
+@question_bank_access_required(tier="free_quota")
 @student_required
 def monday():
     p = current_user.profile
@@ -1436,13 +1553,20 @@ def monday():
 
 
 @bp.route("/monday/start", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_ACTION", "90 per minute; 600 per hour"), key_func=abuse_rate_key)
 def monday_start():
     p = current_user.profile
     work = _upcoming_monday_work(p.exam)
     if not work or not monday_window_open():
         flash(_("Тест понедельника откроется в понедельник в 19:00."), "info")
         return redirect(url_for("student.monday"))
+    if not has_question_bank_access(current_user):
+        qids = [it.get("question_id") for it in (work.current_version.items if work.current_version else []) if it.get("question_id")]
+        ok_q, _u, _r, _a = claim_free_question_access(current_user.id, qids, partial=False)
+        if not ok_q:
+            abort(403)
     existing = Attempt.query.filter(Attempt.user_id == current_user.id,
                                     Attempt.work_version_id.in_([v.id for v in work.versions])).first()
     if existing:
@@ -1648,7 +1772,9 @@ def _results_rows():
 
 
 @bp.route("/profile/export.csv")
+@question_bank_access_required
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_EXPORT", "10 per minute; 60 per hour"), key_func=abuse_rate_key)
 def profile_export():
     """All finished work of the student as a table: date, what it was, score, time."""
     import csv
@@ -1666,7 +1792,9 @@ def profile_export():
 
 
 @bp.route("/profile/export.pdf")
+@question_bank_access_required
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_EXPORT", "10 per minute; 60 per hour"), key_func=abuse_rate_key)
 def profile_export_pdf():
     """The same results as a designed PDF, grouped by sector, to print or to show a parent or a teacher."""
     from .results_pdf import build_results_pdf
@@ -1681,7 +1809,9 @@ def profile_export_pdf():
 
 
 @bp.route("/formulas", methods=["GET", "POST"])
+@question_bank_access_required
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def formulas():
     """The student's own reference sheets: branch → name → picture → formula.
 
@@ -1830,6 +1960,7 @@ def formulas():
 
 
 @bp.route("/formulas/sheet/<int:sheet_id>/place", methods=["POST"])
+@question_bank_access_required
 @student_required
 def formula_sheet_place(sheet_id):
     """One switch: show this sheet in a section or not. Called from the sheet list and from inside a running test."""
@@ -1868,7 +1999,9 @@ def _split_tex(tex):
 
 
 @bp.route("/formulas/t/<template_id>")
+@question_bank_access_required
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def formula_template(template_id):
     """A Monday template: its topics on the left, the chosen topic's formulas with worked examples on the right."""
     template = monday_formulas.find_template(template_id) or abort(404)
@@ -1879,6 +2012,7 @@ def formula_template(template_id):
 
 
 @bp.route("/formulas/t/<template_id>/add", methods=["POST"])
+@question_bank_access_required
 @student_required
 def formula_add(template_id):
     template = monday_formulas.find_template(template_id) or abort(404)
@@ -1971,3 +2105,40 @@ def support():
         return redirect(url_for("student.support"))
 
     return render_template("student/support.html", subjects=subjects, my_reports=my_reports)
+
+
+@bp.route("/subscription")
+@student_required
+def subscription():
+    """Student subscription status, grandfathering details, and plan comparison (checkout on hold until Stage 5)."""
+    from .models import SubscriptionPlan
+
+    status = subscription_status_summary(current_user)
+    plans = SubscriptionPlan.query.filter_by(is_active=True).order_by(SubscriptionPlan.price_amount.asc()).all()
+    if not plans:
+        fallback_amount = int(current_app.config.get("PUBLIC_QBANK_PRICE_AMOUNT", 800) or 800)
+        fallback_currency = (current_app.config.get("PUBLIC_QBANK_PRICE_CURRENCY") or "USD").strip().upper()
+        plans_view = [{
+            "name": _("Подписка на банк вопросов"),
+            "description": _("Полный самостоятельный доступ к банку вопросов, сессиям и сборникам."),
+            "price_amount": fallback_amount,
+            "currency": fallback_currency,
+            "duration_days": 30,
+        }]
+    else:
+        plans_view = [
+            {
+                "name": pl.name,
+                "description": pl.description,
+                "price_amount": pl.price_amount,
+                "currency": pl.currency,
+                "duration_days": pl.duration_days,
+            }
+            for pl in plans
+        ]
+    return render_template(
+        "student/subscription.html",
+        status=status,
+        plans=plans_view,
+        course_included=bool(current_app.config.get("COURSE_INCLUDED_IN_SUBSCRIPTION", True)),
+    )

@@ -4,13 +4,22 @@ from __future__ import annotations
 import json
 import re
 from fractions import Fraction
+from urllib.parse import urlsplit
 
 from flask import Blueprint, abort, jsonify, render_template, request, session, url_for
 from flask_login import current_user
 from markupsafe import Markup, escape
 
 from . import formulas
-from .access import admin_required, student_required
+from .access import admin_required, question_bank_access_required, student_required
+from .abuse import (
+    abuse_rate_key,
+    check_404_probe_guard,
+    enforce_question_scrape_guard,
+    rate_limit_value,
+    record_404_probe,
+)
+from .extensions import limiter
 from .models import (
     Attempt,
     AttemptAnswer,
@@ -32,31 +41,62 @@ MASTERY_LABELS = {
     "mastered": "Освоено",
 }
 
-_MATH_SPAN_RE = re.compile(r"(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$)")
+_MATH_SPAN_RE = re.compile(r"(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\$[^$\n]+?\$|\\\([\s\S]+?\\\))")
+_MD_LINK_RE = re.compile(r"\[([^\]\n]+)\]\(([^)\s]+)\)")
+
+
+def _safe_link_url(raw_url: str) -> str | None:
+    """Allow only http(s) URLs or single-slash relative paths; reject javascript:/data:/vbscript:."""
+    cleaned = re.sub(r"[\x00-\x20\x7f]+", "", (raw_url or "").strip())
+    if not cleaned:
+        return None
+    if cleaned.startswith("/") and not cleaned.startswith("//"):
+        return cleaned
+    parsed = urlsplit(cleaned)
+    if parsed.scheme.lower() in ("http", "https") and parsed.netloc:
+        return cleaned
+    return None
 
 
 def _render_inline_md(line: str) -> str:
-    """Escape HTML and convert **bold**, *italic*, `code` while preserving $...$ math."""
+    """Escape HTML and convert **bold**, *italic*, `code`, and safe links while preserving KaTeX math."""
     parts = _MATH_SPAN_RE.split(line or "")
     out: list[str] = []
     for idx, part in enumerate(parts):
         if idx % 2 == 1:
             out.append(str(escape(part)))
         else:
-            s = str(escape(part))
+            links: list[str] = []
+
+            def _sub_link(m: re.Match[str]) -> str:
+                label = str(escape(m.group(1)))
+                safe_href = _safe_link_url(m.group(2))
+                if not safe_href:
+                    return label
+                token = f"\x00LNK{len(links)}\x00"
+                links.append(
+                    f'<a href="{escape(safe_href)}" target="_blank" rel="noopener noreferrer">{label}</a>'
+                )
+                return token
+
+            with_placeholders = _MD_LINK_RE.sub(_sub_link, part)
+            s = str(escape(with_placeholders))
             s = re.sub(r"`([^`]+)`", r"<code>\1</code>", s)
             s = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", s)
             s = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", r"<em>\1</em>", s)
+            for lidx, anchor in enumerate(links):
+                s = s.replace(f"\x00LNK{lidx}\x00", anchor)
             out.append(s)
     return "".join(out)
 
 
 def render_course_html(raw: str) -> Markup:
-    """Convert course Markdown (headings, bullet lists, bold/code) to semantic HTML without breaking KaTeX."""
-    lines = (raw or "").replace("\r\n", "\n").split("\n")
+    """Convert course Markdown (headings, lists, tables, links, bold/code) to sanitized HTML preserving KaTeX."""
+    lines = (raw or "").replace("\r\n", "\n").replace("\r", "\n").split("\n")
     blocks: list[str] = []
     para_buf: list[str] = []
     list_buf: list[str] = []
+    olist_buf: list[str] = []
     table_buf: list[list[str]] = []
 
     def flush_para() -> None:
@@ -69,6 +109,12 @@ def render_course_html(raw: str) -> Markup:
             items = "".join(f"<li>{_render_inline_md(x)}</li>" for x in list_buf)
             blocks.append(f"<ul>{items}</ul>")
             list_buf.clear()
+
+    def flush_olist() -> None:
+        if olist_buf:
+            items = "".join(f"<li>{_render_inline_md(x)}</li>" for x in olist_buf)
+            blocks.append(f"<ol>{items}</ol>")
+            olist_buf.clear()
 
     def flush_table() -> None:
         if not table_buf:
@@ -89,11 +135,13 @@ def render_course_html(raw: str) -> Markup:
         if not stripped:
             flush_para()
             flush_list()
+            flush_olist()
             flush_table()
             continue
         if stripped.startswith("|") and stripped.endswith("|") and "|" in stripped[1:-1]:
             flush_para()
             flush_list()
+            flush_olist()
             cells = [c.strip() for c in stripped[1:-1].split("|")]
             table_buf.append(cells)
             continue
@@ -101,18 +149,35 @@ def render_course_html(raw: str) -> Markup:
         if stripped.startswith("### ") or stripped.startswith("## "):
             flush_para()
             flush_list()
+            flush_olist()
             heading_txt = stripped.lstrip("#").strip()
             blocks.append(f"<h3>{_render_inline_md(heading_txt)}</h3>")
             continue
+        if stripped.startswith("# "):
+            flush_para()
+            flush_list()
+            flush_olist()
+            heading_txt = stripped[2:].strip()
+            blocks.append(f"<h2>{_render_inline_md(heading_txt)}</h2>")
+            continue
         if stripped.startswith("• ") or stripped.startswith("- ") or stripped.startswith("* "):
             flush_para()
+            flush_olist()
             list_buf.append(stripped[2:].strip())
             continue
+        m_ol = re.match(r"^\d+[.)]\s+(.+)$", stripped)
+        if m_ol:
+            flush_para()
+            flush_list()
+            olist_buf.append(m_ol.group(1).strip())
+            continue
         flush_list()
+        flush_olist()
         para_buf.append(stripped)
 
     flush_para()
     flush_list()
+    flush_olist()
     flush_table()
     return Markup("\n".join(blocks))
 
@@ -269,7 +334,9 @@ def build_sat_course(user_id: int, q: str = "") -> dict:
 
 
 @bp.get("/roadmap/<exam>/<unit_slug>/<lesson_slug>")
+@question_bank_access_required(tier="course")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def player(exam: str, unit_slug: str, lesson_slug: str):
     unit = CourseUnit.query.filter_by(exam=exam.upper(), slug=unit_slug).first_or_404()
     lessons = unit.lessons.order_by(CourseLesson.position.asc()).all()
@@ -408,8 +475,11 @@ def _record_course_check(run_key: str, qid_str: str, is_correct: bool) -> None:
 
 
 @bp.post("/api/course/check")
+@question_bank_access_required(tier="course")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_ACTION", "90 per minute; 600 per hour"), key_func=abuse_rate_key)
 def api_check_question():
+    check_404_probe_guard()
     data = request.get_json(silent=True) or {}
     exam = str(data.get("exam") or "SAT").upper()
     unit_slug = str(data.get("unit_slug") or "")
@@ -420,6 +490,7 @@ def api_check_question():
     unit = CourseUnit.query.filter_by(exam=exam, slug=unit_slug).first()
     lesson = CourseLesson.query.filter_by(unit_id=unit.id, slug=lesson_slug).first() if unit else None
     if not lesson:
+        record_404_probe("course.api_check_question")
         return jsonify({"ok": False, "error": "not_found"}), 404
 
     is_correct = False
@@ -498,6 +569,7 @@ def api_check_question():
             ))
             db.session.commit()
 
+    enforce_question_scrape_guard(current_user, [f"course:{lesson.id}:{qid_str or qid}"], source="course.api_check_question")
     _record_course_check(f"{exam}:{unit.slug}:{lesson.slug}", qid_str, is_correct)
 
     return jsonify({
@@ -509,7 +581,9 @@ def api_check_question():
 
 
 @bp.post("/api/course/complete")
+@question_bank_access_required(tier="course")
 @student_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_ACTION", "90 per minute; 600 per hour"), key_func=abuse_rate_key)
 def api_complete_lesson():
     data = request.get_json(silent=True) or {}
     exam = str(data.get("exam") or "SAT").upper()
@@ -593,6 +667,7 @@ def api_complete_lesson():
 
 
 @bp.route("/admin/course", methods=["GET", "POST"])
+@question_bank_access_required
 @admin_required
 def admin_course():
     units = CourseUnit.query.filter_by(exam="SAT").order_by(CourseUnit.number.asc()).all()
@@ -620,4 +695,25 @@ def admin_course():
     sel_id = int(request.args.get("lesson_id") or (all_lessons[0].id if all_lessons else 0))
     cur = next((l for l in all_lessons if l.id == sel_id), all_lessons[0] if all_lessons else None)
     cur_qids = ", ".join(str(x) for x in json.loads(cur.question_ids_json or "[]")) if cur else ""
-    return render_template("admin/course_builder.html", units=units, lessons=all_lessons, cur=cur, cur_qids=cur_qids, saved=saved)
+    initial_preview_html = render_course_html(cur.article_md or "") if cur else Markup("")
+    return render_template(
+        "admin/course_builder.html",
+        units=units,
+        lessons=all_lessons,
+        cur=cur,
+        cur_qids=cur_qids,
+        initial_preview_html=initial_preview_html,
+        saved=saved,
+    )
+
+
+@bp.post("/admin/course/preview")
+@question_bank_access_required
+@admin_required
+def admin_course_preview():
+    """Render article Markdown using the exact same pipeline as student course lessons."""
+    data = request.get_json(silent=True)
+    raw = (data.get("article_md") if isinstance(data, dict) else request.form.get("article_md")) or ""
+    if not isinstance(raw, str):
+        raw = str(raw)
+    return jsonify({"ok": True, "html": str(render_course_html(raw))})

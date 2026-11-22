@@ -1,7 +1,7 @@
 """Central RBAC permission map and route decorators."""
 from functools import wraps
 
-from flask import abort, redirect, url_for
+from flask import abort, jsonify, redirect, request, url_for
 from flask_login import current_user
 
 ROLES = ("student", "teacher", "assistant", "sales_manager", "supervisor", "admin")
@@ -189,3 +189,81 @@ def manager_required(view):
 def supervisor_required(view):
     """Supervisors and Admins (all-leads visibility, reassignment, audit log)."""
     return permission_required("crm.audit.view")(view)
+
+
+def has_question_bank_access(user) -> bool:
+    """Delegate to centralized Stage 4 access check (staff, enrollment, subscription, or valid legacy grace)."""
+    from .subscriptions import has_question_bank_access as _has_access
+
+    return _has_access(user)
+
+
+def _deny_gated_request(error_code: str, *, json_only: bool = False):
+    is_json_req = (
+        json_only
+        or request.is_json
+        or request.headers.get("X-Requested-With") == "fetch"
+        or (request.accept_mimetypes.best == "application/json" and not request.accept_mimetypes.accept_html)
+    )
+    if not current_user.is_authenticated:
+        if is_json_req:
+            return jsonify({"ok": False, "error": "auth_required"}), 401
+        return redirect(url_for("auth.login"))
+    if request.path.startswith("/api/") or is_json_req:
+        return jsonify({"ok": False, "error": error_code}), 403
+    abort(403)
+
+
+def question_bank_access_required(view_or_tier=None, *, tier: str = "full"):
+    """Enforce question-bank, course, teacher-linked, and free-tier boundaries on all content routes.
+
+    Usable both as `@question_bank_access_required` (tier='full') and
+    `@question_bank_access_required(tier='free_quota' | 'course' | 'teacher_linked')`.
+    """
+
+    def _decorate(fn, selected_tier: str):
+        @wraps(fn)
+        def wrapped(*args, **kwargs):
+            from .subscriptions import (
+                has_course_access,
+                has_teacher_link,
+                is_content_staff,
+            )
+
+            if not current_user.is_authenticated:
+                return _deny_gated_request("auth_required")
+            if getattr(current_user, "is_blocked", False):
+                return _deny_gated_request("account_blocked")
+
+            if selected_tier == "teacher_linked":
+                # Homework & teacher sections are visible and callable only for students with a teacher link
+                if getattr(current_user, "role", None) != "student" or not has_teacher_link(current_user):
+                    return _deny_gated_request("teacher_link_required")
+                return fn(*args, **kwargs)
+
+            if selected_tier == "course":
+                if not has_course_access(current_user):
+                    return _deny_gated_request("course_subscription_required")
+                return fn(*args, **kwargs)
+
+            if selected_tier == "free_quota":
+                # Free-tier students may enter and consume up to FREE_DAILY_QUESTION_LIMIT distinct questions/day;
+                # staff (teacher/assistant/admin) and full-access students pass immediately, while managers get 403.
+                if not (is_content_staff(current_user) or getattr(current_user, "role", None) == "student"):
+                    return _deny_gated_request("forbidden")
+                return fn(*args, **kwargs)
+
+            # Default tier="full": requires content staff, enrolled student, active/trialing sub, or legacy_access_until
+            if not has_question_bank_access(current_user):
+                return _deny_gated_request("subscription_required")
+            return fn(*args, **kwargs)
+
+        wrapped._question_bank_gated = True
+        wrapped._question_bank_tier = selected_tier
+        return wrapped
+
+    if callable(view_or_tier):
+        return _decorate(view_or_tier, tier)
+    chosen = str(view_or_tier or tier or "full")
+    return lambda fn: _decorate(fn, chosen)
+

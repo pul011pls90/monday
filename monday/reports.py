@@ -13,7 +13,7 @@ from sqlalchemy import func, or_
 from sqlalchemy.orm import joinedload, selectinload
 
 from . import storage
-from .access import admin_required, teacher_required
+from .access import admin_required, question_bank_access_required, teacher_required
 from .audit import write_audit_log
 from .constants import REPORT_KINDS
 from .extensions import db
@@ -63,6 +63,7 @@ def can_edit_question(user, q):
 
 
 @bp.route("/report", methods=["POST"])
+@question_bank_access_required(tier="free_quota")
 @login_required
 def create():
     qid = request.form.get("question_id", type=int)

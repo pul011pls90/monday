@@ -12,7 +12,7 @@ from flask_login import current_user
 from werkzeug.utils import secure_filename
 
 from .models import local_date, local_midnight_utc, local_now, today as local_today  # noqa: F401
-from .access import staff_required, teacher_required
+from .access import question_bank_access_required, staff_required, teacher_required
 from .constants import EXAMS, MISTAKE_REASONS, WORK_CATEGORIES, WORK_KINDS
 from .extensions import db
 from .models import utcnow
@@ -225,6 +225,7 @@ def lessons():
 
 
 @bp.route("/daily/<int:pick_id>/remove", methods=["POST"])
+@question_bank_access_required
 @teacher_required
 def daily_remove(pick_id):
     from .models import DailyPick
@@ -548,6 +549,7 @@ def student_detail(record_id):
 
 
 @bp.route("/attempts/<int:attempt_id>/written", methods=["GET", "POST"])
+@question_bank_access_required
 @teacher_required
 def written_review(attempt_id):
     """Written answers (part 2) of one finished attempt of the teacher's current student."""
@@ -675,6 +677,7 @@ def student_delete(record_id):
 
 
 @bp.route("/works")
+@question_bank_access_required
 @teacher_required
 def works():
     status = request.args.get("status", "published")
@@ -760,6 +763,7 @@ def _works_by_tree(items):
 
 
 @bp.route("/works/new", methods=["GET", "POST"])
+@question_bank_access_required
 @teacher_required
 def work_new():
     kind = request.args.get("kind", "collection")
@@ -774,6 +778,7 @@ def work_new():
 
 
 @bp.route("/works/<int:work_id>/edit", methods=["GET", "POST"])
+@question_bank_access_required
 @teacher_required
 def work_edit(work_id):
     work = _own_work(work_id)
@@ -857,6 +862,7 @@ def _save_work(work, is_new):
 
 
 @bp.route("/works/<int:work_id>/status", methods=["POST"])
+@question_bank_access_required
 @teacher_required
 def work_status(work_id):
     work = _own_work(work_id)
@@ -872,6 +878,7 @@ def work_status(work_id):
 
 
 @bp.route("/works/<int:work_id>/duplicate", methods=["POST"])
+@question_bank_access_required
 @teacher_required
 def work_duplicate(work_id):
     src = _own_work(work_id)
@@ -887,6 +894,7 @@ def work_duplicate(work_id):
 
 
 @bp.route("/works/<int:work_id>/delete", methods=["POST"])
+@question_bank_access_required
 @teacher_required
 def work_delete(work_id):
     work = _own_work(work_id)
@@ -903,6 +911,7 @@ def work_delete(work_id):
 
 
 @bp.route("/assign", methods=["GET", "POST"])
+@question_bank_access_required
 @teacher_required
 def assign():
     works = (Work.query.filter_by(author_id=current_user.id, status="published")
@@ -949,6 +958,7 @@ def assign():
 
 
 @bp.route("/review")
+@question_bank_access_required
 @teacher_required
 def review():
     show = request.args.get("show", "submitted")
@@ -1007,6 +1017,7 @@ def written_to_mark(teacher):
 
 
 @bp.route("/review/<int:assignment_id>", methods=["GET", "POST"])
+@question_bank_access_required
 @teacher_required
 def review_detail(assignment_id):
     a = db.session.get(Assignment, assignment_id)
@@ -1045,6 +1056,7 @@ GAP = 5  # a skill with fewer questions than this (for the chosen exam) is a gap
 
 
 @bp.route("/tree")
+@question_bank_access_required
 @teacher_required
 def tree():
     """The map as tiles (like the students see it) with an exam filter, question counts and gaps."""
@@ -1090,6 +1102,7 @@ def tree():
 
 
 @bp.route("/tree/<int:node_id>/move", methods=["POST"])
+@question_bank_access_required
 @teacher_required
 def tree_move(node_id):
     """Move an entry one place up or down among its siblings."""
@@ -1117,6 +1130,7 @@ def _tree_back(node):
 
 
 @bp.route("/tree/add", methods=["POST"])
+@question_bank_access_required
 @teacher_required
 def tree_add():
     level = request.form.get("level")
@@ -1140,6 +1154,7 @@ def tree_add():
 
 
 @bp.route("/tree/<int:node_id>/edit", methods=["POST"])
+@question_bank_access_required
 @teacher_required
 def tree_edit(node_id):
     node = db.session.get(ContentNode, node_id)
@@ -1173,6 +1188,7 @@ def tree_edit(node_id):
 
 
 @bp.route("/questions")
+@question_bank_access_required
 @teacher_required
 def questions():
     mine = request.args.get("mine", "1") == "1"
@@ -1208,6 +1224,7 @@ def questions():
 
 
 @bp.route("/bank")
+@question_bank_access_required
 @teacher_required
 def bank():
     """The picker page: find questions, collect them in a basket, send to a work or to the questions of the day."""
@@ -1218,6 +1235,7 @@ def bank():
 
 
 @bp.route("/bank/add", methods=["POST"])
+@question_bank_access_required
 @teacher_required
 def bank_add():
     ids = [int(x) for x in request.form.getlist("qid") if x.isdigit()]
@@ -1407,6 +1425,7 @@ def _reported_question():
 
 
 @bp.route("/questions/new", methods=["GET", "POST"])
+@question_bank_access_required
 @staff_required
 def question_new():
     preset = request.args.get("exam")
@@ -1444,6 +1463,7 @@ def question_new():
 
 
 @bp.route("/questions/<int:question_id>/edit", methods=["GET", "POST"])
+@question_bank_access_required
 @staff_required
 def question_edit(question_id):
     qn = _own_question(question_id)
@@ -1460,6 +1480,10 @@ def question_edit(question_id):
             qn.status = _question_status_for_author()
         if qn.author_id != current_user.id and qn.status == "published" and current_user.can_review:
             qn.reviewed_by_id, qn.reviewed_at, qn.review_note = current_user.id, utcnow(), None  # edited = approved
+        from .public_samples import sync_question_public_sample
+        if qn.status != "published":
+            qn.is_public_sample = False
+        sync_question_public_sample(qn)
         db.session.commit()
         flash(_("Вопрос сохранён. Уже опубликованные работы не меняются — переопубликуйте их, чтобы включить правку."),
               "success")
@@ -1468,6 +1492,7 @@ def question_edit(question_id):
 
 
 @bp.route("/questions/<int:question_id>/redact", methods=["GET", "POST"])
+@question_bank_access_required
 @staff_required
 def question_redact(question_id):
     """Student-view question redactor: teachers propose corrections that go to admin moderation."""
@@ -1573,9 +1598,13 @@ def question_redact(question_id):
 
 
 @bp.route("/questions/<int:question_id>/delete", methods=["POST"])
+@question_bank_access_required
 @staff_required
 def question_delete(question_id):
+    from .public_samples import set_question_public_sample
+
     qn = _own_question(question_id)
+    set_question_public_sample(qn, False)
     used = AttemptAnswer.query.filter_by(question_id=qn.id).first()
     if used:
         qn.status = "draft"

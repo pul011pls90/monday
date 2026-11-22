@@ -10,7 +10,9 @@ from pathlib import Path
 from flask import Blueprint, abort, current_app, jsonify, render_template, request, url_for
 from flask_login import login_required
 
-from .access import admin_required
+from .access import admin_required, question_bank_access_required
+from .abuse import abuse_rate_key, rate_limit_value
+from .extensions import limiter
 
 _BASE = Path(__file__).resolve().parent
 _DATA_FILE = _BASE / "data" / "trigonometry_formulas.json"
@@ -443,7 +445,9 @@ def build_trig_block(static_folder):
 
 
 @trig_bp.route("/formulas/trigonometry")
+@question_bank_access_required
 @login_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def trig_sections():
     """Subtopic cards for All Trigonometry (Basic, Intermediate, Calculus 1)."""
     tb = build_trig_block(current_app.static_folder)
@@ -451,7 +455,9 @@ def trig_sections():
 
 
 @trig_bp.route("/formulas/trigonometry/<level_id>")
+@question_bank_access_required
 @login_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def trig_level(level_id):
     """Topic formulas, diagram, and examples for one trigonometry section."""
     tb = build_trig_block(current_app.static_folder)
@@ -462,13 +468,16 @@ def trig_level(level_id):
 
 
 @trig_bp.route("/api/trigonometry-formulas")
+@question_bank_access_required
 @login_required
+@limiter.limit(lambda: rate_limit_value("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour"), key_func=abuse_rate_key)
 def trig_api():
     """JSON endpoint."""
     return jsonify(_load_raw())
 
 
 @trig_bp.route("/dev/visuals")
+@question_bank_access_required
 @admin_required
 def dev_visuals():
     """QA contact sheet for all generated example and formula SVGs."""

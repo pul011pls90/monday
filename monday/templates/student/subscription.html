@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+{% block title %}{{ _("Подписка на банк вопросов") }}{% endblock %}
+{% block context %}{{ _("Подписка на банк вопросов") }}{% endblock %}
+
+{% block content %}
+<section class="stack">
+  <header class="stack-sm">
+    <span class="eyebrow">{{ _("Самостоятельная подготовка") }}</span>
+    <h1 style="margin:0">{{ _("Подписка на банк вопросов") }}</h1>
+  </header>
+
+  <article class="card stack-sm">
+    <div class="row row--between" style="flex-wrap:wrap;gap:12px">
+      <div>
+        <div class="small muted">{{ _("Текущий статус доступа") }}</div>
+        {% if status.tier == 'enrolled' %}
+          <strong style="font-size:18px">{{ _("Ученик Monday Academy — полный доступ включён") }}</strong>
+        {% elif status.tier == 'subscription' and status.active_subscription %}
+          <strong style="font-size:18px">{{ _("Активна подписка на банк вопросов") }} ({{ status.active_subscription.status }})</strong>
+        {% elif status.tier == 'legacy' and status.legacy_access_until %}
+          <strong style="font-size:18px">{{ _("Ранний полный доступ до") }} {{ status.legacy_access_until|d("d MMMM y") }}</strong>
+        {% else %}
+          <strong style="font-size:18px">{{ _("Бесплатный доступ") }}</strong>
+        {% endif %}
+      </div>
+      {% if status.tier == 'free' %}
+        <span class="tag tag--soft num">{{ _("Сегодня осталось") }}: {{ status.daily_remaining }} / {{ status.daily_limit }}</span>
+      {% else %}
+        <span class="tag">{{ _("Полный доступ открыт") }}</span>
+      {% endif %}
+    </div>
+
+    {% if status.active_subscription %}
+      {% set sub = status.active_subscription %}
+      <p class="small text-2" style="margin:0">
+        {{ _("Тариф") }}: <b>{{ sub.plan.name }}</b>
+        {% if sub.current_period_end %} · {{ _("Действует до") }} {{ sub.current_period_end|d("d MMMM y") }}{% endif %}
+        {% if sub.trial_ends_at %} · {{ _("Пробный период до") }} {{ sub.trial_ends_at|d("d MMMM y") }}{% endif %}
+      </p>
+    {% elif status.tier == 'free' %}
+      <p class="small text-2" style="margin:0">
+        {{ _("На бесплатном тарифе доступно до %(n)s уникальных задач в день (сброс в полночь) и публичные примеры.", n=status.daily_limit) }}
+      </p>
+    {% endif %}
+  </article>
+
+  <div class="hc-row">
+    {% for p in plans %}
+    <article class="card stack-sm">
+      <span class="eyebrow">{{ _("План") }}</span>
+      <h2 style="margin:0;font-size:18px">{{ p.name }}</h2>
+      <div class="stat-value num">
+        {% if p.price_amount % 100 == 0 %}{{ '$' if p.currency == 'USD' else p.currency ~ ' ' }}{{ p.price_amount // 100 }}{% else %}{{ '$' if p.currency == 'USD' else p.currency ~ ' ' }}{{ '%.2f'|format(p.price_amount / 100) }}{% endif %}
+        <span class="small muted">/ {{ p.duration_days }} {{ _("дн.") }}</span>
+      </div>
+      {% if p.description %}<p class="small text-2" style="margin:0">{{ p.description }}</p>{% endif %}
+      <ul class="small" style="margin:0;padding-left:18px;display:grid;gap:4px">
+        <li>{{ _("Безлимитные задачи в банке вопросов и сессиях") }}</li>
+        <li>{{ _("Все тренировочные варианты и формульные шпаргалки") }}</li>
+        <li>{{ _("Экспорт прогресса и журнал ошибок") }}</li>
+        {% if course_included %}<li>{{ _("Интерактивные уроки теории SAT") }}</li>{% endif %}
+      </ul>
+      <div class="small muted">{{ _("Онлайн-оплата будет подключена на следующем этапе. Сейчас доступ оформляется через администратора школы.") }}</div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

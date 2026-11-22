@@ -414,7 +414,10 @@ def test_profile_settings_export_and_delete():
     assert b"Onest" in r.data and "monday-results.pdf" in r.headers["Content-Disposition"]
     # deleting an account wipes who the student was and blocks sign-in
     with APP.app_context():
-        v = User(email="leaving@monday.kg", name="Уходящий Ученик", role="student")
+        from datetime import timedelta
+        from monday.models import utcnow
+        v = User(email="leaving@monday.kg", name="Уходящий Ученик", role="student",
+                 legacy_access_until=utcnow() + timedelta(days=7))
         v.set_password("leaving123")
         v.profile = StudentProfile(exam="ORT", onboarded=True, school="Школа 5")
         db.session.add(v)

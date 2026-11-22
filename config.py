@@ -134,3 +134,37 @@ class Config:
     TRUST_PROXY_GEO_HEADERS = os.environ.get("TRUST_PROXY_GEO_HEADERS", "1") == "1"
     CRM_SLA_MINUTES = int(os.environ.get("CRM_SLA_MINUTES", "15") or "15")
     CRM_WEBHOOK_SECRET = os.environ.get("CRM_WEBHOOK_SECRET", "").strip()
+    TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    TELEGRAM_WEBHOOK_SECRET = os.environ.get("TELEGRAM_WEBHOOK_SECRET", "").strip()
+    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+    GEMINI_CRM_MODEL = os.environ.get("GEMINI_CRM_MODEL", "gemini-3.8-flash").strip() or "gemini-3.8-flash"
+
+    # Public website & question-bank product flags (Stage 2+)
+    IS_PRODUCTION = False
+    PUBLIC_SITE_ENABLED = os.environ.get("PUBLIC_SITE_ENABLED", "0") == "1"
+    PUBLIC_LEGAL_REVIEWED = os.environ.get("PUBLIC_LEGAL_REVIEWED", "0") == "1"
+    SELF_STUDY_SIGNUP_ENABLED = os.environ.get("SELF_STUDY_SIGNUP_ENABLED", "0") == "1"
+    LEGACY_ACCESS_DAYS = int(os.environ.get("LEGACY_ACCESS_DAYS", "30") or "30")
+    FREE_DAILY_QUESTION_LIMIT = int(os.environ.get("FREE_DAILY_QUESTION_LIMIT", "10") or "10")
+    COURSE_INCLUDED_IN_SUBSCRIPTION = os.environ.get("COURSE_INCLUDED_IN_SUBSCRIPTION", "1") == "1"
+    PUBLIC_SAMPLE_MEDIA_FOLDER = os.environ.get("PUBLIC_SAMPLE_MEDIA_FOLDER") or os.path.join(
+        os.path.dirname(UPLOAD_FOLDER),
+        "public_sample_media",
+    )
+    PUBLIC_QBANK_PRICE_AMOUNT = int(os.environ.get("PUBLIC_QBANK_PRICE_AMOUNT", "800") or "800")  # minor units (e.g. 800 = $8.00)
+    PUBLIC_QBANK_PRICE_CURRENCY = os.environ.get("PUBLIC_QBANK_PRICE_CURRENCY", "USD").strip() or "USD"
+    PUBLIC_SAMPLE_PER_EXAM = int(os.environ.get("PUBLIC_SAMPLE_PER_EXAM", "2") or "2")
+    PUBLIC_STATS_TTL_SECONDS = int(os.environ.get("PUBLIC_STATS_TTL_SECONDS", "60") or "60")
+
+    # Stage 6: anti-scraping, velocity & abuse rate-limiting thresholds (never hardcoded in handlers)
+    ABUSE_PROTECTION_ENABLED = os.environ.get("ABUSE_PROTECTION_ENABLED", "1") == "1"
+    ABUSE_PROTECTION_IN_TESTING = False
+    QBANK_RATE_LIMIT_VIEW = os.environ.get("QBANK_RATE_LIMIT_VIEW", "120 per minute; 1000 per hour")
+    QBANK_RATE_LIMIT_ACTION = os.environ.get("QBANK_RATE_LIMIT_ACTION", "90 per minute; 600 per hour")
+    QBANK_RATE_LIMIT_EXPORT = os.environ.get("QBANK_RATE_LIMIT_EXPORT", "10 per minute; 60 per hour")
+    PUBLIC_RATE_LIMIT_PAGE = os.environ.get("PUBLIC_RATE_LIMIT_PAGE", "120 per minute")
+    QBANK_SCRAPE_WINDOW_SECONDS = int(os.environ.get("QBANK_SCRAPE_WINDOW_SECONDS", "60") or "60")
+    QBANK_SCRAPE_MAX_PER_WINDOW = int(os.environ.get("QBANK_SCRAPE_MAX_PER_WINDOW", "150") or "150")
+    QBANK_SCRAPE_MAX_PER_HOUR = int(os.environ.get("QBANK_SCRAPE_MAX_PER_HOUR", "600") or "600")
+    ABUSE_404_WINDOW_SECONDS = int(os.environ.get("ABUSE_404_WINDOW_SECONDS", "60") or "60")
+    ABUSE_404_MAX_PER_WINDOW = int(os.environ.get("ABUSE_404_MAX_PER_WINDOW", "30") or "30")

@@ -106,6 +106,53 @@
       <p class="small muted" style="margin-top:6px">{{ _("Покажем временный пароль один раз, его нужно передать человеку.") }}</p>
     </form>
     {% endif %}
+    {% if u.role == 'student' and panel.subscription_plans %}
+    <section class="stack-sm" style="padding-top:8px;border-top:1px solid var(--line)">
+      <h4 class="eyebrow" style="margin:0">{{ _("Подписка на банк вопросов") }}</h4>
+      {% set sub_st = panel.subscription_status %}
+      <div class="small muted">
+        {{ _("Уровень") }}: <b>{{ sub_st.tier }}</b>
+        {% if sub_st.legacy_access_until %} · {{ _("до") }} {{ sub_st.legacy_access_until|d("d MMM y") }}{% endif %}
+      </div>
+      <form method="post" action="{{ url_for('admin.subscription_grant', user_id=u.id) }}" class="stack-sm" style="gap:6px">{{ ui.csrf() }}
+        <input type="hidden" name="next" value="{{ back }}">
+        <div class="row" style="gap:6px;flex-wrap:wrap">
+          <select class="select" name="plan_id" style="flex:1">
+            {% for pl in panel.subscription_plans %}<option value="{{ pl.id }}">{{ pl.name }} ({{ pl.duration_days }} {{ _("дн.") }})</option>{% endfor %}
+          </select>
+          <select class="select" name="status">
+            <option value="active">active</option>
+            <option value="trialing">trialing</option>
+          </select>
+          <input class="input" type="number" name="days" min="1" max="365" placeholder="{{ _('дней') }}" style="width:82px">
+        </div>
+        <button class="btn btn--primary btn--sm" type="submit">{{ _("Выдать подписку вручную") }}</button>
+      </form>
+      {% for sub in panel.subscriptions %}
+        <div class="card card--tight stack-sm" style="gap:6px">
+          <div class="row row--between small">
+            <b>{{ sub.plan.name }}</b>
+            <span class="tag tag--line">{{ sub.status }}</span>
+          </div>
+          {% if sub.status in ('active', 'trialing') %}
+          <div class="row" style="gap:6px;flex-wrap:wrap">
+            <form method="post" action="{{ url_for('admin.subscription_change_plan', sub_id=sub.id) }}" class="row" style="gap:6px">{{ ui.csrf() }}
+              <input type="hidden" name="next" value="{{ back }}">
+              <select class="select" name="plan_id">
+                {% for pl in panel.subscription_plans %}<option value="{{ pl.id }}" {{ 'selected' if pl.id == sub.plan_id }}>{{ pl.name }}</option>{% endfor %}
+              </select>
+              <button class="btn btn--secondary btn--sm" type="submit">{{ _("Сменить план") }}</button>
+            </form>
+            <form method="post" action="{{ url_for('admin.subscription_cancel', sub_id=sub.id) }}">{{ ui.csrf() }}
+              <input type="hidden" name="next" value="{{ back }}">
+              <button class="btn btn--danger-line btn--sm" type="submit">{{ _("Отменить") }}</button>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </section>
+    {% endif %}
     <form method="post" action="{{ url_for('admin.block', user_id=u.id) }}">{{ ui.csrf() }}
       <input type="hidden" name="next" value="{{ back }}">
       {% if u.is_blocked %}<button class="btn btn--secondary" name="on" value="">{{ _("Разблокировать") }}</button>

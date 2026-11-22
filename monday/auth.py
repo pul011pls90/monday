@@ -74,6 +74,10 @@ def link_invite_code(user, code):
 def index():
     if current_user.is_authenticated:
         return redirect(_home_for(current_user))
+    from .public_site import is_public_site_enabled, render_landing_page
+
+    if is_public_site_enabled():
+        return render_landing_page()
     return redirect(url_for("auth.login"))
 
 
@@ -445,6 +449,10 @@ def toggle_theme():
 
 @bp.route("/about")
 def about():
+    from .public_site import is_public_site_enabled, render_about_page
+
+    if is_public_site_enabled() and not current_user.is_authenticated:
+        return render_about_page()
     return render_template("info/about.html")
 
 

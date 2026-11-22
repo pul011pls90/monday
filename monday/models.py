@@ -69,6 +69,7 @@ class User(UserMixin, db.Model):
     last_seen_at = db.Column(db.DateTime)  # updated at most every few minutes
     total_visits = db.Column(db.Integer, nullable=False, default=0)  # cached by daily analytics job
     average_visit_duration = db.Column(db.Integer, nullable=False, default=0)  # average seconds per visit
+    legacy_access_until = db.Column(db.DateTime, nullable=True)  # grandfathered full bank access deadline for pre-Stage-4 unlinked students
     created_at = db.Column(db.DateTime, default=utcnow)
 
     profile = db.relationship("StudentProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
@@ -284,6 +285,8 @@ class Question(db.Model):
     rubric = db.Column(JSONText)  # written: [{"points": 2, "text": "…"}, …] — scoring criteria, best first
     tags = db.Column(JSONText)  # kinds of question: word, graph, nocalc, compare (see taxonomy.TAGS)
     status = db.Column(db.String(12), default="published")  # draft | pending (assistant's, waits for review) | published
+    is_public_sample = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false(), index=True)
+    public_image_key = db.Column(db.String(64), nullable=True, unique=True, index=True)
     review_note = db.Column(db.Text)  # reviewer's comment when a question is sent back
     replaces_id = db.Column(db.Integer, db.ForeignKey("question.id"))  # an assistant's correction of this published question
     reviewed_by_id = db.Column(db.Integer, db.ForeignKey("user.id"))
@@ -1220,13 +1223,18 @@ class Lead(db.Model):
     phone_e164 = db.Column(db.String(20), nullable=True, index=True)
     messenger_handle = db.Column(db.String(120), nullable=True)
     messenger_norm = db.Column(db.String(120), nullable=True, index=True)
+    telegram_chat_id = db.Column(db.String(64), nullable=True, index=True)
+    telegram_username = db.Column(db.String(120), nullable=True, index=True)
     source = db.Column(db.String(32), nullable=False, default="other", index=True)
     interest = db.Column(db.String(160), nullable=False, default="")
     mode_preference = db.Column(db.String(16), nullable=False, default="")
     temperature = db.Column(db.String(16), nullable=False, default="cold")
+    priority_score = db.Column(db.Integer, nullable=False, default=50)
     ai_summary = db.Column(db.Text, nullable=True)
     previous_lead_id = db.Column(db.Integer, db.ForeignKey("leads.id", ondelete="SET NULL"), nullable=True, index=True)
     status = db.Column(db.String(24), nullable=False, default="new", index=True)
+    is_archived = db.Column(db.Boolean, nullable=False, default=False, index=True)
+    archive_reason = db.Column(db.String(120), nullable=False, default="")
     assigned_manager_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow, index=True)
     first_contact_at = db.Column(db.DateTime, nullable=True)
@@ -1247,6 +1255,12 @@ class Lead(db.Model):
         "LeadTask",
         back_populates="lead",
         order_by="LeadTask.due_at.asc()",
+        cascade="all, delete-orphan",
+    )
+    reply_feedback = db.relationship(
+        "BotReplyFeedback",
+        back_populates="lead",
+        order_by="BotReplyFeedback.created_at.desc()",
         cascade="all, delete-orphan",
     )
 
@@ -1290,6 +1304,47 @@ class LeadTask(db.Model):
     assignee = db.relationship("User", foreign_keys=[assignee_id])
 
 
+class ReplyTemplate(db.Model):
+    """Optima-style bilingual (RU/KY) reply macro with {variable} slots seeded from docs/crm_bot/reply_macros.md."""
+
+    __tablename__ = "reply_templates"
+
+    id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(80), unique=True, nullable=False)
+    category = db.Column(db.String(48), nullable=False, default="general", index=True)
+    title = db.Column(db.String(160), nullable=False)
+    body_ru = db.Column(db.Text, nullable=False)
+    body_ky = db.Column(db.Text, nullable=False)
+    variables_json = db.Column(JSONText, nullable=False, default=list)
+    is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=utcnow, onupdate=utcnow)
+
+
+class BotReplyFeedback(db.Model):
+    """Manager feedback on bot reply drafts used for dynamic few-shot retrieval and DSPy optimization."""
+
+    __tablename__ = "bot_reply_feedback"
+    __table_args__ = (
+        db.Index("ix_bot_reply_feedback_lookup", "intent", "subject", "language", "was_accepted"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    lead_id = db.Column(db.Integer, db.ForeignKey("leads.id", ondelete="SET NULL"), nullable=True, index=True)
+    template_slug = db.Column(db.String(80), nullable=True, index=True)
+    intent = db.Column(db.String(48), nullable=False, default="hot_lead", index=True)
+    subject = db.Column(db.String(80), nullable=False, default="", index=True)
+    language = db.Column(db.String(12), nullable=False, default="ru", index=True)
+    draft_text = db.Column(db.Text, nullable=False, default="")
+    final_sent_text = db.Column(db.Text, nullable=False, default="")
+    was_accepted = db.Column(db.Boolean, nullable=False, default=False, index=True)
+    created_by_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow, index=True)
+
+    lead = db.relationship("Lead", back_populates="reply_feedback")
+    created_by = db.relationship("User", foreign_keys=[created_by_id])
+
+
 class AuditLog(db.Model):
     """Immutable audit trail for role changes, lead reassignments/deletions/conversions, and retroactive edits."""
 
@@ -1330,7 +1385,25 @@ class Location(db.Model):
     address = db.Column(db.String(255), nullable=False, default="")
     room = db.Column(db.String(80), nullable=False, default="")
     is_active = db.Column(db.Boolean, nullable=False, default=True)
+    is_public = db.Column(db.Boolean, nullable=False, default=False, index=True)
+    public_name = db.Column(db.String(160), nullable=False, default="")
+    map_url = db.Column(db.String(400), nullable=False, default="")
+    working_hours = db.Column(db.String(160), nullable=False, default="")
+    phone = db.Column(db.String(40), nullable=False, default="")
+    photo = db.Column(db.String(255), nullable=False, default="")
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    def to_public_dict(self) -> dict:
+        """Expose strictly public-safe fields (never internal room/capacity/notes)."""
+        return {
+            "id": self.id,
+            "name": (self.public_name or self.name or "").strip(),
+            "address": (self.address or "").strip(),
+            "map_url": (self.map_url or "").strip(),
+            "working_hours": (self.working_hours or "").strip(),
+            "phone": (self.phone or "").strip(),
+            "photo": (self.photo or "").strip(),
+        }
 
 
 class AcademicCourse(db.Model):
@@ -1343,7 +1416,18 @@ class AcademicCourse(db.Model):
     name = db.Column(db.String(160), nullable=False)
     exam = db.Column(db.String(16), nullable=False, default="")
     is_active = db.Column(db.Boolean, nullable=False, default=True)
+    is_public = db.Column(db.Boolean, nullable=False, default=False, index=True)
+    public_summary = db.Column(db.Text, nullable=False, default="")
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    def to_public_dict(self) -> dict:
+        """Expose strictly public-safe course attributes."""
+        return {
+            "id": self.id,
+            "name": (self.name or "").strip(),
+            "exam": (self.exam or "").strip(),
+            "public_summary": (self.public_summary or "").strip(),
+        }
 
 
 class StudyGroup(db.Model):
@@ -1446,6 +1530,10 @@ PAYMENT_KINDS = ("payment", "refund")
 PAY_RATE_TYPES = ("per_lesson", "per_student", "fixed_month")
 
 
+# Naming convention (see docs/naming.md):
+# - MembershipPlan (`membership_plans`) = «Абонемент» for teacher-led offline/online lesson packages.
+# - SubscriptionPlan (`subscription_plans`) / Subscription (`bank_subscriptions`) = «Подписка на банк вопросов»
+#   for self-study access without teachers. Never mix the two models or branches.
 class MembershipPlan(db.Model):
     """Catalog plan / subscription package (e.g. 8 SAT lessons / 30 days)."""
 
@@ -1552,6 +1640,96 @@ class TeacherPayRate(db.Model):
 
     teacher = db.relationship("User", foreign_keys=[teacher_id])
     course = db.relationship("AcademicCourse")
+
+
+# --------------------------------------------------------------------------- Self-Study Question-Bank Subscriptions (Stage 4)
+# Naming convention (see docs/naming.md):
+# - MembershipPlan (`membership_plans`) / StudentPass (`student_passes`) = «Абонемент» (school lessons with teachers).
+# - SubscriptionPlan (`subscription_plans`) / Subscription (`bank_subscriptions`) = «Подписка на банк вопросов»
+#   (self-study question-bank product without teachers). Never merge or reuse the same tables.
+
+
+SUBSCRIPTION_STATUSES = ("active", "trialing", "past_due", "cancelled", "expired")
+
+
+class SubscriptionPlan(db.Model):
+    """Product plan for «Подписка на банк вопросов» (prices & durations live in DB/config, never hardcoded)."""
+
+    __tablename__ = "subscription_plans"
+
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(48), nullable=False, unique=True)
+    name = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text, nullable=False, default="")
+    price_amount = db.Column(db.Integer, nullable=False, default=800)  # minor units
+    currency = db.Column(db.String(8), nullable=False, default="USD")
+    billing_period = db.Column(db.String(16), nullable=False, default="monthly")
+    duration_days = db.Column(db.Integer, nullable=False, default=30)
+    is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+
+class Subscription(db.Model):
+    """Self-study question-bank subscription grant / lifecycle row (`bank_subscriptions`)."""
+
+    __tablename__ = "bank_subscriptions"
+    __table_args__ = (
+        db.Index("ix_bank_subscriptions_user_status", "user_id", "status"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    plan_id = db.Column(db.Integer, db.ForeignKey("subscription_plans.id", ondelete="RESTRICT"), nullable=False, index=True)
+    status = db.Column(db.String(20), nullable=False, default="active", index=True)
+    starts_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+    current_period_end = db.Column(db.DateTime, nullable=True, index=True)
+    trial_ends_at = db.Column(db.DateTime, nullable=True)
+    granted_by_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True)
+    note = db.Column(db.String(255), nullable=False, default="")
+    cancelled_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=utcnow, onupdate=utcnow)
+
+    user = db.relationship("User", foreign_keys=[user_id])
+    plan = db.relationship("SubscriptionPlan", foreign_keys=[plan_id])
+    granted_by = db.relationship("User", foreign_keys=[granted_by_id])
+    events = db.relationship("SubscriptionEvent", back_populates="subscription", cascade="all, delete-orphan")
+
+
+class SubscriptionEvent(db.Model):
+    """Immutable audit trail for manual subscription grants, plan changes, renewals and cancellations."""
+
+    __tablename__ = "subscription_events"
+
+    id = db.Column(db.Integer, primary_key=True)
+    subscription_id = db.Column(db.Integer, db.ForeignKey("bank_subscriptions.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True)
+    actor_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"), nullable=True)
+    event_type = db.Column(db.String(32), nullable=False)
+    old_status = db.Column(db.String(20), nullable=True)
+    new_status = db.Column(db.String(20), nullable=True)
+    payload = db.Column(JSONText, nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    subscription = db.relationship("Subscription", back_populates="events")
+    user = db.relationship("User", foreign_keys=[user_id])
+    actor = db.relationship("User", foreign_keys=[actor_id])
+
+
+class DailyQuestionAccess(db.Model):
+    """Server-side atomic ledger of distinct non-sample questions opened by free-tier users per local day."""
+
+    __tablename__ = "daily_question_access"
+    __table_args__ = (
+        UniqueConstraint("user_id", "access_date", "question_id", name="uq_daily_q_access_user_date_q"),
+        db.Index("ix_daily_q_access_user_date", "user_id", "access_date"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    access_date = db.Column(db.Date, nullable=False)
+    question_id = db.Column(db.Integer, db.ForeignKey("question.id", ondelete="CASCADE"), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
 
 
 # Safety net for PostgreSQL, which (unlike SQLite) rejects a string longer than its column:

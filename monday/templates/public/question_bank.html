@@ -1,0 +1,128 @@
+{% extends "public/_base.html" %}
+{% block content %}
+<section class="pub-hero">
+  <div>
+    <span class="eyebrow" style="color:var(--hero-muted)">{{ _("Самостоятельная подготовка") }}</span>
+    <h1>{{ _("Банк вопросов Monday без преподавателя") }}</h1>
+    <p class="pub-hero__lead">{{ _("Тренируйтесь по темам и уровню сложности, проходите пробные варианты с таймером и разбирайте ошибки в личном журнале.") }}</p>
+    <div class="pub-hero__ctas">
+      {% if self_study_signup_enabled %}
+      <a class="btn btn--primary btn--lg" href="{{ url_for('auth.register') }}">{{ _("Начать бесплатно") }}</a>
+      {% else %}
+      <a class="btn btn--primary btn--lg" href="{{ url_for('auth.login') }}">{{ _("Войти в кабинет") }}</a>
+      {% endif %}
+      <a class="btn btn--secondary btn--lg" href="{{ url_for('public_site.pricing') }}">{{ _("Подписка от") }} {{ pricing.display_price }}/{{ _("мес") }}</a>
+    </div>
+  </div>
+  <div class="pub-hero__card">
+    <div class="eyebrow" style="color:var(--hero-muted)">{{ _("В банке прямо сейчас") }}</div>
+    <div class="pub-stat__num num" style="color:var(--hero-text)">{{ stats.published_questions }}</div>
+    <div class="small" style="color:var(--hero-muted)">{{ _("опубликованных заданий ·") }} {{ stats.topics_count }} {{ _("тем ·") }} {{ stats.collections_count }} {{ _("сборников") }}</div>
+  </div>
+</section>
+
+<section id="free-samples" class="stack">
+  <div class="pub-section-head">
+    <div>
+      <span class="eyebrow">{{ _("Открытый предпросмотр") }}</span>
+      <h2>{{ _("Бесплатные примеры задач") }}</h2>
+    </div>
+    <a class="btn btn--secondary btn--sm" href="{{ url_for('auth.login') }}">{{ _("Войти для полного доступа") }}</a>
+  </div>
+
+  {% if sample_groups %}
+    <div class="stack">
+      {% for grp in sample_groups %}
+      <div class="stack-sm">
+        <div class="row row--between">
+          <h3 style="margin:0">{{ grp.label }}</h3>
+          {% if grp.note %}<span class="small muted">{{ grp.note }}</span>{% endif %}
+        </div>
+        <div class="pub-grid-2">
+          {% for s in grp.samples %}
+          <article class="card pub-sample-card">
+            <div class="row row--between">
+              <span class="tag">{{ grp.label }}</span>
+              <span class="small muted">{{ s.difficulty_label }}{% if s.skill_name %} · {{ s.skill_name }}{% endif %}</span>
+            </div>
+            {% if s.material %}
+              <div class="pub-sample-material">{{ ui.material(s) }}</div>
+            {% endif %}
+            {% if s.text %}
+              <div class="pub-sample-stem math">{{ s.text }}</div>
+            {% endif %}
+            {% if s.public_image_key %}
+              <figure class="pub-sample-fig">
+                <img src="{{ url_for('public_site.public_sample_media', key=s.public_image_key) }}" alt="{{ _('Иллюстрация к примеру задачи') }}" loading="lazy">
+              </figure>
+            {% endif %}
+            {% if s.answer_type == 'choice' and s.options %}
+              <ul class="pub-sample-opts">
+                {% for opt in s.options %}
+                  <li><span class="pub-sample-opt-letter">{{ LETTERS[loop.index0] if LETTERS else loop.index }}</span> <span class="math">{{ opt }}</span></li>
+                {% endfor %}
+              </ul>
+            {% elif s.answer_type == 'number' %}
+              <div class="small muted">{{ _("Формат ответа: числовое значение") }}</div>
+            {% endif %}
+            <div class="pub-sample-footer">
+              <span class="small muted">{{ _("Проверка ответа и разбор решения открываются в личном кабинете.") }}</span>
+              <a class="small" href="{{ url_for('auth.login') }}">{{ _("Войти →") }}</a>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <article class="card stack-sm">
+      <strong>{{ _("Примеры задач готовятся к публикации") }}</strong>
+      <p class="small text-2" style="margin:0">{{ _("Войдите в существующий аккаунт Monday Academy для работы с банком вопросов или оставьте заявку на консультацию.") }}</p>
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <a class="btn btn--secondary btn--sm" href="{{ url_for('auth.login') }}">{{ _("Войти") }}</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.contact') }}#apply-form">{{ _("Оставить заявку") }}</a>
+      </div>
+    </article>
+  {% endif %}
+</section>
+
+<section>
+  <div class="pub-section-head">
+    <div>
+      <span class="eyebrow">{{ _("Экзамены и направления") }}</span>
+      <h2>{{ _("Доступные треки в банке") }}</h2>
+    </div>
+  </div>
+  <div class="pub-exam-grid">
+    {% for ex in stats.exam_cards %}
+      <article class="pub-exam-card">
+        <div class="row row--between">
+          <strong>{{ ex.label }}</strong>
+          <span class="small muted num">{{ ex.count }} {{ _("зад.") }}</span>
+        </div>
+        {% if ex.note %}<div class="small muted">{{ ex.note }}</div>{% endif %}
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="card stack-sm">
+  <span class="eyebrow">{{ _("Режимы и инструменты") }}</span>
+  <h2 style="margin:0">{{ _("Что открывается с подпиской") }}</h2>
+  <div class="pub-grid-3" style="margin-top:8px">
+    <div class="card" style="background:var(--surface-2)">
+      <strong>{{ _("Короткие сессии") }}</strong>
+      <p class="small text-2">{{ _("Режимы по слабым темам, работе над ошибками, сложным задачам и своя настройка времени.") }}</p>
+    </div>
+    <div class="card" style="background:var(--surface-2)">
+      <strong>{{ _("Таймер и калькулятор") }}</strong>
+      <p class="small text-2">{{ _("Полная имитация формата экзамена: модульный SAT/CSCA с Desmos и страничный бланк ОРТ.") }}</p>
+    </div>
+    <div class="card" style="background:var(--surface-2)">
+      <strong>{{ _("Подписка на банк вопросов") }}</strong>
+      <p class="small text-2">{{ pricing.display_price }} {{ _("в месяц — без обязательного прикрепления к преподавателю или расписанию.") }}</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -76,12 +76,16 @@
         ('bank.index', 'bank', _('Банк'), ['bank.index']),
         ('student.collections', 'collections', _('Сборники'), ['student.collections', 'student.work_detail', 'student.attempt_run', 'student.attempt_result']),
         ('student.skills', 'roadmap', _('Маршрут'), ['student.skills']),
-        ('student.homework', 'homework', _('Домашка'), ['student.homework', 'student.homework_detail']),
+      ] %}
+      {% if HAS_TEACHER_LINK %}
+        {% set items = items + [('student.homework', 'homework', _('Домашка'), ['student.homework', 'student.homework_detail'])] %}
+      {% endif %}
+      {% set items = items + [
         ('student.journal', 'journal', _('Журнал'), ['student.journal']),
         ('student.formulas', 'formulas', _('Формулы'), ['student.formulas', 'student.formula_template']),
       ] %}
       {% if not SHOW_JOURNAL %}{% set items = items|rejectattr(0, 'equalto', 'student.journal')|list %}{% endif %}
-      {% set primary = ['student.monday', 'student.home', 'student.sessions', 'bank.index', 'student.homework'] %}
+      {% set primary = ['student.monday', 'student.home', 'student.sessions', 'bank.index', 'student.homework' if HAS_TEACHER_LINK else 'student.collections'] %}
     {% endif %}
     {% set cb = crm_badges() if current_user.role in ('sales_manager', 'supervisor', 'admin') else {'unanswered': 0, 'tasks': 0} %}
     {% for endpoint, ic, label, active in items %}{% set on = (nav_active == endpoint) if nav_active is defined else (ep in active) %}{% set aria = _('Исправления') if current_user.role == 'admin' and endpoint == 'reports.inbox' else label %}
@@ -227,6 +231,12 @@
       or ep in ('reports.inbox', 'course.admin_course', 'roadmap.admin_roadmap', 'deploy_safety.admin_maintenance')
     ) %}
     <main class="page {% block page_class %}{% endblock %}">
+      {% if LEGACY_ACCESS_UNTIL and current_user.is_authenticated and current_user.role == 'student' %}
+      <div class="flash flash--info" role="status">
+        <span>{{ _("Ваш ранний полный доступ к банку вопросов действует до %(dt)s.", dt=LEGACY_ACCESS_UNTIL|d("d MMMM y")) }}
+        <a href="{{ url_for('student.subscription') }}" style="font-weight:700;text-decoration:underline;margin-left:6px">{{ _("Оформить подписку на банк вопросов") }}</a></span>
+      </div>
+      {% endif %}
       {% if one_time_notice %}<div class="flash flash--success" role="status">{{ one_time_notice }}</div>{% endif %}
       {{ ui.flashes() }}
       {% if _use_shell %}<div class="app-shell-panel">{% endif %}

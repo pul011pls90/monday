@@ -1,0 +1,43 @@
+{% extends "public/_base.html" %}
+{% block json_ld %}
+{% if local_business_ld %}
+<script type="application/ld+json">{{ local_business_ld|tojson }}</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<section class="card stack-sm">
+  <span class="eyebrow">{{ _("Очное обучение") }}</span>
+  <h1 style="margin:0">{{ _("Офлайн-курсы и филиалы Monday Academy") }}</h1>
+  <p class="text-2">{{ _("Занятия с преподавателем в аудитории дополняются ежедневной практикой и тестами на платформе Monday.") }}</p>
+</section>
+
+<section>
+  {% if locations %}
+    <div class="pub-grid-2">
+      {% for loc in locations %}
+        <article class="card stack-sm">
+          {% if loc.photo %}
+            <img src="{{ loc.photo }}" alt="{{ loc.name }}" width="640" height="360" loading="lazy" style="width:100%;height:auto;border-radius:12px;object-fit:cover">
+          {% endif %}
+          <h2 style="margin:0">{{ loc.name }}</h2>
+          {% if loc.address %}<p class="text-2" style="margin:0">{{ loc.address }}</p>{% endif %}
+          {% if loc.working_hours %}<p class="small muted" style="margin:0">{{ _("Часы работы:") }} {{ loc.working_hours }}</p>{% endif %}
+          {% if loc.phone %}<p class="small num" style="margin:0">{{ loc.phone }}</p>{% endif %}
+          {% if loc.map_url %}
+            <div><a class="btn btn--secondary btn--sm" href="{{ loc.map_url }}" target="_blank" rel="noopener noreferrer">{{ _("Открыть на карте") }}</a></div>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <section class="card">
+      <h2 style="margin-top:0">{{ _("Расписание и адреса очных групп") }}</h2>
+      <p class="text-2" style="margin-bottom:0">{{ _("Актуальные адреса открытых аудиторий и свободные места в группах уточняйте через форму ниже — менеджер подскажет ближайший филиал.") }}</p>
+    </section>
+  {% endif %}
+</section>
+
+{% set default_mode = 'offline' %}
+{% include "public/_lead_form.html" %}
+{% endblock %}
