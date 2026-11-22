@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "components/ui.html" import slide_over_drawer with context %}
 {% block title %}{{ _("Админ") }}{% endblock %}
 {% block context %}{{ _("Администрирование") }}{% endblock %}
 {% macro qs(extra) -%}{{ url_for('admin.index', **dict(args.to_dict(), **extra)) }}{%- endmacro %}
@@ -244,7 +245,7 @@
   <div class="people">
     {% for u in users %}{% set ex = extra.get(u.id, {}) %}
       <div class="people__row{{ ' is-blocked' if u.is_blocked }}">
-        <a class="people__who" href="{{ qs({'user': u.id}) }}" data-panel-link>
+        <a class="people__who" href="{{ qs({'user': u.id}) }}" data-drawer-open="admin-person-drawer" data-drawer-url="{{ qs({'user': u.id, 'fragment': '1'}) }}">
           {{ ui.avatar(u) }}
           <span class="people__name"><b>{{ u.name }}{% if u.id == current_user.id %} <span class="small muted">({{ _("вы") }})</span>{% endif %}</b><span class="small muted">{{ u.email }}</span></span>
         </a>
@@ -278,7 +279,7 @@
         <details class="menu">
           <summary class="icon-btn icon-btn--sm" aria-label="{{ _('Действия: %(n)s', n=u.name) }}">⋯</summary>
           <div class="menu__pop">
-            <a href="{{ qs({'user': u.id}) }}" data-panel-link>{{ _("Открыть карточку") }}</a>
+            <a href="{{ qs({'user': u.id}) }}" data-drawer-open="admin-person-drawer" data-drawer-url="{{ qs({'user': u.id, 'fragment': '1'}) }}">{{ _("Открыть карточку") }}</a>
             {% if not u.is_admin and not u.is_blocked %}
               <form method="post" action="{{ url_for('admin.simulate') }}">{{ ui.csrf() }}
                 <button type="submit" name="user_id" value="{{ u.id }}">{{ _("Симулировать вид") }}</button></form>
@@ -314,11 +315,16 @@
 {% endif %}
 {% endblock %}
 {% block body_end %}
-{# ------------------------------------------------------------ person card (slides in from the right) #}
-<aside class="drawer drawer--panel" data-person-panel {{ 'hidden' if not panel }} aria-label="{{ _('Карточка пользователя') }}">
-  <div class="drawer__head"><h2>{{ _("Карточка") }}</h2>
-    <a class="icon-btn icon-btn--sm" href="{{ qs({'user': ''}) }}" data-panel-close aria-label="{{ _('Закрыть') }}">{{ ui.icon('x', 16) }}</a></div>
-  <div class="drawer__body" data-panel-body>{% if panel %}{% include "admin/_panel_body.html" %}{% endif %}</div>
-</aside>
+{% call slide_over_drawer(
+  'admin-person-drawer',
+  aria_label=_('Карточка пользователя'),
+  title=_('Карточка'),
+  open=(panel is not none),
+  close_href=qs({'user': ''}),
+  url_param='user',
+  attrs='data-person-panel'
+) %}
+  {% if panel %}{% include "admin/_panel_body.html" %}{% endif %}
+{% endcall %}
 {% endblock %}
 {% block scripts %}<script defer src="{{ url_for('static', filename='js/admin.js') }}"></script>{% endblock %}

@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% import "manager/_ui.html" as mui with context %}
+{% from "components/ui.html" import searchable_combobox with context %}
 {% block title %}{{ _("Новый ученик") }} · CRM{% endblock %}
 {% block context %}{{ _("Новый ученик") }}{% endblock %}
 {% block content %}
@@ -43,10 +44,16 @@
       <div class="row" style="gap:12px;flex-wrap:wrap">
         <div class="stack-sm" style="flex:1 1 240px">
           <label class="eyebrow" for="s-teacher">{{ _("Преподаватель") }} *</label>
-          <select class="select" id="s-teacher" name="teacher_id" required>
-            <option value="">{{ _("Выберите преподавателя...") }}</option>
-            {% for t in teachers %}<option value="{{ t.id }}" {{ 'selected' if form.teacher_id == t.id }}>{{ t.name }}</option>{% endfor %}
-          </select>
+          {{ searchable_combobox(
+            'teacher_id',
+            options=teacher_options,
+            selected_value=(form.teacher_id|string if form.teacher_id else ''),
+            placeholder=_('Выберите преподавателя...'),
+            auto_submit=False,
+            required=True,
+            input_id='s-teacher',
+            aria_label=_('Преподаватель')
+          ) }}
         </div>
         <div class="stack-sm" style="flex:1 1 240px">
           <label class="eyebrow" for="s-course">{{ _("Предмет / курс") }}</label>

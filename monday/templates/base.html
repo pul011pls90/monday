@@ -80,6 +80,10 @@
   <script defer src="{{ url_for('static', filename='js/date-picker.js') }}"></script>
   <script defer src="{{ url_for('static', filename='js/deploy-safety.js') }}"></script>
   <script defer src="{{ url_for('static', filename='js/pwa.js') }}"></script>
+  {% if current_user.is_authenticated and current_user.role in ('admin', 'sales_manager', 'supervisor') %}
+  <script defer src="{{ url_for('static', filename='js/components/drawer.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='js/components/combobox.js') }}"></script>
+  {% endif %}
   {% block scripts %}{% endblock %}
 </body>
 </html>

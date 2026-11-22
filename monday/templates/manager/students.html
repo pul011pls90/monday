@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% import "manager/_ui.html" as mui with context %}
+{% from "components/ui.html" import slide_over_drawer, searchable_combobox with context %}
 {% block title %}{{ _("CRM · Ученики") }}{% endblock %}
 {% block context %}{{ _("Ученики и преподаватели") }}{% endblock %}
 {% block content %}
@@ -8,17 +9,17 @@
     _("Записи учеников, закреплённые преподаватели и статусы одноразовых кодов.")
   ) %}
     {% if current_user.has_perm('crm.leads.convert') %}
-      {{ mui.btn(_("Новый ученик"), href=url_for('manager.student_new'), variant='primary', size='sm', icon_name='plus') }}
+      <a class="mgr-btn mgr-btn--primary mgr-btn--sm" href="{{ url_for('manager.student_new') }}" data-drawer-open="student-new-drawer">{{ ui.icon('plus', 15) }}<span>{{ _("Новый ученик") }}</span></a>
     {% endif %}
     {{ mui.btn(_("Здоровье учеников"), href=url_for('manager.pipeline', mode='students'), variant='secondary', size='sm', icon_name='kanban') }}
   {% endcall %}
 
   {{ mui.filter_tabs([
-    {'label': _("Все"), 'href': url_for('manager.students', teacher_id=filters.teacher_id or '', q=filters.q, status='all'), 'active': filters.status == 'all', 'count': total_before_status},
-    {'label': _("Ожидает"), 'href': url_for('manager.students', teacher_id=filters.teacher_id or '', q=filters.q, status='pending'), 'active': filters.status == 'pending', 'count': status_counts.get('pending', 0)},
-    {'label': _("Привязан"), 'href': url_for('manager.students', teacher_id=filters.teacher_id or '', q=filters.q, status='claimed'), 'active': filters.status == 'claimed', 'count': status_counts.get('claimed', 0)},
-    {'label': _("Истёк"), 'href': url_for('manager.students', teacher_id=filters.teacher_id or '', q=filters.q, status='expired'), 'active': filters.status == 'expired', 'count': status_counts.get('expired', 0)},
-    {'label': _("Отозван"), 'href': url_for('manager.students', teacher_id=filters.teacher_id or '', q=filters.q, status='revoked'), 'active': filters.status == 'revoked', 'count': status_counts.get('revoked', 0)},
+    {'label': _("Все"), 'href': url_for('manager.students', teacher_id=filters.teacher_id_str or '', q=filters.q, status='all'), 'active': filters.status == 'all', 'count': total_before_status},
+    {'label': _("Ожидает"), 'href': url_for('manager.students', teacher_id=filters.teacher_id_str or '', q=filters.q, status='pending'), 'active': filters.status == 'pending', 'count': status_counts.get('pending', 0)},
+    {'label': _("Привязан"), 'href': url_for('manager.students', teacher_id=filters.teacher_id_str or '', q=filters.q, status='claimed'), 'active': filters.status == 'claimed', 'count': status_counts.get('claimed', 0)},
+    {'label': _("Истёк"), 'href': url_for('manager.students', teacher_id=filters.teacher_id_str or '', q=filters.q, status='expired'), 'active': filters.status == 'expired', 'count': status_counts.get('expired', 0)},
+    {'label': _("Отозван"), 'href': url_for('manager.students', teacher_id=filters.teacher_id_str or '', q=filters.q, status='revoked'), 'active': filters.status == 'revoked', 'count': status_counts.get('revoked', 0)},
   ], aria_label=_("Фильтр по статусу кода")) }}
 
   <form method="get" action="{{ url_for('manager.students') }}" class="mgr-filter-row" role="search">
@@ -27,12 +28,18 @@
       {{ ui.icon('search', 16) }}<span class="sr-only">{{ _("Поиск") }}</span>
       <input type="search" name="q" value="{{ filters.q }}" placeholder="{{ _('Имя, телефон, email, предмет...') }}">
     </label>
-    <select class="select input--sm" name="teacher_id" aria-label="{{ _('Преподаватель') }}" onchange="this.form.submit()">
-      <option value="">{{ _("Все преподаватели") }}</option>
-      {% for t in teachers %}<option value="{{ t.id }}" {{ 'selected' if filters.teacher_id == t.id }}>{{ t.name }}</option>{% endfor %}
-    </select>
+    {{ searchable_combobox(
+      'teacher_id',
+      options=teacher_options,
+      selected_value=filters.teacher_id_str,
+      placeholder=_('Все преподаватели'),
+      special_options=teacher_special_options,
+      auto_submit=True,
+      input_id='st-filter-teacher',
+      aria_label=_('Преподаватель')
+    ) }}
     <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Найти") }}</button>
-    {% if filters.teacher_id or filters.q or filters.status != 'all' %}
+    {% if filters.teacher_id_str or filters.q or filters.status != 'all' %}
       <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.students') }}">{{ _("Сброс") }}</a>
     {% endif %}
   </form>
@@ -58,7 +65,10 @@
               {% set st_tone = 'ok' if st == 'claimed' else ('accent' if st == 'pending' else ('warn' if st == 'expired' else 'bad')) %}
               <tr>
                 <td>
-                  <a class="mgr-lead-link" href="{{ url_for('manager.student_record_detail', record_id=rec.id) }}">{{ rec.name }}</a>
+                  <a class="mgr-lead-link"
+                     href="{{ url_for('manager.student_record_detail', record_id=rec.id) }}"
+                     data-drawer-open="student-record-drawer"
+                     data-drawer-url="{{ url_for('manager.student_record_detail', record_id=rec.id, fragment=1) }}">{{ rec.name }}</a>
                   <div class="mgr-subcell">
                     {% if rec.phone %}<span class="num">{{ rec.phone }}</span>{% endif %}
                     {% if rec.phone and rec.email %} · {% endif %}
@@ -87,7 +97,10 @@
                   {% endif %}
                 </td>
                 <td class="mgr-right">
-                  {{ mui.btn(_("Карточка"), href=url_for('manager.student_record_detail', record_id=rec.id), variant='secondary', size='sm') }}
+                  <a class="mgr-btn mgr-btn--secondary mgr-btn--sm"
+                     href="{{ url_for('manager.student_record_detail', record_id=rec.id) }}"
+                     data-drawer-open="student-record-drawer"
+                     data-drawer-url="{{ url_for('manager.student_record_detail', record_id=rec.id, fragment=1) }}">{{ _("Карточка") }}</a>
                 </td>
               </tr>
             {% endfor %}
@@ -98,4 +111,49 @@
       {{ mui.empty(_("Записей учеников нет"), _("Добавьте нового ученика или измените фильтры."), icon_name='users') }}
     {% endif %}
   {% endcall %}
+{% endblock %}
+
+{% block body_end %}
+  {{ slide_over_drawer('student-record-drawer', aria_label=_('Карточка ученика'), title=_('Карточка ученика'), wide=True) }}
+  {% if current_user.has_perm('crm.leads.convert') %}
+    {% call slide_over_drawer('student-new-drawer', aria_label=_('Новый ученик'), title=_('Новый ученик')) %}
+      <form method="post" action="{{ url_for('manager.student_new') }}" class="stack">
+        {{ ui.csrf() }}
+        <div class="stack-sm">
+          <label class="eyebrow" for="modal-s-name">{{ _("Имя и фамилия") }} *</label>
+          <input class="input input--sm" id="modal-s-name" name="name" minlength="2" maxlength="120" required placeholder="{{ _('Например: Айдана Асанова') }}">
+        </div>
+        <div class="stack-sm">
+          <label class="eyebrow" for="modal-s-phone">{{ _("Телефон") }} *</label>
+          <input class="input input--sm" id="modal-s-phone" name="phone" required placeholder="+996 555 123 456">
+        </div>
+        <div class="stack-sm">
+          <label class="eyebrow" for="modal-s-email">{{ _("Email (необязательно)") }}</label>
+          <input class="input input--sm" id="modal-s-email" type="email" name="email" placeholder="student@example.com">
+        </div>
+        <div class="stack-sm">
+          <label class="eyebrow" for="modal-s-teacher">{{ _("Преподаватель") }} *</label>
+          {{ searchable_combobox(
+            'teacher_id',
+            options=teacher_options,
+            placeholder=_('Выберите преподавателя...'),
+            auto_submit=False,
+            required=True,
+            input_id='modal-s-teacher',
+            aria_label=_('Преподаватель')
+          ) }}
+        </div>
+        <div class="stack-sm">
+          <label class="eyebrow" for="modal-s-course">{{ _("Предмет / курс") }}</label>
+          <select class="select input--sm" id="modal-s-course" name="course_id">
+            <option value="">{{ _("Без привязки к предмету") }}</option>
+            {% for c in courses %}<option value="{{ c.id }}">{{ c.name }}{% if c.exam %} ({{ c.exam }}){% endif %}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="row" style="gap:10px;margin-top:4px">
+          <button class="mgr-btn mgr-btn--primary btn--block" type="submit">{{ ui.icon('plus', 15) }}<span>{{ _("Создать ученика и выдать код") }}</span></button>
+        </div>
+      </form>
+    {% endcall %}
+  {% endif %}
 {% endblock %}

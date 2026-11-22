@@ -1,0 +1,194 @@
+{% import "partials/macros.html" as ui with context %}
+{% import "manager/_ui.html" as mui with context %}
+{% from "components/ui.html" import searchable_combobox with context %}
+{% set st_tone = 'ok' if lead.status == 'won' else ('bad' if lead.status == 'lost' else ('warn' if lead.status == 'negotiation' else 'accent')) %}
+{% set phone_digits = (lead.phone or '')|replace('+', '')|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '') %}
+{% set tg_handle = (lead.messenger_handle or '')|replace('@', '')|trim %}
+{% set lead_email = (lead.converted_student.email if lead.converted_student else (converted_record.email if converted_record and converted_record.email else '')) %}
+
+<div data-drawer-partial>
+  <span hidden data-drawer-partial-title>{{ lead.full_name }}</span>
+  <div hidden data-drawer-partial-head>
+    {{ mui.badge(STATUS_LABELS.get(lead.status, lead.status), tone=st_tone, dot=true) }}
+    <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.lead_detail', lead_id=lead.id) }}">{{ _("Полная карточка") }}</a>
+    {% if lead.converted_student_id %}
+      <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.student_detail', student_id=lead.converted_student_id) }}">{{ _("Профиль 360") }}</a>
+    {% elif converted_record %}
+      <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.student_record_detail', record_id=converted_record.id) }}">{{ _("Запись") }} #{{ converted_record.id }}</a>
+    {% endif %}
+  </div>
+
+  {% if drawer_error %}
+    <div class="alert alert--err" style="margin-bottom:12px">{{ drawer_error }}</div>
+  {% elif drawer_notice %}
+    <div class="alert alert--ok" style="margin-bottom:12px">{{ drawer_notice }}</div>
+  {% endif %}
+
+  <div class="stack" style="gap:14px">
+    <section class="stack-sm">
+      <div class="row row--between" style="align-items:flex-start;gap:8px;flex-wrap:wrap">
+        <div>
+          <h3 style="margin:0;font-size:18px">{{ lead.full_name }}</h3>
+          <div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">
+            {{ mui.badge(STATUS_LABELS.get(lead.status, lead.status), tone=st_tone, dot=true) }}
+            {{ mui.badge(SOURCE_LABELS.get(lead.source, lead.source), tone='neutral') }}
+            {% if sla.overdue %}
+              <span class="mgr-badge mgr-badge--bad" data-sla-badge="overdue"><i class="mgr-badge__dot" aria-hidden="true"></i>{{ _("SLA") }} · {{ sla.label }}</span>
+            {% elif sla.unanswered %}
+              <span class="mgr-badge mgr-badge--warn" data-sla-badge="waiting">{{ _("Ожидает") }} · {{ sla.label }}</span>
+            {% endif %}
+          </div>
+        </div>
+        <span class="small muted num">#{{ lead.id }} · {{ lead.created_at|d('d MMM y, HH:mm') }}</span>
+      </div>
+
+      <dl class="mgr-kv">
+        <dt>{{ _("Телефон") }}</dt>
+        <dd class="num">
+          {% if lead.phone %}
+            <div class="row" style="gap:6px;align-items:center;flex-wrap:wrap">
+              <span>{{ lead.phone }}</span>
+              <button type="button" class="mgr-btn mgr-btn--secondary mgr-btn--sm" style="min-height:26px;padding:0 8px;font-size:11.5px" data-copy-text="{{ lead.phone }}">{{ _("Копировать") }}</button>
+              {% if phone_digits|length >= 7 %}
+                <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" style="min-height:26px;padding:0 8px;font-size:11.5px" href="https://wa.me/{{ phone_digits }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+              {% endif %}
+            </div>
+          {% else %}—{% endif %}
+        </dd>
+        <dt>{{ _("Мессенджер") }}</dt>
+        <dd>
+          {% if lead.messenger_handle %}
+            <div class="row" style="gap:6px;align-items:center;flex-wrap:wrap">
+              <span>{{ lead.messenger_handle }}</span>
+              {% if tg_handle and ' ' not in tg_handle %}
+                <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" style="min-height:26px;padding:0 8px;font-size:11.5px" href="https://t.me/{{ tg_handle }}" target="_blank" rel="noopener noreferrer">Telegram</a>
+              {% endif %}
+            </div>
+          {% else %}—{% endif %}
+        </dd>
+        <dt>{{ _("Email") }}</dt>
+        <dd>{{ lead_email or '—' }}</dd>
+        <dt>{{ _("Предмет / интерес") }}</dt>
+        <dd>{{ lead.interest or '—' }}</dd>
+        <dt>{{ _("Ответственный") }}</dt>
+        <dd>{{ lead.assigned_manager.name if lead.assigned_manager else _("Не назначен") }}</dd>
+        {% if lead.ai_summary %}
+          <dt>{{ _("Заметка") }}</dt>
+          <dd>{{ lead.ai_summary }}</dd>
+        {% endif %}
+      </dl>
+    </section>
+
+    <hr style="border:0;border-top:1px solid var(--line);margin:0">
+
+    <section class="stack-sm">
+      <div class="eyebrow">{{ _("Этап и ответственный") }}</div>
+      <form method="post" action="{{ url_for('manager.lead_status', lead_id=lead.id) }}" class="stack-sm" data-drawer-ajax>
+        {{ ui.csrf() }}
+        <div class="row" style="gap:8px;align-items:stretch">
+          <select class="select input--sm" name="status" aria-label="{{ _('Этап воронки') }}" style="flex:1">
+            {% for st in LEAD_STATUSES %}
+              <option value="{{ st }}" {{ 'selected' if lead.status == st }}>{{ STATUS_LABELS.get(st, st) }}</option>
+            {% endfor %}
+          </select>
+          <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Обновить этап") }}</button>
+        </div>
+        <input class="input input--sm" name="lost_reason" value="{{ lead.lost_reason or '' }}" placeholder="{{ _('Причина отказа (если выбран «Отказ»)') }}">
+      </form>
+
+      {% if current_user.has_perm('crm.leads.reassign') %}
+        <form method="post" action="{{ url_for('manager.lead_reassign', lead_id=lead.id) }}" class="stack-sm" style="margin-top:4px" data-drawer-ajax>
+          {{ ui.csrf() }}
+          <div class="row" style="gap:8px;align-items:stretch">
+            <div style="flex:1;min-width:0">
+              {{ searchable_combobox(
+                'assigned_manager_id',
+                options=manager_options,
+                selected_value=(lead.assigned_manager_id|string if lead.assigned_manager_id else ''),
+                placeholder=_('Назначить ответственного…'),
+                auto_submit=False,
+                input_id='dr-lead-mgr-' ~ lead.id,
+                aria_label=_('Ответственный менеджер')
+              ) }}
+            </div>
+            <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">{{ _("Назначить") }}</button>
+          </div>
+        </form>
+      {% endif %}
+    </section>
+
+    <hr style="border:0;border-top:1px solid var(--line);margin:0">
+
+    <section class="stack-sm">
+      <div class="eyebrow">{{ _("Быстрая заметка") }}</div>
+      <form method="post" action="{{ url_for('manager.lead_add_activity', lead_id=lead.id) }}" class="stack-sm" data-drawer-ajax>
+        {{ ui.csrf() }}
+        <div class="row" style="gap:8px">
+          <select class="select input--sm" name="type" aria-label="{{ _('Тип активности') }}" style="width:140px;flex:0 0 auto">
+            <option value="note">{{ _("Заметка") }}</option>
+            <option value="call">{{ _("Звонок") }}</option>
+            <option value="message">{{ _("Сообщение") }}</option>
+          </select>
+          <input class="input input--sm" name="body" required placeholder="{{ _('Короткий итог звонка, переписки или заметка...') }}" style="flex:1">
+        </div>
+        <div>
+          <button class="mgr-btn mgr-btn--secondary mgr-btn--sm" type="submit">{{ ui.icon('plus', 14) }}<span>{{ _("Добавить заметку") }}</span></button>
+        </div>
+      </form>
+    </section>
+
+    <section class="stack-sm">
+      <div class="eyebrow">{{ _("Последние активности") }} ({{ activities|length }})</div>
+      {% if activities %}
+        <ul class="mgr-timeline">
+          {% for act in activities[:8] %}
+            <li class="mgr-timeline__item">
+              {{ mui.badge(ACTIVITY_LABELS.get(act.type, act.type), tone='neutral') }}
+              <div>
+                <div class="mgr-timeline__body">{{ act.body }}</div>
+                <div class="mgr-timeline__meta num">
+                  {{ act.created_at|d('d MMM y, HH:mm') }}{% if act.actor %} · {{ act.actor.name }}{% endif %}
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="small muted" style="margin:0">{{ _("Активностей пока нет.") }}</p>
+      {% endif %}
+    </section>
+
+    {% if tasks %}
+      <section class="stack-sm">
+        <div class="eyebrow">{{ _("Задачи") }} ({{ tasks|length }})</div>
+        <ul class="mgr-timeline">
+          {% for task in tasks[:4] %}
+            <li class="mgr-timeline__item">
+              {{ mui.badge(_("Готово") if task.done_at else _("В работе"), tone='ok' if task.done_at else 'warn', dot=(not task.done_at)) }}
+              <div>
+                <div class="mgr-timeline__body">{{ task.note }}</div>
+                <div class="mgr-timeline__meta num">
+                  {% if task.due_at %}{{ task.due_at|d('d MMM y, HH:mm') }}{% endif %}
+                  {% if task.assignee %} · {{ task.assignee.name }}{% endif %}
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+  </div>
+
+  <div hidden data-drawer-partial-foot>
+    <div class="row row--between" style="gap:8px;width:100%;flex-wrap:wrap">
+      {% if not lead.converted_student_id and not converted_record and current_user.has_perm('crm.leads.convert') %}
+        <a class="mgr-btn mgr-btn--primary" href="{{ url_for('manager.student_new', lead_id=lead.id) }}">{{ ui.icon('users', 14) }}<span>{{ _("Конвертировать в ученика") }}</span></a>
+      {% elif lead.converted_student_id %}
+        <a class="mgr-btn mgr-btn--primary" href="{{ url_for('manager.student_detail', student_id=lead.converted_student_id) }}">{{ _("Открыть Профиль 360") }}</a>
+      {% elif converted_record %}
+        <a class="mgr-btn mgr-btn--primary" href="{{ url_for('manager.student_record_detail', record_id=converted_record.id) }}">{{ _("Открыть запись ученика") }}</a>
+      {% endif %}
+      <a class="mgr-btn mgr-btn--secondary" href="{{ url_for('manager.lead_detail', lead_id=lead.id) }}">{{ _("Полная карточка") }}</a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,183 @@
+{% import "partials/macros.html" as ui with context %}
+{% import "manager/_ui.html" as mui with context %}
+{% from "components/ui.html" import searchable_combobox with context %}
+{% set st = record.code_status %}
+{% set st_tone = 'ok' if st == 'claimed' else ('accent' if st == 'pending' else ('warn' if st == 'expired' else 'bad')) %}
+
+<div data-drawer-partial>
+  <span hidden data-drawer-partial-title>{{ record.name }}</span>
+  <div hidden data-drawer-partial-head>
+    {{ mui.badge(record.code_status_label, tone=st_tone, dot=true) }}
+    {% if record.student %}
+      <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.student_detail', student_id=record.student.id) }}">{{ _("Профиль 360") }}</a>
+    {% endif %}
+    <a class="mgr-btn mgr-btn--secondary mgr-btn--sm" href="{{ url_for('manager.student_record_detail', record_id=record.id) }}">{{ _("Запись") }} #{{ record.id }}</a>
+  </div>
+
+  {% if drawer_error %}
+    <div class="alert alert--err" style="margin-bottom:12px">{{ drawer_error }}</div>
+  {% elif drawer_notice %}
+    <div class="alert alert--ok" style="margin-bottom:12px">{{ drawer_notice }}</div>
+  {% endif %}
+
+  {% include "manager/_code_result.html" %}
+
+  <div class="stack" style="gap:14px">
+    <section class="stack-sm">
+      <div class="row row--between" style="align-items:flex-start;gap:8px;flex-wrap:wrap">
+        <div>
+          <h3 style="margin:0;font-size:18px">{{ record.name }}</h3>
+          <p class="small muted" style="margin:2px 0 0">{{ record.course.name if record.course else (record.exam or _("Без предмета")) }}</p>
+        </div>
+        {% if record.source_lead %}
+          <a class="mgr-badge" href="{{ url_for('manager.lead_detail', lead_id=record.source_lead.id) }}" data-drawer-open="lead-detail-drawer" data-drawer-url="{{ url_for('manager.lead_detail', lead_id=record.source_lead.id, fragment=1) }}">
+            {{ _("Лид") }} #{{ record.source_lead.id }} · {{ STATUS_LABELS.get(record.source_lead.status, record.source_lead.status) }}
+          </a>
+        {% endif %}
+      </div>
+
+      <dl class="mgr-kv">
+        <dt>{{ _("Телефон") }}</dt>
+        <dd class="num">
+          {% if record.phone %}
+            <span class="row" style="gap:6px;align-items:center">
+              <span>{{ record.phone }}</span>
+              <button type="button" class="mgr-btn mgr-btn--secondary mgr-btn--sm" style="min-height:26px;padding:0 8px;font-size:11.5px" data-copy-text="{{ record.phone }}">{{ _("Копировать") }}</button>
+            </span>
+          {% else %}—{% endif %}
+        </dd>
+        <dt>{{ _("Email") }}</dt>
+        <dd>{{ record.email or (record.student.email if record.student else '—') }}</dd>
+        {% if record.student %}
+          <dt>{{ _("Аккаунт") }}</dt>
+          <dd>{{ record.student.name }} ({{ record.student.email }})</dd>
+        {% endif %}
+        <dt>{{ _("Статус кода") }}</dt>
+        <dd>{{ mui.badge(record.code_status_label, tone=st_tone, dot=true) }}</dd>
+        <dt>{{ _("Время кода") }}</dt>
+        <dd class="num small">
+          {% if st == 'claimed' and (record.claimed_at or record.linked_at) %}
+            {{ _("Привязан") }}: {{ (record.claimed_at or record.linked_at)|d('d MMM y, HH:mm') }}
+          {% elif record.invite_expires_at %}
+            {{ _("Действует до") }} {{ record.invite_expires_at|d('d MMM y, HH:mm') }}
+          {% else %}—{% endif %}
+        </dd>
+      </dl>
+
+      {% if current_user.has_perm('crm.leads.convert') and st != 'claimed' %}
+        <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:4px">
+          <form method="post" action="{{ url_for('manager.student_record_regenerate', record_id=record.id) }}" data-drawer-ajax>
+            {{ ui.csrf() }}
+            <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ ui.icon('rotate', 14) }}<span>{{ _("Перевыпустить код") }}</span></button>
+          </form>
+          {% if st in ('pending', 'expired') %}
+            <form method="post" action="{{ url_for('manager.student_record_revoke', record_id=record.id) }}" data-drawer-ajax>
+              {{ ui.csrf() }}
+              <button class="mgr-btn mgr-btn--danger mgr-btn--sm" type="submit">{{ ui.icon('ban', 14) }}<span>{{ _("Отозвать код") }}</span></button>
+            </form>
+          {% endif %}
+        </div>
+      {% endif %}
+    </section>
+
+    {% if record.source_lead and lead_notes %}
+      <section class="stack-sm">
+        <div class="eyebrow">{{ _("Заметки из лида") }}</div>
+        <ul class="mgr-timeline">
+          {% for act in lead_notes %}
+            <li class="mgr-timeline__item">
+              {{ mui.badge(ACTIVITY_LABELS.get(act.type, act.type), tone='neutral') }}
+              <div>
+                <div class="mgr-timeline__body">{{ act.body }}</div>
+                <div class="mgr-timeline__meta num">{{ act.created_at|d('d MMM y, HH:mm') }}</div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+
+    <hr style="border:0;border-top:1px solid var(--line);margin:0">
+
+    <section class="stack-sm">
+      <div class="eyebrow">{{ _("Текущий преподаватель") }}</div>
+      {% if open_assignments %}
+        {% for ta in open_assignments %}
+          <div class="mgr-row-line">
+            <div>
+              <a href="{{ url_for('manager.teacher_detail', teacher_id=ta.teacher.id) }}" style="font-weight:700">{{ ta.teacher.name }}</a>
+              <div class="small muted">
+                {% if ta.course %}{{ ta.course.name }} · {% endif %}
+                {{ _("С") }} <span class="num">{{ ta.started_at|d('d MMM y, HH:mm') }}</span>
+              </div>
+            </div>
+            {{ mui.badge(_("Активен"), tone='ok', dot=true) }}
+          </div>
+        {% endfor %}
+      {% elif record.teacher %}
+        <div class="mgr-row-line">
+          <a href="{{ url_for('manager.teacher_detail', teacher_id=record.teacher.id) }}" style="font-weight:700">{{ record.teacher.name }}</a>
+          {{ mui.badge(_("Активен"), tone='ok', dot=true) }}
+        </div>
+      {% else %}
+        <p class="small muted" style="margin:0">{{ _("Преподаватель пока не назначен.") }}</p>
+      {% endif %}
+
+      {% if current_user.has_perm('crm.leads.convert') %}
+        <details class="mgr-card" style="padding:12px;margin-top:4px">
+          <summary class="t-add-card__sum" style="min-height:36px">{{ _("Сменить преподавателя") }}</summary>
+          <form method="post" action="{{ url_for('manager.student_record_change_teacher', record_id=record.id) }}" class="stack-sm" style="margin-top:10px" data-drawer-ajax>
+            {{ ui.csrf() }}
+            <label class="eyebrow" for="dr-ct-teacher-{{ record.id }}">{{ _("Новый преподаватель") }} *</label>
+            {{ searchable_combobox(
+              'new_teacher_id',
+              options=teacher_options,
+              placeholder=_('Выберите преподавателя...'),
+              auto_submit=False,
+              required=True,
+              input_id='dr-ct-teacher-' ~ record.id,
+              aria_label=_('Новый преподаватель')
+            ) }}
+            <label class="eyebrow" for="dr-ct-course-{{ record.id }}">{{ _("Предмет / курс") }}</label>
+            <select class="select input--sm" id="dr-ct-course-{{ record.id }}" name="course_id">
+              <option value="">{{ _("Основное назначение") }}</option>
+              {% for c in courses %}
+                <option value="{{ c.id }}" {{ 'selected' if (open_assignments and open_assignments[0].course_id == c.id) or (not open_assignments and record.course_id == c.id) }}>{{ c.name }}</option>
+              {% endfor %}
+            </select>
+            <label class="eyebrow" for="dr-ct-reason-{{ record.id }}">{{ _("Причина смены") }} *</label>
+            <textarea class="input" id="dr-ct-reason-{{ record.id }}" name="reason" rows="2" required placeholder="{{ _('Причина переноса или замены...') }}"></textarea>
+            <button class="mgr-btn mgr-btn--primary mgr-btn--sm" type="submit">{{ _("Сохранить смену") }}</button>
+          </form>
+        </details>
+      {% endif %}
+    </section>
+
+    <hr style="border:0;border-top:1px solid var(--line);margin:0">
+
+    <section class="stack-sm">
+      <div class="eyebrow">{{ _("История преподавателей") }} ({{ history|length }})</div>
+      {% if history %}
+        <ul class="mgr-timeline">
+          {% for h in history[:8] %}
+            <li class="mgr-timeline__item">
+              {{ mui.badge(_("Активен") if h.ended_at is none else _("Завершён"), tone='ok' if h.ended_at is none else 'neutral', dot=(h.ended_at is none)) }}
+              <div>
+                <div class="mgr-timeline__body">
+                  <b>{{ h.teacher.name if h.teacher else ('#' ~ h.teacher_user_id) }}</b>
+                  {% if h.course %} · <span class="muted">{{ h.course.name }}</span>{% endif %}
+                  {% if h.change_reason %}<div class="small muted">{{ h.change_reason }}</div>{% endif %}
+                </div>
+                <div class="mgr-timeline__meta num">
+                  {{ h.started_at|d('d MMM y') }} — {{ h.ended_at|d('d MMM y') if h.ended_at else _("сейчас") }}
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="small muted" style="margin:0">{{ _("Истории назначений пока нет.") }}</p>
+      {% endif %}
+    </section>
+  </div>
+</div>

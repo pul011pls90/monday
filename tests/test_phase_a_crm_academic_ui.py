@@ -243,6 +243,6 @@ def test_crm_workspace_headers_wide_grids_csrf_and_rail_badges():
 
     leads_html = c_sup.get("/manager/leads").data.decode()
     assert "t-add-card" not in leads_html
-    assert "data-lead-drawer-open" in leads_html
-    assert "crm-filter-grid" in leads_html
-    assert "crm-drawer" in leads_html
+    assert 'data-drawer-open="new-lead-drawer"' in leads_html
+    assert "mgr-filter-row" in leads_html
+    assert 'data-drawer-root="lead-detail-drawer"' in leads_html

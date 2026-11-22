@@ -184,12 +184,116 @@ def _lead_sla(lead: Lead, now: datetime | None = None) -> dict:
     }
 
 
+def _is_fetch_drawer_request() -> bool:
+    return request.headers.get("X-Requested-With") == "fetch"
+
+
+_LEAD_STAGE_GROUPS = (
+    ("all", "Все", ()),
+    ("new", "Новые", ("new",)),
+    ("in_progress", "В работе", ("contacted", "negotiation")),
+    ("trial", "Пробный", ("trial_scheduled", "trial_done")),
+    ("won", "Оплата", ("won",)),
+    ("lost", "Отказ", ("lost",)),
+)
+
+
+_ROLE_SHORT_LABELS = {
+    "sales_manager": "Менеджер",
+    "supervisor": "Супервайзер",
+    "admin": "Админ",
+    "teacher": "Преподаватель",
+}
+
+
 def _crm_managers():
     return (
         User.query.filter(User.role.in_(CRM_ROLES), User.is_blocked.is_(False))
         .order_by(User.name.asc())
         .all()
     )
+
+
+def _teacher_combobox_options() -> list[dict]:
+    teachers = (
+        User.query.filter_by(role="teacher", is_approved=True, is_blocked=False)
+        .order_by(User.name.asc())
+        .all()
+    )
+    if not teachers:
+        return []
+    open_rows = (
+        db.session.query(
+            TeacherAssignment.teacher_user_id,
+            AcademicCourse.name,
+            db.func.count(TeacherAssignment.id),
+        )
+        .outerjoin(AcademicCourse, TeacherAssignment.course_id == AcademicCourse.id)
+        .filter(TeacherAssignment.ended_at.is_(None))
+        .group_by(TeacherAssignment.teacher_user_id, AcademicCourse.name)
+        .all()
+    )
+    counts: Counter = Counter()
+    subjects: dict[int, list[str]] = {}
+    for tid, cname, cnt in open_rows:
+        counts[tid] += int(cnt or 0)
+        if cname and cname not in subjects.get(tid, []):
+            subjects.setdefault(tid, []).append(cname)
+
+    options = []
+    for t in teachers:
+        subj = ", ".join(subjects.get(t.id, []))
+        cnt = counts.get(t.id, 0)
+        meta = f"{subj} · {cnt} уч." if subj else f"{cnt} уч."
+        options.append(
+            {
+                "value": str(t.id),
+                "label": t.name,
+                "meta": meta,
+                "group": subjects[t.id][0] if subjects.get(t.id) else _("Преподаватели"),
+            }
+        )
+    return options
+
+
+def _crm_manager_combobox_options() -> list[dict]:
+    managers = _crm_managers()
+    if not managers:
+        return []
+    active_counts = dict(
+        db.session.query(Lead.assigned_manager_id, db.func.count(Lead.id))
+        .filter(Lead.status.notin_(("won", "lost")), Lead.assigned_manager_id.isnot(None))
+        .group_by(Lead.assigned_manager_id)
+        .all()
+    )
+    options = []
+    for m in managers:
+        cnt = int(active_counts.get(m.id, 0))
+        role_lbl = _ROLE_SHORT_LABELS.get(m.role, m.role)
+        options.append(
+            {
+                "value": str(m.id),
+                "label": m.name,
+                "meta": f"{role_lbl} · {cnt} лид.",
+                "group": _("Менеджеры"),
+            }
+        )
+    return options
+
+
+def _assignee_combobox_options() -> list[dict]:
+    """Combined CRM managers + active teachers options for lead filter combobox."""
+    options = _crm_manager_combobox_options()
+    for opt in _teacher_combobox_options():
+        options.append(
+            {
+                "value": opt["value"],
+                "label": opt["label"],
+                "meta": f"Преподаватель · {opt['meta']}",
+                "group": _("Преподаватели"),
+            }
+        )
+    return options
 
 
 def _leads_scope(query=None):
@@ -318,23 +422,77 @@ def dashboard():
 @bp.route("/leads")
 @manager_required
 def leads():
-    """Dense filterable lead list with search, SLA badges, and quick status updates."""
+    """Dense filterable lead list with scale-ready stage pills, search, SLA badges, and slide-over drawer."""
     now = utcnow()
     status = (request.args.get("status") or "").strip()
     source = (request.args.get("source") or "").strip()
-    manager_id = request.args.get("manager", type=int)
+    manager_raw = (request.args.get("manager") or "").strip()
+    subject = (request.args.get("subject") or "").strip()
     sla_filter = (request.args.get("sla") or "").strip()
     date_from = _parse_date(request.args.get("date_from"))
     date_to = _parse_date(request.args.get("date_to"))
     q = (request.args.get("q") or "").strip()
 
-    query = _leads_scope(Lead.query.options(joinedload(Lead.assigned_manager), joinedload(Lead.converted_student)))
-    if status in LEAD_STATUSES:
+    group_statuses_map = {key: statuses for key, _lbl, statuses in _LEAD_STAGE_GROUPS if statuses}
+
+    query = _leads_scope(
+        Lead.query.options(
+            joinedload(Lead.assigned_manager),
+            joinedload(Lead.converted_student),
+            joinedload(Lead.tasks),
+        )
+    )
+    if status in group_statuses_map:
+        query = query.filter(Lead.status.in_(group_statuses_map[status]))
+    elif status in LEAD_STATUSES:
         query = query.filter(Lead.status == status)
     if source in LEAD_SOURCES:
         query = query.filter(Lead.source == source)
-    if current_user.has_perm("crm.leads.view_all") and manager_id:
-        query = query.filter(Lead.assigned_manager_id == manager_id)
+
+    selected_manager_user = None
+    if current_user.has_perm("crm.leads.view_all") and manager_raw:
+        if manager_raw == "mine":
+            query = query.filter(Lead.assigned_manager_id == current_user.id)
+        elif manager_raw == "unassigned":
+            query = query.filter(Lead.assigned_manager_id.is_(None))
+        elif manager_raw.isdigit():
+            mgr_id = int(manager_raw)
+            selected_manager_user = db.session.get(User, mgr_id)
+            if selected_manager_user and selected_manager_user.role == "teacher":
+                teacher_lead_ids = (
+                    db.session.query(StudentRecord.source_lead_id)
+                    .filter(
+                        StudentRecord.teacher_id == mgr_id,
+                        StudentRecord.source_lead_id.isnot(None),
+                    )
+                )
+                query = query.filter(
+                    or_(
+                        Lead.assigned_manager_id == mgr_id,
+                        Lead.id.in_(teacher_lead_ids),
+                    )
+                )
+            else:
+                query = query.filter(Lead.assigned_manager_id == mgr_id)
+
+    if subject:
+        escaped_subj = subject.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        subj_like = f"%{escaped_subj}%"
+        subj_rec_lead_ids = (
+            db.session.query(StudentRecord.source_lead_id)
+            .join(AcademicCourse, StudentRecord.course_id == AcademicCourse.id)
+            .filter(
+                AcademicCourse.name.ilike(subj_like, escape="\\"),
+                StudentRecord.source_lead_id.isnot(None),
+            )
+        )
+        query = query.filter(
+            or_(
+                Lead.interest.ilike(subj_like, escape="\\"),
+                Lead.id.in_(subj_rec_lead_ids),
+            )
+        )
+
     if date_from:
         query = query.filter(Lead.created_at >= datetime.combine(date_from, time.min))
     if date_to:
@@ -342,18 +500,34 @@ def leads():
     if q:
         escaped_q = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
         like = f"%{escaped_q}%"
+        email_rec_lead_ids = (
+            db.session.query(StudentRecord.source_lead_id)
+            .filter(
+                StudentRecord.email.ilike(like, escape="\\"),
+                StudentRecord.source_lead_id.isnot(None),
+            )
+        )
         query = query.filter(
             or_(
                 Lead.full_name.ilike(like, escape="\\"),
                 Lead.phone.ilike(like, escape="\\"),
                 Lead.messenger_handle.ilike(like, escape="\\"),
                 Lead.interest.ilike(like, escape="\\"),
+                Lead.ai_summary.ilike(like, escape="\\"),
+                Lead.activities.any(LeadActivity.body.ilike(like, escape="\\")),
+                Lead.converted_student.has(User.email.ilike(like, escape="\\")),
+                Lead.id.in_(email_rec_lead_ids),
             )
         )
 
     rows = query.order_by(Lead.created_at.desc()).all()
     if sla_filter == "overdue":
-        rows = [l for l in rows if _lead_sla(l, now)["overdue"]]
+        rows = [
+            l
+            for l in rows
+            if _lead_sla(l, now)["overdue"]
+            or any(t.done_at is None and t.due_at and t.due_at < now for t in l.tasks)
+        ]
 
     per_page = 50
     total = len(rows)
@@ -369,12 +543,103 @@ def leads():
     status_counts = {s: int(raw_status_counts.get(s, 0)) for s in LEAD_STATUSES}
     total_all_leads = sum(status_counts.values())
 
+    base_args = {}
+    if source in LEAD_SOURCES:
+        base_args["source"] = source
+    if manager_raw:
+        base_args["manager"] = manager_raw
+    if subject:
+        base_args["subject"] = subject
+    if sla_filter == "overdue":
+        base_args["sla"] = "overdue"
+    if q:
+        base_args["q"] = q
+    if date_from:
+        base_args["date_from"] = request.args.get("date_from")
+    if date_to:
+        base_args["date_to"] = request.args.get("date_to")
+
+    stage_tabs = []
+    for key, label, statuses in _LEAD_STAGE_GROUPS:
+        tab_params = dict(base_args)
+        if key != "all":
+            tab_params["status"] = key
+        cnt = total_all_leads if key == "all" else sum(status_counts.get(s, 0) for s in statuses)
+        is_active = (key == "all" and not status) or (key != "all" and status == key)
+        stage_tabs.append(
+            {
+                "key": key,
+                "label": _(label),
+                "count": cnt,
+                "active": is_active,
+                "url": url_for("manager.leads", **tab_params),
+            }
+        )
+
+    course_names = [c.name for c in _active_teachers_and_courses()[1] if c.name]
+    interest_values = [
+        r[0].strip()
+        for r in _leads_scope(db.session.query(Lead.interest))
+        .filter(Lead.interest.isnot(None), Lead.interest != "")
+        .distinct()
+        .order_by(Lead.interest.asc())
+        .all()
+        if r[0] and r[0].strip()
+    ]
+    subject_options = sorted(set(course_names + interest_values), key=str.casefold)
+    if subject and subject not in subject_options:
+        subject_options.insert(0, subject)
+
+    active_filters = []
+    full_params = dict(base_args)
+    if status:
+        full_params["status"] = status
+
+    def _clear_param(k: str) -> str:
+        p = {pk: pv for pk, pv in full_params.items() if pk != k}
+        return url_for("manager.leads", **p)
+
+    if status:
+        stage_label_map = {k: _(lbl) for k, lbl, _st in _LEAD_STAGE_GROUPS}
+        st_lbl = stage_label_map.get(status) or STATUS_LABELS.get(status, status)
+        active_filters.append({"label": f"{_('Этап')}: {st_lbl}", "clear_url": _clear_param("status")})
+    if q:
+        active_filters.append({"label": f"{_('Поиск')}: «{q}»", "clear_url": _clear_param("q")})
+    if manager_raw:
+        if manager_raw == "mine":
+            mgr_lbl = _("Мои лиды")
+        elif manager_raw == "unassigned":
+            mgr_lbl = _("Без ответственного")
+        elif selected_manager_user:
+            mgr_lbl = selected_manager_user.name
+        else:
+            mgr_lbl = f"#{manager_raw}"
+        active_filters.append({"label": f"{_('Ответственный')}: {mgr_lbl}", "clear_url": _clear_param("manager")})
+    if source in LEAD_SOURCES:
+        active_filters.append({"label": f"{_('Источник')}: {SOURCE_LABELS.get(source, source)}", "clear_url": _clear_param("source")})
+    if subject:
+        active_filters.append({"label": f"{_('Предмет')}: {subject}", "clear_url": _clear_param("subject")})
+    if sla_filter == "overdue":
+        active_filters.append({"label": _("Только просроченные"), "clear_url": _clear_param("sla")})
+
+    assignee_special_options = [
+        {"value": "mine", "label": _("Мои лиды")},
+        {"value": "unassigned", "label": _("Без ответственного")},
+    ]
+
     return render_template(
         "manager/leads.html",
         **_common_ctx(),
         now_utc=now,
         leads=page_rows,
         managers=_crm_managers(),
+        crm_manager_options=_crm_manager_combobox_options(),
+        assignee_options=_assignee_combobox_options(),
+        assignee_special_options=assignee_special_options,
+        subject_options=subject_options,
+        stage_tabs=stage_tabs,
+        active_filters=active_filters,
+        reset_url=url_for("manager.leads"),
         status_counts=status_counts,
         total_all_leads=total_all_leads,
         pagination={
@@ -386,7 +651,8 @@ def leads():
         filters={
             "status": status,
             "source": source,
-            "manager": manager_id or "",
+            "manager": manager_raw,
+            "subject": subject,
             "sla": sla_filter,
             "date_from": request.args.get("date_from") or "",
             "date_to": request.args.get("date_to") or "",
@@ -602,6 +868,56 @@ def _active_teachers_and_courses():
     return teachers, courses
 
 
+def _lead_drawer_response(
+    lead: Lead,
+    *,
+    drawer_notice: str | None = None,
+    drawer_error: str | None = None,
+    status_code: int = 200,
+):
+    now = utcnow()
+    activities = (
+        LeadActivity.query.options(joinedload(LeadActivity.actor))
+        .filter_by(lead_id=lead.id)
+        .order_by(LeadActivity.created_at.desc(), LeadActivity.id.desc())
+        .all()
+    )
+    tasks = (
+        LeadTask.query.options(joinedload(LeadTask.assignee))
+        .filter_by(lead_id=lead.id)
+        .order_by(LeadTask.done_at.isnot(None), LeadTask.due_at.asc())
+        .all()
+    )
+    converted_record = (
+        StudentRecord.query.options(
+            joinedload(StudentRecord.teacher),
+            joinedload(StudentRecord.course),
+            joinedload(StudentRecord.student),
+        )
+        .filter_by(source_lead_id=lead.id)
+        .order_by(StudentRecord.id.asc())
+        .first()
+    )
+    resp = make_response(
+        render_template(
+            "manager/_lead_drawer.html",
+            **_common_ctx(),
+            now_utc=now,
+            lead=lead,
+            sla=_lead_sla(lead, now),
+            activities=activities,
+            tasks=tasks,
+            converted_record=converted_record,
+            manager_options=_crm_manager_combobox_options(),
+            drawer_notice=drawer_notice,
+            drawer_error=drawer_error,
+        ),
+        status_code,
+    )
+    resp.headers["Cache-Control"] = "no-store, max-age=0"
+    return resp
+
+
 def _render_lead_detail(lead: Lead, *, one_time_notice: str | None = None, code_result: dict | None = None):
     now = utcnow()
     tab = (request.args.get("tab") or "all").strip().lower()
@@ -682,6 +998,8 @@ def _render_lead_detail(lead: Lead, *, one_time_notice: str | None = None, code_
 @manager_required
 def lead_detail(lead_id: int):
     lead = _get_lead_or_403(lead_id)
+    if request.args.get("fragment") == "1":
+        return _lead_drawer_response(lead)
     return _render_lead_detail(lead)
 
 
@@ -935,8 +1253,17 @@ def lead_status(lead_id: int):
     override = request.form.get("supervisor_override") == "1"
     override_reason = (request.form.get("override_reason") or "").strip()
     now = utcnow()
+    is_fetch = _is_fetch_drawer_request()
+
+    def _fail(msg: str):
+        if is_fetch:
+            return _lead_drawer_response(lead, drawer_error=msg, status_code=400)
+        flash(msg, "error")
+        return _safe_back("manager.lead_detail", lead_id=lead.id)
 
     if new_status == old_status and not (new_status == "lost" and lost_reason != lead.lost_reason):
+        if is_fetch:
+            return _lead_drawer_response(lead)
         return _safe_back("manager.lead_detail", lead_id=lead.id)
 
     # Enforce pipeline transition rules
@@ -944,30 +1271,23 @@ def lead_status(lead_id: int):
     if old_status == "won" and new_status != "won":
         if lead.converted_student_id is not None:
             if not current_user.has_perm("crm.leads.reassign"):
-                flash(_("Только супервайзер может изменить статус уже конвертированного лида."), "error")
-                return _safe_back("manager.lead_detail", lead_id=lead.id)
+                return _fail(_("Только супервайзер может изменить статус уже конвертированного лида."))
             if not override or not override_reason:
-                flash(_("Для смены статуса конвертированного лида отметьте переопределение и укажите причину."), "error")
-                return _safe_back("manager.lead_detail", lead_id=lead.id)
+                return _fail(_("Для смены статуса конвертированного лида отметьте переопределение и укажите причину."))
             is_override = True
         elif not current_user.has_perm("crm.leads.reassign") or not override or not override_reason:
-            flash(_("Нельзя откатить статус «Оплатил / Ученик» без переопределения супервайзера с причиной."), "error")
-            return _safe_back("manager.lead_detail", lead_id=lead.id)
+            return _fail(_("Нельзя откатить статус «Оплатил / Ученик» без переопределения супервайзера с причиной."))
         else:
             is_override = True
     elif new_status != old_status and new_status not in ALLOWED_LEAD_TRANSITIONS.get(old_status, frozenset()):
         if old_status == "new" and new_status == "won":
-            flash(_("Нельзя перевести лид из «Новый» сразу в «Оплатил / Ученик» без конвертации или прохождения этапов."), "error")
-        else:
-            flash(
-                _("Недопустимый переход статуса: «%(a)s» → «%(b)s».", a=STATUS_LABELS.get(old_status, old_status), b=STATUS_LABELS.get(new_status, new_status)),
-                "error",
-            )
-        return _safe_back("manager.lead_detail", lead_id=lead.id)
+            return _fail(_("Нельзя перевести лид из «Новый» сразу в «Оплатил / Ученик» без конвертации или прохождения этапов."))
+        return _fail(
+            _("Недопустимый переход статуса: «%(a)s» → «%(b)s».", a=STATUS_LABELS.get(old_status, old_status), b=STATUS_LABELS.get(new_status, new_status))
+        )
 
     if new_status == "lost" and not lost_reason:
-        flash(_("Укажите причину отказа для перевода лида в статус «Отказ»."), "error")
-        return _safe_back("manager.lead_detail", lead_id=lead.id)
+        return _fail(_("Укажите причину отказа для перевода лида в статус «Отказ»."))
 
     lead.status = new_status
     if new_status == "lost":
@@ -996,7 +1316,10 @@ def lead_status(lead_id: int):
         LeadActivity(lead_id=lead.id, actor_id=current_user.id, type="status_change", body=body)
     )
     db.session.commit()
-    flash(_("Статус обновлён: %(s)s.", s=STATUS_LABELS.get(new_status, new_status)), "success")
+    ok_msg = _("Статус обновлён: %(s)s.", s=STATUS_LABELS.get(new_status, new_status))
+    if is_fetch:
+        return _lead_drawer_response(lead, drawer_notice=ok_msg)
+    flash(ok_msg, "success")
     return _safe_back("manager.lead_detail", lead_id=lead.id)
 
 
@@ -1008,8 +1331,12 @@ def lead_add_activity(lead_id: int):
     if act_type not in ("call", "message", "note"):
         act_type = "note"
     body = (request.form.get("body") or "").strip()
+    is_fetch = _is_fetch_drawer_request()
     if not body:
-        flash(_("Напишите текст заметки или итог контакта."), "error")
+        err = _("Напишите текст заметки или итог контакта.")
+        if is_fetch:
+            return _lead_drawer_response(lead, drawer_error=err, status_code=400)
+        flash(err, "error")
         return redirect(url_for("manager.lead_detail", lead_id=lead.id))
     now = utcnow()
     db.session.add(LeadActivity(lead_id=lead.id, actor_id=current_user.id, type=act_type, body=body))
@@ -1028,6 +1355,8 @@ def lead_add_activity(lead_id: int):
                 )
             )
     db.session.commit()
+    if is_fetch:
+        return _lead_drawer_response(lead, drawer_notice=_("Активность добавлена."))
     flash(_("Активность добавлена."), "success")
     return redirect(url_for("manager.lead_detail", lead_id=lead.id))
 
@@ -1070,13 +1399,20 @@ def lead_reassign(lead_id: int):
     lead = db.session.get(Lead, lead_id) or abort(404)
     target_id = request.form.get("assigned_manager_id", type=int)
     target = db.session.get(User, target_id) if target_id else None
+    is_fetch = _is_fetch_drawer_request()
     if not target or target.role not in CRM_ROLES or target.is_blocked:
-        flash(_("Выберите активного менеджера."), "error")
+        err = _("Выберите активного менеджера.")
+        if is_fetch:
+            return _lead_drawer_response(lead, drawer_error=err, status_code=400)
+        flash(err, "error")
         return _safe_back("manager.lead_detail", lead_id=lead.id)
 
     old_id = lead.assigned_manager_id
     if old_id == target.id:
-        flash(_("Лид уже закреплён за этим менеджером."), "info")
+        info = _("Лид уже закреплён за этим менеджером.")
+        if is_fetch:
+            return _lead_drawer_response(lead, drawer_notice=info)
+        flash(info, "info")
         return _safe_back("manager.lead_detail", lead_id=lead.id)
 
     old_user = db.session.get(User, old_id) if old_id else None
@@ -1100,7 +1436,10 @@ def lead_reassign(lead_id: int):
         reason=reason,
     )
     db.session.commit()
-    flash(_("Лид переназначен на %(name)s.", name=target.name), "success")
+    ok = _("Лид переназначен на %(name)s.", name=target.name)
+    if is_fetch:
+        return _lead_drawer_response(lead, drawer_notice=ok)
+    flash(ok, "success")
     return _safe_back("manager.lead_detail", lead_id=lead.id)
 
 
@@ -1394,7 +1733,29 @@ def _authorize_student_crm(student_id: int) -> tuple[User, Lead | None]:
     return student, lead
 
 
-def _record_detail_ctx(record: StudentRecord, *, code_result: dict | None = None) -> dict:
+def _load_student_record_or_404(record_id: int) -> StudentRecord:
+    return (
+        StudentRecord.query.options(
+            joinedload(StudentRecord.teacher),
+            joinedload(StudentRecord.student),
+            joinedload(StudentRecord.course),
+            joinedload(StudentRecord.source_lead),
+            joinedload(StudentRecord.created_by),
+            joinedload(StudentRecord.claimed_by),
+        )
+        .filter_by(id=record_id)
+        .first()
+        or abort(404)
+    )
+
+
+def _record_detail_ctx(
+    record: StudentRecord,
+    *,
+    code_result: dict | None = None,
+    drawer_notice: str | None = None,
+    drawer_error: str | None = None,
+) -> dict:
     teachers, courses = _active_teachers_and_courses()
     history = (
         TeacherAssignment.query.options(
@@ -1408,22 +1769,60 @@ def _record_detail_ctx(record: StudentRecord, *, code_result: dict | None = None
         .all()
     )
     open_assignments = [ta for ta in history if ta.ended_at is None]
+    lead_notes = []
+    if record.source_lead_id:
+        lead_notes = (
+            LeadActivity.query.filter_by(lead_id=record.source_lead_id)
+            .order_by(LeadActivity.created_at.desc(), LeadActivity.id.desc())
+            .limit(5)
+            .all()
+        )
     return {
         **_common_ctx(),
         "record": record,
         "history": history,
         "open_assignments": open_assignments,
+        "lead_notes": lead_notes,
         "teachers": teachers,
+        "teacher_options": _teacher_combobox_options(),
         "courses": courses,
         "code_result": code_result,
+        "drawer_notice": drawer_notice,
+        "drawer_error": drawer_error,
     }
+
+
+def _render_record_drawer_response(
+    record: StudentRecord,
+    *,
+    code_result: dict | None = None,
+    drawer_notice: str | None = None,
+    drawer_error: str | None = None,
+    status_code: int = 200,
+):
+    resp = make_response(
+        render_template(
+            "manager/_student_record_drawer.html",
+            **_record_detail_ctx(
+                record,
+                code_result=code_result,
+                drawer_notice=drawer_notice,
+                drawer_error=drawer_error,
+            ),
+        ),
+        status_code,
+    )
+    resp.headers["Cache-Control"] = "no-store, max-age=0"
+    return resp
 
 
 @bp.route("/students")
 @manager_required
 def students():
     """Manager students list with teacher assignment, derived code status, and teacher/status filters."""
-    teacher_id = request.args.get("teacher_id", type=int)
+    teacher_raw = (request.args.get("teacher_id") or "").strip()
+    teacher_id = int(teacher_raw) if teacher_raw.isdigit() else None
+    teacher_id_str = "unassigned" if teacher_raw == "unassigned" else (str(teacher_id) if teacher_id else "")
     status_filter = (request.args.get("status") or "").strip().lower()
     q = (request.args.get("q") or "").strip()
     q_low = q.casefold()
@@ -1449,7 +1848,10 @@ def students():
         if not current_teachers and rec.teacher:
             current_teachers = [rec.teacher]
 
-        if teacher_id and not any(t.id == teacher_id for t in current_teachers):
+        if teacher_id_str == "unassigned":
+            if current_teachers:
+                continue
+        elif teacher_id and not any(t.id == teacher_id for t in current_teachers):
             continue
         if q_low:
             hay = " ".join(
@@ -1480,16 +1882,20 @@ def students():
             }
         )
 
-    teachers, _courses = _active_teachers_and_courses()
+    teachers, courses = _active_teachers_and_courses()
     return render_template(
         "manager/students.html",
         **_common_ctx(),
         rows=rows,
         teachers=teachers,
+        courses=courses,
+        teacher_options=_teacher_combobox_options(),
+        teacher_special_options=[{"value": "unassigned", "label": _("Без преподавателя")}],
         status_counts=status_counts,
         total_before_status=sum(status_counts.values()),
         filters={
             "teacher_id": teacher_id,
+            "teacher_id_str": teacher_id_str,
             "status": status_filter or "all",
             "q": q,
         },
@@ -1501,6 +1907,7 @@ def students():
 def student_new():
     """Manager 'Новый ученик' form creating StudentRecord + TeacherAssignment + one-time connection code."""
     teachers, courses = _active_teachers_and_courses()
+    teacher_options = _teacher_combobox_options()
     lead_id = request.values.get("lead_id", type=int)
     source_lead = _get_lead_or_403(lead_id) if lead_id else None
 
@@ -1534,6 +1941,19 @@ def student_new():
         "lead_id": source_lead.id if source_lead else "",
     }
 
+    def _render_form(status_code: int = 200):
+        html = render_template(
+            "manager/student_new.html",
+            **_common_ctx(),
+            teachers=teachers,
+            teacher_options=teacher_options,
+            courses=courses,
+            source_lead=source_lead,
+            form=form_data,
+            code_result=None,
+        )
+        return (html, status_code) if status_code != 200 else html
+
     if request.method == "POST":
         form_data = {
             "name": (request.form.get("name") or "").strip(),
@@ -1545,15 +1965,7 @@ def student_new():
         }
         if not form_data["phone"]:
             flash(_("Укажите телефон ученика."), "error")
-            return render_template(
-                "manager/student_new.html",
-                **_common_ctx(),
-                teachers=teachers,
-                courses=courses,
-                source_lead=source_lead,
-                form=form_data,
-                code_result=None,
-            ), 400
+            return _render_form(400)
         try:
             rec, plain_code = create_student_with_code(
                 current_user._get_current_object(),
@@ -1597,15 +2009,7 @@ def student_new():
             abort(403)
         except StudentLinkError as exc:
             flash(str(exc), "error")
-            return render_template(
-                "manager/student_new.html",
-                **_common_ctx(),
-                teachers=teachers,
-                courses=courses,
-                source_lead=source_lead,
-                form=form_data,
-                code_result=None,
-            ), exc.status_code
+            return _render_form(exc.status_code)
 
         flash(_("Запись ученика создана. Передайте код или ссылку подключения ученику."), "success")
         resp = make_response(
@@ -1617,34 +2021,16 @@ def student_new():
         resp.headers["Cache-Control"] = "no-store, max-age=0"
         return resp
 
-    return render_template(
-        "manager/student_new.html",
-        **_common_ctx(),
-        teachers=teachers,
-        courses=courses,
-        source_lead=source_lead,
-        form=form_data,
-        code_result=None,
-    )
+    return _render_form()
 
 
 @bp.route("/students/records/<int:record_id>")
 @manager_required
 def student_record_detail(record_id: int):
     """Manager card for one StudentRecord: current teachers, code status/actions, and teacher history."""
-    rec = (
-        StudentRecord.query.options(
-            joinedload(StudentRecord.teacher),
-            joinedload(StudentRecord.student),
-            joinedload(StudentRecord.course),
-            joinedload(StudentRecord.source_lead),
-            joinedload(StudentRecord.created_by),
-            joinedload(StudentRecord.claimed_by),
-        )
-        .filter_by(id=record_id)
-        .first()
-        or abort(404)
-    )
+    rec = _load_student_record_or_404(record_id)
+    if request.args.get("fragment") == "1":
+        return _render_record_drawer_response(rec)
     return render_template("manager/student_record_detail.html", **_record_detail_ctx(rec))
 
 
@@ -1652,6 +2038,7 @@ def student_record_detail(record_id: int):
 @permission_required("crm.leads.convert")
 def student_record_regenerate(record_id: int):
     """Revoke any existing pending code and display a newly generated one once."""
+    is_fetch = _is_fetch_drawer_request()
     try:
         rec, new_code = regenerate_code(current_user._get_current_object(), record_id)
     except StudentLinkPermissionError:
@@ -1659,10 +2046,23 @@ def student_record_regenerate(record_id: int):
     except StudentLinkNotFoundError:
         abort(404)
     except StudentLinkError as exc:
+        if is_fetch:
+            return _render_record_drawer_response(
+                _load_student_record_or_404(record_id),
+                drawer_error=str(exc),
+                status_code=exc.status_code,
+            )
         flash(str(exc), "error")
         return redirect(url_for("manager.student_record_detail", record_id=record_id))
 
-    flash(_("Выпущен новый код подключения (старый отозван)."), "success")
+    msg = _("Выпущен новый код подключения (старый отозван).")
+    if is_fetch:
+        return _render_record_drawer_response(
+            rec,
+            code_result=_build_code_result_ctx(rec, new_code),
+            drawer_notice=msg,
+        )
+    flash(msg, "success")
     resp = make_response(
         render_template(
             "manager/student_record_detail.html",
@@ -1678,6 +2078,7 @@ def student_record_regenerate(record_id: int):
 def student_record_revoke(record_id: int):
     """Revoke active invite code on an unclaimed StudentRecord."""
     reason = (request.form.get("reason") or "").strip()
+    is_fetch = _is_fetch_drawer_request()
     try:
         revoke_code(current_user._get_current_object(), record_id, reason=reason)
     except StudentLinkPermissionError:
@@ -1685,10 +2086,19 @@ def student_record_revoke(record_id: int):
     except StudentLinkNotFoundError:
         abort(404)
     except StudentLinkError as exc:
+        if is_fetch:
+            return _render_record_drawer_response(
+                _load_student_record_or_404(record_id),
+                drawer_error=str(exc),
+                status_code=exc.status_code,
+            )
         flash(str(exc), "error")
         return redirect(url_for("manager.student_record_detail", record_id=record_id))
 
-    flash(_("Код подключения отозван."), "success")
+    msg = _("Код подключения отозван.")
+    if is_fetch:
+        return _render_record_drawer_response(_load_student_record_or_404(record_id), drawer_notice=msg)
+    flash(msg, "success")
     return redirect(url_for("manager.student_record_detail", record_id=record_id))
 
 
@@ -1699,8 +2109,16 @@ def student_record_change_teacher(record_id: int):
     new_teacher_id = request.form.get("new_teacher_id", type=int)
     course_id = request.form.get("course_id", type=int)
     reason = (request.form.get("reason") or "").strip()
+    is_fetch = _is_fetch_drawer_request()
     if not reason:
-        flash(_("Укажите причину смены преподавателя."), "error")
+        err = _("Укажите причину смены преподавателя.")
+        if is_fetch:
+            return _render_record_drawer_response(
+                _load_student_record_or_404(record_id),
+                drawer_error=err,
+                status_code=400,
+            )
+        flash(err, "error")
         return redirect(url_for("manager.student_record_detail", record_id=record_id))
 
     try:
@@ -1716,10 +2134,19 @@ def student_record_change_teacher(record_id: int):
     except StudentLinkNotFoundError:
         abort(404)
     except StudentLinkError as exc:
+        if is_fetch:
+            return _render_record_drawer_response(
+                _load_student_record_or_404(record_id),
+                drawer_error=str(exc),
+                status_code=exc.status_code,
+            )
         flash(str(exc), "error")
         return redirect(url_for("manager.student_record_detail", record_id=record_id))
 
-    flash(_("Преподаватель изменён, история назначений сохранена."), "success")
+    msg = _("Преподаватель изменён, история назначений сохранена.")
+    if is_fetch:
+        return _render_record_drawer_response(_load_student_record_or_404(record_id), drawer_notice=msg)
+    flash(msg, "success")
     return redirect(url_for("manager.student_record_detail", record_id=record_id))
 
 

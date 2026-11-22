@@ -1,0 +1,55 @@
+{% import "partials/macros.html" as ui with context %}
+
+{# Shared right-side slide-over drawer matching Admin panel styling, transitions, and shadows.
+   Usage:
+     {% call slide_over_drawer('my-drawer', aria_label='Карточка', title='Карточка', wide=true) %}
+       ...server-rendered body...
+     {% endcall %}
+#}
+{% macro slide_over_drawer(
+  drawer_id,
+  aria_label='',
+  title='Карточка',
+  subtitle='',
+  open=false,
+  wide=false,
+  header_actions='',
+  footer='',
+  close_href='',
+  url_param='',
+  attrs=''
+) -%}
+<div class="drawer-layer{{ ' is-open' if open }}"
+     id="{{ drawer_id }}"
+     data-drawer-root="{{ drawer_id }}"
+     {% if url_param %}data-drawer-url-param="{{ url_param }}"{% endif %}
+     {% if not open %}hidden{% endif %}
+     {{ attrs|safe }}>
+  <div class="drawer-layer__backdrop" data-drawer-close="{{ drawer_id }}"></div>
+  <aside class="drawer drawer--panel{{ ' drawer--wide' if wide }}"
+         role="dialog"
+         aria-modal="true"
+         aria-label="{{ aria_label or title }}"
+         tabindex="-1"
+         data-drawer-panel>
+    <div class="drawer__head">
+      <div class="drawer__titlewrap">
+        <h2 data-drawer-title>{{ title }}</h2>
+        {% if subtitle %}
+          <p class="small muted drawer__sub" data-drawer-subtitle>{{ subtitle }}</p>
+        {% endif %}
+      </div>
+      <div class="drawer__head-right">
+        <div class="drawer__actions" data-drawer-actions{% if not header_actions %} hidden{% endif %}>{{ header_actions|safe if header_actions else '' }}</div>
+        {% if close_href %}
+          <a class="icon-btn icon-btn--sm" href="{{ close_href }}" data-drawer-close="{{ drawer_id }}" aria-label="{{ _('Закрыть') }}">{{ ui.icon('x', 16) }}</a>
+        {% else %}
+          <button type="button" class="icon-btn icon-btn--sm" data-drawer-close="{{ drawer_id }}" aria-label="{{ _('Закрыть') }}">{{ ui.icon('x', 16) }}</button>
+        {% endif %}
+      </div>
+    </div>
+    <div class="drawer__body" data-drawer-body>{% if caller is defined %}{{ caller() }}{% endif %}</div>
+    <div class="drawer__foot" data-drawer-foot{% if not footer %} hidden{% endif %}>{{ footer|safe if footer else '' }}</div>
+  </aside>
+</div>
+{%- endmacro %}

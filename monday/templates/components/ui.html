@@ -1,0 +1,75 @@
+{% import "components/drawer.html" as _drawer with context %}
+{% import "components/combobox.html" as _combobox with context %}
+
+{% macro slide_over_drawer(
+  drawer_id,
+  aria_label='',
+  title='Карточка',
+  subtitle='',
+  open=false,
+  wide=false,
+  header_actions='',
+  footer='',
+  close_href='',
+  url_param='',
+  attrs=''
+) -%}
+  {%- if caller is defined -%}
+    {%- set _body_html = caller() -%}
+    {%- call _drawer.slide_over_drawer(
+      drawer_id,
+      aria_label=aria_label,
+      title=title,
+      subtitle=subtitle,
+      open=open,
+      wide=wide,
+      header_actions=header_actions,
+      footer=footer,
+      close_href=close_href,
+      url_param=url_param,
+      attrs=attrs
+    ) -%}{{ _body_html }}{%- endcall -%}
+  {%- else -%}
+    {{ _drawer.slide_over_drawer(
+      drawer_id,
+      aria_label=aria_label,
+      title=title,
+      subtitle=subtitle,
+      open=open,
+      wide=wide,
+      header_actions=header_actions,
+      footer=footer,
+      close_href=close_href,
+      url_param=url_param,
+      attrs=attrs
+    ) }}
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro searchable_combobox(
+  name,
+  options=[],
+  selected_value='',
+  placeholder='Выберите или найдите…',
+  search_placeholder='',
+  special_options=[],
+  auto_submit=false,
+  required=false,
+  aria_label='',
+  input_id='',
+  cls=''
+) -%}
+  {{ _combobox.searchable_combobox(
+    name,
+    options=options,
+    selected_value=selected_value,
+    placeholder=placeholder,
+    search_placeholder=search_placeholder,
+    special_options=special_options,
+    auto_submit=auto_submit,
+    required=required,
+    aria_label=aria_label,
+    input_id=input_id,
+    cls=cls
+  ) }}
+{%- endmacro %}

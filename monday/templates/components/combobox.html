@@ -1,0 +1,110 @@
+{% import "partials/macros.html" as ui with context %}
+
+{# Shared CSP-safe searchable combobox (no inline handlers).
+   - options: list of dicts {'value': str|int, 'label': str, 'meta': str?, 'group': str?}
+   - special_options: pinned top quick-picks [{'value': str, 'label': str, 'meta': str?}]
+   - auto_submit: true for filter bars (submits enclosing <form> on select/clear), false for forms/modals
+#}
+{% macro searchable_combobox(
+  name,
+  options=[],
+  selected_value='',
+  placeholder='Выберите или найдите…',
+  search_placeholder='',
+  special_options=[],
+  auto_submit=false,
+  required=false,
+  aria_label='',
+  input_id='',
+  cls=''
+) -%}
+{% set sel_str = '' if selected_value is none else (selected_value|string) %}
+{% set ns = namespace(selected_label='', last_group=None, gid=0) %}
+{% for sp in special_options %}
+  {% if (sp.value|string) == sel_str %}{% set ns.selected_label = sp.label %}{% endif %}
+{% endfor %}
+{% if not ns.selected_label %}
+  {% for opt in options %}
+    {% if (opt.value|string) == sel_str %}{% set ns.selected_label = opt.label %}{% endif %}
+  {% endfor %}
+{% endif %}
+{% set uid = input_id or ('cbx-' ~ name ~ '-' ~ range(1000, 9999)|random) %}
+<div class="cbx{{ ' ' ~ cls if cls }}"
+     data-combobox
+     data-auto-submit="{{ 'true' if auto_submit else 'false' }}">
+  <input type="hidden"
+         name="{{ name }}"
+         value="{{ sel_str }}"
+         data-combobox-value
+         {% if required %}data-combobox-required="true"{% endif %}>
+  <div class="cbx__control">
+    <input type="text"
+           class="input cbx__input"
+           id="{{ uid }}"
+           value="{{ ns.selected_label }}"
+           placeholder="{{ search_placeholder or placeholder }}"
+           autocomplete="off"
+           role="combobox"
+           aria-autocomplete="list"
+           aria-expanded="false"
+           aria-controls="{{ uid }}-list"
+           aria-label="{{ aria_label or placeholder }}"
+           {% if required %}required{% endif %}
+           data-combobox-search>
+    <button type="button"
+            class="cbx__clear"
+            aria-label="{{ _('Очистить выбор') }}"
+            data-combobox-clear
+            {% if not sel_str %}hidden{% endif %}>×</button>
+    <button type="button"
+            class="cbx__toggle"
+            aria-label="{{ _('Показать список') }}"
+            tabindex="-1"
+            data-combobox-toggle>{{ ui.icon('chevron-down', 15) }}</button>
+  </div>
+  <ul class="cbx__list" id="{{ uid }}-list" role="listbox" hidden data-combobox-list>
+    {% for sp in special_options %}
+      {% set is_sel = (sp.value|string) == sel_str %}
+      <li class="cbx__opt cbx__opt--special{{ ' is-selected' if is_sel }}"
+          id="{{ uid }}-sp-{{ loop.index0 }}"
+          role="option"
+          aria-selected="{{ 'true' if is_sel else 'false' }}"
+          data-combobox-option
+          data-combobox-special="true"
+          data-value="{{ sp.value }}"
+          data-label="{{ sp.label }}"
+          data-meta="{{ sp.meta or '' }}">
+        <span class="cbx__opt-label">{{ sp.label }}</span>
+        {% if sp.meta %}<span class="cbx__opt-meta">{{ sp.meta }}</span>{% endif %}
+      </li>
+    {% endfor %}
+    {% if special_options and options %}
+      <li class="cbx__sep" role="separator" data-combobox-sep></li>
+    {% endif %}
+    {% for opt in options %}
+      {% set grp = opt.group or '' %}
+      {% if grp and grp != ns.last_group %}
+        {% set ns.last_group = grp %}
+        {% set ns.gid = ns.gid + 1 %}
+        <li class="cbx__group" role="presentation" data-combobox-group="{{ ns.gid }}">{{ grp }}</li>
+      {% elif not grp and ns.last_group %}
+        {% set ns.last_group = '' %}
+      {% endif %}
+      {% set is_sel = (opt.value|string) == sel_str %}
+      <li class="cbx__opt{{ ' is-selected' if is_sel }}"
+          id="{{ uid }}-opt-{{ loop.index0 }}"
+          role="option"
+          aria-selected="{{ 'true' if is_sel else 'false' }}"
+          data-combobox-option
+          {% if grp %}data-combobox-group-id="{{ ns.gid }}"{% endif %}
+          data-value="{{ opt.value }}"
+          data-label="{{ opt.label }}"
+          data-meta="{{ opt.meta or '' }}">
+        <span class="cbx__opt-label">{{ opt.label }}</span>
+        {% if opt.meta %}<span class="cbx__opt-meta">{{ opt.meta }}</span>{% endif %}
+      </li>
+    {% endfor %}
+    <li class="cbx__empty" hidden data-combobox-empty>{{ _("Ничего не найдено") }}</li>
+  </ul>
+</div>
+{%- endmacro %}
