@@ -40,6 +40,56 @@
     return true;
   }
 
+  // 0. Borderless Sticky Navbar: Progressive Scroll Blur, Admin Banner Offset & Mobile Burger
+  const siteHeader = document.querySelector("[data-site-header]");
+  if (siteHeader) {
+    const syncScrollGlass = () => {
+      siteHeader.classList.toggle("is-scrolled", window.scrollY > 10);
+    };
+    syncScrollGlass();
+    window.addEventListener("scroll", syncScrollGlass, { passive: true });
+
+    const previewBar = document.querySelector(".pub-preview-bar");
+    if (previewBar) {
+      const syncBannerOffset = () => {
+        const h = Math.ceil(previewBar.getBoundingClientRect().height || 0);
+        document.documentElement.style.setProperty("--admin-banner-height", h + "px");
+      };
+      syncBannerOffset();
+      window.addEventListener("resize", syncBannerOffset, { passive: true });
+      if ("ResizeObserver" in window) {
+        const ro = new ResizeObserver(syncBannerOffset);
+        ro.observe(previewBar);
+      }
+    }
+
+    const navToggle = siteHeader.querySelector("[data-nav-toggle]");
+    const navPanel = siteHeader.querySelector("[data-nav-panel]");
+    if (navToggle && navPanel) {
+      const closeMenu = () => {
+        navPanel.hidden = true;
+        navToggle.setAttribute("aria-expanded", "false");
+      };
+      navToggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const willOpen = navPanel.hidden;
+        navPanel.hidden = !willOpen;
+        navToggle.setAttribute("aria-expanded", willOpen ? "true" : "false");
+      });
+      document.addEventListener("click", (e) => {
+        if (!navPanel.hidden && !siteHeader.contains(e.target)) {
+          closeMenu();
+        }
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !navPanel.hidden) {
+          closeMenu();
+          navToggle.focus();
+        }
+      });
+    }
+  }
+
   // 1. FAQ Accordion smooth toggle (closes sibling items when opening a new question)
   document.querySelectorAll("[data-faq-list]").forEach((faqList) => {
     const items = Array.from(faqList.querySelectorAll("details[data-faq-item]"));
@@ -308,6 +358,7 @@
     const bankState = { exam: "ORT", topic: "alg", diff: "easy" };
     const metaEl = bankRoot.querySelector("[data-bank-meta]");
     const promptEl = bankRoot.querySelector("[data-bank-prompt]");
+    const choicesEl = bankRoot.querySelector("[data-bank-choices]");
     const optsEl = bankRoot.querySelector("[data-bank-opts]");
     const explainEl = bankRoot.querySelector("[data-bank-explain]");
     const statusEl = bankRoot.querySelector("[data-bank-status]");
@@ -317,6 +368,7 @@
     function renderBankQuestion(pulse) {
       const key = bankState.exam + ":" + bankState.topic + ":" + bankState.diff;
       const item = BANK_QUESTIONS[key] || BANK_QUESTIONS["ORT:alg:easy"];
+      const letters = ["А", "Б", "В", "Г"];
       if (metaEl) {
         metaEl.textContent =
           EXAM_LABELS[bankState.exam] +
@@ -328,15 +380,35 @@
       if (promptEl) {
         promptEl.textContent = item.prompt;
       }
+      if (choicesEl) {
+        choicesEl.textContent = "";
+        item.options.forEach((optText, idx) => {
+          const li = document.createElement("li");
+          const b = document.createElement("b");
+          b.textContent = "(" + letters[idx] + ") ";
+          const span = document.createElement("span");
+          span.className = "math";
+          span.textContent = optText;
+          li.appendChild(b);
+          li.appendChild(span);
+          choicesEl.appendChild(li);
+        });
+      }
       if (optsEl) {
         optsEl.textContent = "";
-        const letters = ["A", "B", "C", "D"];
-        item.options.forEach((optText, idx) => {
+        const numSpan = document.createElement("span");
+        numSpan.className = "mp-ort-sheet__num num";
+        numSpan.textContent = "1";
+        optsEl.appendChild(numSpan);
+        letters.forEach((letter, idx) => {
           const btn = document.createElement("button");
           btn.type = "button";
-          btn.className = "br-opt";
+          btn.className = "mp-bubble";
           btn.setAttribute("data-bank-opt", String(idx));
-          btn.textContent = letters[idx] + ") " + optText;
+          btn.setAttribute("aria-label", letter);
+          const inner = document.createElement("span");
+          inner.textContent = letter;
+          btn.appendChild(inner);
           optsEl.appendChild(btn);
         });
       }
@@ -392,14 +464,16 @@
       const allOpts = Array.from(bankRoot.querySelectorAll("[data-bank-opt]"));
 
       allOpts.forEach((b, idx) => {
-        b.classList.remove("is-right", "is-wrong", "is-dimmed");
+        b.classList.remove("is-selected", "is-right", "is-wrong");
         if (idx === item.correct) {
           b.classList.add("is-right");
         } else if (idx === chosenIdx) {
-          b.classList.add("is-wrong");
-        } else {
-          b.classList.add("is-dimmed");
+          b.classList.add("is-selected", "is-wrong");
         }
+        if (idx === chosenIdx && isRight) {
+          b.classList.add("is-selected");
+        }
+        b.setAttribute("aria-pressed", idx === chosenIdx ? "true" : "false");
       });
 
       if (statusEl) {
@@ -500,6 +574,7 @@
     const stepLblEl = sessionRoot.querySelector("[data-drill-step-label]");
     const progressEl = sessionRoot.querySelector("[data-drill-progress]");
     const promptEl = sessionRoot.querySelector("[data-drill-prompt]");
+    const choicesEl = sessionRoot.querySelector("[data-drill-choices]");
     const optsEl = sessionRoot.querySelector("[data-drill-opts]");
     const explainEl = sessionRoot.querySelector("[data-drill-explain]");
     const statusEl = sessionRoot.querySelector("[data-drill-status]");
@@ -519,6 +594,7 @@
     function renderDrillQuestion() {
       const cfg = SESSION_MODES[drillState.mode] || SESSION_MODES.weak;
       const q = cfg.questions[drillState.idx];
+      const letters = ["А", "Б", "В", "Г"];
       drillState.answered = false;
 
       if (modeNameEl) modeNameEl.textContent = cfg.title;
@@ -526,15 +602,35 @@
       if (badgeEl) badgeEl.textContent = "Вопрос " + (drillState.idx + 1) + " из " + cfg.questions.length;
       if (progressEl) progressEl.setAttribute("data-drill-progress", String(drillState.idx + 1));
       if (promptEl) promptEl.textContent = q.prompt;
+      if (choicesEl) {
+        choicesEl.textContent = "";
+        q.options.forEach((optText, i) => {
+          const li = document.createElement("li");
+          const b = document.createElement("b");
+          b.textContent = "(" + letters[i] + ") ";
+          const span = document.createElement("span");
+          span.className = "math";
+          span.textContent = optText;
+          li.appendChild(b);
+          li.appendChild(span);
+          choicesEl.appendChild(li);
+        });
+      }
       if (optsEl) {
         optsEl.textContent = "";
-        const letters = ["A", "B", "C", "D"];
-        q.options.forEach((optText, i) => {
+        const numSpan = document.createElement("span");
+        numSpan.className = "mp-ort-sheet__num num";
+        numSpan.textContent = String(drillState.idx + 1);
+        optsEl.appendChild(numSpan);
+        letters.forEach((letter, i) => {
           const btn = document.createElement("button");
           btn.type = "button";
-          btn.className = "br-opt";
+          btn.className = "mp-bubble";
           btn.setAttribute("data-drill-opt", String(i));
-          btn.textContent = letters[i] + ") " + optText;
+          btn.setAttribute("aria-label", letter);
+          const inner = document.createElement("span");
+          inner.textContent = letter;
+          btn.appendChild(inner);
           optsEl.appendChild(btn);
         });
       }
@@ -585,13 +681,16 @@
 
         Array.from(sessionRoot.querySelectorAll("[data-drill-opt]")).forEach((b, i) => {
           b.disabled = true;
+          b.classList.remove("is-selected", "is-right", "is-wrong");
           if (i === q.correct) {
             b.classList.add("is-right");
           } else if (i === chosen) {
-            b.classList.add("is-wrong");
-          } else {
-            b.classList.add("is-dimmed");
+            b.classList.add("is-selected", "is-wrong");
           }
+          if (i === chosen && isRight) {
+            b.classList.add("is-selected");
+          }
+          b.setAttribute("aria-pressed", i === chosen ? "true" : "false");
         });
 
         if (statusEl) {

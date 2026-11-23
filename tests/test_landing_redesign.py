@@ -571,7 +571,26 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             assert actual_colors == expected_badge_colors, f"Marquee badge colors mismatch: {actual_colors}"
             assert len(set(actual_colors.values())) == 8
 
-            # Verify zero horizontal overflow, centered hero H1, and non-clipped sky-band cards at 1440px, 1280px, 1024px, and 390px viewports
+            # Verify zero horizontal overflow, borderless transparent sticky header, centered hero H1, and non-clipped sky-band cards at 1440px, 1280px, 1024px, and 390px viewports
+            assert page.locator(".mp-header__pill").count() == 0
+            hdr_top = page.evaluate("""() => {
+                const h = document.querySelector('[data-site-header]');
+                const inner = document.querySelector('.mp-header__inner');
+                const hs = getComputedStyle(h);
+                const is = getComputedStyle(inner);
+                return {
+                    pos: hs.position,
+                    bg: hs.backgroundColor,
+                    hasScrolled: h.classList.contains('is-scrolled'),
+                    innerRadius: is.borderRadius,
+                    innerBorder: is.borderTopWidth,
+                    innerShadow: is.boxShadow,
+                };
+            }""")
+            assert hdr_top["pos"] == "sticky", hdr_top
+            assert hdr_top["bg"] == "rgba(0, 0, 0, 0)" and not hdr_top["hasScrolled"], hdr_top
+            assert hdr_top["innerRadius"] == "0px" and hdr_top["innerBorder"] == "0px" and hdr_top["innerShadow"] == "none", hdr_top
+
             for vw, vh in ((1440, 900), (1280, 840), (1024, 900), (390, 844)):
                 page.set_viewport_size({"width": vw, "height": vh})
                 page.wait_for_timeout(100)
@@ -579,7 +598,7 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
                     "() => {"
                     "  const r = document.querySelector('.mp-hero h1').getBoundingClientRect();"
                     "  const satFoot = document.querySelector('.mp-sat-card__foot').getBoundingClientRect();"
-                    "  const navPill = document.querySelector('.mp-header__pill').getBoundingClientRect();"
+                    "  const navInner = document.querySelector('.mp-header__inner').getBoundingClientRect();"
                     "  const audBg = document.querySelector('.mp-aud-bg');"
                     "  return {"
                     "    scrollW: document.documentElement.scrollWidth,"
@@ -589,7 +608,7 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
                     "    h1Center: r.left + r.width / 2,"
                     "    satLeft: satFoot.left,"
                     "    satRight: satFoot.right,"
-                    "    navH: Math.round(navPill.height),"
+                    "    navH: Math.round(navInner.height),"
                     "    audBgDisplay: audBg ? getComputedStyle(audBg).display : ''"
                     "  };"
                     "}"
@@ -598,11 +617,29 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
                 assert metrics["h1Left"] >= 0 and metrics["h1Right"] <= metrics["innerW"] + 1, f"H1 clipped at {vw}px: {metrics}"
                 assert abs(metrics["h1Center"] - metrics["innerW"] / 2) <= 24, f"H1 not centered at {vw}px: {metrics}"
                 assert metrics["satLeft"] >= 0 and metrics["satRight"] <= metrics["innerW"] + 1, f"Mastery badge clipped at {vw}px: {metrics}"
-                assert metrics["navH"] <= 72, f"Minimal navbar wrapped at {vw}px: {metrics}"
+                assert metrics["navH"] <= 72, f"Borderless navbar wrapped at {vw}px: {metrics}"
                 if vw <= 1200:
                     assert metrics["audBgDisplay"] == "none", f"3D margin shapes must hide at {vw}px"
                 else:
                     assert metrics["audBgDisplay"] != "none", f"3D margin shapes should show at {vw}px"
+
+            # Mobile 390px: verify burger toggle opens and closes cleanly
+            page.set_viewport_size({"width": 390, "height": 844})
+            page.locator("[data-nav-toggle]").click()
+            page.locator("[data-nav-panel]").wait_for(state="visible", timeout=3000)
+            page.keyboard.press("Escape")
+            page.locator("[data-nav-panel]").wait_for(state="hidden", timeout=3000)
+
+            # Verify scroll activates progressive frosted-blur glass header (.is-scrolled)
+            page.set_viewport_size({"width": 1440, "height": 900})
+            page.evaluate("window.scrollTo(0, 120)")
+            page.wait_for_function(
+                "() => {"
+                "  const h = document.querySelector('[data-site-header]');"
+                "  return h && h.classList.contains('is-scrolled') && getComputedStyle(h).backgroundColor === 'rgba(255, 255, 255, 0.8)';"
+                "}"
+            )
+            page.evaluate("window.scrollTo(0, 0)")
 
             # Verify Jet-Black Starry Night .mp-sky band (shallow wave, 15 stars, crisp white Desmos/SAT cards) and 3D margin shapes at 1440px
             page.set_viewport_size({"width": 1440, "height": 900})
@@ -734,12 +771,20 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             cta_btn_bg = cta_sec.locator(".mp-btn--soft").evaluate("el => getComputedStyle(el).backgroundColor")
             assert cta_btn_bg == "rgb(238, 244, 255)", f"Expected soft light-blue CTA button, got {cta_btn_bg}"
 
-            # Check /exams/ort in browser for zero CSP violations & live dot-engine still working there
+            # Check /exams/ort, /question-bank, /login, /register in browser for zero CSP violations & zero horizontal overflow
+            for route in ("/exams/ort", "/question-bank", "/login", "/register"):
+                resp_r = page.goto(f"{base_url}{route}", wait_until="networkidle")
+                assert resp_r.status == 200, f"{route} returned {resp_r.status}"
+                for vw, vh in ((1440, 900), (1024, 900), (390, 844)):
+                    page.set_viewport_size({"width": vw, "height": vh})
+                    page.wait_for_timeout(60)
+                    ov = page.evaluate("() => ({ sw: document.documentElement.scrollWidth, iw: window.innerWidth })")
+                    assert ov["sw"] <= ov["iw"] + 1, f"Overflow on {route} at {vw}px: {ov}"
             page.goto(f"{base_url}/exams/ort", wait_until="networkidle")
             assert page.locator("#mp-exam-h").is_visible()
             assert page.locator("[data-dot-canvas]").is_visible()
 
-            # Verify /admin/preview returns 200 OK with the restored hero & multi-color marquee
+            # Verify /admin/preview returns 200 OK and pins the borderless sticky header directly beneath .pub-preview-bar
             page.goto(f"{base_url}/login", wait_until="networkidle")
             page.fill('input[name="email"]', "adm_pw@monday.kg")
             page.fill('input[name="password"]', "StrongAdmin123!")
@@ -749,6 +794,14 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             resp_prev = page.goto(f"{base_url}/admin/preview?page=landing", wait_until="networkidle")
             assert resp_prev.status == 200
             assert page.locator(".pub-preview-bar").is_visible()
+            page.evaluate("window.scrollTo(0, 260)")
+            page.wait_for_timeout(100)
+            prev_pos = page.evaluate("""() => {
+                const bar = document.querySelector('.pub-preview-bar').getBoundingClientRect();
+                const hdr = document.querySelector('[data-site-header]').getBoundingClientRect();
+                return { barBottom: Math.round(bar.bottom), hdrTop: Math.round(hdr.top) };
+            }""")
+            assert abs(prev_pos["hdrTop"] - prev_pos["barBottom"]) <= 2, f"Navbar overlapped admin preview bar: {prev_pos}"
             assert page.locator(".mp-fan").is_visible()
             assert page.locator('.mp-strip__item[data-exam="ent"]').first.is_visible()
 

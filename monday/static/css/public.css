@@ -71,31 +71,39 @@ body.pub-body {
 }
 
 /* ==========================================================================
-   1. Floating Pill Navbar (.mp-header)
+   1. Pinned, Borderless, Transparent Sticky Top Rail (.mp-header)
    ========================================================================== */
 .mp-header {
   position: sticky;
-  top: 0;
-  z-index: 35;
+  top: var(--admin-banner-height, 0px);
+  z-index: 100;
   width: 100%;
-  padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 8px;
-  pointer-events: none;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background 0.2s ease, border-color 0.2s ease, backdrop-filter 0.2s ease, -webkit-backdrop-filter 0.2s ease;
 }
 
-.mp-header__pill {
-  pointer-events: auto;
+.mp-header.is-scrolled {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+[data-theme="dark"] .mp-header.is-scrolled {
+  background: rgba(13, 13, 13, 0.82);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.mp-header__inner {
   position: relative;
   width: 100%;
-  max-width: 1180px;
-  margin: 0 auto;
-  min-height: 60px;
-  padding: 8px 14px 8px 22px;
-  border-radius: 9999px;
-  background: color-mix(in srgb, var(--pub-card) 96%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid var(--pub-line);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04), 0 12px 28px rgba(31, 79, 224, 0.06);
+  max-width: 1200px;
+  margin-inline: auto;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 24px 14px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1916,11 +1924,11 @@ body.pub-body {
 [data-theme="dark"] .mp-aud-3d {
   filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.45));
 }
-.mp-aud-3d--pi    { width: 82px; top: 68px;    left: max(18px, calc(50% - 684px));  animation-delay: 0s; }
-.mp-aud-3d--x2    { width: 76px; bottom: 72px; left: max(22px, calc(50% - 678px));  animation-delay: 1.4s; animation-duration: 6.8s; }
-.mp-aud-3d--prism { width: 82px; top: 62px;    right: max(18px, calc(50% - 684px)); animation-delay: 0.7s; animation-duration: 5.9s; }
-.mp-aud-3d--sum   { width: 72px; top: 45%;     right: max(16px, calc(50% - 682px)); animation-delay: 2.1s; animation-duration: 6.6s; }
-.mp-aud-3d--torus { width: 76px; bottom: 60px; right: max(22px, calc(50% - 678px)); animation-delay: 1.1s; animation-duration: 7.1s; }
+.mp-aud-3d--pi    { width: 70px; top: 72px;    left: max(18px, calc(50% - 680px));  animation-delay: 0s; }
+.mp-aud-3d--x2    { width: 64px; bottom: 76px; left: max(22px, calc(50% - 674px));  animation-delay: 1.4s; animation-duration: 6.8s; }
+.mp-aud-3d--prism { width: 70px; top: 66px;    right: max(18px, calc(50% - 680px)); animation-delay: 0.7s; animation-duration: 5.9s; }
+.mp-aud-3d--sum   { width: 62px; top: 45%;     right: max(16px, calc(50% - 678px)); animation-delay: 2.1s; animation-duration: 6.6s; }
+.mp-aud-3d--torus { width: 66px; bottom: 64px; right: max(22px, calc(50% - 674px)); animation-delay: 1.1s; animation-duration: 7.1s; }
 
 @keyframes mpAudFloat {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -2927,7 +2935,7 @@ body.pub-body {
 .pub-preview-bar {
   position: sticky;
   top: 0;
-  z-index: 45;
+  z-index: 110;
   width: 100%;
   background: color-mix(in srgb, var(--pub-soft) 92%, var(--pub-card));
   border-bottom: 1px solid var(--pub-soft-border);
@@ -3127,9 +3135,17 @@ body.pub-body {
   }
 }
 
+@media (max-width: 640px) {
+  .mp-nav-toggle {
+    display: inline-flex;
+    width: 36px;
+    height: 36px;
+  }
+}
+
 @media (max-width: 560px) {
-  .mp-header__pill {
-    padding: 7px 10px 7px 14px;
+  .mp-header__inner {
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px;
     gap: 8px;
   }
   .mp-brand {
@@ -3143,6 +3159,9 @@ body.pub-body {
   }
   .mp-header__actions {
     gap: 6px;
+  }
+  .mp-header__actions .mp-pill--ghost {
+    display: none;
   }
   .mp-icon-btn {
     width: 34px;

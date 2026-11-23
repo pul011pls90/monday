@@ -50,9 +50,9 @@
 {% endif %}
 
 <div class="pub-shell">
-  {# ------------------------------------------------------------------ minimal floating pill navbar #}
-  <header class="mp-header">
-    <div class="mp-header__pill">
+  {# ------------------------------------------------------------------ pinned borderless sticky top rail #}
+  <header class="mp-header" data-site-header>
+    <div class="mp-header__inner">
       <a class="mp-brand" href="{{ url_for('auth.index') }}" aria-label="Monday Academy">
         <span class="mp-brand__mark" aria-hidden="true">M</span>
         <span>MONDAY</span>
@@ -66,8 +66,26 @@
         </form>
         <a class="mp-pill mp-pill--ghost" href="{{ url_for('auth.login') }}">{{ _("Войти") }}</a>
         <a class="mp-pill mp-pill--blue" href="{{ start_url }}">{{ _("Начать") }}</a>
+        <button type="button" class="mp-nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mp-mobile-menu" aria-label="{{ _('Открыть меню') }}">
+          <span class="mp-nav-toggle__bar"></span>
+          <span class="mp-nav-toggle__bar"></span>
+          <span class="mp-nav-toggle__bar"></span>
+        </button>
       </div>
     </div>
+
+    <nav id="mp-mobile-menu" class="mp-nav-panel" data-nav-panel aria-label="{{ _('Мобильная навигация') }}" hidden>
+      <a class="mp-nav-panel__link" href="{{ url_for('public_site.question_bank') }}">{{ _("Банк вопросов") }}</a>
+      <a class="mp-nav-panel__link" href="{{ url_for('public_site.offline_courses') }}">{{ _("Офлайн-курсы") }}</a>
+      <a class="mp-nav-panel__link" href="{{ url_for('public_site.online_courses') }}">{{ _("Онлайн-курсы") }}</a>
+      <a class="mp-nav-panel__link" href="{{ url_for('public_site.pricing') }}">{{ _("Тарифы") }}</a>
+      <a class="mp-nav-panel__link" href="{{ url_for('public_site.faq') }}">{{ _("FAQ") }}</a>
+      <a class="mp-nav-panel__link" href="{{ url_for('public_site.contact') }}">{{ _("Контакты") }}</a>
+      <div class="mp-nav-panel__ctas">
+        <a class="mp-pill mp-pill--ghost" href="{{ url_for('auth.login') }}">{{ _("Войти") }}</a>
+        <a class="mp-pill mp-pill--blue" href="{{ start_url }}">{{ _("Начать") }}</a>
+      </div>
+    </nav>
   </header>
 
   <main class="{% block main_class %}pub-main{% endblock %}">

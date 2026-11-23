@@ -241,7 +241,14 @@
             <article class="mp-bank-qcard" data-bank-card>
               <div class="mp-bank-qcard__meta" data-bank-meta>ОРТ · Алгебра · Базовая</div>
               <div class="mp-bank-qcard__prompt math" data-bank-prompt></div>
-              <div class="br-options mp-bank-opts" data-bank-opts></div>
+              <ol class="ort-q__options mp-ort-options" data-bank-choices></ol>
+              <div class="mp-ort-sheet" aria-label="{{ _('Бланк ответов') }}">
+                <div class="mp-ort-sheet__head">
+                  <span class="mp-ort-sheet__title">{{ _("Бланк ответов") }}</span>
+                  <span class="small muted">{{ _("Отметьте кружок:") }}</span>
+                </div>
+                <div class="mp-ort-sheet__row" data-bank-opts></div>
+              </div>
               <div class="br-explain" data-bank-explain hidden aria-live="polite">
                 <div class="br-explain__status" data-bank-status></div>
                 <ol class="br-explain__steps" data-bank-steps></ol>
@@ -293,7 +300,14 @@
                 <span class="mp-drill-bar__fill" data-drill-progress="1"></span>
               </div>
               <div class="mp-bank-qcard__prompt math" data-drill-prompt></div>
-              <div class="br-options mp-bank-opts" data-drill-opts></div>
+              <ol class="ort-q__options mp-ort-options" data-drill-choices></ol>
+              <div class="mp-ort-sheet" aria-label="{{ _('Бланк ответов') }}">
+                <div class="mp-ort-sheet__head">
+                  <span class="mp-ort-sheet__title">{{ _("Бланк ответов") }}</span>
+                  <span class="small muted">{{ _("Отметьте кружок:") }}</span>
+                </div>
+                <div class="mp-ort-sheet__row" data-drill-opts></div>
+              </div>
               <div class="br-explain" data-drill-explain hidden aria-live="polite">
                 <div class="br-explain__status" data-drill-status></div>
                 <p class="mp-drill-note" data-drill-note></p>
@@ -870,20 +884,28 @@
 
 {# =========================================================================== 7. Pre-footer CTA with Sun & Clouds Reveal + Animated Blue Wave + Geometric Math Shapes #}
 <section class="mp-cta" data-cta-reveal aria-labelledby="mp-cta-h">
-  {# Interactive Warm Sun (~1.3x) & Continuous Rightward-Drifting Layered Cloud Bank #}
+  {# Interactive Warm Sun (~1.3x) & Dense Multi-Sized Rightward-Drifting Layered Cloud Bank #}
   <div class="mp-cta-sky" aria-hidden="true">
-    {# Background slower parallax cloud track (soft sky-blue flat clouds, continuous left-to-right drift) #}
+    {# Background slower parallax cloud track (dense small wispy + bulky pale-blue clouds drifting rightward) #}
     <div class="mp-cta-clouds mp-cta-clouds--back">
       <div class="mp-cta-clouds__track mp-cta-clouds__track--back">
         {% for _ in (1, 2) %}
         <svg class="mp-cta-clouds__svg" viewBox="0 0 1240 124" preserveAspectRatio="xMidYMax meet">
-          <path d="M24,96 H122 C131,96 138,89 138,81 C138,73 132,67 123,66 C120,54 109,46 96,46 C84,46 74,53 70,63 C66,61 62,60 57,60 C45,60 36,68 35,79 C27,80 20,85 20,91 C20,94 22,96 24,96 Z" fill="#C7DBFF"/>
-          <path d="M196,82 H284 C292,82 298,76 298,69 C298,62 292,56 285,55 C282,45 273,38 261,38 C251,38 242,44 239,53 C235,51 231,50 227,50 C216,50 208,58 207,67 C200,68 193,73 193,78 C193,80 194,82 196,82 Z" fill="#D8E6FF"/>
-          <path d="M358,98 H468 C478,98 486,91 486,82 C486,74 479,67 470,66 C467,53 455,44 441,44 C428,44 417,52 413,63 C408,60 403,59 398,59 C385,59 374,69 373,81 C364,82 354,87 354,93 C354,96 356,98 358,98 Z" fill="#C7DBFF"/>
-          <path d="M562,86 H656 C664,86 670,80 670,73 C670,66 664,60 656,59 C654,48 644,41 632,41 C621,41 612,48 609,57 C605,55 601,54 596,54 C585,54 576,62 575,71 C567,72 559,77 559,82 C559,84 560,86 562,86 Z" fill="#D8E6FF"/>
-          <path d="M748,96 H852 C861,96 868,89 868,81 C868,73 862,67 853,66 C850,54 839,46 826,46 C814,46 804,53 800,63 C796,61 792,60 787,60 C775,60 765,68 764,79 C755,80 744,85 744,91 C744,94 746,96 748,96 Z" fill="#C7DBFF"/>
-          <path d="M936,80 H1022 C1030,80 1036,74 1036,67 C1036,61 1030,55 1023,54 C1020,44 1011,37 999,37 C989,37 980,43 977,52 C973,50 969,49 965,49 C954,49 946,56 945,65 C938,66 933,71 933,76 C933,78 934,80 936,80 Z" fill="#D8E6FF"/>
-          <path d="M1086,96 H1198 C1208,96 1215,89 1215,81 C1215,73 1209,67 1200,66 C1197,54 1186,45 1172,45 C1159,45 1148,53 1145,63 C1141,61 1136,60 1131,60 C1118,60 1108,69 1107,79 C1097,80 1082,85 1082,91 C1082,94 1084,96 1086,96 Z" fill="#C7DBFF"/>
+          {# Wispy small high clouds #}
+          <path d="M12,56 H76 C82,56 86,52 86,47 C86,42 82,38 76,38 C74,31 67,26 59,26 C51,26 45,31 43,37 C40,36 37,35 34,35 C26,35 20,41 19,48 C13,48 9,51 9,54 C9,55 10,56 12,56 Z" fill="#DCE9FF"/>
+          <path d="M312,48 H372 C378,48 382,44 382,39 C382,34 378,30 372,30 C370,23 363,19 355,19 C348,19 342,23 340,29 C337,28 334,27 331,27 C324,27 318,33 317,40 C312,40 309,43 309,46 C309,47 310,48 312,48 Z" fill="#DCE9FF"/>
+          <path d="M686,50 H752 C758,50 762,46 762,41 C762,36 758,32 752,32 C749,24 742,19 733,19 C725,19 719,24 716,30 C713,29 710,28 706,28 C698,28 692,34 691,41 C686,42 683,45 683,48 C683,49 684,50 686,50 Z" fill="#DCE9FF"/>
+          <path d="M1018,46 H1080 C1086,46 1090,42 1090,37 C1090,32 1086,28 1080,28 C1078,21 1071,16 1063,16 C1055,16 1049,21 1047,27 C1044,26 1041,25 1038,25 C1030,25 1024,31 1023,38 C1018,38 1015,41 1015,44 C1015,45 1016,46 1018,46 Z" fill="#DCE9FF"/>
+          {# Mid & bulky overlapping pale-blue cloud bank #}
+          <path d="M18,98 H138 C148,98 156,91 156,82 C156,73 149,66 140,65 C136,52 124,42 109,42 C96,42 84,50 80,61 C75,59 70,58 64,58 C51,58 40,67 39,79 C28,80 14,86 14,93 C14,96 16,98 18,98 Z" fill="#C7DBFF"/>
+          <path d="M132,92 H262 C272,92 279,85 279,76 C279,68 273,61 264,60 C260,47 248,38 234,38 C221,38 210,46 206,56 C201,54 196,53 190,53 C176,53 165,62 164,74 C153,75 128,80 128,87 C128,90 130,92 132,92 Z" fill="#D8E6FF"/>
+          <path d="M254,100 H402 C414,100 423,91 423,80 C423,70 415,62 404,61 C400,45 386,34 369,34 C354,34 341,43 336,56 C330,53 324,52 318,52 C302,52 289,63 288,78 C275,79 249,86 249,94 C249,97 251,100 254,100 Z" fill="#C7DBFF"/>
+          <path d="M398,92 H524 C534,92 541,85 541,76 C541,68 535,61 526,60 C522,47 510,38 496,38 C483,38 472,46 468,57 C463,55 458,54 452,54 C439,54 428,63 427,75 C416,76 394,81 394,87 C394,90 396,92 398,92 Z" fill="#D8E6FF"/>
+          <path d="M518,96 H648 C658,96 666,89 666,80 C666,72 659,65 650,64 C646,51 634,42 620,42 C607,42 596,50 592,60 C587,58 582,57 576,57 C563,57 552,66 551,78 C540,79 514,84 514,91 C514,94 516,96 518,96 Z" fill="#C7DBFF"/>
+          <path d="M642,90 H786 C798,90 806,82 806,72 C806,63 799,55 788,54 C784,40 771,30 755,30 C740,30 728,39 723,51 C718,48 712,47 706,47 C691,47 679,58 678,72 C666,73 638,79 638,85 C638,88 640,90 642,90 Z" fill="#D8E6FF"/>
+          <path d="M778,98 H916 C927,98 935,90 935,80 C935,71 928,64 918,63 C914,49 901,39 885,39 C871,39 859,48 855,59 C850,56 844,55 838,55 C824,55 812,65 811,78 C799,79 774,85 774,93 C774,96 776,98 778,98 Z" fill="#C7DBFF"/>
+          <path d="M908,90 H1038 C1048,90 1055,83 1055,74 C1055,66 1049,60 1040,59 C1036,46 1024,38 1010,38 C997,38 987,45 983,56 C978,54 973,53 967,53 C954,53 944,62 943,73 C932,74 904,79 904,85 C904,88 906,90 908,90 Z" fill="#D8E6FF"/>
+          <path d="M1032,98 H1198 C1210,98 1219,89 1219,78 C1219,68 1211,60 1200,59 C1196,43 1181,32 1164,32 C1148,32 1135,41 1130,54 C1124,51 1118,50 1111,50 C1095,50 1082,61 1081,76 C1067,77 1027,84 1027,92 C1027,95 1029,98 1032,98 Z" fill="#C7DBFF"/>
         </svg>
         {% endfor %}
       </div>
@@ -905,17 +927,31 @@
       </g>
     </svg>
 
-    {# Foreground crisper white & ice-blue outlined cloud track (continuous left-to-right drift) #}
+    {# Foreground dense multi-sized white & ice-blue outlined cloud bank (continuous left-to-right drift) #}
     <div class="mp-cta-clouds mp-cta-clouds--front">
       <div class="mp-cta-clouds__track mp-cta-clouds__track--front">
         {% for _ in (1, 2) %}
         <svg class="mp-cta-clouds__svg" viewBox="0 0 1240 124" preserveAspectRatio="xMidYMax meet">
-          <path d="M58,112 H174 C185,112 193,104 193,95 C193,86 186,79 177,78 C173,65 161,55 145,55 C131,55 119,64 115,76 C110,73 105,72 99,72 C85,72 74,82 73,95 C64,96 54,102 54,108 C54,110 56,112 58,112 Z" fill="#FFFFFF" stroke="#C7DBFF" stroke-width="1.6"/>
-          <path d="M254,110 H364 C374,110 381,103 381,94 C381,86 375,80 366,79 C363,67 352,58 338,58 C325,58 314,66 310,77 C306,75 301,74 296,74 C283,74 273,83 272,94 C263,95 250,100 250,106 C250,108 252,110 254,110 Z" fill="#EEF4FF" stroke="#C7DBFF" stroke-width="1.6"/>
-          <path d="M452,114 H568 C579,114 587,106 587,97 C587,88 580,81 571,80 C567,67 555,58 540,58 C526,58 514,66 510,78 C505,75 500,74 494,74 C480,74 469,84 468,97 C459,98 448,104 448,110 C448,112 450,114 452,114 Z" fill="#FFFFFF" stroke="#C7DBFF" stroke-width="1.6"/>
-          <path d="M664,112 H784 C795,112 803,104 803,95 C803,86 796,79 787,78 C783,65 771,56 756,56 C742,56 730,64 726,76 C721,73 716,72 710,72 C696,72 685,82 684,95 C674,96 660,102 660,108 C660,110 662,112 664,112 Z" fill="#EEF4FF" stroke="#C7DBFF" stroke-width="1.6"/>
-          <path d="M876,110 H982 C992,110 999,103 999,94 C999,86 993,80 984,79 C981,68 970,59 957,59 C944,59 934,67 930,77 C926,75 921,74 916,74 C903,74 894,83 893,94 C884,95 872,100 872,106 C872,108 874,110 876,110 Z" fill="#FFFFFF" stroke="#C7DBFF" stroke-width="1.6"/>
-          <path d="M1054,114 H1176 C1187,114 1195,106 1195,97 C1195,88 1188,81 1179,80 C1175,67 1163,58 1148,58 C1134,58 1122,66 1118,78 C1113,75 1108,74 1102,74 C1088,74 1077,84 1076,97 C1066,98 1050,104 1050,110 C1050,112 1052,114 1054,114 Z" fill="#EEF4FF" stroke="#C7DBFF" stroke-width="1.6"/>
+          {# Large bulky foreground group 1 #}
+          <path d="M18,116 H178 C191,116 201,106 201,94 C201,83 192,74 180,73 C175,56 160,44 141,44 C124,44 109,54 104,69 C98,66 91,64 84,64 C67,64 53,76 52,92 C40,94 13,101 13,110 C13,113 15,116 18,116 Z" fill="#FFFFFF" stroke="#C7DBFF" stroke-width="1.6"/>
+          {# Compact overlapping puff #}
+          <path d="M148,114 H248 C257,114 263,108 263,100 C263,93 257,87 249,86 C246,76 237,69 225,69 C214,69 205,76 202,85 C198,83 194,82 189,82 C178,82 170,90 169,99 C161,100 144,105 144,110 C144,112 146,114 148,114 Z" fill="#EEF4FF" stroke="#C7DBFF" stroke-width="1.6"/>
+          {# Mid cloud #}
+          <path d="M238,112 H368 C379,112 387,104 387,94 C387,85 380,78 370,77 C366,64 354,54 338,54 C324,54 312,63 308,74 C303,72 298,71 292,71 C278,71 267,81 266,93 C256,94 234,100 234,107 C234,110 236,112 238,112 Z" fill="#FFFFFF" stroke="#C7DBFF" stroke-width="1.6"/>
+          {# Small wispy foreground tuft #}
+          <path d="M368,108 H438 C444,108 449,103 449,97 C449,91 444,87 438,86 C436,78 428,72 419,72 C411,72 404,77 401,84 C398,83 395,82 391,82 C383,82 376,88 375,96 C369,97 365,101 365,105 C365,107 366,108 368,108 Z" fill="#EEF4FF" stroke="#C7DBFF" stroke-width="1.5"/>
+          {# Bulky cloud bank 2 #}
+          <path d="M428,116 H574 C586,116 595,107 595,96 C595,86 587,78 576,77 C572,62 558,51 541,51 C525,51 512,60 507,73 C501,70 495,69 489,69 C473,69 460,80 459,95 C448,96 423,103 423,110 C423,113 425,116 428,116 Z" fill="#FFFFFF" stroke="#C7DBFF" stroke-width="1.6"/>
+          {# Low wispy overlapping cloud #}
+          <path d="M564,112 H662 C670,112 676,106 676,99 C676,92 670,86 663,85 C660,75 651,68 639,68 C629,68 620,75 617,84 C613,82 609,81 604,81 C593,81 585,89 584,98 C576,99 560,104 560,108 C560,110 562,112 564,112 Z" fill="#EEF4FF" stroke="#C7DBFF" stroke-width="1.6"/>
+          {# Large bulky cloud bank 3 #}
+          <path d="M648,116 H812 C825,116 835,106 835,94 C835,83 826,74 814,73 C809,56 794,44 775,44 C758,44 743,54 738,69 C732,66 725,64 718,64 C701,64 687,76 686,92 C673,94 643,101 643,110 C643,113 645,116 648,116 Z" fill="#FFFFFF" stroke="#C7DBFF" stroke-width="1.6"/>
+          {# Small wispy tuft #}
+          <path d="M818,108 H888 C894,108 899,103 899,97 C899,91 894,87 888,86 C886,78 878,72 869,72 C861,72 854,77 851,84 C848,83 845,82 841,82 C833,82 826,88 825,96 C819,97 815,101 815,105 C815,107 816,108 818,108 Z" fill="#EEF4FF" stroke="#C7DBFF" stroke-width="1.5"/>
+          {# Mid overlapping cloud #}
+          <path d="M878,114 H1014 C1025,114 1033,106 1033,96 C1033,87 1026,80 1016,79 C1012,66 1000,56 984,56 C970,56 958,65 954,76 C949,74 944,73 938,73 C924,73 913,83 912,95 C901,96 874,102 874,109 C874,112 876,114 878,114 Z" fill="#FFFFFF" stroke="#C7DBFF" stroke-width="1.6"/>
+          {# Bulky cloud bank 4 #}
+          <path d="M1006,116 H1172 C1185,116 1195,106 1195,94 C1195,83 1186,74 1174,73 C1169,57 1154,46 1136,46 C1119,46 1105,56 1100,70 C1094,67 1087,65 1080,65 C1063,65 1049,77 1048,93 C1035,94 1001,101 1001,110 C1001,113 1003,116 1006,116 Z" fill="#EEF4FF" stroke="#C7DBFF" stroke-width="1.6"/>
         </svg>
         {% endfor %}
       </div>
