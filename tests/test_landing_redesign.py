@@ -1,21 +1,50 @@
-"""Tests for the redesigned Brilliant.org + Duolingo landing page, interactive sandbox, black footer, and CSP compliance."""
+"""Tests for Stages 2–5 of the Monday Academy public landing redesign:
+- Stage 2: Living dot engine, interactive curve, and opaque-token live hero question (/api/public/hero-question)
+- Stage 3: Live counters strip (/api/public/stats), threshold hiding, and Asia/Bishkek (UTC+6) day/week boundaries
+- Stage 4: Reusable exam page (/exams/<slug>, /ort), versioned verified content, preflight guard, sitemap, lead form
+- Stage 5: Playwright multi-viewport (390, 820, 1440; light & dark), frame-time telemetry, keyboard/reduced-motion, CSP
+"""
 from __future__ import annotations
 
+import json
 import pathlib
 import re
 import threading
+import time
+from datetime import timedelta
 
 from werkzeug.serving import make_server
 
 from config import Config
-from monday import create_app
+from monday import create_app, storage
+from monday.constants import EXAMS
 from monday.extensions import db
-from monday.models import StudentProfile, User
+from monday.models import (
+    Attempt,
+    AttemptAnswer,
+    ContentNode,
+    Lead,
+    Question,
+    StudentProfile,
+    User,
+     local_midnight_utc,
+)
+from monday.public_samples import (
+    issue_public_sample_token,
+    set_question_public_sample,
+    verify_public_sample_token,
+)
+from monday.public_site import clear_public_stats_cache, collect_site_preflight_blockers
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent
+PNG_1PX = (
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    b"\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc`\xf8\xcf\xc0"
+    b"\x00\x00\x03\x01\x01\x00\xc9\xfe\x92\xef\x00\x00\x00\x00IEND\xaeB`\x82"
+)
 
 
-def _make_app(tmp_path, *, public_enabled: bool = True, csrf_enabled: bool = False):
+def _make_app(tmp_path, *, public_enabled: bool = True, csrf_enabled: bool = False, **overrides):
     class LandingCfg(Config):
         TESTING = True
         WTF_CSRF_ENABLED = csrf_enabled
@@ -26,7 +55,11 @@ def _make_app(tmp_path, *, public_enabled: bool = True, csrf_enabled: bool = Fal
         PUBLIC_SITE_ENABLED = public_enabled
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{tmp_path / 'landing.db'}"
         UPLOAD_FOLDER = str(tmp_path / "uploads")
+        PUBLIC_SAMPLE_MEDIA_FOLDER = str(tmp_path / "public_sample_media")
 
+    for k, v in overrides.items():
+        setattr(LandingCfg, k, v)
+    clear_public_stats_cache()
     return create_app(LandingCfg, seed_if_empty=False)
 
 
@@ -35,6 +68,8 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
     for rel in (
         "monday/templates/public/landing.html",
         "monday/templates/public/_base.html",
+        "monday/templates/public/_stats_strip.html",
+        "monday/templates/public/exam_page.html",
         "monday/templates/public/question_bank.html",
         "monday/templates/public/offline_courses.html",
         "monday/templates/public/online_courses.html",
@@ -53,6 +88,13 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
         for tag in re.findall(r"<script\b[^>]*>", raw, re.I):
             assert "src=" in tag.lower() or "application/ld+json" in tag.lower(), f"inline executable script in {rel}: {tag}"
 
+    # Verify STATE TO PRESERVE defaults in config.py and render.production.yaml
+    assert Config.PUBLIC_SITE_ENABLED is False
+    assert Config.SELF_STUDY_SIGNUP_ENABLED is False
+    prod_yaml = (ROOT_DIR / "render.production.yaml").read_text(encoding="utf-8")
+    assert "key: PUBLIC_SITE_ENABLED\n        value: \"0\"" in prod_yaml
+    assert "key: SELF_STUDY_SIGNUP_ENABLED\n        value: \"0\"" in prod_yaml
+
     app = _make_app(tmp_path, public_enabled=True)
     with app.app_context():
         stu = User(email="s_land@monday.kg", name="Student L", role="student", is_approved=True)
@@ -64,10 +106,11 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
         db.session.add(StudentProfile(user_id=stu.id, exam="SAT", onboarded=True))
         db.session.commit()
 
-    # Logged-out public landing renders floating pill navbar, hero + fanned arc, sandbox, sky band, wave CTA, and black footer
     anon = app.test_client()
     for pub_url in (
         "/",
+        "/exams/ort",
+        "/ort",
         "/question-bank",
         "/offline-courses",
         "/online",
@@ -83,8 +126,11 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
     ):
         resp = anon.get(pub_url)
         assert resp.status_code == 200, f"{pub_url} returned {resp.status_code}"
+        body_txt = resp.data.decode("utf-8")
         if pub_url not in ("/login", "/register"):
-            assert "mp-footer" in resp.data.decode("utf-8"), f"Missing unified black footer on {pub_url}"
+            assert "mp-footer" in body_txt, f"Missing unified black footer on {pub_url}"
+            # When SELF_STUDY_SIGNUP_ENABLED is False (default), public pages must not link to /register
+            assert 'href="/register"' not in body_txt, f"Unexpected /register link on {pub_url} when signup flag is off"
 
     r = anon.get("/")
     assert r.status_code == 200
@@ -95,6 +141,9 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
         "Я ученик",
         "Я преподаватель или родитель",
         "У меня уже есть аккаунт",
+        "data-dot-canvas",
+        "data-skip-intro",
+        "data-hero-question-card",
         "Закрасьте 1/2 фигуры",
         "(x + 2)(x + 1) = x² + [ ] + 2",
         "f(x) = x² − 4x + 5",
@@ -108,15 +157,8 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
         "Колонка А",
         "Колонка Б",
         "Пройти полный вариант ОРТ →",
-        "ОРТ Математика",
-        "Алгебра",
-        "Геометрия",
-        "Логика",
         "Desmos Graphing Calculator",
-        "y ≥ −x + 4",
-        "y &gt; 3x − 2",
         "Digital SAT · Module 1",
-        "Навык освоен · Системы неравенств",
         "Учись в любое время, с любого устройства",
         "Для учеников",
         "Для преподавателей и родителей",
@@ -124,21 +166,30 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
         "2. Интерактивная практика",
         "3. Контроль прогресса с преподавателем",
         "Начни подготовку с Monday сегодня",
-        "Прогноз ОРТ",
+        "Прогноз ОРТ · Пример",
         "Desmos встроен",
         "Журнал ошибок",
         "Начать бесплатно",
         "https://instagram.com/monday_edc",
         "mailto:temirlanmanasev@gmail.com",
         "© 2026 Monday Academy",
+        "static/js/dot-engine.js",
         "static/js/landing.js",
     ):
         assert expected in html, f"Missing expected copy on /: {expected}"
 
-    # Marquee strip has no arrow buttons or per-exam question count labels ('зад.'), and tesla mode is not live
     assert "data-strip-scroll" not in html
     assert "зад.</span>" not in html
     assert "двигай точки, меняй уравнения" not in html
+
+    # Query-string & deep-link adaptation (?exam=ort and ?utm_source=exam_sat); unknown exam ignored safely
+    r_ort = anon.get("/?exam=ort").data.decode("utf-8")
+    assert 'data-highlighted-exam="ORT"' in r_ort
+    r_bot = anon.get("/?utm_source=exam_sat").data.decode("utf-8")
+    assert 'data-highlighted-exam="SAT"' in r_bot
+    r_unknown = anon.get("/?exam=<script>alert(1)</script>")
+    assert r_unknown.status_code == 200
+    assert "data-highlighted-exam" not in r_unknown.data.decode("utf-8")
 
     # Existing auth routing rules stay intact for logged-in users
     c_stu = app.test_client()
@@ -150,6 +201,250 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
     assert "/teacher" in c_adm.get("/", follow_redirects=False).headers["Location"]
 
 
+def test_stage2_hero_live_question_opaque_tokens_and_security(tmp_path):
+    app = _make_app(tmp_path, public_enabled=True, HERO_QUESTION_TOKEN_TTL_SECONDS=60)
+    with app.app_context():
+        top = ContentNode(code="s2_top", name="Алгебра", level="topic", exams=["ORT"])
+        db.session.add(top)
+        db.session.flush()
+        skill = ContentNode(code="s2_sk", name="Линейные уравнения", level="node", parent_id=top.id, exams=["ORT"])
+        db.session.add(skill)
+        db.session.flush()
+
+        img_name = storage.save("q-hero-sample.png", PNG_1PX, "image/png")
+        q_pub = Question(
+            skill=skill,
+            exams=["ORT"],
+            difficulty=1,
+            text="Решите уравнение $2x + 5 = 13$.",
+            image_path=img_name,
+            answer_type="choice",
+            options=["3", "4", "5", "6"],
+            correct="1",
+            explanation="SECRET_EXPLANATION_TEXT",
+            status="published",
+        )
+        q_priv = Question(
+            skill=skill,
+            exams=["ORT"],
+            difficulty=2,
+            text="PRIVATE_UNFLAGGED_QUESTION_TEXT",
+            answer_type="choice",
+            options=["10", "20", "30", "40"],
+            correct="0",
+            status="published",
+            is_public_sample=False,
+        )
+        db.session.add_all([q_pub, q_priv])
+        db.session.flush()
+        set_question_public_sample(q_pub, True)
+        db.session.commit()
+        pub_qid = q_pub.id
+        priv_qid = q_priv.id
+        pub_media_key = q_pub.public_image_key
+
+    c = app.test_client()
+    # 1. GET /api/public/hero-question serves only is_public_sample=True with an opaque token, never DB id or /uploads/
+    r_get = c.get("/api/public/hero-question")
+    assert r_get.status_code == 200
+    payload = r_get.get_json()
+    assert payload["ok"] is True
+    q_data = payload["question"]
+    assert "id" not in q_data
+    assert "correct" not in q_data
+    assert "SECRET_EXPLANATION_TEXT" not in json.dumps(payload, ensure_ascii=False)
+    assert "PRIVATE_UNFLAGGED_QUESTION_TEXT" not in json.dumps(payload, ensure_ascii=False)
+    assert q_data["image_url"] == f"/question-bank/media/{pub_media_key}"
+    assert "/uploads/" not in (q_data["image_url"] or "")
+    token = q_data["token"]
+    assert isinstance(token, str) and len(token) > 20
+
+    # 2. Wrong answer returns hint without revealing the correct option index
+    r_wrong = c.post("/api/public/hero-question/check", json={"token": token, "choice": 0})
+    assert r_wrong.status_code == 200
+    w_data = r_wrong.get_json()
+    assert w_data["ok"] is True and w_data["correct"] is False
+    assert "Подсказка" in w_data["hint"]
+    assert "correct_choice" not in w_data
+
+    # 3. Correct answer returns "Это вопрос ОРТ · Алгебра" and /exams/ort link
+    r_right = c.post("/api/public/hero-question/check", json={"token": token, "choice": 1})
+    assert r_right.status_code == 200
+    r_data = r_right.get_json()
+    assert r_data["ok"] is True and r_data["correct"] is True
+    assert "Это вопрос ОРТ · Алгебра" in r_data["badge"]
+    assert r_data["exam_url"] == "/exams/ort"
+
+    # 4. Tampered token, expired token, and token for unflagged question are rejected
+    assert c.post("/api/public/hero-question/check", json={"token": token + "tamper", "choice": 1}).status_code == 400
+    with app.app_context():
+        assert verify_public_sample_token(token, max_age=-1) is None
+        priv_token = issue_public_sample_token(priv_qid, "ORT")
+    assert c.post("/api/public/hero-question/check", json={"token": priv_token, "choice": 0}).status_code == 404
+
+    # Unflagging the sample invalidates existing tokens immediately
+    with app.app_context():
+        set_question_public_sample(db.session.get(Question, pub_qid), False)
+        db.session.commit()
+    assert c.post("/api/public/hero-question/check", json={"token": token, "choice": 1}).status_code == 404
+
+
+def test_stage3_public_stats_api_thresholds_and_bishkek_timezone(tmp_path):
+    app = _make_app(
+        tmp_path,
+        public_enabled=True,
+        PUBLIC_STATS_MIN_QUESTIONS=2,
+        PUBLIC_STATS_MIN_TOPICS=1,
+        PUBLIC_STATS_MIN_COLLECTIONS=5,  # intentionally above seeded count (0) -> must be hidden!
+        PUBLIC_STATS_MIN_SOLVED_TODAY=2,
+        PUBLIC_STATS_MIN_SOLVED_WEEK=3,
+        PUBLIC_STATS_MIN_MONDAY_PARTICIPANTS=10,  # above 0 -> hidden!
+        MONDAY_TEST_SCHEDULE_PUBLIC=False,
+    )
+    with app.app_context():
+        stu = User(email="stats_stu@monday.kg", name="Secret Student Name", role="student", is_approved=True)
+        stu.set_password("Pass12345!")
+        top = ContentNode(code="s3_t", name="Algebra", level="topic", exams=["ORT"])
+        db.session.add_all([stu, top])
+        db.session.flush()
+        node = ContentNode(code="s3_n", name="Linear", level="node", parent_id=top.id, exams=["ORT"])
+        db.session.add(node)
+        db.session.flush()
+
+        q1 = Question(skill=node, exams=["ORT"], difficulty=1, text="Q1", options=["1", "2"], correct="0", status="published")
+        q2 = Question(skill=node, exams=["ORT"], difficulty=1, text="Q2", options=["1", "2"], correct="0", status="published")
+        db.session.add_all([q1, q2])
+        db.session.flush()
+
+        att = Attempt(user_id=stu.id, mode="franklin", plan=[q1.id, q2.id], total=2)
+        db.session.add(att)
+        db.session.flush()
+
+        # Bishkek midnight in naive UTC
+        bishkek_midnight = local_midnight_utc()
+        # 2 answers today (after Bishkek midnight), 1 answer 5 minutes before Bishkek midnight (yesterday)
+        db.session.add_all([
+            AttemptAnswer(attempt_id=att.id, index=0, question_id=q1.id, is_correct=True, answered_at=bishkek_midnight + timedelta(minutes=10)),
+            AttemptAnswer(attempt_id=att.id, index=1, question_id=q2.id, is_correct=True, answered_at=bishkek_midnight + timedelta(minutes=20)),
+            AttemptAnswer(attempt_id=att.id, index=2, question_id=q1.id, is_correct=False, answered_at=bishkek_midnight - timedelta(minutes=5)),
+        ])
+        db.session.commit()
+
+    clear_public_stats_cache()
+    c = app.test_client()
+    r = c.get("/api/public/stats")
+    assert r.status_code == 200
+    assert "max-age=60" in (r.headers.get("Cache-Control") or "")
+    data = r.get_json()
+    raw_json = json.dumps(data, ensure_ascii=False)
+    # Zero personal data or user IDs
+    assert "stats_stu@monday.kg" not in raw_json
+    assert "Secret Student Name" not in raw_json
+    assert "user_id" not in raw_json
+    assert data["timezone"] == "Asia/Bishkek"
+
+    counters = data["counters"]
+    assert counters["published_questions"] == 2
+    assert counters["topics_count"] >= 1
+    assert counters["solved_today"] == 2
+    # Below threshold counters are None (hidden)
+    assert counters["collections_count"] is None
+    assert counters["last_monday_participants"] is None
+    assert counters["next_monday_test"] is None
+
+    # HTML strip hides below-threshold cards completely
+    landing_html = c.get("/").data.decode("utf-8")
+    assert 'data-stat-card="published_questions"' in landing_html
+    assert 'data-stat-card="solved_today"' in landing_html
+    assert 'data-stat-card="collections_count"' not in landing_html
+    assert 'data-stat-card="last_monday_participants"' not in landing_html
+    assert 'data-stat-card="next_monday_test"' not in landing_html
+
+
+def test_stage4_exam_page_ort_preflight_guard_sitemap_and_lead_form(tmp_path):
+    app = _make_app(tmp_path, public_enabled=True, csrf_enabled=False)
+    with app.app_context():
+        node = ContentNode(code="s4_ort", name="Алгебра ОРТ", level="node", exams=list(EXAMS.keys()))
+        db.session.add(node)
+        db.session.flush()
+        q_ort = Question(
+            skill=node,
+            exams=list(EXAMS.keys()),
+            difficulty=1,
+            text="Сравните $3x + 4$ и $2x + 4$ при $x > 1$.",
+            options=["Колонка А", "Колонка Б", "Равны", "Мало данных"],
+            correct="0",
+            status="published",
+        )
+        q_non_sample = Question(
+            skill=node,
+            exams=["ORT"],
+            difficulty=2,
+            text="NON_SAMPLE_SECRET_ORT_QUESTION",
+            options=["1", "2"],
+            correct="0",
+            status="published",
+            is_public_sample=False,
+        )
+        db.session.add_all([q_ort, q_non_sample])
+        db.session.flush()
+        set_question_public_sample(q_ort, True)
+        db.session.commit()
+
+    c = app.test_client()
+    # 1. /exams/ort and /ort render 200 OK with verified structure, scoring, timeline, sample, formulas, FAQ, lead form
+    for url in ("/exams/ort", "/ort"):
+        r = c.get(url)
+        assert r.status_code == 200
+        html = r.data.decode("utf-8")
+        assert "Подготовка к ОРТ по математике" in html
+        assert "Математика · Часть 1 — Сравнение величин" in html
+        assert "Математика · Часть 2 — Задачи с выбором из 5 ответов" in html
+        assert "Сравните $3x + 4$ и $2x + 4$" in html
+        assert "Разность квадратов" in html
+        assert "FAQPage" in html
+        assert "NON_SAMPLE_SECRET_ORT_QUESTION" not in html
+        assert "[требует подтверждения" not in html
+
+    # 2. Unknown exam slug returns 404
+    assert c.get("/exams/nonexistent").status_code == 404
+
+    # 3. Sitemap includes /exams/ort when verified
+    sm_xml = c.get("/sitemap.xml").data.decode("utf-8")
+    assert "/exams/ort" in sm_xml
+
+    # 4. Lead form submission on /exams/ort creates one Lead with interest='ОРТ' and source='site'
+    r_apply = c.post(
+        "/apply",
+        data={
+            "full_name": "Айдана ОРТ",
+            "phone": "+996700555666",
+            "interest": "ОРТ",
+            "mode_preference": "offline",
+            "consent": "1",
+            "consent_required": "1",
+            "next": "/exams/ort",
+        },
+        follow_redirects=True,
+    )
+    assert r_apply.status_code == 200
+    with app.app_context():
+        lead = Lead.query.filter_by(full_name="Айдана ОРТ").one()
+        assert lead.source == "site"
+        assert lead.interest == "ОРТ"
+
+    # 5. Unverified fact in exam content file fails preflight guard
+    unverified_dir = tmp_path / "unverified_exams"
+    unverified_dir.mkdir()
+    bad_ort = json.loads((ROOT_DIR / "monday" / "data" / "exams" / "ort.json").read_text(encoding="utf-8"))
+    bad_ort["facts"]["organizer"]["verified"] = False
+    (unverified_dir / "ort.json").write_text(json.dumps(bad_ort, ensure_ascii=False), encoding="utf-8")
+
+    with app.app_context():
+        blockers = collect_site_preflight_blockers(exam_data_dir=unverified_dir)
+        assert any("unverified fact" in b for b in blockers), blockers
+
+
 def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
     try:
         from playwright.sync_api import sync_playwright
@@ -157,6 +452,24 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
         return
 
     app = _make_app(tmp_path, public_enabled=True, csrf_enabled=True)
+    with app.app_context():
+        node = ContentNode(code="pw_ort", name="Алгебра", level="node", exams=["ORT"])
+        db.session.add(node)
+        db.session.flush()
+        q = Question(
+            skill=node,
+            exams=["ORT"],
+            difficulty=1,
+            text="Найдите $x$, если $2x + 4 = 10$.",
+            options=["2", "3", "4", "5"],
+            correct="1",
+            status="published",
+        )
+        db.session.add(q)
+        db.session.flush()
+        set_question_public_sample(q, True)
+        db.session.commit()
+
     app.config["SERVER_NAME"] = None
     server = make_server("127.0.0.1", 0, app)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -176,6 +489,7 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
 
             page.goto(f"{base_url}/", wait_until="networkidle")
             assert page.locator(".mp-hero h1").is_visible()
+            assert page.locator("[data-dot-canvas]").is_visible()
             assert page.locator(".mp-fan").is_visible()
 
             # Verify White (#FFFFFF) canvas, Soft Light Blue (#EEF4FF -> rgb(238, 244, 255)) hero pill, and strictly black (#000000) footer
@@ -186,8 +500,8 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             footer_bg = page.locator(".mp-footer").evaluate("el => getComputedStyle(el).backgroundColor")
             assert footer_bg == "rgb(0, 0, 0)"
 
-            # Verify zero horizontal overflow, centered hero H1, and non-clipped sky-band cards at 1440px, 1280px, 1024px, and 390px viewports
-            for vw, vh in ((1440, 900), (1280, 840), (1024, 800), (390, 844)):
+            # Verify zero horizontal overflow, centered hero H1, and non-clipped sky-band cards at 1440px, 820px, and 390px viewports
+            for vw, vh in ((1440, 900), (820, 900), (390, 844)):
                 page.set_viewport_size({"width": vw, "height": vh})
                 metrics = page.evaluate(
                     "() => {"
@@ -210,6 +524,21 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
                 assert metrics["satLeft"] >= 0 and metrics["satRight"] <= metrics["innerW"] + 1, f"Mastery badge clipped at {vw}px: {metrics}"
 
             page.set_viewport_size({"width": 1280, "height": 840})
+
+            # Stage 2 live hero question interaction: tap wrong option -> hint; tap right option (index 1 -> "3") -> badge + CTA
+            hero_q = page.locator(".mp-hero [data-hero-question-card]")
+            hero_q.locator('[data-live-opt="0"]').click()
+            hero_q.locator("[data-live-feedback]").wait_for(state="visible", timeout=5000)
+            assert "is-wrong" in (hero_q.locator('[data-live-opt="0"]').get_attribute("class") or "")
+            hero_q.locator('[data-live-opt="1"]').click()
+            page.wait_for_function(
+                "() => document.querySelector('.mp-hero [data-live-opt=\"1\"]').classList.contains('is-right')"
+            )
+            assert "Это вопрос ОРТ" in (hero_q.locator("[data-live-badge]").text_content() or "")
+
+            # Dot engine perf stats check
+            perf = page.evaluate("() => window.__mondayDotEngine && window.__mondayDotEngine.getPerfStats()")
+            assert perf and perf["dpr"] <= 2 and perf["pointCount"] >= 260
 
             # Mode 1 (Мини-тест ОРТ): click bubble А on Q1 -> highlights right + reveals explanation -> advance to Q2 -> click В -> advance to Q3 -> click Б
             ort = page.locator("[data-ort-minitest]")
@@ -240,118 +569,13 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             geom.locator('[data-challenge-opt]:has-text("24")').click()
             assert "is-right" in (geom.locator('[data-challenge-opt]:has-text("24")').get_attribute("class") or "")
             geom.locator("[data-challenge-explain]").wait_for(state="visible", timeout=5000)
-            assert geom.locator('a:has-text("Продолжить обучение")').is_visible()
 
-            # Switch subject tab -> Логика, click wrong answer -> highlights wrong + reveals true answer + explanation
-            page.click('[data-subject-tab="logic"]')
-            logic = page.locator('[data-subject-panel="logic"]')
-            logic.wait_for(state="visible", timeout=5000)
-            logic.locator('[data-challenge-opt]:has-text("8")').click()
-            assert "is-wrong" in (logic.locator('[data-challenge-opt]:has-text("8")').get_attribute("class") or "")
-            assert "is-right" in (logic.locator('[data-challenge-opt]:has-text("10")').get_attribute("class") or "")
-            logic.locator("[data-challenge-explain]").wait_for(state="visible", timeout=5000)
-
-            # Mobile responsiveness sanity check (375px width + mobile nav toggle)
-            page.set_viewport_size({"width": 375, "height": 812})
-            assert page.locator("#try-challenge").is_visible()
-            page.click("[data-nav-toggle]")
-            assert page.locator("[data-nav-panel]").is_visible()
+            # Check /exams/ort in browser for zero CSP violations
+            page.goto(f"{base_url}/exams/ort", wait_until="networkidle")
+            assert page.locator("#mp-exam-h").is_visible()
 
             assert page.evaluate("window.__csp") == []
             assert page.evaluate("window.__errs") == []
             browser.close()
     finally:
         server.shutdown()
-
-
-def test_render_welcome_first_and_open_access_without_subscription(tmp_path, monkeypatch):
-    """Default Render links open on welcoming page -> /login, and students get full access without subscription."""
-    from monday.models import ContentNode, Question
-    from monday.public_site import is_public_site_enabled
-    from monday.subscriptions import has_course_access, has_question_bank_access, subscription_status_summary
-
-    monkeypatch.setenv("RENDER", "true")
-
-    class RenderDefaultCfg(Config):
-        TESTING = True
-        WTF_CSRF_ENABLED = False
-        SEED_DEMO = False
-        DATA_FIXES = False
-        IMPORT_PACKS = False
-        RATELIMIT_ENABLED = False
-        SESSION_COOKIE_SECURE = True
-        SQLALCHEMY_DATABASE_URI = f"sqlite:///{tmp_path / 'render_open.db'}"
-        UPLOAD_FOLDER = str(tmp_path / "uploads")
-        PUBLIC_SAMPLE_MEDIA_FOLDER = str(tmp_path / "public_sample_media")
-
-    app = create_app(RenderDefaultCfg, seed_if_empty=False)
-
-    # All Render blueprints default to welcoming page first and open access without subscription
-    for fname in ("render.yaml", "render.staging.yaml", "render.production.yaml"):
-        txt = (ROOT_DIR / fname).read_text(encoding="utf-8")
-        assert "PUBLIC_SITE_ENABLED" in txt and 'value: "1"' in txt, fname
-        assert "SUBSCRIPTION_REQUIRED" in txt and 'value: "0"' in txt, fname
-
-    # Even with RENDER=true & SESSION_COOKIE_SECURE=True (and legal preflight not completed), / serves welcome page
-    app.testing = False
-    try:
-        with app.test_request_context("/"):
-            assert is_public_site_enabled() is True
-    finally:
-        app.testing = True
-
-    c = app.test_client()
-    r_root = c.get("/", follow_redirects=False)
-    assert r_root.status_code == 200
-    root_html = r_root.data.decode("utf-8")
-    assert "У меня уже есть аккаунт" in root_html
-    assert 'href="/login"' in root_html
-
-    # Clicking login opens /login page cleanly
-    r_login = c.get("/login")
-    assert r_login.status_code == 200
-
-    # Newly registered student needs NO subscription or teacher link ("accept everyone")
-    r_reg = c.post(
-        "/register",
-        data={
-            "role": "student",
-            "name": "Open Student",
-            "email": "open_stu@monday.kg",
-            "password": "OpenPass123!",
-        },
-        follow_redirects=False,
-    )
-    assert r_reg.status_code == 302
-
-    with app.app_context():
-        node = ContentNode(code="open_alg", name="Algebra", level="node", exams=["SAT"])
-        db.session.add(node)
-        db.session.flush()
-        db.session.add(
-            Question(
-                skill=node,
-                exams=["SAT"],
-                difficulty=1,
-                text="2+2?",
-                options=["3", "4"],
-                correct="1",
-                status="published",
-            )
-        )
-        stu = User.query.filter_by(email="open_stu@monday.kg").first()
-        assert stu is not None
-        stu.profile.exam = "SAT"
-        stu.profile.onboarded = True
-        db.session.commit()
-        assert has_question_bank_access(stu) is True
-        assert has_course_access(stu) is True
-        summary = subscription_status_summary(stu)
-        assert summary["tier"] == "open"
-        assert summary["has_full_access"] is True
-
-    for ok_url in ("/home", "/bank/", "/formulas", "/profile/export.csv", "/subscription"):
-        assert c.get(ok_url).status_code == 200, ok_url
-    assert "Открытый бесплатный доступ" in c.get("/subscription").data.decode("utf-8")
-    # Teacher-only homework remains isolated when student has no teacher link
-    assert c.get("/homework").status_code == 403

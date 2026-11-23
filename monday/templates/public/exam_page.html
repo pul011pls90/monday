@@ -1,0 +1,225 @@
+{% extends "public/_base.html" %}
+{% set signup_enabled = config.get('SELF_STUDY_SIGNUP_ENABLED') %}
+{% set primary_cta_url = url_for('auth.register') if signup_enabled else url_for('auth.login') %}
+{% set primary_cta_label = _('Начать бесплатно') if signup_enabled else _('Войти в кабинет') %}
+
+{% block json_ld %}
+<script type="application/ld+json">{{ org_json_ld|tojson }}</script>
+<script type="application/ld+json">{{ faq_json_ld|tojson }}</script>
+{% endblock %}
+
+{% block content %}
+{# =========================================================================== 1. Adaptive Dot Hero for Exam #}
+<section class="mp-exam-hero" data-dot-stage data-dot-word="{{ exam.code }}" aria-labelledby="mp-exam-h">
+  <div class="mp-exam-hero__grid">
+    <div class="mp-exam-hero__copy">
+      <span class="mp-eyebrow-pill">{{ exam.hero.pill }}</span>
+      <h1 id="mp-exam-h">{{ exam.hero.headline }}</h1>
+      <p class="mp-page-hero__lead">{{ exam.hero.subheadline }}</p>
+      <div class="pub-hero__ctas">
+        <a class="mp-btn mp-btn--blue" href="{{ primary_cta_url }}">{{ primary_cta_label }}</a>
+        <a class="mp-btn mp-btn--card" href="#apply-form" data-scroll-to="#apply-form">{{ _("Записаться на курс") }} {{ exam.label }}</a>
+      </div>
+      <p class="small muted" style="margin:10px 0 0">
+        {{ _("Шкала экзамена:") }} <b class="num">{{ exam.scoring.min_score }}–{{ exam.scoring.max_score }}</b> {{ _("баллов") }}
+        · <a href="{{ url_for('public_site.question_bank') }}" style="color:var(--pub-blue);font-weight:700">{{ _("Банк вопросов") }}</a>
+      </p>
+    </div>
+
+    <div class="mp-dot-box">
+      <canvas class="mp-dots-canvas" data-dot-canvas aria-hidden="true"></canvas>
+      <div class="mp-dot-box__bar">
+        <span class="mp-dot-box__eq math" data-curve-eq>y = 0.4x² − 0.3x + 1.5</span>
+        <label class="mp-dot-box__slider-lbl">
+          <span class="sr-only">{{ _("Изменить кривую прогресса") }}</span>
+          <input type="range" class="mp-dot-box__slider" data-curve-slider min="-0.6" max="1.0" step="0.1" value="0.4" aria-label="{{ _('Параметр кривой a') }}">
+        </label>
+        <button type="button" class="mp-dots-skip" data-skip-intro>{{ _("Пропустить анимацию") }}</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# =========================================================================== 2. Live Counters Strip #}
+{% include "public/_stats_strip.html" %}
+
+{# =========================================================================== 3. Exam Structure & Key Facts #}
+<section aria-labelledby="mp-exam-struct-h">
+  <div class="pub-section-head">
+    <div>
+      <span class="mp-eyebrow-pill">{{ _("Официальный формат") }} · {{ exam.label }}</span>
+      <h2 id="mp-exam-struct-h">{{ _("Структура экзамена") }}</h2>
+    </div>
+  </div>
+
+  <div class="pub-grid-2" style="margin-bottom:18px">
+    {% for sec in exam.sections %}
+    <article class="mp-subcard mp-subcard--soft">
+      <div class="row row--between" style="flex-wrap:wrap;gap:8px">
+        <span class="mp-eyebrow-pill">{{ sec.duration }}</span>
+        <span class="mp-eyebrow-pill">{{ sec.questions_count }}</span>
+      </div>
+      <h3>{{ sec.title }}</h3>
+      <p class="text-2" style="margin:0">{{ sec.summary }}</p>
+      {% if sec.source %}<div class="small muted" style="margin-top:auto">{{ _("Источник:") }} {{ sec.source }}</div>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
+
+  <div class="pub-grid-3">
+    {% for fact in exam.facts %}
+    <article class="mp-subcard">
+      <span class="small muted">{{ fact.label }}</span>
+      <strong>{{ fact.value }}</strong>
+      {% if fact.source %}<span class="small muted">{{ _("Источник:") }} {{ fact.source }}</span>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+{# =========================================================================== 4. How Scoring Works #}
+<section class="mp-subcard mp-subcard--soft" aria-labelledby="mp-exam-score-h">
+  <div class="pub-grid-2" style="align-items:center">
+    <div class="stack-sm">
+      <span class="mp-eyebrow-pill">{{ _("Шкала и оценивание") }}</span>
+      <h2 id="mp-exam-score-h" style="margin:6px 0">{{ exam.scoring.headline }}</h2>
+      <ul class="mp-check-list">
+        {% for rule in exam.scoring.rules %}
+        <li>{{ rule }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="mp-subcard">
+      <div class="row row--between">
+        <span class="mp-eyebrow-pill">{{ _("Прогноз балла в Monday") }}</span>
+        <span class="mp-eyebrow-pill">{{ _("Пример") }}</span>
+      </div>
+      <div style="font-family:var(--font-display, 'Unbounded', sans-serif);font-size:32px;font-weight:800;color:var(--pub-blue)" class="num">
+        215 <span class="small muted" style="font-size:15px">/ {{ exam.scoring.max_score }}</span>
+      </div>
+      <p class="small text-2" style="margin:0">{{ _("Пример расчёта: после каждой тренировочной сессии и Monday Test платформа обновляет ориентировочный прогноз по шкале экзамена.") }}</p>
+    </div>
+  </div>
+</section>
+
+{# =========================================================================== 5. Preparation Timeline #}
+<section aria-labelledby="mp-exam-time-h">
+  <div class="pub-section-head">
+    <div>
+      <span class="mp-eyebrow-pill">{{ _("Маршрут подготовки") }}</span>
+      <h2 id="mp-exam-time-h">{{ _("Как строится подготовка к") }} {{ exam.label }}</h2>
+    </div>
+  </div>
+  <ol class="mp-loop">
+    {% for st in exam.timeline %}
+    <li class="mp-loop__step">
+      <span class="mp-loop__num num">{{ st.step }}</span>
+      <h3>{{ st.step }}. {{ st.title }}</h3>
+      <p>{{ st.detail }}</p>
+    </li>
+    {% if not loop.last %}<li class="mp-loop__arrow" aria-hidden="true">→</li>{% endif %}
+    {% endfor %}
+  </ol>
+</section>
+
+{# =========================================================================== 6. Public Sample Questions (is_public_sample only, opaque tokens) #}
+<section id="exam-samples" aria-labelledby="mp-exam-samp-h">
+  <div class="pub-section-head">
+    <div>
+      <span class="mp-eyebrow-pill">{{ _("Открытые задания") }} · {{ exam.label }}</span>
+      <h2 id="mp-exam-samp-h">{{ _("Примеры задач") }} {{ exam.label }}</h2>
+    </div>
+    <a class="mp-btn mp-btn--soft mp-btn--sm" href="{{ url_for('auth.login') }}">{{ _("Войти для полного доступа") }}</a>
+  </div>
+
+  {% if samples %}
+  <div class="pub-grid-2">
+    {% for s in samples %}
+    <article class="pub-sample-card" data-hero-question-card data-check-url="{{ url_for('public_site.api_hero_question_check') }}" data-q-token="{{ s.token }}">
+      <div class="row row--between">
+        <span class="mp-eyebrow-pill">{{ s.exam_label }} · {{ s.topic_name or s.skill_name or _('Математика') }}</span>
+        <span class="small muted">{{ s.difficulty_label }}</span>
+      </div>
+      {% if s.material %}
+        <div class="pub-sample-material">{{ ui.material(s) }}</div>
+      {% endif %}
+      {% if s.text %}
+        <div class="pub-sample-stem math">{{ s.text }}</div>
+      {% endif %}
+      {% if s.public_image_key %}
+        <figure class="pub-sample-fig">
+          <img src="{{ url_for('public_site.public_sample_media', key=s.public_image_key) }}" alt="{{ _('Иллюстрация к задаче') }}" loading="lazy">
+        </figure>
+      {% endif %}
+      {% if s.answer_type == 'choice' and s.options %}
+        <div class="br-options" role="group" aria-label="{{ _('Варианты ответа') }}">
+          {% for opt in s.options %}
+          <button type="button" class="br-opt" data-live-opt="{{ loop.index0 }}">
+            <span class="pub-sample-opt-letter">{{ ('А', 'Б', 'В', 'Г', 'Д')[loop.index0] if loop.index0 < 5 else loop.index }}</span>
+            <span class="math">{{ opt }}</span>
+          </button>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <div class="br-explain" data-live-feedback hidden aria-live="polite">
+        <div class="br-explain__status" data-live-status></div>
+      </div>
+      <div class="pub-sample-footer">
+        <span class="small muted">{{ _("Нажмите на вариант ответа для мгновенной проверки.") }}</span>
+        <a class="small" href="{{ url_for('auth.login') }}" style="color:var(--pub-blue);font-weight:700">{{ _("Войти в кабинет →") }}</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <article class="mp-subcard mp-subcard--soft">
+    <strong>{{ _("Открытые примеры задач готовятся к публикации") }}</strong>
+    <p class="small text-2" style="margin:0">{{ _("Войдите в кабинет Monday Academy для доступа к тренажёру или оставьте заявку на консультацию.") }}</p>
+  </article>
+  {% endif %}
+</section>
+
+{# =========================================================================== 7. Public Formula-Sheet Preview #}
+{% if exam.public_formulas %}
+<section aria-labelledby="mp-exam-form-h">
+  <div class="pub-section-head">
+    <div>
+      <span class="mp-eyebrow-pill">{{ _("Справочные материалы") }}</span>
+      <h2 id="mp-exam-form-h">{{ _("Базовые формулы для") }} {{ exam.label }}</h2>
+    </div>
+  </div>
+  <div class="pub-grid-2">
+    {% for f in exam.public_formulas %}
+    <article class="mp-subcard">
+      <span class="mp-eyebrow-pill">{{ f.topic }}</span>
+      <h3>{{ f.title }}</h3>
+      <div class="mp-formula-box math">{{ f.latex }}</div>
+      {% if f.note %}<p class="small text-2" style="margin:0">{{ f.note }}</p>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# =========================================================================== 8. Exam FAQ #}
+<section aria-labelledby="mp-exam-faq-h">
+  <div class="pub-section-head">
+    <div>
+      <span class="mp-eyebrow-pill">{{ _("Вопросы и ответы") }}</span>
+      <h2 id="mp-exam-faq-h">{{ _("Частые вопросы об экзамене") }} {{ exam.label }}</h2>
+    </div>
+  </div>
+  <div class="pub-faq-list" data-faq-list>
+    {% for item in exam.faqs %}
+    <details class="pub-faq-item" data-faq-item{% if loop.first %} open{% endif %}>
+      <summary>{{ item.q }}</summary>
+      <p>{{ item.a }}</p>
+    </details>
+    {% endfor %}
+  </div>
+</section>
+
+{# =========================================================================== 9. Lead Form (prefilled with exam & source='site') #}
+{% set default_interest = exam.label %}
+{% include "public/_lead_form.html" %}
+{% endblock %}

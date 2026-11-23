@@ -157,9 +157,10 @@ def test_phase_b_pass_issuance_atomic_attendance_deduction_retro_restore_and_pay
     fin_mgr = c_m1.get("/manager/finance").data.decode()
     assert "Начисления учителям" not in fin_mgr  # payroll hidden from sales manager
 
-    sched_sup = c_sup.get(f"/academic/schedule?view=teachers&week={now.date().isoformat()}").data.decode()
+    l1_week = (now - timedelta(hours=2)).date().isoformat()
+    sched_sup = c_sup.get(f"/academic/schedule?view=teachers&week={l1_week}").data.decode()
     assert "1500 KGS" in sched_sup  # l1 is in this week -> 1500 KGS
-    sched_tch = c_tch.get(f"/academic/schedule?view=teachers&week={now.date().isoformat()}").data.decode()
+    sched_tch = c_tch.get(f"/academic/schedule?view=teachers&week={l1_week}").data.decode()
     assert "1500 KGS" not in sched_tch  # teacher does NOT see payroll accruals
 
     # 6. Student 360 & lesson register show live pass balance

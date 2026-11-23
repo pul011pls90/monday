@@ -1,9 +1,13 @@
-/* Monday Academy — CSP-safe controller for public landing page, ORT mini-test & floating header. */
+/* Monday Academy — CSP-safe controller for public landing page, live hero question, stats counters, ORT mini-test & header. */
 (function () {
   "use strict";
 
   function prefersReducedMotion() {
-    return Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    return (
+      Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) ||
+      document.documentElement.getAttribute("data-motion") === "reduce" ||
+      Boolean(navigator.connection && navigator.connection.saveData)
+    );
   }
 
   function smoothScrollTo(selectorOrEl) {
@@ -46,7 +50,7 @@
     });
   }
 
-  // 2. FAQ Accordion smooth toggle (closes sibling items when opening a new question)
+  // 2. FAQ Accordion smooth toggle
   document.querySelectorAll("[data-faq-list]").forEach((faqList) => {
     const items = Array.from(faqList.querySelectorAll("details[data-faq-item]"));
     items.forEach((detail) => {
@@ -61,7 +65,129 @@
     });
   });
 
-  // 3. Sandbox Mode Switcher (Мини-тест ОРТ | По темам) + Subject Tabs + ORT Mini-Test
+  // 3. Stage 2 Live Hero & Exam-Page Public Sample Question Cards ([data-hero-question-card])
+  document.querySelectorAll("[data-hero-question-card]").forEach((card) => {
+    const checkUrl = card.getAttribute("data-check-url");
+    if (!checkUrl) return;
+
+    card.addEventListener("click", (e) => {
+      const optBtn = e.target.closest("[data-live-opt]");
+      if (!optBtn) return;
+
+      const token = card.getAttribute("data-q-token") || "";
+      const choice = optBtn.getAttribute("data-live-opt");
+      if (!token || choice === null) return;
+
+      const allOpts = Array.from(card.querySelectorAll("[data-live-opt]"));
+      const feedbackEl = card.querySelector("[data-live-feedback]");
+      const statusEl = card.querySelector("[data-live-status]");
+      const ctaEl = card.querySelector("[data-live-cta]");
+      const badgeEl = card.querySelector("[data-live-badge]");
+
+      const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+      const headers = {
+        "Content-Type": "application/json",
+        "X-Requested-With": "fetch",
+      };
+      if (csrfMeta && csrfMeta.content) {
+        headers["X-CSRFToken"] = csrfMeta.content;
+      }
+
+      fetch(checkUrl, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ token, choice: Number(choice) }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (!data || !data.ok) return;
+          if (data.correct) {
+            allOpts.forEach((b) => {
+              b.classList.remove("is-right", "is-wrong", "is-dimmed");
+              b.classList.add(b === optBtn ? "is-right" : "is-dimmed");
+              b.setAttribute("aria-pressed", b === optBtn ? "true" : "false");
+            });
+            if (badgeEl && data.badge) {
+              badgeEl.textContent = data.badge;
+            }
+            if (statusEl) {
+              statusEl.textContent = data.badge || "Верно!";
+              statusEl.className = "br-explain__status is-ok";
+            }
+            if (ctaEl && data.exam_url) {
+              ctaEl.setAttribute("href", data.exam_url);
+              ctaEl.hidden = false;
+            }
+            if (feedbackEl) feedbackEl.hidden = false;
+            if (window.__mondayDotEngine && typeof window.__mondayDotEngine.pulseFeedback === "function") {
+              window.__mondayDotEngine.pulseFeedback("ok");
+            }
+          } else {
+            optBtn.classList.remove("is-right");
+            optBtn.classList.add("is-wrong");
+            if (statusEl) {
+              statusEl.textContent = data.hint || "Попробуйте выбрать другой вариант.";
+              statusEl.className = "br-explain__status is-bad";
+            }
+            if (ctaEl) ctaEl.hidden = true;
+            if (feedbackEl) feedbackEl.hidden = false;
+            if (window.__mondayDotEngine && typeof window.__mondayDotEngine.pulseFeedback === "function") {
+              window.__mondayDotEngine.pulseFeedback("warn");
+            }
+          }
+        })
+        .catch(() => {});
+    });
+  });
+
+  // 4. Stage 3 Live Counters Strip Scroll-Triggered Animation ([data-public-stats-strip])
+  document.querySelectorAll("[data-public-stats-strip]").forEach((strip) => {
+    const counters = Array.from(strip.querySelectorAll("[data-count-to]"));
+    if (!counters.length || prefersReducedMotion()) return;
+
+    let animated = false;
+    function runCountUp() {
+      if (animated) return;
+      animated = true;
+      const duration = 620;
+      const start = performance.now();
+      const targets = counters.map((el) => ({
+        el,
+        to: Math.max(0, parseInt(el.getAttribute("data-count-to") || "0", 10) || 0),
+      }));
+
+      function step(now) {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        targets.forEach((item) => {
+          item.el.textContent = String(Math.round(item.to * eased));
+        });
+        if (t < 1) {
+          window.requestAnimationFrame(step);
+        }
+      }
+      window.requestAnimationFrame(step);
+    }
+
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              runCountUp();
+              io.disconnect();
+            }
+          });
+        },
+        { threshold: 0.15 }
+      );
+      io.observe(strip);
+    } else {
+      runCountUp();
+    }
+  });
+
+  // 5. Sandbox Mode Switcher (Мини-тест ОРТ | По темам) + Subject Tabs + ORT Mini-Test
   const root = document.querySelector("[data-landing-challenge]");
   const modeBtns = root ? Array.from(root.querySelectorAll("[data-mode-btn]")) : [];
   const modePanels = root ? Array.from(root.querySelectorAll("[data-mode-panel]")) : [];
@@ -118,7 +244,7 @@
     }
   }
 
-  // 4. Global smooth-scroll & Fanned Hero Card click-to-challenge
+  // 6. Global smooth-scroll & Fanned Hero Card click-to-challenge
   document.addEventListener("click", (e) => {
     const heroCard = e.target.closest("[data-hero-card]");
     if (heroCard) {
@@ -148,7 +274,7 @@
 
   if (!root) return;
 
-  // 5. Authentic ORT Mini-Test Bubble Sheet Controller (Mode 1: Мини-тест ОРТ)
+  // 7. Authentic ORT Mini-Test Bubble Sheet Controller (Mode 1: Мини-тест ОРТ)
   if (ortRoot) {
     ortRoot.addEventListener("click", (e) => {
       const stepBtn = e.target.closest("[data-ort-step]");
@@ -203,7 +329,7 @@
     });
   }
 
-  // 6. Mode Switcher & Topic Mini-Problems (Mode 2: По темам)
+  // 8. Mode Switcher & Topic Mini-Problems (Mode 2: По темам)
   root.addEventListener("click", (e) => {
     const modeBtn = e.target.closest("[data-mode-btn]");
     if (modeBtn) {

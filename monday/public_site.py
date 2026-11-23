@@ -3,20 +3,38 @@ from __future__ import annotations
 
 import os
 import pathlib
+import random
 import re
 import time
 from collections import Counter
+from datetime import timedelta
 
-from flask import Blueprint, Response, abort, current_app, make_response, render_template, request, url_for
+from flask import Blueprint, Response, abort, current_app, jsonify, make_response, render_template, request, url_for
 from flask_babel import gettext as _
+from sqlalchemy import func
 
 from . import storage
 from .abuse import check_404_probe_guard, rate_limit_value, record_404_probe
 from .access import admin_required
 from .constants import COLLECTION_EXAMS, CONTACTS, EXAMS, MODES, OLYMPIAD_EXAM, UNIVERSITY_EXAM
-from .extensions import limiter
+from .exam_content import (
+    collect_exam_content_preflight_blockers,
+    list_exam_content_slugs,
+    load_exam_page_content,
+)
+from .extensions import db, limiter
 from .manager import MODE_PREF_LABELS
-from .models import AcademicCourse, ContentNode, Location, Question, Work
+from .models import (
+    AcademicCourse,
+    Attempt,
+    AttemptAnswer,
+    ContentNode,
+    Location,
+    Question,
+    Work,
+    local_midnight_utc,
+    today as local_today,
+)
 from .public_samples import (
     get_public_samples_by_exam,
     is_valid_public_sample_key,
@@ -24,7 +42,10 @@ from .public_samples import (
     mime_for_public_sample_key,
     public_media_copy_exists,
     read_public_sample_bytes,
+    sanitize_public_sample,
+    verify_public_sample_token,
 )
+from .services import next_monday_test_start
 
 bp = Blueprint("public_site", __name__)
 
@@ -54,6 +75,7 @@ def collect_site_preflight_blockers(
     *,
     contacts_override: dict | None = None,
     template_dirs: tuple[pathlib.Path, ...] | None = None,
+    exam_data_dir: pathlib.Path | None = None,
 ) -> list[str]:
     """Return every launch blocker preventing safe PUBLIC_SITE_ENABLED rollout in production."""
     blockers: list[str] = []
@@ -202,6 +224,15 @@ def collect_site_preflight_blockers(
             if fname not in valid_keys:
                 blockers.append(f"Orphaned public sample media file exists for unflagged/non-sample question: {fname}.")
 
+    if template_dirs is None or exam_data_dir is not None:
+        min_exam_samples = int(current_app.config.get("PUBLIC_EXAM_PAGE_MIN_SAMPLES", 1) or 1)
+        blockers.extend(
+            collect_exam_content_preflight_blockers(
+                data_dir=exam_data_dir,
+                min_samples_per_page=min_exam_samples,
+            )
+        )
+
     return blockers
 
 
@@ -209,8 +240,6 @@ def enforce_public_site_prod_guard(app) -> None:
     """Log an error and block PUBLIC_SITE_ENABLED in production while any preflight blocker remains."""
     app.config["_PUBLIC_SITE_BLOCKED_IN_PROD"] = False
     if not app.config.get("PUBLIC_SITE_ENABLED", False) or not is_production_mode(app):
-        return
-    if not app.config.get("IS_PRODUCTION") and not app.config.get("PUBLIC_PREFLIGHT_STRICT", False):
         return
     try:
         blockers = collect_site_preflight_blockers()
@@ -263,12 +292,46 @@ def get_public_stats() -> dict:
     topics_count = ContentNode.query.filter_by(archived=False, level="topic").count()
     skills_count = ContentNode.query.filter_by(archived=False, level="node").count()
     collections_count = Work.query.filter_by(status="published", kind="collection").count()
+    languages_count = len(current_app.config.get("LANGUAGES", {}) or {})
 
+    # Questions solved today and this week in Asia/Bishkek (LOCAL_TZ = UTC+6)
+    today_start_utc = local_midnight_utc()
+    week_start_utc = today_start_utc - timedelta(days=local_today().weekday())
+    solved_today = AttemptAnswer.query.filter(AttemptAnswer.answered_at >= today_start_utc).count()
+    solved_week = AttemptAnswer.query.filter(AttemptAnswer.answered_at >= week_start_utc).count()
+
+    # Last Monday Test distinct finished participant count
+    last_monday_work = (
+        Work.query.filter_by(kind="monday", status="published")
+        .order_by(Work.week_start.desc(), Work.id.desc())
+        .first()
+    )
+    last_monday_participants = 0
+    if last_monday_work and last_monday_work.versions:
+        ver_ids = [v.id for v in last_monday_work.versions]
+        last_monday_participants = int(
+            db.session.query(func.count(func.distinct(Attempt.user_id)))
+            .filter(Attempt.work_version_id.in_(ver_ids), Attempt.finished_at.isnot(None))
+            .scalar()
+            or 0
+        )
+
+    next_monday_info = None
+    if bool(current_app.config.get("MONDAY_TEST_SCHEDULE_PUBLIC", False)):
+        nxt = next_monday_test_start()
+        next_monday_info = {
+            "iso": nxt.strftime("%Y-%m-%dT%H:%M:%S+06:00"),
+            "label": nxt.strftime("%d.%m · %H:%M"),
+        }
+
+    known_exam_slugs = set(list_exam_content_slugs())
     exam_cards = []
     for code, meta in EXAMS.items():
+        slug_lower = code.lower()
         exam_cards.append(
             {
                 "code": code,
+                "slug": slug_lower if slug_lower in known_exam_slugs else None,
                 "label": str(meta["label"]),
                 "country": str(meta.get("country", "")),
                 "note": str(meta.get("note", "")),
@@ -282,6 +345,7 @@ def get_public_stats() -> dict:
         exam_cards.append(
             {
                 "code": extra_code,
+                "slug": None,
                 "label": str(extra_label),
                 "country": "",
                 "note": str(extra_note),
@@ -289,11 +353,37 @@ def get_public_stats() -> dict:
             }
         )
 
+    pub_q_cnt = len(published_questions)
+    min_q = int(current_app.config.get("PUBLIC_STATS_MIN_QUESTIONS", 10) or 0)
+    min_top = int(current_app.config.get("PUBLIC_STATS_MIN_TOPICS", 3) or 0)
+    min_col = int(current_app.config.get("PUBLIC_STATS_MIN_COLLECTIONS", 1) or 0)
+    min_lang = int(current_app.config.get("PUBLIC_STATS_MIN_LANGUAGES", 2) or 0)
+    min_td = int(current_app.config.get("PUBLIC_STATS_MIN_SOLVED_TODAY", 10) or 0)
+    min_wk = int(current_app.config.get("PUBLIC_STATS_MIN_SOLVED_WEEK", 25) or 0)
+    min_mp = int(current_app.config.get("PUBLIC_STATS_MIN_MONDAY_PARTICIPANTS", 10) or 0)
+
+    visible = {
+        "published_questions": pub_q_cnt if pub_q_cnt >= min_q else None,
+        "topics_count": topics_count if topics_count >= min_top else None,
+        "collections_count": collections_count if collections_count >= min_col else None,
+        "languages_count": languages_count if languages_count >= min_lang else None,
+        "solved_today": solved_today if solved_today >= min_td else None,
+        "solved_week": solved_week if solved_week >= min_wk else None,
+        "last_monday_participants": last_monday_participants if last_monday_participants >= min_mp else None,
+        "next_monday_test": next_monday_info,
+    }
+
     data = {
-        "published_questions": len(published_questions),
+        "published_questions": pub_q_cnt,
         "topics_count": topics_count,
         "skills_count": skills_count,
         "collections_count": collections_count,
+        "languages_count": languages_count,
+        "solved_today": solved_today,
+        "solved_week": solved_week,
+        "last_monday_participants": last_monday_participants,
+        "next_monday_test": next_monday_info,
+        "visible": visible,
         "exams_count": len(exam_cards),
         "exam_cards": exam_cards,
     }
@@ -358,11 +448,86 @@ def _require_public_flag():
         abort(404)
 
 
+def resolve_highlighted_exam() -> dict | None:
+    """Resolve optional ?exam=<slug> or bot deep-link ?source=exam_<slug> / ?utm_source=exam_<slug> safely."""
+    candidates = [
+        (request.args.get("exam") or "").strip().lower(),
+        (request.args.get("source") or "").strip().lower(),
+        (request.args.get("utm_source") or "").strip().lower(),
+    ]
+    known_slugs = set(list_exam_content_slugs())
+    for raw in candidates:
+        if not raw:
+            continue
+        slug = raw[5:] if raw.startswith("exam_") else raw
+        code = slug.upper()
+        if code in EXAMS:
+            meta = EXAMS[code]
+            return {
+                "code": code,
+                "slug": slug if slug in known_slugs else None,
+                "label": str(meta["label"]),
+                "country": str(meta.get("country", "")),
+                "note": str(meta.get("note", "")),
+            }
+    return None
+
+
+def _build_hero_question_payload(exam_code: str | None = None) -> dict | None:
+    """Pick one random published is_public_sample question and return a sanitized payload with an opaque token."""
+    rows = (
+        Question.query.filter_by(status="published", is_public_sample=True)
+        .order_by(Question.id.asc())
+        .all()
+    )
+    choice_rows = [q for q in rows if (q.answer_type or "choice") == "choice" and (q.options or [])]
+    if not choice_rows:
+        return None
+
+    target_code = (exam_code or "").strip().upper()
+    if target_code and target_code in EXAMS:
+        exam_matched = [q for q in choice_rows if target_code in (q.exams or [])]
+        pool = exam_matched or choice_rows
+    else:
+        pool = choice_rows
+
+    picked = random.choice(pool)
+    q_exams = [str(e) for e in (picked.exams or []) if str(e) in EXAMS]
+    chosen_exam = target_code if (target_code and target_code in q_exams) else (q_exams[0] if q_exams else "ORT")
+    san = sanitize_public_sample(picked, chosen_exam)
+    known_slugs = set(list_exam_content_slugs())
+    slug_lower = chosen_exam.lower()
+    exam_url = (
+        url_for("public_site.exam_page", slug=slug_lower)
+        if slug_lower in known_slugs
+        else url_for("public_site.question_bank")
+    )
+    image_url = (
+        url_for("public_site.public_sample_media", key=san["public_image_key"])
+        if san.get("public_image_key")
+        else None
+    )
+    return {
+        "token": san["token"],
+        "exam_code": chosen_exam,
+        "exam_label": san["exam_label"],
+        "topic_label": san["topic_name"] or san["skill_name"] or _("Математика"),
+        "difficulty_label": san["difficulty_label"],
+        "text": san["text"],
+        "material": san["material"],
+        "options": san["options"],
+        "image_url": image_url,
+        "exam_url": exam_url,
+    }
+
+
 def render_landing_page():
     stats = get_public_stats()
     pricing = _public_pricing_meta()
     locations = _public_locations()
     courses = _public_courses()
+    highlighted = resolve_highlighted_exam()
+    hero_question = _build_hero_question_payload(highlighted["code"] if highlighted else None)
     org_ld = {
         "@context": "https://schema.org",
         "@type": "EducationalOrganization",
@@ -386,6 +551,9 @@ def render_landing_page():
         utm=_utm_context(),
         sent=(request.args.get("sent") == "1"),
         org_json_ld=org_ld,
+        highlighted_exam=highlighted,
+        hero_question=hero_question,
+        default_interest=(highlighted["label"] if highlighted else ""),
     )
 
 
@@ -575,6 +743,170 @@ def contact():
     )
 
 
+@bp.route("/api/public/stats")
+@limiter.limit(lambda: rate_limit_value("PUBLIC_RATE_LIMIT_STATS", "60 per minute"))
+def api_public_stats():
+    """Return 60s-cached, threshold-gated aggregate counters (Stage 3; zero personal data or user IDs)."""
+    _require_public_flag()
+    stats = get_public_stats()
+    resp = jsonify(
+        {
+            "ok": True,
+            "timezone": "Asia/Bishkek",
+            "counters": stats["visible"],
+        }
+    )
+    resp.headers["Cache-Control"] = "public, max-age=60"
+    return resp
+
+
+@bp.route("/api/public/hero-question")
+@limiter.limit(lambda: rate_limit_value("PUBLIC_RATE_LIMIT_HERO_Q", "60 per minute"))
+def api_hero_question():
+    """Return one random public sample question with a short-lived opaque token (Stage 2; no enumeration)."""
+    _require_public_flag()
+    exam_arg = (request.args.get("exam") or "").strip().upper()
+    payload = _build_hero_question_payload(exam_arg if exam_arg in EXAMS else None)
+    if payload is None:
+        return jsonify({"ok": False, "error": "no_public_sample"}), 404
+    resp = jsonify({"ok": True, "question": payload})
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
+
+
+@bp.route("/api/public/hero-question/check", methods=["POST"])
+@limiter.limit(lambda: rate_limit_value("PUBLIC_RATE_LIMIT_HERO_CHECK", "30 per minute; 200 per hour"))
+def api_hero_question_check():
+    """Verify answer choice against an opaque short-lived public sample token (Stage 2)."""
+    _require_public_flag()
+    check_404_probe_guard()
+    payload = request.get_json(silent=True) if request.is_json else request.form
+    payload = payload or {}
+    token = str(payload.get("token") or "").strip()
+    raw_choice = payload.get("choice")
+
+    decoded = verify_public_sample_token(token)
+    if decoded is None:
+        return jsonify({"ok": False, "error": "invalid_or_expired_token"}), 400
+    qid, exam_code = decoded
+
+    q = db.session.get(Question, qid)
+    if q is None or q.status != "published" or not q.is_public_sample:
+        record_404_probe("public_site.api_hero_question_check")
+        return jsonify({"ok": False, "error": "sample_not_found"}), 404
+
+    try:
+        choice_idx = int(str(raw_choice).strip())
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "invalid_choice"}), 400
+
+    opts = list(q.options or [])
+    if choice_idx < 0 or (opts and choice_idx >= len(opts)):
+        return jsonify({"ok": False, "error": "invalid_choice"}), 400
+
+    is_correct = str(choice_idx) == str(q.correct).strip()
+    san = sanitize_public_sample(q, exam_code)
+    topic_label = san["topic_name"] or san["skill_name"] or _("Математика")
+    exam_label = san["exam_label"]
+    known_slugs = set(list_exam_content_slugs())
+    slug_lower = exam_code.lower()
+    exam_url = (
+        url_for("public_site.exam_page", slug=slug_lower)
+        if slug_lower in known_slugs
+        else url_for("public_site.question_bank")
+    )
+
+    if is_correct:
+        return jsonify(
+            {
+                "ok": True,
+                "correct": True,
+                "badge": _("Это вопрос %(ex)s · %(top)s", ex=exam_label, top=topic_label),
+                "exam_code": exam_code,
+                "exam_label": exam_label,
+                "topic_label": topic_label,
+                "exam_url": exam_url,
+            }
+        )
+    return jsonify(
+        {
+            "ok": True,
+            "correct": False,
+            "hint": _("Подсказка: упростите выражения в условии и попробуйте выбрать другой вариант."),
+        }
+    )
+
+
+def _render_exam_page_by_slug(slug: str):
+    _require_public_flag()
+    doc = load_exam_page_content(slug)
+    if doc is None:
+        abort(404)
+
+    exam_code = doc["code"]
+    sample_rows = (
+        Question.query.filter_by(status="published", is_public_sample=True)
+        .order_by(Question.id.asc())
+        .all()
+    )
+    per_exam = int(current_app.config.get("PUBLIC_SAMPLE_PER_EXAM", 4) or 4)
+    matched_samples = [
+        sanitize_public_sample(q, exam_code)
+        for q in sample_rows
+        if exam_code in (q.exams or []) and (q.answer_type or "choice") != "written"
+    ][: max(1, per_exam)]
+
+    canonical = url_for("public_site.exam_page", slug=doc["slug"], _external=True)
+    org_ld = {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "Monday Academy",
+        "url": url_for("auth.index", _external=True),
+        "description": doc["seo_description"],
+    }
+    faq_ld = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": item["q"],
+                "acceptedAnswer": {"@type": "Answer", "text": item["a"]},
+            }
+            for item in doc["faqs"]
+        ],
+    }
+    return render_template(
+        "public/exam_page.html",
+        **_seo_context(
+            title=doc["seo_title"],
+            description=doc["seo_description"],
+            endpoint_url=canonical,
+        ),
+        exam=doc,
+        samples=matched_samples,
+        stats=get_public_stats(),
+        pricing=_public_pricing_meta(),
+        MODE_PREF_LABELS=MODE_PREF_LABELS,
+        utm=_utm_context(),
+        sent=(request.args.get("sent") == "1"),
+        org_json_ld=org_ld,
+        faq_json_ld=faq_ld,
+    )
+
+
+@bp.route("/exams/<slug>")
+@limiter.limit(lambda: rate_limit_value("PUBLIC_RATE_LIMIT_PAGE", "120 per minute"))
+def exam_page(slug: str):
+    return _render_exam_page_by_slug(slug)
+
+
+@bp.route("/ort")
+@limiter.limit(lambda: rate_limit_value("PUBLIC_RATE_LIMIT_PAGE", "120 per minute"))
+def exam_ort_alias():
+    return _render_exam_page_by_slug("ort")
+
+
 @bp.route("/robots.txt")
 def robots_txt():
     lines = [
@@ -629,6 +961,10 @@ def sitemap_xml():
             url_for("auth.privacy", _external=True),
             url_for("auth.refund", _external=True),
         ]
+        for slug in list_exam_content_slugs():
+            doc = load_exam_page_content(slug)
+            if doc and doc.get("all_verified"):
+                urls.append(url_for("public_site.exam_page", slug=slug, _external=True))
     else:
         urls.insert(0, url_for("auth.login", _external=True))
 
@@ -646,6 +982,7 @@ def sitemap_xml():
 
 _ADMIN_PREVIEW_TARGETS = {
     "landing": "auth.index",
+    "ort": "public_site.exam_ort_alias",
     "about": "auth.about",
     "question-bank": "public_site.question_bank",
     "pricing": "public_site.pricing",

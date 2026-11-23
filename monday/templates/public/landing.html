@@ -1,14 +1,23 @@
 {% extends "public/_base.html" %}
+{% set signup_enabled = config.get('SELF_STUDY_SIGNUP_ENABLED') %}
+{% set auth_cta_url = url_for('auth.register') if signup_enabled else url_for('auth.login') %}
+
 {% block json_ld %}
 <script type="application/ld+json">{{ org_json_ld|tojson }}</script>
 {% endblock %}
 {% block main_class %}pub-main pub-main--landing{% endblock %}
 
 {% block content %}
-{# =========================================================================== 1. Centered hero + fanned arc #}
-<section class="mp-hero" aria-labelledby="mp-hero-h">
+{# =========================================================================== 1. Hero with Living Dots + Live Public Sample Question + Fanned Arc #}
+<section class="mp-hero" data-dot-stage data-dot-word="{{ highlighted_exam.code if highlighted_exam else 'MONDAY' }}" aria-labelledby="mp-hero-h">
   <div class="mp-hero__glow" aria-hidden="true"></div>
-  <span class="mp-hero__pill">{{ _("ОРТ · SAT · ЕГЭ · ЕНТ · ОГЭ · Школьная математика") }}</span>
+  {% if highlighted_exam %}
+    <span class="mp-hero__pill" data-highlighted-exam="{{ highlighted_exam.code }}">
+      {{ _("Направление:") }} {{ highlighted_exam.label }}{% if highlighted_exam.country %} · {{ highlighted_exam.country }}{% endif %}
+    </span>
+  {% else %}
+    <span class="mp-hero__pill">{{ _("ОРТ · SAT · ЕГЭ · ЕНТ · ОГЭ · Школьная математика") }}</span>
+  {% endif %}
   <h1 id="mp-hero-h">{{ _("Персональный тренажёр по") }} <em>{{ _("математике и экзаменам") }}</em></h1>
   <p class="mp-hero__lead">
     {{ _("Пошаговый разбор каждой задачи, симуляторы экзаменов — калькулятор Desmos для SAT и CSCA, бланк ответов ОРТ —") }}
@@ -21,7 +30,11 @@
   <p class="mp-hero__sub">
     {{ _("У меня уже есть аккаунт") }} · <a href="{{ url_for('auth.login') }}">{{ _("Войти") }}</a>
     <span aria-hidden="true">·</span>
-    <a href="{{ url_for('auth.register') }}">{{ _("Создать аккаунт") }}</a>
+    {% if signup_enabled %}
+      <a href="{{ url_for('auth.register') }}">{{ _("Создать аккаунт") }}</a>
+    {% else %}
+      <a href="#apply-form" data-scroll-to="#apply-form">{{ _("Оставить заявку") }}</a>
+    {% endif %}
   </p>
   <p class="mp-hero__status">
     <span class="mp-hero__dot" aria-hidden="true"></span>
@@ -31,6 +44,68 @@
       {{ _("Открытый доступ без подписки") }} · <b class="num">{{ stats.published_questions }}</b> {{ _("задач в базе") }}
     {% endif %}
   </p>
+
+  {# Living Dots Canvas Stage + Live Public Sample Question Card (Stage 2) #}
+  <div class="mp-hero-stage">
+    <div class="mp-dot-box">
+      <canvas class="mp-dots-canvas" data-dot-canvas aria-hidden="true"></canvas>
+      <div class="mp-dot-box__bar">
+        <span class="mp-dot-box__eq math" data-curve-eq>y = 0.4x² − 0.3x + 1.5</span>
+        <label class="mp-dot-box__slider-lbl">
+          <span class="sr-only">{{ _("Изменить кривую прогресса") }}</span>
+          <input type="range" class="mp-dot-box__slider" data-curve-slider min="-0.6" max="1.0" step="0.1" value="0.4" aria-label="{{ _('Параметр кривой a') }}">
+        </label>
+        <button type="button" class="mp-dots-skip" data-skip-intro>{{ _("Пропустить анимацию") }}</button>
+      </div>
+    </div>
+
+    <div class="mp-live-q" data-hero-question-card
+         data-fetch-url="{{ url_for('public_site.api_hero_question', exam=(highlighted_exam.code if highlighted_exam else '')) }}"
+         data-check-url="{{ url_for('public_site.api_hero_question_check') }}"
+         data-q-token="{{ hero_question.token if hero_question else '' }}">
+      {% if hero_question %}
+        <div class="row row--between" style="flex-wrap:wrap;gap:8px">
+          <span class="mp-eyebrow-pill" data-live-badge>{{ _("Живая задача из банка") }} · {{ hero_question.exam_label }}</span>
+          {% if hero_question.difficulty_label %}<span class="small muted">{{ hero_question.difficulty_label }}</span>{% endif %}
+        </div>
+        {% if hero_question.material %}
+          <div class="pub-sample-material">{{ ui.material(hero_question) }}</div>
+        {% endif %}
+        <div class="mp-live-q__stem math" data-live-stem>{{ hero_question.text }}</div>
+        {% if hero_question.image_url %}
+          <figure class="pub-sample-fig" data-live-fig>
+            <img src="{{ hero_question.image_url }}" alt="{{ _('Иллюстрация к задаче') }}" loading="lazy">
+          </figure>
+        {% endif %}
+        <div class="br-options" data-live-options role="group" aria-label="{{ _('Варианты ответа') }}">
+          {% for opt in hero_question.options %}
+          <button type="button" class="br-opt" data-live-opt="{{ loop.index0 }}">
+            <span class="pub-sample-opt-letter">{{ ('А', 'Б', 'В', 'Г', 'Д')[loop.index0] if loop.index0 < 5 else loop.index }}</span>
+            <span class="math">{{ opt }}</span>
+          </button>
+          {% endfor %}
+        </div>
+        <div class="br-explain" data-live-feedback hidden aria-live="polite">
+          <div class="br-explain__status" data-live-status></div>
+          <a class="mp-btn mp-btn--blue mp-btn--sm" data-live-cta href="{{ hero_question.exam_url }}" hidden>{{ _("Открыть страницу экзамена →") }}</a>
+        </div>
+      {% else %}
+        <div class="row row--between" style="flex-wrap:wrap;gap:8px">
+          <span class="mp-eyebrow-pill" data-live-badge>{{ _("Пример задачи ОРТ · Алгебра") }}</span>
+          <span class="mp-eyebrow-pill">{{ _("Пример") }}</span>
+        </div>
+        <div class="mp-live-q__stem math" data-live-stem>{{ _("При каком значении x выражение 2x + 5 равно 13?") }}</div>
+        <div class="br-options" data-live-options>
+          <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ url_for('public_site.exam_page', slug='ort') }}">{{ _("Открыть страницу ОРТ →") }}</a>
+          <a class="mp-btn mp-btn--soft mp-btn--sm" href="#try-challenge" data-scroll-to="#try-challenge">{{ _("Перейти к мини-тесту ↓") }}</a>
+        </div>
+        <div class="br-explain" data-live-feedback hidden aria-live="polite">
+          <div class="br-explain__status" data-live-status></div>
+          <a class="mp-btn mp-btn--blue mp-btn--sm" data-live-cta href="{{ url_for('public_site.exam_page', slug='ort') }}" hidden>{{ _("Открыть страницу экзамена →") }}</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
 
   <div class="mp-fan" aria-label="{{ _('Примеры задач Monday') }}">
     <a class="mp-fan__item" href="#try-challenge" data-hero-card data-challenge-mode="ort" data-ort-goto="0" aria-label="{{ _('Дроби: открыть тренажёр') }}">
@@ -147,7 +222,7 @@
   </div>
 </section>
 
-{# =========================================================================== 2. Seamless Infinite Exam Marquee (no arrows, no counts) #}
+{# =========================================================================== 2. Seamless Infinite Exam Marquee #}
 <section class="mp-strip" aria-label="{{ _('Направления подготовки') }}">
   <div class="mp-marquee">
     <div class="mp-marquee__track">
@@ -155,7 +230,8 @@
       <div class="mp-marquee__group"{% if copy_idx == 2 %} aria-hidden="true"{% endif %}>
         {% for ex in stats.exam_cards %}
           {% set badge = {'OLYMP': '★', 'CALC1': '∫'}.get(ex.code, ex.label) %}
-          <a class="mp-strip__item" href="{{ url_for('public_site.question_bank') }}"{% if copy_idx == 2 %} tabindex="-1"{% endif %}>
+          {% set ex_href = url_for('public_site.exam_page', slug=ex.slug) if ex.slug else url_for('public_site.question_bank') %}
+          <a class="mp-strip__item" href="{{ ex_href }}"{% if copy_idx == 2 %} tabindex="-1"{% endif %}>
             <span class="mp-strip__badge" aria-hidden="true">{{ badge }}</span>
             <span class="mp-strip__label">{{ ex.label }}</span>
           </a>
@@ -166,16 +242,11 @@
   </div>
 </section>
 
-{# =========================================================================== 3. Live metrics #}
-<section class="mp-metrics" aria-label="{{ _('Актуальная статистика базы заданий') }}">
-  <div class="mp-metric"><b class="num">{{ stats.published_questions }}</b><span>{{ _("задач в базе") }}</span></div>
-  <div class="mp-metric"><b class="num">{{ stats.topics_count }} / {{ stats.skills_count }}</b><span>{{ _("тем и навыков") }}</span></div>
-  <div class="mp-metric"><b class="num">{{ stats.collections_count }}</b><span>{{ _("сборников и вариантов") }}</span></div>
-  <div class="mp-metric"><b class="num">{{ LANGUAGES|length }}</b><span>{{ _("языков интерфейса") }}</span></div>
-</section>
+{# =========================================================================== 3. Threshold-Gated Live Counters Strip (Stage 3) #}
+{% include "public/_stats_strip.html" %}
 
-{# =========================================================================== 4. Interactive Sandbox: Authentic ORT Mini-Test + Topic Tabs #}
-<section id="try-challenge" class="mp-section mp-sandbox" data-landing-challenge aria-labelledby="mp-try-h">
+{# =========================================================================== 4. Deep Monday Blue Interactive Sandbox: Authentic ORT Mini-Test + Topic Tabs #}
+<section id="try-challenge" class="mp-section mp-sandbox mp-sandbox--deep" data-landing-challenge aria-labelledby="mp-try-h">
   <div class="mp-wrap">
     <div class="mp-head">
       <span class="mp-badge-glow">{{ _("Интерактивный тренажёр") }}</span>
@@ -270,7 +341,7 @@
                 </ol>
                 <div class="mp-ort__actions">
                   <button type="button" class="mp-btn mp-btn--blue mp-btn--sm" data-ort-next="1">{{ _("Следующий вопрос →") }}</button>
-                  <a class="mp-btn mp-btn--soft mp-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Пройти полный вариант ОРТ →") }}</a>
+                  <a class="mp-btn mp-btn--soft mp-btn--sm" href="{{ url_for('public_site.exam_page', slug='ort') }}">{{ _("Пройти полный вариант ОРТ →") }}</a>
                 </div>
               </div>
             </article>
@@ -324,7 +395,7 @@
                 </ol>
                 <div class="mp-ort__actions">
                   <button type="button" class="mp-btn mp-btn--blue mp-btn--sm" data-ort-next="2">{{ _("Следующий вопрос →") }}</button>
-                  <a class="mp-btn mp-btn--soft mp-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Пройти полный вариант ОРТ →") }}</a>
+                  <a class="mp-btn mp-btn--soft mp-btn--sm" href="{{ url_for('public_site.exam_page', slug='ort') }}">{{ _("Пройти полный вариант ОРТ →") }}</a>
                 </div>
               </div>
             </article>
@@ -367,7 +438,7 @@
                   <li>{{ _("Площадь прямоугольного треугольника: S = (6 × 8) / 2 = 24.") }}</li>
                 </ol>
                 <div class="mp-ort__actions">
-                  <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Пройти полный вариант ОРТ →") }}</a>
+                  <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ url_for('public_site.exam_page', slug='ort') }}">{{ _("Пройти полный вариант ОРТ →") }}</a>
                   <a class="mp-btn mp-btn--soft mp-btn--sm" href="{{ url_for('public_site.question_bank') }}">{{ _("Открыть банк вопросов") }}</a>
                 </div>
               </div>
@@ -416,7 +487,7 @@
                     <li>{{ _("Уберём одинаковую часть (2x + 4) из обеих колонок: остаётся сравнить x и 0.") }}</li>
                     <li>{{ _("По условию x > 1 > 0, поэтому Колонка А всегда больше.") }}</li>
                   </ol>
-                  <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Продолжить обучение →") }}</a>
+                  <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ auth_cta_url }}">{{ _("Продолжить обучение →") }}</a>
                 </div>
               </div>
             </div>
@@ -447,7 +518,7 @@
                     <li>{{ _("Раскладываем разность квадратов: a² − b² = (a − b)(a + b).") }}</li>
                     <li>{{ _("Подставляем числа без поиска a и b по отдельности: 3 × 12 = 36.") }}</li>
                   </ol>
-                  <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Продолжить обучение →") }}</a>
+                  <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ auth_cta_url }}">{{ _("Продолжить обучение →") }}</a>
                 </div>
               </div>
             </div>
@@ -479,7 +550,7 @@
                     <li>{{ _("По теореме Пифагора второй катет равен √(10² − 6²) = √64 = 8.") }}</li>
                     <li>{{ _("Площадь равна половине произведения катетов: (6 × 8) / 2 = 24.") }}</li>
                   </ol>
-                  <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Продолжить обучение →") }}</a>
+                  <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ auth_cta_url }}">{{ _("Продолжить обучение →") }}</a>
                 </div>
               </div>
             </div>
@@ -515,7 +586,7 @@
                     <li>{{ _("Каждый из 5 учеников делает по 4 рукопожатия: 5 × 4 = 20 касаний.") }}</li>
                     <li>{{ _("Каждое рукопожатие связывает двоих, поэтому делим на 2: 20 / 2 = 10.") }}</li>
                   </ol>
-                  <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Продолжить обучение →") }}</a>
+                  <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ auth_cta_url }}">{{ _("Продолжить обучение →") }}</a>
                 </div>
               </div>
             </div>
@@ -529,7 +600,6 @@
 {# =========================================================================== 5. Sky-blue "anywhere" band with Desmos & Digital SAT/CSCA mockups #}
 <section class="mp-sky" aria-labelledby="mp-sky-h">
   <div class="mp-sky__grid">
-    {# Left: Desmos Interactive Inequality Graphing Calculator Card #}
     <div class="mp-sky__mock mp-float" aria-hidden="true">
       <div class="mp-desmos-card">
         <div class="mp-desmos-card__bar">
@@ -553,15 +623,10 @@
             <path d="M0 24H260M0 58H260M0 92H260M0 126H260M0 160H260"/>
           </g>
           <path d="M0 126H260M65 0V170" stroke="#94A3B8" stroke-width="1.5"/>
-          {# Shaded feasible intersection region above both lines #}
           <polygon points="0,0 162,0 124,68 0,14" fill="#1F4FE0" fill-opacity="0.16"/>
-          {# Line 1: y = -x + 4 (solid blue) #}
           <line x1="0" y1="14" x2="230" y2="152" stroke="#1F4FE0" stroke-width="2.6"/>
-          {# Line 2: y = 3x - 2 (dashed amber) #}
           <line x1="76" y1="162" x2="162" y2="0" stroke="#F59E0B" stroke-width="2.6" stroke-dasharray="6 4"/>
-          {# Intersection point (1.5, 2.5) #}
           <circle cx="124" cy="68" r="5.5" fill="#1F4FE0" stroke="#FFFFFF" stroke-width="2"/>
-          {# Animated draggable point + grab hand cursor gliding along inequality region #}
           <g class="mp-desmos-hand">
             <circle cx="96" cy="51" r="7" fill="#1E8E5A" fill-opacity="0.22"/>
             <circle cx="96" cy="51" r="4.5" fill="#1E8E5A" stroke="#FFFFFF" stroke-width="1.8"/>
@@ -573,7 +638,6 @@
       </div>
     </div>
 
-    {# Center: Headline & Dual Tactile CTAs #}
     <div class="mp-sky__inner">
       <span class="mp-eyebrow-pill">{{ _("SAT · CSCA · ОРТ · PWA") }}</span>
       <h2 id="mp-sky-h" class="mp-h2 mp-sky__h">{{ _("Учись в любое время, с любого устройства") }}</h2>
@@ -582,11 +646,10 @@
       </p>
       <div class="mp-sky__ctas">
         <a class="mp-btn mp-btn--blue" href="{{ url_for('public_site.question_bank') }}">{{ _("Открыть банк вопросов") }}</a>
-        <a class="mp-btn mp-btn--card" href="{{ url_for('auth.register') }}">{{ _("Создать аккаунт") }}</a>
+        <a class="mp-btn mp-btn--card" href="{{ auth_cta_url }}">{{ _("Создать аккаунт") if signup_enabled else _("Войти в кабинет") }}</a>
       </div>
     </div>
 
-    {# Right: Authentic Digital SAT / CSCA Test Runner Mockup + Non-Clipped Mastery Badge #}
     <div class="mp-sky__mock mp-float mp-float--d2" aria-hidden="true">
       <div class="mp-sat-card">
         <div class="mp-sat-card__top">
@@ -595,7 +658,7 @@
           <span class="mp-sat-card__calc">🖩 Desmos</span>
         </div>
         <div class="mp-sat-card__q">
-          <div class="mp-sat-card__qnum">Question 14 of 22</div>
+          <div class="mp-sat-card__qnum">Question 14 of 22 · {{ _("Пример") }}</div>
           <p>If <b>y ≥ −x + 4</b> and <b>y &gt; 3x − 2</b>, which ordered pair <b>(x, y)</b> is a solution to the system?</p>
           <div class="mp-sat-card__opts">
             <div class="mp-sat-card__opt"><span>A</span> (0, 2)</div>
@@ -627,7 +690,7 @@
         <p>{{ _("Короткие сессии от 5 минут, тренировочные варианты в формате ОРТ и SAT с калькулятором Desmos, личные шпаргалки формул и работа над ошибками.") }}</p>
         <div class="mp-aud__ctas">
           <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ url_for('public_site.question_bank') }}">{{ _("Открыть банк вопросов") }}</a>
-          <a class="mp-btn mp-btn--white mp-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Создать аккаунт") }}</a>
+          <a class="mp-btn mp-btn--white mp-btn--sm" href="{{ url_for('public_site.exam_page', slug='ort') }}">{{ _("Страница экзамена ОРТ") }}</a>
         </div>
       </article>
       <article class="mp-aud__card mp-aud__card--soft">
@@ -674,8 +737,8 @@
 <section class="mp-cta" aria-labelledby="mp-cta-h">
   <div class="mp-cta__inner">
     <h2 id="mp-cta-h" class="mp-h2">{{ _("Начни подготовку с Monday сегодня") }}</h2>
-    <p class="mp-cta__lead">{{ _("Регистрация занимает минуту — выбери экзамен и реши первую задачу.") }}</p>
-    <a class="mp-btn mp-btn--blue mp-btn--wide" href="{{ url_for('auth.register') }}">{{ _("Начать бесплатно") }}</a>
+    <p class="mp-cta__lead">{{ _("Выбери экзамен, реши первую задачу в тренажёре или оставь заявку на занятия с преподавателем.") }}</p>
+    <a class="mp-btn mp-btn--blue mp-btn--wide" href="{{ auth_cta_url }}">{{ _("Начать бесплатно") }}</a>
   </div>
   <div class="mp-wave" aria-hidden="true">
     <svg class="mp-wave__svg" viewBox="0 0 1440 300" preserveAspectRatio="none">
@@ -684,17 +747,15 @@
     </svg>
 
     <div class="mp-wave__stage">
-      {# Purposeful Floating Info Card 1 (Left): Score Forecast #}
       <div class="mp-wave-card mp-wave-card--left mp-float mp-float--d1">
         <div class="mp-wave-card__top">
-          <span class="mp-wave-card__eyebrow">{{ _("Прогноз ОРТ") }}</span>
+          <span class="mp-wave-card__eyebrow">{{ _("Прогноз ОРТ · Пример") }}</span>
           <span class="mp-wave-card__delta num">+24</span>
         </div>
         <div class="mp-wave-card__val num">215 <small>/ 245</small></div>
         <div class="mp-wave-card__bar"><span style="width:88%"></span></div>
       </div>
 
-      {# Purposeful Floating Info Card 2 (Upper-Left): Built-in Desmos #}
       <div class="mp-wave-card mp-wave-card--top-left mp-float mp-float--d2">
         <span class="mp-wave-card__icon">📈</span>
         <div>
@@ -703,7 +764,6 @@
         </div>
       </div>
 
-      {# Center Device Frame: Realistic Monday Test Live Preview #}
       <div class="mp-wave__device">
         <div class="mp-float">
           <svg viewBox="0 0 220 248">
@@ -731,7 +791,6 @@
         </div>
       </div>
 
-      {# Purposeful Floating Info Card 3 (Upper-Right): Mistake Journal #}
       <div class="mp-wave-card mp-wave-card--top-right mp-float mp-float--d3">
         <span class="mp-wave-card__icon">✓</span>
         <div>
@@ -740,7 +799,6 @@
         </div>
       </div>
 
-      {# Purposeful Floating Info Card 4 (Right): 6 UI Languages #}
       <div class="mp-wave-card mp-wave-card--right mp-float mp-float--d1">
         <div class="mp-wave-card__top">
           <span class="mp-wave-card__eyebrow">{{ _("Интерфейс и задачи") }}</span>

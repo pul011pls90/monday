@@ -1,0 +1,62 @@
+{# Reusable threshold-gated public stats strip (Stage 3).
+   Any counter below its configured minimum threshold is omitted from `stats.visible` and never rendered as a small number. #}
+{% set vis = stats.visible if stats and stats.visible is defined else {} %}
+<section class="mp-stats-band" data-public-stats-strip data-stats-url="{{ url_for('public_site.api_public_stats') }}" aria-label="{{ _('Актуальная статистика базы заданий') }}">
+  <div class="mp-metrics">
+    {% if vis.get('published_questions') is not none %}
+    <div class="mp-metric" data-stat-card="published_questions">
+      <b class="num" data-count-to="{{ vis.published_questions }}">{{ vis.published_questions }}</b>
+      <span>{{ _("задач в базе") }}</span>
+    </div>
+    {% endif %}
+
+    {% if vis.get('topics_count') is not none %}
+    <div class="mp-metric" data-stat-card="topics_count">
+      <b class="num"><span data-count-to="{{ vis.topics_count }}">{{ vis.topics_count }}</span>{% if stats.skills_count %} / <span data-count-to="{{ stats.skills_count }}">{{ stats.skills_count }}</span>{% endif %}</b>
+      <span>{{ _("тем и навыков") }}</span>
+    </div>
+    {% endif %}
+
+    {% if vis.get('collections_count') is not none %}
+    <div class="mp-metric" data-stat-card="collections_count">
+      <b class="num" data-count-to="{{ vis.collections_count }}">{{ vis.collections_count }}</b>
+      <span>{{ _("сборников и вариантов") }}</span>
+    </div>
+    {% endif %}
+
+    {% if vis.get('languages_count') is not none %}
+    <div class="mp-metric" data-stat-card="languages_count">
+      <b class="num" data-count-to="{{ vis.languages_count }}">{{ vis.languages_count }}</b>
+      <span>{{ _("языков интерфейса") }}</span>
+    </div>
+    {% endif %}
+
+    {% if vis.get('solved_today') is not none %}
+    <div class="mp-metric" data-stat-card="solved_today">
+      <b class="num" data-count-to="{{ vis.solved_today }}">{{ vis.solved_today }}</b>
+      <span>{{ _("решено сегодня (Бишкек)") }}</span>
+    </div>
+    {% endif %}
+
+    {% if vis.get('solved_week') is not none %}
+    <div class="mp-metric" data-stat-card="solved_week">
+      <b class="num" data-count-to="{{ vis.solved_week }}">{{ vis.solved_week }}</b>
+      <span>{{ _("решено за неделю") }}</span>
+    </div>
+    {% endif %}
+
+    {% if vis.get('last_monday_participants') is not none %}
+    <div class="mp-metric" data-stat-card="last_monday_participants">
+      <b class="num" data-count-to="{{ vis.last_monday_participants }}">{{ vis.last_monday_participants }}</b>
+      <span>{{ _("участников Monday Test") }}</span>
+    </div>
+    {% endif %}
+
+    {% if vis.get('next_monday_test') %}
+    <div class="mp-metric" data-stat-card="next_monday_test">
+      <b class="num" data-monday-countdown="{{ vis.next_monday_test.iso }}">{{ vis.next_monday_test.label }}</b>
+      <span>{{ _("следующий Monday Test") }}</span>
+    </div>
+    {% endif %}
+  </div>
+</section>

@@ -179,18 +179,61 @@ def set_question_public_sample(question: Question, enabled: bool) -> Question:
     return question
 
 
+def issue_public_sample_token(question_id: int, exam_code: str = "ORT") -> str:
+    """Issue a short-lived signed opaque token for a public sample question (never exposing sequential IDs)."""
+    from itsdangerous import URLSafeTimedSerializer
+
+    secret = current_app.config.get("SECRET_KEY") or "monday-fallback-secret"
+    s = URLSafeTimedSerializer(secret, salt="monday-public-sample-v1")
+    return s.dumps({"q": int(question_id), "ex": str(exam_code or "ORT"), "n": secrets.token_hex(6)})
+
+
+def verify_public_sample_token(token: str | None, *, max_age: int | None = None) -> tuple[int, str] | None:
+    """Validate and decode an opaque public sample token; returns (question_id, exam_code) or None."""
+    if not token or not isinstance(token, str) or len(token) > 512:
+        return None
+    from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+
+    secret = current_app.config.get("SECRET_KEY") or "monday-fallback-secret"
+    ttl = int(
+        max_age
+        if max_age is not None
+        else (current_app.config.get("HERO_QUESTION_TOKEN_TTL_SECONDS", 1800) or 1800)
+    )
+    if ttl < 0:
+        return None
+    s = URLSafeTimedSerializer(secret, salt="monday-public-sample-v1")
+    try:
+        data = s.loads(token, max_age=ttl)
+    except (SignatureExpired, BadSignature, Exception):
+        return None
+    if not isinstance(data, dict) or "q" not in data:
+        return None
+    try:
+        return int(data["q"]), str(data.get("ex") or "ORT")
+    except (TypeError, ValueError):
+        return None
+
+
 def sanitize_public_sample(question: Question, exam_code: str) -> dict:
-    """Return a strictly sanitized sample dict (never includes correct answer, explanation, or /uploads path)."""
+    """Return a strictly sanitized sample dict (never includes DB id, correct answer, explanation, or /uploads path)."""
     snap = localize(question.snapshot())
     skill_name = question.skill.name if question.skill else ""
+    topic_name = ""
+    if question.skill:
+        node = question.skill
+        while node and getattr(node, "parent", None):
+            node = node.parent
+        topic_name = node.name if node else skill_name
     pub_key = question.public_image_key if is_valid_public_sample_key(question.public_image_key) else None
     return {
-        "id": question.id,
+        "token": issue_public_sample_token(question.id, exam_code),
         "exam": exam_code,
         "exam_label": str(EXAMS[exam_code]["label"]) if exam_code in EXAMS else exam_code,
         "difficulty": question.difficulty or 2,
         "difficulty_label": str(DIFFICULTIES.get(question.difficulty or 2, "")),
         "skill_name": skill_name,
+        "topic_name": topic_name or skill_name,
         "material": list(snap.get("material") or []),
         "text": snap.get("text") or "",
         "answer_type": question.answer_type or "choice",

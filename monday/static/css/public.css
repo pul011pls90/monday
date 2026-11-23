@@ -2506,3 +2506,173 @@ body.pub-body {
     transition: none !important;
   }
 }
+
+/* ==========================================================================
+   14. Stage 2–4: Living Dot Canvas Stage, Live Hero Question, Deep Blue Sandbox & Exam Pages
+   ========================================================================== */
+.mp-hero-stage {
+  margin-top: 28px;
+  width: 100%;
+  max-width: 1120px;
+  display: grid;
+  grid-template-columns: minmax(280px, 1.15fr) minmax(280px, 0.95fr);
+  gap: 20px;
+  align-items: stretch;
+  text-align: left;
+}
+
+.mp-dot-box {
+  position: relative;
+  min-height: 270px;
+  border-radius: 24px;
+  background: var(--pub-soft);
+  border: 1px solid var(--pub-soft-border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-shadow: 0 8px 24px rgba(31, 79, 224, 0.06);
+}
+
+.mp-dots-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.mp-dot-box__bar {
+  position: relative;
+  z-index: 2;
+  margin: 12px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--pub-card) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--pub-soft-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mp-dot-box__eq {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--pub-blue);
+}
+
+.mp-dot-box__slider-lbl {
+  display: inline-flex;
+  align-items: center;
+}
+
+.mp-dot-box__slider {
+  width: 96px;
+  accent-color: var(--pub-blue);
+  cursor: pointer;
+}
+
+.mp-dots-skip {
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid var(--pub-soft-border);
+  background: var(--pub-soft);
+  color: var(--pub-blue);
+  font: 700 11.5px/1.2 var(--font);
+  cursor: pointer;
+}
+.mp-dots-skip:hover {
+  background: var(--pub-soft-hover);
+  border-color: var(--pub-blue);
+}
+.mp-dots-skip[hidden] {
+  display: none;
+}
+
+.mp-live-q {
+  background: var(--pub-card);
+  border: 1px solid var(--pub-soft-border);
+  border-radius: 24px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: space-between;
+  box-shadow: 0 8px 24px rgba(31, 79, 224, 0.06);
+}
+
+.mp-live-q__stem {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--pub-ink);
+}
+
+.mp-stats-band {
+  width: 100%;
+  padding: 6px 0 12px;
+}
+
+/* Deep Monday Blue Sandbox Band (Stage 1 Layout Rhythm) */
+.mp-sandbox--deep {
+  background: linear-gradient(155deg, #0A1A5C 0%, #153893 100%);
+  border-top: 1px solid #1E3A8A;
+  border-bottom: 1px solid #1E3A8A;
+}
+.mp-sandbox--deep .mp-h2 {
+  color: #FFFFFF;
+}
+.mp-sandbox--deep .mp-head__lead {
+  color: #D5E4FA;
+}
+.mp-sandbox--deep .mp-badge-glow {
+  background: rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+/* Reusable Exam Page (/exams/<slug>) */
+.mp-exam-hero {
+  background: var(--pub-soft);
+  border: 1px solid var(--pub-soft-border);
+  border-radius: 28px;
+  padding: 32px;
+  box-shadow: 0 8px 24px rgba(31, 79, 224, 0.05);
+}
+
+.mp-exam-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.95fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.mp-exam-hero__copy h1 {
+  margin: 14px 0 12px;
+  font-family: var(--font-display, 'Unbounded', 'Onest', sans-serif);
+  font-size: clamp(24px, 3.2vw, 38px);
+  line-height: 1.14;
+  letter-spacing: -0.025em;
+  color: var(--pub-navy);
+}
+
+.mp-formula-box {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--pub-soft);
+  border: 1px solid var(--pub-soft-border);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--pub-navy);
+  overflow-x: auto;
+}
+
+@media (max-width: 960px) {
+  .mp-hero-stage,
+  .mp-exam-hero__grid {
+    grid-template-columns: 1fr;
+  }
+}
