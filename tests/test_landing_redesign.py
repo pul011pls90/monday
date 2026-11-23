@@ -581,6 +581,36 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             footer_bg = page.locator(".mp-footer").evaluate("el => getComputedStyle(el).backgroundColor")
             assert footer_bg == "rgb(0, 0, 0)"
 
+            # Verify footer contact icons are uniform 18x18 aligned on the exact same vertical axis with stacked non-wrapping phone numbers
+            footer_align = page.evaluate("""() => {
+                const icons = Array.from(document.querySelectorAll('.mp-footer__contacts .mp-footer__icon'));
+                const rects = icons.map(el => el.getBoundingClientRect());
+                const phoneLinks = Array.from(document.querySelectorAll('.mp-footer__phones a'));
+                const phoneHeights = phoneLinks.map(el => Math.round(el.getBoundingClientRect().height));
+                const lefts = rects.map(r => Math.round(r.left));
+                const widths = rects.map(r => Math.round(r.width));
+                const heights = rects.map(r => Math.round(r.height));
+                const hasTrailingSlash = document.querySelectorAll('.mp-footer__sep').length > 0;
+                return { count: icons.length, lefts, widths, heights, phoneCount: phoneLinks.length, phoneHeights, hasTrailingSlash };
+            }""")
+            assert footer_align["count"] == 5, footer_align
+            assert len(set(footer_align["lefts"])) == 1, f"Footer icons not aligned vertically: {footer_align}"
+            assert all(w == 18 and h == 18 for w, h in zip(footer_align["widths"], footer_align["heights"])), footer_align
+            assert footer_align["phoneCount"] == 4 and all(h <= 24 for h in footer_align["phoneHeights"]), footer_align
+            assert not footer_align["hasTrailingSlash"], footer_align
+
+            # Verify navbar buttons share exact matching heights & vertical centers at 1440px
+            nav_align = page.evaluate("""() => {
+                const els = Array.from(document.querySelectorAll('.mp-header__actions .mp-icon-btn, .mp-header__actions .mp-pill'));
+                return els.map(el => {
+                    const r = el.getBoundingClientRect();
+                    return { h: Math.round(r.height), cy: Math.round(r.top + r.height / 2) };
+                });
+            }""")
+            assert len(nav_align) == 3, nav_align
+            assert all(item["h"] == 38 for item in nav_align), nav_align
+            assert max(i["cy"] for i in nav_align) - min(i["cy"] for i in nav_align) <= 1, nav_align
+
             # Verify each exam badge in the infinite marquee has its own distinct assigned color
             expected_badge_colors = {
                 "ort": "rgb(31, 79, 224)",     # #1F4FE0 Monday Blue
