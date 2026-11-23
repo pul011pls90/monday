@@ -132,32 +132,35 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
             # When SELF_STUDY_SIGNUP_ENABLED is False (default), public pages must not link to /register
             assert 'href="/register"' not in body_txt, f"Unexpected /register link on {pub_url} when signup flag is off"
 
+    # Landing template must contain zero inline style="" attributes (strict CSP)
+    landing_tpl = (ROOT_DIR / "monday/templates/public/landing.html").read_text(encoding="utf-8")
+    assert "style=" not in landing_tpl.lower(), "Inline style= attribute found in landing.html"
+
     r = anon.get("/")
     assert r.status_code == 200
     html = r.data.decode("utf-8")
     for expected in (
-        "Добро пожаловать в Monday",
+        "ОРТ · SAT · ЕГЭ · ЕНТ · ОГЭ · Школьная математика",
         "Персональный тренажёр по",
         "математике и экзаменам",
         "Я ученик",
         "Я преподаватель или родитель",
         "У меня уже есть аккаунт",
-        "Листайте",
-        "Каждая задача с разбором",
-        "8 направлений в единой системе",
-        "Прогноз и Monday Test",
-        "Прогноз балла ОРТ",
-        "Пример",
+        "mp-fan",
         "Закрасьте 1/2 фигуры",
-        "(x + 2)(x + 1) = x² + 3x + 2",
+        "(x + 2)(x + 1) = x² + [ ] + 2",
         "f(x) = x² − 4x + 5",
-        "6–8–10 → S = 24",
+        "6–8–10 → S = ?",
         "sin(x) = cos(x)",
-        "5 учеников → 10 рукопожатий",
-        "data-math-bg",
-        "data-topic-emblems",
-        "data-route-gutter",
-        "data-hero-stage",
+        "ОРТ / SAT прогноз баллов",
+        'data-exam="ort"',
+        'data-exam="ent"',
+        'data-exam="ege"',
+        'data-exam="oge"',
+        'data-exam="sat"',
+        'data-exam="csca"',
+        'data-exam="olymp"',
+        'data-exam="calc1"',
         "Интерактивный тренажёр, а не просто ответы",
         "Мини-тест ОРТ",
         "ОРТ · Математика",
@@ -174,7 +177,7 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
         "2. Интерактивная практика",
         "3. Контроль прогресса с преподавателем",
         "Начни подготовку с Monday сегодня",
-        "Прогноз ОРТ · Пример",
+        "Прогноз ОРТ",
         "Desmos встроен",
         "Журнал ошибок",
         "Начать бесплатно",
@@ -185,27 +188,17 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
     ):
         assert expected in html, f"Missing expected copy on /: {expected}"
 
-    # Second-pass hero removal checks: dot-engine, live equation block, hero-question card, and /api/public/hero-question removed from /
+    # Verify restored hero view has no graph-paper grid, vertical step rail, or 6-tile chapter box
+    assert "data-math-bg" not in html
+    assert "data-route-gutter" not in html
+    assert "data-hero-stage" not in html
+    assert "Каждая задача с разбором" not in html
     assert "static/js/dot-engine.js" not in html
     assert "data-dot-canvas" not in html
     assert "data-hero-question-card" not in html
-    assert "ПРИМЕР ЗАДАЧИ ОРТ" not in html
-    assert "Живая задача из банка" not in html
     assert "data-strip-scroll" not in html
-    assert "двигай точки, меняй уравнения" not in html
+    assert "зад.</span>" not in html
     assert anon.get("/api/public/hero-question").status_code == 404
-
-    # Monday Test countdown hidden when MONDAY_TEST_SCHEDULE_PUBLIC is False
-    assert "data-monday-countdown" not in html
-
-    # Query-string & deep-link adaptation (?exam=ort and ?utm_source=exam_sat); unknown exam ignored safely
-    r_ort = anon.get("/?exam=ort").data.decode("utf-8")
-    assert 'data-highlighted-exam="ORT"' in r_ort
-    r_bot = anon.get("/?utm_source=exam_sat").data.decode("utf-8")
-    assert 'data-highlighted-exam="SAT"' in r_bot
-    r_unknown = anon.get("/?exam=<script>alert(1)</script>")
-    assert r_unknown.status_code == 200
-    assert "data-highlighted-exam" not in r_unknown.data.decode("utf-8")
 
     # Existing auth routing rules stay intact for logged-in users
     c_stu = app.test_client()
@@ -372,21 +365,19 @@ def test_stage3_public_stats_api_thresholds_and_bishkek_timezone(tmp_path):
     assert topics_by_code["b-alg"]["count"] == 2
     assert topics_by_code["b-geo"]["count"] is None  # 0 < PUBLIC_STATS_MIN_TOPIC_QUESTIONS=2
 
-    # HTML strip hides below-threshold cards completely
-    landing_html = c.get("/").data.decode("utf-8")
-    assert 'data-stat-card="published_questions"' in landing_html
-    assert 'data-stat-card="solved_today"' in landing_html
-    assert 'data-stat-card="collections_count"' not in landing_html
-    assert 'data-stat-card="last_monday_participants"' not in landing_html
-    assert 'data-stat-card="next_monday_test"' not in landing_html
-    assert 'data-topic-emblem="b-alg"' in landing_html
-    assert 'data-topic-count="b-alg"' in landing_html
+    # HTML stats strip on /exams/ort hides below-threshold cards completely
+    ort_html = c.get("/exams/ort").data.decode("utf-8")
+    assert 'data-stat-card="published_questions"' in ort_html
+    assert 'data-stat-card="solved_today"' in ort_html
+    assert 'data-stat-card="collections_count"' not in ort_html
+    assert 'data-stat-card="last_monday_participants"' not in ort_html
+    assert 'data-stat-card="next_monday_test"' not in ort_html
 
-    # When MONDAY_TEST_SCHEDULE_PUBLIC=True, Chapter 3 renders the countdown
+    # When MONDAY_TEST_SCHEDULE_PUBLIC=True, /exams/ort stats strip renders the countdown
     app.config["MONDAY_TEST_SCHEDULE_PUBLIC"] = True
     clear_public_stats_cache()
-    landing_sched = c.get("/").data.decode("utf-8")
-    assert "data-monday-countdown=" in landing_sched
+    ort_sched = c.get("/exams/ort").data.decode("utf-8")
+    assert "data-monday-countdown=" in ort_sched
 
 
 def test_stage4_exam_page_ort_preflight_guard_sitemap_and_lead_form(tmp_path):
@@ -519,11 +510,11 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             )
 
             page.goto(f"{base_url}/", wait_until="networkidle")
-            assert page.locator(".mp-hero-h1").is_visible()
-            assert page.locator("[data-math-bg]").is_visible()
-            assert page.locator("[data-route-gutter]").is_visible()
+            assert page.locator(".mp-hero h1").is_visible()
+            assert page.locator(".mp-fan").is_visible()
+            assert page.locator("[data-math-bg]").count() == 0
+            assert page.locator("[data-route-gutter]").count() == 0
             assert page.locator("[data-dot-canvas]").count() == 0
-            assert page.locator("[data-hero-question-card]").count() == 0
 
             # Verify White (#FFFFFF) canvas, Soft Light Blue hero pill, and strictly black (#000000) footer
             body_bg = page.locator("body.pub-body").evaluate("el => getComputedStyle(el).backgroundColor")
@@ -533,77 +524,52 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             footer_bg = page.locator(".mp-footer").evaluate("el => getComputedStyle(el).backgroundColor")
             assert footer_bg == "rgb(0, 0, 0)"
 
-            # Desktop >= 1024px: sticky left column, docked marquee at bottom of first screen, 3 chapters present
-            desk_geom = page.evaluate("""() => {
-                const left = document.querySelector('.mp-hero-left');
-                const dock = document.querySelector('.mp-strip--hero-dock');
-                const leftStyle = getComputedStyle(left);
-                const dockRect = dock.getBoundingClientRect();
-                return {
-                    leftPosition: leftStyle.position,
-                    dockBottom: Math.round(dockRect.bottom),
-                    innerH: window.innerHeight,
-                    chapters: document.querySelectorAll('[data-hero-chapter]').length,
-                    examTiles: document.querySelectorAll('.mp-exam-tile').length,
-                    mathCards: document.querySelectorAll('.mp-math-card').length,
-                    emblems: document.querySelectorAll('[data-topic-emblem]').length
-                };
+            # Verify each exam badge in the infinite marquee has its own distinct assigned color
+            expected_badge_colors = {
+                "ort": "rgb(31, 79, 224)",     # #1F4FE0 Monday Blue
+                "ent": "rgb(13, 148, 136)",    # #0D9488 Emerald Teal
+                "ege": "rgb(220, 38, 38)",     # #DC2626 Coral Crimson
+                "oge": "rgb(217, 119, 6)",     # #D97706 Warm Amber
+                "sat": "rgb(79, 70, 229)",     # #4F46E5 Deep Indigo
+                "csca": "rgb(2, 132, 199)",    # #0284C7 Vivid Sky
+                "olymp": "rgb(124, 58, 237)",  # #7C3AED Royal Violet
+                "calc1": "rgb(219, 39, 119)",  # #DB2777 Berry Rose
+            }
+            actual_colors = page.evaluate("""() => {
+                const res = {};
+                document.querySelectorAll('.mp-marquee__group:first-child .mp-strip__item[data-exam]').forEach(el => {
+                    const key = el.getAttribute('data-exam');
+                    const badge = el.querySelector('.mp-strip__badge');
+                    res[key] = badge ? getComputedStyle(badge).backgroundColor : '';
+                });
+                return res;
             }""")
-            assert desk_geom["leftPosition"] == "sticky"
-            assert abs(desk_geom["dockBottom"] - desk_geom["innerH"]) <= 8, desk_geom
-            assert desk_geom["chapters"] == 3
-            assert desk_geom["examTiles"] == 8
-            assert desk_geom["mathCards"] == 6
-            assert desk_geom["emblems"] == 6
+            assert actual_colors == expected_badge_colors, f"Marquee badge colors mismatch: {actual_colors}"
+            assert len(set(actual_colors.values())) == 8
 
-            # Interactive topic emblem tap/click & Escape keyboard close
-            alg_btn = page.locator('[data-topic-emblem="b-alg"]')
-            alg_btn.click()
-            assert alg_btn.get_attribute("aria-expanded") == "true"
-            assert "1 зад." in (alg_btn.locator('[data-topic-count="b-alg"]').text_content() or "")
-            page.keyboard.press("Escape")
-            assert alg_btn.get_attribute("aria-expanded") == "false"
-
-            # Verify zero horizontal overflow & non-clipped hero/cards at 1440px, 820px, and 390px; sticky & route hidden < 1024px
+            # Verify zero horizontal overflow, centered hero H1, and non-clipped sky-band cards at 1440px, 820px, and 390px viewports
             for vw, vh in ((1440, 900), (820, 1024), (390, 844)):
                 page.set_viewport_size({"width": vw, "height": vh})
-                page.wait_for_timeout(120)
+                page.wait_for_timeout(100)
                 metrics = page.evaluate(
                     "() => {"
-                    "  const r = document.querySelector('.mp-hero-h1').getBoundingClientRect();"
+                    "  const r = document.querySelector('.mp-hero h1').getBoundingClientRect();"
                     "  const satFoot = document.querySelector('.mp-sat-card__foot').getBoundingClientRect();"
-                    "  const leftPos = getComputedStyle(document.querySelector('.mp-hero-left')).position;"
-                    "  const routeDisp = getComputedStyle(document.querySelector('[data-route-gutter]')).display;"
                     "  return {"
                     "    scrollW: document.documentElement.scrollWidth,"
                     "    innerW: window.innerWidth,"
                     "    h1Left: r.left,"
                     "    h1Right: r.right,"
+                    "    h1Center: r.left + r.width / 2,"
                     "    satLeft: satFoot.left,"
-                    "    satRight: satFoot.right,"
-                    "    leftPos,"
-                    "    routeDisp"
+                    "    satRight: satFoot.right"
                     "  };"
                     "}"
                 )
                 assert metrics["scrollW"] <= metrics["innerW"] + 1, f"Horizontal overflow at {vw}px: {metrics}"
                 assert metrics["h1Left"] >= 0 and metrics["h1Right"] <= metrics["innerW"] + 1, f"H1 clipped at {vw}px: {metrics}"
+                assert abs(metrics["h1Center"] - metrics["innerW"] / 2) <= 24, f"H1 not centered at {vw}px: {metrics}"
                 assert metrics["satLeft"] >= 0 and metrics["satRight"] <= metrics["innerW"] + 1, f"Mastery badge clipped at {vw}px: {metrics}"
-                if vw < 1024:
-                    assert metrics["leftPos"] != "sticky", f"Pinning must be disabled at {vw}px"
-                    assert metrics["routeDisp"] == "none", f"Route gutter must be hidden at {vw}px"
-
-            # Reduced motion context: pinning disabled & route gutter hidden even at 1440px
-            rm_ctx = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
-            rm_page = rm_ctx.new_page()
-            rm_page.goto(f"{base_url}/", wait_until="networkidle")
-            rm_state = rm_page.evaluate("""() => ({
-                leftPos: getComputedStyle(document.querySelector('.mp-hero-left')).position,
-                routeDisp: getComputedStyle(document.querySelector('[data-route-gutter]')).display
-            })""")
-            assert rm_state["leftPos"] == "static"
-            assert rm_state["routeDisp"] == "none"
-            rm_ctx.close()
 
             page.set_viewport_size({"width": 1280, "height": 840})
 
@@ -642,16 +608,18 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             assert page.locator("#mp-exam-h").is_visible()
             assert page.locator("[data-dot-canvas]").is_visible()
 
-            # Compact admin preview bar check (<= 60px tall at 1440px)
+            # Verify /admin/preview returns 200 OK with the restored hero & multi-color marquee
             page.goto(f"{base_url}/login", wait_until="networkidle")
             page.fill('input[name="email"]', "adm_pw@monday.kg")
             page.fill('input[name="password"]', "StrongAdmin123!")
             page.click('button[type="submit"]')
             page.wait_for_load_state("networkidle")
             page.set_viewport_size({"width": 1440, "height": 900})
-            page.goto(f"{base_url}/admin/preview?page=landing", wait_until="networkidle")
-            bar_h = page.locator("[data-preview-bar]").evaluate("el => Math.round(el.getBoundingClientRect().height)")
-            assert 30 <= bar_h <= 60, f"Admin preview bar not compact: {bar_h}px"
+            resp_prev = page.goto(f"{base_url}/admin/preview?page=landing", wait_until="networkidle")
+            assert resp_prev.status == 200
+            assert page.locator(".pub-preview-bar").is_visible()
+            assert page.locator(".mp-fan").is_visible()
+            assert page.locator('.mp-strip__item[data-exam="ent"]').first.is_visible()
 
             assert page.evaluate("window.__csp") == []
             assert page.evaluate("window.__errs") == []

@@ -2,11 +2,10 @@
 {% import "partials/macros.html" as ui with context %}
 {% set ep = request.endpoint or '' %}
 {% set signup_ok = config.get('SELF_STUDY_SIGNUP_ENABLED') %}
-{% set start_url = url_for('auth.register') if signup_ok else url_for('public_site.contact') ~ '#apply-form' %}
-{% set is_admin_preview = current_user.is_authenticated and current_user.is_admin and session.get('_adm_public_preview') %}
+{% set start_url = url_for('auth.register') if config.get('SELF_STUDY_SIGNUP_ENABLED') else url_for('public_site.contact') ~ '#apply-form' %}
 
 {% block title %}{{ seo_title or _('Monday Academy') }}{% endblock %}
-{% block body_class %}pub-body{% if is_admin_preview %} has-preview-bar{% endif %}{% endblock %}
+{% block body_class %}pub-body{% endblock %}
 
 {% block head %}
   {% if seo_description %}<meta name="description" content="{{ seo_description }}">{% endif %}
@@ -22,30 +21,26 @@
 {% endblock %}
 
 {% block body %}
-{% if is_admin_preview %}
-<div class="pub-preview-bar" data-preview-bar role="region" aria-label="{{ _('Предпросмотр публичного сайта') }}">
+{% if current_user.is_authenticated and current_user.is_admin and session.get('_adm_public_preview') %}
+<div class="pub-preview-bar" role="region" aria-label="{{ _('Предпросмотр публичного сайта') }}">
   <div class="pub-preview-bar__inner">
     <div class="pub-preview-bar__left">
       <span class="tag tag--ok">{{ _("Демо-предпросмотр") }}</span>
-      <span class="pub-preview-bar__note small">{{ _("Виден только админу") }}</span>
+      <span class="small">{{ _("Режим просмотра нового сайта (виден только админу)") }}</span>
     </div>
-    <details class="pub-preview-menu">
-      <summary class="btn btn--ghost btn--sm pub-preview-menu__toggle">{{ _("Страницы") }} (12) ▾</summary>
-      <nav class="pub-preview-bar__nav" aria-label="{{ _('Страницы предпросмотра') }}">
-        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='landing') }}">{{ _("О Monday (Главная)") }}</a>
-        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='ort') }}">{{ _("Экзамен ОРТ") }}</a>
-        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='about') }}">{{ _("О школе") }}</a>
-        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='question-bank') }}">{{ _("Банк вопросов") }}</a>
-        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='pricing') }}">{{ _("Тарифы") }}</a>
-        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='offline') }}">{{ _("Офлайн") }}</a>
-        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='online') }}">{{ _("Онлайн") }}</a>
-        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='faq') }}">{{ _("FAQ") }}</a>
-        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='contact') }}">{{ _("Контакты") }}</a>
-        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='terms') }}">{{ _("Условия") }}</a>
-        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='privacy') }}">{{ _("Приватность") }}</a>
-        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='refund') }}">{{ _("Возврат") }}</a>
-      </nav>
-    </details>
+    <nav class="pub-preview-bar__nav" aria-label="{{ _('Страницы предпросмотра') }}">
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='landing') }}">{{ _("О Monday (Главная)") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='about') }}">{{ _("О школе") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='question-bank') }}">{{ _("Банк вопросов") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='pricing') }}">{{ _("Тарифы") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='offline') }}">{{ _("Офлайн") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='online') }}">{{ _("Онлайн") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='faq') }}">{{ _("FAQ") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='contact') }}">{{ _("Контакты") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='terms') }}">{{ _("Условия") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='privacy') }}">{{ _("Приватность") }}</a>
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='refund') }}">{{ _("Возврат") }}</a>
+    </nav>
     <form method="post" action="{{ url_for('public_site.admin_preview_exit') }}" class="pub-preview-bar__exit">
       {{ ui.csrf() }}
       <button class="btn btn--primary btn--sm" type="submit">{{ _("← Вернуться в админку") }}</button>
@@ -64,7 +59,6 @@
       </a>
 
       <nav class="mp-nav" aria-label="{{ _('Навигация по сайту') }}">
-        <a class="mp-nav__link {{ 'is-active' if ep in ('public_site.exam_page', 'public_site.exam_ort_alias') }}" href="{{ url_for('public_site.exam_page', slug='ort') }}">{{ _("ОРТ") }}</a>
         <a class="mp-nav__link {{ 'is-active' if ep == 'public_site.question_bank' }}" href="{{ url_for('public_site.question_bank') }}">{{ _("Банк вопросов") }}</a>
         <a class="mp-nav__link {{ 'is-active' if ep == 'public_site.offline_courses' }}" href="{{ url_for('public_site.offline_courses') }}">{{ _("Офлайн") }}</a>
         <a class="mp-nav__link {{ 'is-active' if ep == 'public_site.online_courses' }}" href="{{ url_for('public_site.online_courses') }}">{{ _("Онлайн") }}</a>
@@ -89,7 +83,6 @@
       </div>
 
       <div class="mp-nav-panel" id="mp-nav-panel" data-nav-panel hidden>
-        <a class="mp-nav-panel__link" href="{{ url_for('public_site.exam_page', slug='ort') }}">{{ _("Экзамен ОРТ") }}</a>
         <a class="mp-nav-panel__link" href="{{ url_for('public_site.question_bank') }}">{{ _("Банк вопросов") }}</a>
         <a class="mp-nav-panel__link" href="{{ url_for('public_site.offline_courses') }}">{{ _("Офлайн-курсы") }}</a>
         <a class="mp-nav-panel__link" href="{{ url_for('public_site.online_courses') }}">{{ _("Онлайн-курсы") }}</a>
@@ -121,7 +114,6 @@
         <div class="mp-footer__col">
           <h2 class="mp-footer__head">{{ _("Платформа") }}</h2>
           <ul>
-            <li><a href="{{ url_for('public_site.exam_page', slug='ort') }}">{{ _("Подготовка к ОРТ") }}</a></li>
             <li><a href="{{ url_for('public_site.question_bank') }}">{{ _("Банк вопросов") }}</a></li>
             <li><a href="{{ url_for('public_site.offline_courses') }}">{{ _("Офлайн-курсы") }}</a></li>
             <li><a href="{{ url_for('public_site.online_courses') }}">{{ _("Онлайн-курсы") }}</a></li>
