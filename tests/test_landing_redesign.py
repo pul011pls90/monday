@@ -709,10 +709,28 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             f_pane.locator('[data-trig-angle="90"]').click()
             assert "не опр." in (f_pane.locator("[data-trig-tan]").text_content() or "")
 
-            # Pre-footer sun & clouds reveal on scroll into view + soft light-blue CTA button color
+            # Pre-footer sun (~1.3x) & continuous rightward-drifting cloud bank reveal on scroll + soft light-blue CTA button color
             cta_sec = page.locator("[data-cta-reveal]")
             cta_sec.scroll_into_view_if_needed()
             page.wait_for_function("() => document.querySelector('[data-cta-reveal]').classList.contains('is-revealed')")
+            cta_sky = page.evaluate("""() => {
+                const sun = document.querySelector('.mp-cta-sun-svg');
+                const sky = document.querySelector('.mp-cta-sky');
+                const backTrack = document.querySelector('.mp-cta-clouds__track--back');
+                const frontTrack = document.querySelector('.mp-cta-clouds__track--front');
+                return {
+                    sunW: sun ? Math.round(sun.getBoundingClientRect().width) : 0,
+                    skyOverflow: sky ? getComputedStyle(sky).overflow : '',
+                    backAnim: backTrack ? getComputedStyle(backTrack).animationName : '',
+                    frontAnim: frontTrack ? getComputedStyle(frontTrack).animationName : '',
+                    backSvgCount: backTrack ? backTrack.querySelectorAll('svg').length : 0,
+                    frontSvgCount: frontTrack ? frontTrack.querySelectorAll('svg').length : 0,
+                };
+            }""")
+            assert 88 <= cta_sky["sunW"] <= 116, cta_sky
+            assert cta_sky["skyOverflow"] == "hidden", cta_sky
+            assert cta_sky["backAnim"] == "mpCloudDriftRight" and cta_sky["frontAnim"] == "mpCloudDriftRight", cta_sky
+            assert cta_sky["backSvgCount"] == 2 and cta_sky["frontSvgCount"] == 2, cta_sky
             cta_btn_bg = cta_sec.locator(".mp-btn--soft").evaluate("el => getComputedStyle(el).backgroundColor")
             assert cta_btn_bg == "rgb(238, 244, 255)", f"Expected soft light-blue CTA button, got {cta_btn_bg}"
 

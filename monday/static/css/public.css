@@ -2083,15 +2083,21 @@ body.pub-body {
   gap: 14px;
 }
 
-/* Interactive Sun & Soft Layered Clouds Reveal Above Headline */
+/* Interactive Sun (~1.3x) & Continuous Rightward-Drifting Layered Cloud Bank Above Headline */
 .mp-cta-sky {
-  width: min(300px, 84%);
-  height: 104px;
-  margin-bottom: -4px;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1240px;
+  height: 126px;
+  margin: 0 auto 10px;
+  overflow: hidden;
   pointer-events: none;
   opacity: 0;
-  transform: translateY(18px) scale(0.96);
+  transform: translateY(16px) scale(0.97);
   transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000000 10%, #000000 90%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000000 10%, #000000 90%, transparent);
 }
 .mp-cta:hover .mp-cta-sky,
 .mp-cta:focus-within .mp-cta-sky,
@@ -2099,30 +2105,78 @@ body.pub-body {
   opacity: 1;
   transform: translateY(0) scale(1);
 }
-.mp-cta-sky__svg {
-  width: 100%;
-  height: 100%;
+
+.mp-cta-sun-svg {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 106px;
+  height: 106px;
+  z-index: 2;
   display: block;
   overflow: visible;
 }
 .mp-cta-sun {
   transform-box: fill-box;
   transform-origin: center;
-  animation: mpSunPulse 4.6s ease-in-out infinite;
+  animation: mpSunPulse 5s ease-in-out infinite;
 }
-.mp-cta-cloud--back {
-  animation: mpCloudDrift 7.5s ease-in-out infinite;
+.mp-cta-sun__halo {
+  animation: mpSunHalo 5s ease-in-out infinite;
 }
-.mp-cta-cloud--front {
-  animation: mpCloudDrift 6.2s ease-in-out 0.8s infinite reverse;
+
+.mp-cta-clouds {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
+.mp-cta-clouds--back {
+  z-index: 1;
+  opacity: 0.82;
+}
+.mp-cta-clouds--front {
+  z-index: 3;
+}
+[data-theme="dark"] .mp-cta-clouds--back {
+  opacity: 0.36;
+}
+[data-theme="dark"] .mp-cta-clouds--front {
+  opacity: 0.85;
+}
+
+.mp-cta-clouds__track {
+  display: flex;
+  align-items: flex-end;
+  width: max-content;
+  height: 100%;
+  will-change: transform;
+}
+.mp-cta-clouds__svg {
+  width: 1240px;
+  height: 124px;
+  flex: none;
+  display: block;
+}
+.mp-cta-clouds__track--back {
+  animation: mpCloudDriftRight 44s linear infinite;
+}
+.mp-cta-clouds__track--front {
+  animation: mpCloudDriftRight 28s linear infinite;
+}
+
 @keyframes mpSunPulse {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.06); }
+  50% { transform: scale(1.05); }
 }
-@keyframes mpCloudDrift {
-  0%, 100% { transform: translateX(-5px); }
-  50% { transform: translateX(6px); }
+@keyframes mpSunHalo {
+  0%, 100% { opacity: 0.62; }
+  50% { opacity: 0.88; }
+}
+@keyframes mpCloudDriftRight {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
 }
 
 .mp-cta__lead {
@@ -3170,8 +3224,12 @@ body.pub-body {
   .mp-wave__layer,
   .mp-wave-star,
   .mp-cta-sun,
-  .mp-cta-cloud {
+  .mp-cta-sun__halo,
+  .mp-cta-clouds__track {
     animation: none !important;
+  }
+  .mp-cta-clouds__track {
+    transform: translateX(-25%) !important;
   }
   .mp-fan__item,
   .mp-cta-sky,

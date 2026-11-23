@@ -870,36 +870,59 @@
 
 {# =========================================================================== 7. Pre-footer CTA with Sun & Clouds Reveal + Animated Blue Wave + Geometric Math Shapes #}
 <section class="mp-cta" data-cta-reveal aria-labelledby="mp-cta-h">
-  <div class="mp-cta__inner">
-    {# Interactive Warm Sun & Layered Clouds Illustration (reveals on hover or bottom scroll) #}
-    <div class="mp-cta-sky" aria-hidden="true">
-      <svg class="mp-cta-sky__svg" viewBox="0 0 320 118">
-        {# Soft warm sun glow & rays #}
-        <g class="mp-cta-sun">
-          <circle cx="160" cy="54" r="36" fill="#FEF3C7" opacity="0.72"/>
-          <circle cx="160" cy="54" r="25" fill="#FDE68A" opacity="0.92"/>
-          <circle cx="160" cy="54" r="18" fill="#F59E0B"/>
-          <g stroke="#F59E0B" stroke-width="2.4" stroke-linecap="round" opacity="0.75">
-            <line x1="160" y1="10" x2="160" y2="18"/>
-            <line x1="126" y1="22" x2="132" y2="28"/>
-            <line x1="194" y1="22" x2="188" y2="28"/>
-            <line x1="114" y1="52" x2="122" y2="52"/>
-            <line x1="198" y1="52" x2="206" y2="52"/>
-          </g>
-        </g>
-        {# Back soft sky-blue cloud layer #}
-        <g class="mp-cta-cloud mp-cta-cloud--back">
-          <path d="M52,92 H138 C147,92 153,86 153,78 C153,71 147,65 139,65 C137,54 127,46 115,46 C104,46 95,53 92,62 C89,60 85,59 81,59 C70,59 61,67 60,77 C54,78 48,83 48,88 C48,90 50,92 52,92 Z" fill="#C7DBFF"/>
-          <path d="M188,88 H272 C280,88 286,82 286,75 C286,68 280,62 273,62 C271,52 262,45 251,45 C241,45 233,51 230,60 C227,58 223,57 219,57 C209,57 201,64 200,73 C192,74 185,79 185,85 C185,87 186,88 188,88 Z" fill="#C7DBFF"/>
-        </g>
-        {# Front crisp white-and-ice cloud layer #}
-        <g class="mp-cta-cloud mp-cta-cloud--front">
-          <path d="M26,104 H126 C136,104 143,97 143,88 C143,80 137,74 129,73 C126,61 115,52 101,52 C88,52 77,60 74,71 C70,69 65,68 60,68 C47,68 37,77 36,89 C29,90 22,95 22,100 C22,102 24,104 26,104 Z" fill="#FFFFFF" stroke="#C7DBFF" stroke-width="1.5"/>
-          <path d="M178,104 H292 C301,104 308,97 308,89 C308,81 302,75 294,74 C291,63 280,55 267,55 C255,55 245,62 241,72 C237,70 232,69 227,69 C215,69 205,77 204,89 C196,89 174,94 174,100 C174,102 176,104 178,104 Z" fill="#EEF4FF" stroke="#C7DBFF" stroke-width="1.5"/>
-        </g>
-      </svg>
+  {# Interactive Warm Sun (~1.3x) & Continuous Rightward-Drifting Layered Cloud Bank #}
+  <div class="mp-cta-sky" aria-hidden="true">
+    {# Background slower parallax cloud track (soft sky-blue flat clouds, continuous left-to-right drift) #}
+    <div class="mp-cta-clouds mp-cta-clouds--back">
+      <div class="mp-cta-clouds__track mp-cta-clouds__track--back">
+        {% for _ in (1, 2) %}
+        <svg class="mp-cta-clouds__svg" viewBox="0 0 1240 124" preserveAspectRatio="xMidYMax meet">
+          <path d="M24,96 H122 C131,96 138,89 138,81 C138,73 132,67 123,66 C120,54 109,46 96,46 C84,46 74,53 70,63 C66,61 62,60 57,60 C45,60 36,68 35,79 C27,80 20,85 20,91 C20,94 22,96 24,96 Z" fill="#C7DBFF"/>
+          <path d="M196,82 H284 C292,82 298,76 298,69 C298,62 292,56 285,55 C282,45 273,38 261,38 C251,38 242,44 239,53 C235,51 231,50 227,50 C216,50 208,58 207,67 C200,68 193,73 193,78 C193,80 194,82 196,82 Z" fill="#D8E6FF"/>
+          <path d="M358,98 H468 C478,98 486,91 486,82 C486,74 479,67 470,66 C467,53 455,44 441,44 C428,44 417,52 413,63 C408,60 403,59 398,59 C385,59 374,69 373,81 C364,82 354,87 354,93 C354,96 356,98 358,98 Z" fill="#C7DBFF"/>
+          <path d="M562,86 H656 C664,86 670,80 670,73 C670,66 664,60 656,59 C654,48 644,41 632,41 C621,41 612,48 609,57 C605,55 601,54 596,54 C585,54 576,62 575,71 C567,72 559,77 559,82 C559,84 560,86 562,86 Z" fill="#D8E6FF"/>
+          <path d="M748,96 H852 C861,96 868,89 868,81 C868,73 862,67 853,66 C850,54 839,46 826,46 C814,46 804,53 800,63 C796,61 792,60 787,60 C775,60 765,68 764,79 C755,80 744,85 744,91 C744,94 746,96 748,96 Z" fill="#C7DBFF"/>
+          <path d="M936,80 H1022 C1030,80 1036,74 1036,67 C1036,61 1030,55 1023,54 C1020,44 1011,37 999,37 C989,37 980,43 977,52 C973,50 969,49 965,49 C954,49 946,56 945,65 C938,66 933,71 933,76 C933,78 934,80 936,80 Z" fill="#D8E6FF"/>
+          <path d="M1086,96 H1198 C1208,96 1215,89 1215,81 C1215,73 1209,67 1200,66 C1197,54 1186,45 1172,45 C1159,45 1148,53 1145,63 C1141,61 1136,60 1131,60 C1118,60 1108,69 1107,79 C1097,80 1082,85 1082,91 C1082,94 1084,96 1086,96 Z" fill="#C7DBFF"/>
+        </svg>
+        {% endfor %}
+      </div>
     </div>
 
+    {# Centered Warm Flat-Layered Sun (~1.3x scale, exact original style) #}
+    <svg class="mp-cta-sun-svg" viewBox="0 0 116 116">
+      <g class="mp-cta-sun">
+        <circle class="mp-cta-sun__halo" cx="58" cy="58" r="44" fill="#FEF3C7"/>
+        <circle cx="58" cy="58" r="31" fill="#FDE68A" opacity="0.92"/>
+        <circle cx="58" cy="58" r="22" fill="#F59E0B"/>
+        <g stroke="#F59E0B" stroke-width="2.7" stroke-linecap="round" opacity="0.78">
+          <line x1="58" y1="6" x2="58" y2="16"/>
+          <line x1="19" y1="21" x2="26" y2="28"/>
+          <line x1="97" y1="21" x2="90" y2="28"/>
+          <line x1="6" y1="56" x2="16" y2="56"/>
+          <line x1="100" y1="56" x2="110" y2="56"/>
+        </g>
+      </g>
+    </svg>
+
+    {# Foreground crisper white & ice-blue outlined cloud track (continuous left-to-right drift) #}
+    <div class="mp-cta-clouds mp-cta-clouds--front">
+      <div class="mp-cta-clouds__track mp-cta-clouds__track--front">
+        {% for _ in (1, 2) %}
+        <svg class="mp-cta-clouds__svg" viewBox="0 0 1240 124" preserveAspectRatio="xMidYMax meet">
+          <path d="M58,112 H174 C185,112 193,104 193,95 C193,86 186,79 177,78 C173,65 161,55 145,55 C131,55 119,64 115,76 C110,73 105,72 99,72 C85,72 74,82 73,95 C64,96 54,102 54,108 C54,110 56,112 58,112 Z" fill="#FFFFFF" stroke="#C7DBFF" stroke-width="1.6"/>
+          <path d="M254,110 H364 C374,110 381,103 381,94 C381,86 375,80 366,79 C363,67 352,58 338,58 C325,58 314,66 310,77 C306,75 301,74 296,74 C283,74 273,83 272,94 C263,95 250,100 250,106 C250,108 252,110 254,110 Z" fill="#EEF4FF" stroke="#C7DBFF" stroke-width="1.6"/>
+          <path d="M452,114 H568 C579,114 587,106 587,97 C587,88 580,81 571,80 C567,67 555,58 540,58 C526,58 514,66 510,78 C505,75 500,74 494,74 C480,74 469,84 468,97 C459,98 448,104 448,110 C448,112 450,114 452,114 Z" fill="#FFFFFF" stroke="#C7DBFF" stroke-width="1.6"/>
+          <path d="M664,112 H784 C795,112 803,104 803,95 C803,86 796,79 787,78 C783,65 771,56 756,56 C742,56 730,64 726,76 C721,73 716,72 710,72 C696,72 685,82 684,95 C674,96 660,102 660,108 C660,110 662,112 664,112 Z" fill="#EEF4FF" stroke="#C7DBFF" stroke-width="1.6"/>
+          <path d="M876,110 H982 C992,110 999,103 999,94 C999,86 993,80 984,79 C981,68 970,59 957,59 C944,59 934,67 930,77 C926,75 921,74 916,74 C903,74 894,83 893,94 C884,95 872,100 872,106 C872,108 874,110 876,110 Z" fill="#FFFFFF" stroke="#C7DBFF" stroke-width="1.6"/>
+          <path d="M1054,114 H1176 C1187,114 1195,106 1195,97 C1195,88 1188,81 1179,80 C1175,67 1163,58 1148,58 C1134,58 1122,66 1118,78 C1113,75 1108,74 1102,74 C1088,74 1077,84 1076,97 C1066,98 1050,104 1050,110 C1050,112 1052,114 1054,114 Z" fill="#EEF4FF" stroke="#C7DBFF" stroke-width="1.6"/>
+        </svg>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="mp-cta__inner">
     <h2 id="mp-cta-h" class="mp-h2">{{ _("Начни подготовку с Monday сегодня") }}</h2>
     <p class="mp-cta__lead">{{ _("Выбери экзамен, реши первую задачу в тренажёре или оставь заявку на занятия с преподавателем.") }}</p>
     <a class="mp-btn mp-btn--soft mp-btn--wide" href="{{ auth_cta_url }}">{{ _("Начать бесплатно") }}</a>
