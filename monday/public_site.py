@@ -289,8 +289,67 @@ def get_public_stats() -> dict:
         for ex in (q.exams or []):
             by_exam[str(ex)] += 1
 
-    topics_count = ContentNode.query.filter_by(archived=False, level="topic").count()
-    skills_count = ContentNode.query.filter_by(archived=False, level="node").count()
+    all_nodes = ContentNode.query.filter_by(archived=False).all()
+    node_by_id = {n.id: n for n in all_nodes}
+    topic_nodes = [n for n in all_nodes if n.level == "topic"]
+    topics_count = len(topic_nodes)
+    skills_count = sum(1 for n in all_nodes if n.level == "node")
+
+    # Map every ContentNode id to its root topic node (code & normalized name) for real per-topic counts
+    root_topic_by_id: dict[int, ContentNode] = {}
+    for n in all_nodes:
+        cur = n
+        seen_ids: set[int] = set()
+        while cur and cur.parent_id and cur.parent_id in node_by_id and cur.id not in seen_ids:
+            seen_ids.add(cur.id)
+            cur = node_by_id[cur.parent_id]
+        if cur:
+            root_topic_by_id[n.id] = cur
+
+    by_topic_code: Counter = Counter()
+    by_topic_name: Counter = Counter()
+    for q in published_questions:
+        if q.skill_id and q.skill_id in root_topic_by_id:
+            rt = root_topic_by_id[q.skill_id]
+            if rt.code:
+                by_topic_code[str(rt.code)] += 1
+            if rt.name:
+                by_topic_name[str(rt.name).strip().lower()] += 1
+
+    min_topic_q = int(current_app.config.get("PUBLIC_STATS_MIN_TOPIC_QUESTIONS", 1) or 0)
+    emblem_specs = (
+        ("b-alg", _("Алгебра"), ("алгебра",), "algebra", 1),
+        ("b-geo", _("Геометрия"), ("геометрия",), "geometry", 2),
+        ("b-trig", _("Тригонометрия"), ("тригонометрия",), "trig", 3),
+        ("b-fn", _("Функции"), ("функции",), "functions", 1),
+        ("b-stat", _("Вероятность"), ("вероятность и статистика", "вероятность"), "probability", 2),
+        ("b-logic", _("Логика"), ("логика и сравнение", "логика и данные", "логика"), "logic", 3),
+    )
+    topic_emblems = []
+    for t_code, t_label, name_aliases, t_icon, t_speed in emblem_specs:
+        db_node = next(
+            (
+                tn for tn in topic_nodes
+                if tn.code == t_code or (tn.name or "").strip().lower() in name_aliases
+            ),
+            None,
+        )
+        if db_node is None:
+            continue
+        raw_cnt = int(by_topic_code.get(t_code, 0))
+        if raw_cnt == 0:
+            raw_cnt = sum(int(by_topic_name.get(al, 0)) for al in name_aliases)
+        topic_emblems.append(
+            {
+                "code": t_code,
+                "label": str(t_label),
+                "db_name": db_node.name,
+                "icon": t_icon,
+                "speed": t_speed,
+                "count": raw_cnt if raw_cnt >= min_topic_q else None,
+            }
+        )
+
     collections_count = Work.query.filter_by(status="published", kind="collection").count()
     languages_count = len(current_app.config.get("LANGUAGES", {}) or {})
 
@@ -384,6 +443,7 @@ def get_public_stats() -> dict:
         "last_monday_participants": last_monday_participants,
         "next_monday_test": next_monday_info,
         "visible": visible,
+        "topic_emblems": topic_emblems,
         "exams_count": len(exam_cards),
         "exam_cards": exam_cards,
     }
@@ -473,61 +533,12 @@ def resolve_highlighted_exam() -> dict | None:
     return None
 
 
-def _build_hero_question_payload(exam_code: str | None = None) -> dict | None:
-    """Pick one random published is_public_sample question and return a sanitized payload with an opaque token."""
-    rows = (
-        Question.query.filter_by(status="published", is_public_sample=True)
-        .order_by(Question.id.asc())
-        .all()
-    )
-    choice_rows = [q for q in rows if (q.answer_type or "choice") == "choice" and (q.options or [])]
-    if not choice_rows:
-        return None
-
-    target_code = (exam_code or "").strip().upper()
-    if target_code and target_code in EXAMS:
-        exam_matched = [q for q in choice_rows if target_code in (q.exams or [])]
-        pool = exam_matched or choice_rows
-    else:
-        pool = choice_rows
-
-    picked = random.choice(pool)
-    q_exams = [str(e) for e in (picked.exams or []) if str(e) in EXAMS]
-    chosen_exam = target_code if (target_code and target_code in q_exams) else (q_exams[0] if q_exams else "ORT")
-    san = sanitize_public_sample(picked, chosen_exam)
-    known_slugs = set(list_exam_content_slugs())
-    slug_lower = chosen_exam.lower()
-    exam_url = (
-        url_for("public_site.exam_page", slug=slug_lower)
-        if slug_lower in known_slugs
-        else url_for("public_site.question_bank")
-    )
-    image_url = (
-        url_for("public_site.public_sample_media", key=san["public_image_key"])
-        if san.get("public_image_key")
-        else None
-    )
-    return {
-        "token": san["token"],
-        "exam_code": chosen_exam,
-        "exam_label": san["exam_label"],
-        "topic_label": san["topic_name"] or san["skill_name"] or _("Математика"),
-        "difficulty_label": san["difficulty_label"],
-        "text": san["text"],
-        "material": san["material"],
-        "options": san["options"],
-        "image_url": image_url,
-        "exam_url": exam_url,
-    }
-
-
 def render_landing_page():
     stats = get_public_stats()
     pricing = _public_pricing_meta()
     locations = _public_locations()
     courses = _public_courses()
     highlighted = resolve_highlighted_exam()
-    hero_question = _build_hero_question_payload(highlighted["code"] if highlighted else None)
     org_ld = {
         "@context": "https://schema.org",
         "@type": "EducationalOrganization",
@@ -552,7 +563,7 @@ def render_landing_page():
         sent=(request.args.get("sent") == "1"),
         org_json_ld=org_ld,
         highlighted_exam=highlighted,
-        hero_question=hero_question,
+        hero_scroll_screens=float(current_app.config.get("HERO_SCROLL_STAGE_SCREENS", 3) or 3),
         default_interest=(highlighted["label"] if highlighted else ""),
     )
 
@@ -746,7 +757,7 @@ def contact():
 @bp.route("/api/public/stats")
 @limiter.limit(lambda: rate_limit_value("PUBLIC_RATE_LIMIT_STATS", "60 per minute"))
 def api_public_stats():
-    """Return 60s-cached, threshold-gated aggregate counters (Stage 3; zero personal data or user IDs)."""
+    """Return 60s-cached, threshold-gated aggregate counters and per-topic counts (zero personal data or user IDs)."""
     _require_public_flag()
     stats = get_public_stats()
     resp = jsonify(
@@ -754,23 +765,13 @@ def api_public_stats():
             "ok": True,
             "timezone": "Asia/Bishkek",
             "counters": stats["visible"],
+            "topics": [
+                {"code": t["code"], "label": t["label"], "count": t["count"]}
+                for t in stats.get("topic_emblems", [])
+            ],
         }
     )
     resp.headers["Cache-Control"] = "public, max-age=60"
-    return resp
-
-
-@bp.route("/api/public/hero-question")
-@limiter.limit(lambda: rate_limit_value("PUBLIC_RATE_LIMIT_HERO_Q", "60 per minute"))
-def api_hero_question():
-    """Return one random public sample question with a short-lived opaque token (Stage 2; no enumeration)."""
-    _require_public_flag()
-    exam_arg = (request.args.get("exam") or "").strip().upper()
-    payload = _build_hero_question_payload(exam_arg if exam_arg in EXAMS else None)
-    if payload is None:
-        return jsonify({"ok": False, "error": "no_public_sample"}), 404
-    resp = jsonify({"ok": True, "question": payload})
-    resp.headers["Cache-Control"] = "no-store"
     return resp
 
 

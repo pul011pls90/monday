@@ -3,9 +3,10 @@
 {% set ep = request.endpoint or '' %}
 {% set signup_ok = config.get('SELF_STUDY_SIGNUP_ENABLED') %}
 {% set start_url = url_for('auth.register') if signup_ok else url_for('public_site.contact') ~ '#apply-form' %}
+{% set is_admin_preview = current_user.is_authenticated and current_user.is_admin and session.get('_adm_public_preview') %}
 
 {% block title %}{{ seo_title or _('Monday Academy') }}{% endblock %}
-{% block body_class %}pub-body{% endblock %}
+{% block body_class %}pub-body{% if is_admin_preview %} has-preview-bar{% endif %}{% endblock %}
 
 {% block head %}
   {% if seo_description %}<meta name="description" content="{{ seo_description }}">{% endif %}
@@ -21,27 +22,30 @@
 {% endblock %}
 
 {% block body %}
-{% if current_user.is_authenticated and current_user.is_admin and session.get('_adm_public_preview') %}
-<div class="pub-preview-bar" role="region" aria-label="{{ _('Предпросмотр публичного сайта') }}">
+{% if is_admin_preview %}
+<div class="pub-preview-bar" data-preview-bar role="region" aria-label="{{ _('Предпросмотр публичного сайта') }}">
   <div class="pub-preview-bar__inner">
     <div class="pub-preview-bar__left">
       <span class="tag tag--ok">{{ _("Демо-предпросмотр") }}</span>
-      <span class="small">{{ _("Режим просмотра нового сайта (виден только админу)") }}</span>
+      <span class="pub-preview-bar__note small">{{ _("Виден только админу") }}</span>
     </div>
-    <nav class="pub-preview-bar__nav" aria-label="{{ _('Страницы предпросмотра') }}">
-      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='landing') }}">{{ _("О Monday (Главная)") }}</a>
-      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='ort') }}">{{ _("Экзамен ОРТ") }}</a>
-      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='about') }}">{{ _("О школе") }}</a>
-      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='question-bank') }}">{{ _("Банк вопросов") }}</a>
-      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='pricing') }}">{{ _("Тарифы") }}</a>
-      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='offline') }}">{{ _("Офлайн") }}</a>
-      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='online') }}">{{ _("Онлайн") }}</a>
-      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='faq') }}">{{ _("FAQ") }}</a>
-      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='contact') }}">{{ _("Контакты") }}</a>
-      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='terms') }}">{{ _("Условия") }}</a>
-      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='privacy') }}">{{ _("Приватность") }}</a>
-      <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='refund') }}">{{ _("Возврат") }}</a>
-    </nav>
+    <details class="pub-preview-menu">
+      <summary class="btn btn--ghost btn--sm pub-preview-menu__toggle">{{ _("Страницы") }} (12) ▾</summary>
+      <nav class="pub-preview-bar__nav" aria-label="{{ _('Страницы предпросмотра') }}">
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='landing') }}">{{ _("О Monday (Главная)") }}</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='ort') }}">{{ _("Экзамен ОРТ") }}</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='about') }}">{{ _("О школе") }}</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='question-bank') }}">{{ _("Банк вопросов") }}</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='pricing') }}">{{ _("Тарифы") }}</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='offline') }}">{{ _("Офлайн") }}</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='online') }}">{{ _("Онлайн") }}</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='faq') }}">{{ _("FAQ") }}</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='contact') }}">{{ _("Контакты") }}</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='terms') }}">{{ _("Условия") }}</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='privacy') }}">{{ _("Приватность") }}</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('public_site.admin_preview', page='refund') }}">{{ _("Возврат") }}</a>
+      </nav>
+    </details>
     <form method="post" action="{{ url_for('public_site.admin_preview_exit') }}" class="pub-preview-bar__exit">
       {{ ui.csrf() }}
       <button class="btn btn--primary btn--sm" type="submit">{{ _("← Вернуться в админку") }}</button>
@@ -167,6 +171,6 @@
     </div>
   </footer>
 </div>
-<script defer src="{{ url_for('static', filename='js/dot-engine.js') }}"></script>
+{% block page_scripts %}{% endblock %}
 <script defer src="{{ url_for('static', filename='js/landing.js') }}"></script>
 {% endblock %}

@@ -136,20 +136,28 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
     assert r.status_code == 200
     html = r.data.decode("utf-8")
     for expected in (
+        "Добро пожаловать в Monday",
         "Персональный тренажёр по",
         "математике и экзаменам",
         "Я ученик",
         "Я преподаватель или родитель",
         "У меня уже есть аккаунт",
-        "data-dot-canvas",
-        "data-skip-intro",
-        "data-hero-question-card",
+        "Листайте",
+        "Каждая задача с разбором",
+        "8 направлений в единой системе",
+        "Прогноз и Monday Test",
+        "Прогноз балла ОРТ",
+        "Пример",
         "Закрасьте 1/2 фигуры",
-        "(x + 2)(x + 1) = x² + [ ] + 2",
+        "(x + 2)(x + 1) = x² + 3x + 2",
         "f(x) = x² − 4x + 5",
-        "6–8–10 → S = ?",
+        "6–8–10 → S = 24",
         "sin(x) = cos(x)",
-        "ОРТ / SAT прогноз баллов",
+        "5 учеников → 10 рукопожатий",
+        "data-math-bg",
+        "data-topic-emblems",
+        "data-route-gutter",
+        "data-hero-stage",
         "Интерактивный тренажёр, а не просто ответы",
         "Мини-тест ОРТ",
         "ОРТ · Математика",
@@ -173,14 +181,22 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
         "https://instagram.com/monday_edc",
         "mailto:temirlanmanasev@gmail.com",
         "© 2026 Monday Academy",
-        "static/js/dot-engine.js",
         "static/js/landing.js",
     ):
         assert expected in html, f"Missing expected copy on /: {expected}"
 
+    # Second-pass hero removal checks: dot-engine, live equation block, hero-question card, and /api/public/hero-question removed from /
+    assert "static/js/dot-engine.js" not in html
+    assert "data-dot-canvas" not in html
+    assert "data-hero-question-card" not in html
+    assert "ПРИМЕР ЗАДАЧИ ОРТ" not in html
+    assert "Живая задача из банка" not in html
     assert "data-strip-scroll" not in html
-    assert "зад.</span>" not in html
     assert "двигай точки, меняй уравнения" not in html
+    assert anon.get("/api/public/hero-question").status_code == 404
+
+    # Monday Test countdown hidden when MONDAY_TEST_SCHEDULE_PUBLIC is False
+    assert "data-monday-countdown" not in html
 
     # Query-string & deep-link adaptation (?exam=ort and ?utm_source=exam_sat); unknown exam ignored safely
     r_ort = anon.get("/?exam=ort").data.decode("utf-8")
@@ -201,12 +217,14 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
     assert "/teacher" in c_adm.get("/", follow_redirects=False).headers["Location"]
 
 
-def test_stage2_hero_live_question_opaque_tokens_and_security(tmp_path):
+def test_stage2_exam_page_sample_check_opaque_tokens_and_removed_hero_endpoint(tmp_path):
+    """GET /api/public/hero-question is removed (404); POST /api/public/hero-question/check remains strictly for /exams/<slug> opaque sample tokens."""
     app = _make_app(tmp_path, public_enabled=True, HERO_QUESTION_TOKEN_TTL_SECONDS=60)
     with app.app_context():
-        top = ContentNode(code="s2_top", name="Алгебра", level="topic", exams=["ORT"])
-        db.session.add(top)
-        db.session.flush()
+        top = ContentNode.query.filter_by(code="b-alg").first() or ContentNode(code="s2_top", name="Алгебра", level="topic", exams=["ORT"])
+        if top.id is None:
+            db.session.add(top)
+            db.session.flush()
         skill = ContentNode(code="s2_sk", name="Линейные уравнения", level="node", parent_id=top.id, exams=["ORT"])
         db.session.add(skill)
         db.session.flush()
@@ -241,25 +259,19 @@ def test_stage2_hero_live_question_opaque_tokens_and_security(tmp_path):
         db.session.commit()
         pub_qid = q_pub.id
         priv_qid = q_priv.id
-        pub_media_key = q_pub.public_image_key
+        token = issue_public_sample_token(pub_qid, "ORT")
 
     c = app.test_client()
-    # 1. GET /api/public/hero-question serves only is_public_sample=True with an opaque token, never DB id or /uploads/
-    r_get = c.get("/api/public/hero-question")
-    assert r_get.status_code == 200
-    payload = r_get.get_json()
-    assert payload["ok"] is True
-    q_data = payload["question"]
-    assert "id" not in q_data
-    assert "correct" not in q_data
-    assert "SECRET_EXPLANATION_TEXT" not in json.dumps(payload, ensure_ascii=False)
-    assert "PRIVATE_UNFLAGGED_QUESTION_TEXT" not in json.dumps(payload, ensure_ascii=False)
-    assert q_data["image_url"] == f"/question-bank/media/{pub_media_key}"
-    assert "/uploads/" not in (q_data["image_url"] or "")
-    token = q_data["token"]
-    assert isinstance(token, str) and len(token) > 20
+    # Removed hero-question GET endpoint returns 404
+    assert c.get("/api/public/hero-question").status_code == 404
 
-    # 2. Wrong answer returns hint without revealing the correct option index
+    # /exams/ort renders the sample with opaque token and loads dot-engine.js
+    ort_html = c.get("/exams/ort").data.decode("utf-8")
+    assert "static/js/dot-engine.js" in ort_html
+    assert "SECRET_EXPLANATION_TEXT" not in ort_html
+    assert "PRIVATE_UNFLAGGED_QUESTION_TEXT" not in ort_html
+
+    # Wrong answer returns hint without revealing the correct option index
     r_wrong = c.post("/api/public/hero-question/check", json={"token": token, "choice": 0})
     assert r_wrong.status_code == 200
     w_data = r_wrong.get_json()
@@ -267,15 +279,15 @@ def test_stage2_hero_live_question_opaque_tokens_and_security(tmp_path):
     assert "Подсказка" in w_data["hint"]
     assert "correct_choice" not in w_data
 
-    # 3. Correct answer returns "Это вопрос ОРТ · Алгебра" and /exams/ort link
+    # Correct answer returns badge and /exams/ort link
     r_right = c.post("/api/public/hero-question/check", json={"token": token, "choice": 1})
     assert r_right.status_code == 200
     r_data = r_right.get_json()
     assert r_data["ok"] is True and r_data["correct"] is True
-    assert "Это вопрос ОРТ · Алгебра" in r_data["badge"]
+    assert "Это вопрос ОРТ" in r_data["badge"]
     assert r_data["exam_url"] == "/exams/ort"
 
-    # 4. Tampered token, expired token, and token for unflagged question are rejected
+    # Tampered token, expired token, and token for unflagged question are rejected
     assert c.post("/api/public/hero-question/check", json={"token": token + "tamper", "choice": 1}).status_code == 400
     with app.app_context():
         assert verify_public_sample_token(token, max_age=-1) is None
@@ -295,6 +307,7 @@ def test_stage3_public_stats_api_thresholds_and_bishkek_timezone(tmp_path):
         public_enabled=True,
         PUBLIC_STATS_MIN_QUESTIONS=2,
         PUBLIC_STATS_MIN_TOPICS=1,
+        PUBLIC_STATS_MIN_TOPIC_QUESTIONS=2,  # Algebra has 2 -> shown; Geometry has 0 -> None/hidden!
         PUBLIC_STATS_MIN_COLLECTIONS=5,  # intentionally above seeded count (0) -> must be hidden!
         PUBLIC_STATS_MIN_SOLVED_TODAY=2,
         PUBLIC_STATS_MIN_SOLVED_WEEK=3,
@@ -304,10 +317,11 @@ def test_stage3_public_stats_api_thresholds_and_bishkek_timezone(tmp_path):
     with app.app_context():
         stu = User(email="stats_stu@monday.kg", name="Secret Student Name", role="student", is_approved=True)
         stu.set_password("Pass12345!")
-        top = ContentNode(code="s3_t", name="Algebra", level="topic", exams=["ORT"])
-        db.session.add_all([stu, top])
+        alg_topic = ContentNode.query.filter_by(code="b-alg").first()
+        assert alg_topic is not None
+        db.session.add(stu)
         db.session.flush()
-        node = ContentNode(code="s3_n", name="Linear", level="node", parent_id=top.id, exams=["ORT"])
+        node = ContentNode(code="s3_n", name="Linear", level="node", parent_id=alg_topic.id, exams=["ORT"])
         db.session.add(node)
         db.session.flush()
 
@@ -352,6 +366,12 @@ def test_stage3_public_stats_api_thresholds_and_bishkek_timezone(tmp_path):
     assert counters["last_monday_participants"] is None
     assert counters["next_monday_test"] is None
 
+    # Real DB per-topic counts in /api/public/stats (threshold-gated)
+    topics_by_code = {t["code"]: t for t in data["topics"]}
+    assert set(topics_by_code.keys()) == {"b-alg", "b-geo", "b-trig", "b-fn", "b-stat", "b-logic"}
+    assert topics_by_code["b-alg"]["count"] == 2
+    assert topics_by_code["b-geo"]["count"] is None  # 0 < PUBLIC_STATS_MIN_TOPIC_QUESTIONS=2
+
     # HTML strip hides below-threshold cards completely
     landing_html = c.get("/").data.decode("utf-8")
     assert 'data-stat-card="published_questions"' in landing_html
@@ -359,6 +379,14 @@ def test_stage3_public_stats_api_thresholds_and_bishkek_timezone(tmp_path):
     assert 'data-stat-card="collections_count"' not in landing_html
     assert 'data-stat-card="last_monday_participants"' not in landing_html
     assert 'data-stat-card="next_monday_test"' not in landing_html
+    assert 'data-topic-emblem="b-alg"' in landing_html
+    assert 'data-topic-count="b-alg"' in landing_html
+
+    # When MONDAY_TEST_SCHEDULE_PUBLIC=True, Chapter 3 renders the countdown
+    app.config["MONDAY_TEST_SCHEDULE_PUBLIC"] = True
+    clear_public_stats_cache()
+    landing_sched = c.get("/").data.decode("utf-8")
+    assert "data-monday-countdown=" in landing_sched
 
 
 def test_stage4_exam_page_ort_preflight_guard_sitemap_and_lead_form(tmp_path):
@@ -453,7 +481,8 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
 
     app = _make_app(tmp_path, public_enabled=True, csrf_enabled=True)
     with app.app_context():
-        node = ContentNode(code="pw_ort", name="Алгебра", level="node", exams=["ORT"])
+        alg_topic = ContentNode.query.filter_by(code="b-alg").first()
+        node = ContentNode(code="pw_ort", name="Алгебра", level="node", parent_id=(alg_topic.id if alg_topic else None), exams=["ORT"])
         db.session.add(node)
         db.session.flush()
         q = Question(
@@ -465,7 +494,9 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             correct="1",
             status="published",
         )
-        db.session.add(q)
+        adm = User(email="adm_pw@monday.kg", name="Admin PW", role="admin", is_approved=True)
+        adm.set_password("StrongAdmin123!")
+        db.session.add_all([q, adm])
         db.session.flush()
         set_question_public_sample(q, True)
         db.session.commit()
@@ -479,7 +510,7 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch()
-            ctx = browser.new_context(viewport={"width": 1280, "height": 840})
+            ctx = browser.new_context(viewport={"width": 1440, "height": 900})
             page = ctx.new_page()
             page.add_init_script(
                 'window.__csp = []; window.__errs = [];'
@@ -488,57 +519,93 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             )
 
             page.goto(f"{base_url}/", wait_until="networkidle")
-            assert page.locator(".mp-hero h1").is_visible()
-            assert page.locator("[data-dot-canvas]").is_visible()
-            assert page.locator(".mp-fan").is_visible()
+            assert page.locator(".mp-hero-h1").is_visible()
+            assert page.locator("[data-math-bg]").is_visible()
+            assert page.locator("[data-route-gutter]").is_visible()
+            assert page.locator("[data-dot-canvas]").count() == 0
+            assert page.locator("[data-hero-question-card]").count() == 0
 
-            # Verify White (#FFFFFF) canvas, Soft Light Blue (#EEF4FF -> rgb(238, 244, 255)) hero pill, and strictly black (#000000) footer
+            # Verify White (#FFFFFF) canvas, Soft Light Blue hero pill, and strictly black (#000000) footer
             body_bg = page.locator("body.pub-body").evaluate("el => getComputedStyle(el).backgroundColor")
             assert body_bg == "rgb(255, 255, 255)"
-            pill_bg = page.locator(".mp-hero__pill").evaluate("el => getComputedStyle(el).backgroundColor")
+            pill_bg = page.locator(".mp-hero__pill").first.evaluate("el => getComputedStyle(el).backgroundColor")
             assert pill_bg == "rgb(238, 244, 255)"
             footer_bg = page.locator(".mp-footer").evaluate("el => getComputedStyle(el).backgroundColor")
             assert footer_bg == "rgb(0, 0, 0)"
 
-            # Verify zero horizontal overflow, centered hero H1, and non-clipped sky-band cards at 1440px, 820px, and 390px viewports
-            for vw, vh in ((1440, 900), (820, 900), (390, 844)):
+            # Desktop >= 1024px: sticky left column, docked marquee at bottom of first screen, 3 chapters present
+            desk_geom = page.evaluate("""() => {
+                const left = document.querySelector('.mp-hero-left');
+                const dock = document.querySelector('.mp-strip--hero-dock');
+                const leftStyle = getComputedStyle(left);
+                const dockRect = dock.getBoundingClientRect();
+                return {
+                    leftPosition: leftStyle.position,
+                    dockBottom: Math.round(dockRect.bottom),
+                    innerH: window.innerHeight,
+                    chapters: document.querySelectorAll('[data-hero-chapter]').length,
+                    examTiles: document.querySelectorAll('.mp-exam-tile').length,
+                    mathCards: document.querySelectorAll('.mp-math-card').length,
+                    emblems: document.querySelectorAll('[data-topic-emblem]').length
+                };
+            }""")
+            assert desk_geom["leftPosition"] == "sticky"
+            assert abs(desk_geom["dockBottom"] - desk_geom["innerH"]) <= 8, desk_geom
+            assert desk_geom["chapters"] == 3
+            assert desk_geom["examTiles"] == 8
+            assert desk_geom["mathCards"] == 6
+            assert desk_geom["emblems"] == 6
+
+            # Interactive topic emblem tap/click & Escape keyboard close
+            alg_btn = page.locator('[data-topic-emblem="b-alg"]')
+            alg_btn.click()
+            assert alg_btn.get_attribute("aria-expanded") == "true"
+            assert "1 зад." in (alg_btn.locator('[data-topic-count="b-alg"]').text_content() or "")
+            page.keyboard.press("Escape")
+            assert alg_btn.get_attribute("aria-expanded") == "false"
+
+            # Verify zero horizontal overflow & non-clipped hero/cards at 1440px, 820px, and 390px; sticky & route hidden < 1024px
+            for vw, vh in ((1440, 900), (820, 1024), (390, 844)):
                 page.set_viewport_size({"width": vw, "height": vh})
+                page.wait_for_timeout(120)
                 metrics = page.evaluate(
                     "() => {"
-                    "  const r = document.querySelector('.mp-hero h1').getBoundingClientRect();"
+                    "  const r = document.querySelector('.mp-hero-h1').getBoundingClientRect();"
                     "  const satFoot = document.querySelector('.mp-sat-card__foot').getBoundingClientRect();"
+                    "  const leftPos = getComputedStyle(document.querySelector('.mp-hero-left')).position;"
+                    "  const routeDisp = getComputedStyle(document.querySelector('[data-route-gutter]')).display;"
                     "  return {"
                     "    scrollW: document.documentElement.scrollWidth,"
                     "    innerW: window.innerWidth,"
                     "    h1Left: r.left,"
                     "    h1Right: r.right,"
-                    "    h1Center: r.left + r.width / 2,"
                     "    satLeft: satFoot.left,"
-                    "    satRight: satFoot.right"
+                    "    satRight: satFoot.right,"
+                    "    leftPos,"
+                    "    routeDisp"
                     "  };"
                     "}"
                 )
                 assert metrics["scrollW"] <= metrics["innerW"] + 1, f"Horizontal overflow at {vw}px: {metrics}"
                 assert metrics["h1Left"] >= 0 and metrics["h1Right"] <= metrics["innerW"] + 1, f"H1 clipped at {vw}px: {metrics}"
-                assert abs(metrics["h1Center"] - metrics["innerW"] / 2) <= 24, f"H1 not centered at {vw}px: {metrics}"
                 assert metrics["satLeft"] >= 0 and metrics["satRight"] <= metrics["innerW"] + 1, f"Mastery badge clipped at {vw}px: {metrics}"
+                if vw < 1024:
+                    assert metrics["leftPos"] != "sticky", f"Pinning must be disabled at {vw}px"
+                    assert metrics["routeDisp"] == "none", f"Route gutter must be hidden at {vw}px"
+
+            # Reduced motion context: pinning disabled & route gutter hidden even at 1440px
+            rm_ctx = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
+            rm_page = rm_ctx.new_page()
+            rm_page.goto(f"{base_url}/", wait_until="networkidle")
+            rm_state = rm_page.evaluate("""() => ({
+                leftPos: getComputedStyle(document.querySelector('.mp-hero-left')).position,
+                routeDisp: getComputedStyle(document.querySelector('[data-route-gutter]')).display
+            })""")
+            assert rm_state["leftPos"] == "static"
+            assert rm_state["routeDisp"] == "none"
+            rm_ctx.close()
 
             page.set_viewport_size({"width": 1280, "height": 840})
-
-            # Stage 2 live hero question interaction: tap wrong option -> hint; tap right option (index 1 -> "3") -> badge + CTA
-            hero_q = page.locator(".mp-hero [data-hero-question-card]")
-            hero_q.locator('[data-live-opt="0"]').click()
-            hero_q.locator("[data-live-feedback]").wait_for(state="visible", timeout=5000)
-            assert "is-wrong" in (hero_q.locator('[data-live-opt="0"]').get_attribute("class") or "")
-            hero_q.locator('[data-live-opt="1"]').click()
-            page.wait_for_function(
-                "() => document.querySelector('.mp-hero [data-live-opt=\"1\"]').classList.contains('is-right')"
-            )
-            assert "Это вопрос ОРТ" in (hero_q.locator("[data-live-badge]").text_content() or "")
-
-            # Dot engine perf stats check
-            perf = page.evaluate("() => window.__mondayDotEngine && window.__mondayDotEngine.getPerfStats()")
-            assert perf and perf["dpr"] <= 2 and perf["pointCount"] >= 260
 
             # Mode 1 (Мини-тест ОРТ): click bubble А on Q1 -> highlights right + reveals explanation -> advance to Q2 -> click В -> advance to Q3 -> click Б
             ort = page.locator("[data-ort-minitest]")
@@ -570,9 +637,21 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             assert "is-right" in (geom.locator('[data-challenge-opt]:has-text("24")').get_attribute("class") or "")
             geom.locator("[data-challenge-explain]").wait_for(state="visible", timeout=5000)
 
-            # Check /exams/ort in browser for zero CSP violations
+            # Check /exams/ort in browser for zero CSP violations & live dot-engine still working there
             page.goto(f"{base_url}/exams/ort", wait_until="networkidle")
             assert page.locator("#mp-exam-h").is_visible()
+            assert page.locator("[data-dot-canvas]").is_visible()
+
+            # Compact admin preview bar check (<= 60px tall at 1440px)
+            page.goto(f"{base_url}/login", wait_until="networkidle")
+            page.fill('input[name="email"]', "adm_pw@monday.kg")
+            page.fill('input[name="password"]', "StrongAdmin123!")
+            page.click('button[type="submit"]')
+            page.wait_for_load_state("networkidle")
+            page.set_viewport_size({"width": 1440, "height": 900})
+            page.goto(f"{base_url}/admin/preview?page=landing", wait_until="networkidle")
+            bar_h = page.locator("[data-preview-bar]").evaluate("el => Math.round(el.getBoundingClientRect().height)")
+            assert 30 <= bar_h <= 60, f"Admin preview bar not compact: {bar_h}px"
 
             assert page.evaluate("window.__csp") == []
             assert page.evaluate("window.__errs") == []

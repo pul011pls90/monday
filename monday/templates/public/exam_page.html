@@ -223,3 +223,7 @@
 {% set default_interest = exam.label %}
 {% include "public/_lead_form.html" %}
 {% endblock %}
+
+{% block page_scripts %}
+<script defer src="{{ url_for('static', filename='js/dot-engine.js') }}"></script>
+{% endblock %}

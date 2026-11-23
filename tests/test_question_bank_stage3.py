@@ -421,7 +421,6 @@ def test_every_question_serving_route_has_gating_decorator(tmp_path):
         "public_site.admin_preview",
         "public_site.admin_preview_exit",
         "public_site.admin_preview_subscription",
-        "public_site.api_hero_question",
         "public_site.api_hero_question_check",
         "public_site.api_public_stats",
         "public_site.contact",
