@@ -132,10 +132,43 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
             # When SELF_STUDY_SIGNUP_ENABLED is False (default), public pages must not link to /register
             assert 'href="/register"' not in body_txt, f"Unexpected /register link on {pub_url} when signup flag is off"
 
-    # Landing & base templates must contain zero inline style="" attributes (strict CSP)
-    for tpl_rel in ("monday/templates/public/landing.html", "monday/templates/public/_base.html"):
+    # Public & updated templates must contain zero inline style="" attributes (strict CSP)
+    for tpl_rel in (
+        "monday/templates/public/landing.html",
+        "monday/templates/public/_base.html",
+        "monday/templates/public/contact.html",
+        "monday/templates/public/pricing.html",
+        "monday/templates/public/question_bank.html",
+        "monday/templates/public/faq.html",
+    ):
         tpl_raw = (ROOT_DIR / tpl_rel).read_text(encoding="utf-8")
         assert "style=" not in tpl_raw.lower(), f"Inline style= attribute found in {tpl_rel}"
+
+    # Verify zero legacy monthly "$8/мес" / "$8 в месяц" phrasing across public & legal pages, and verify lifetime $8 copy + synced contacts
+    for check_url in ("/", "/question-bank", "/pricing", "/contact", "/faq", "/terms", "/privacy", "/refund"):
+        page_html = anon.get(check_url).data.decode("utf-8")
+        for forbidden_price in ("$8/мес", "$8 / мес", "$8 в месяц", "8$/мес"):
+            assert forbidden_price not in page_html, f"Legacy monthly phrasing {forbidden_price!r} found on {check_url}"
+        # Real contacts with inline SVG icons present in shared black footer on every public & legal page
+        for contact_piece in (
+            "https://wa.me/996700677803",
+            "https://wa.me/996555677803",
+            "https://t.me/+996700677803",
+            "https://t.me/+996555677803",
+            "https://instagram.com/monday_edc",
+            "mailto:temirlanmanasev@gmail.com",
+            "ул. Токтогула, 77",
+        ):
+            assert contact_piece in page_html, f"Missing synced contact {contact_piece!r} on {check_url}"
+
+    assert "Доступ навсегда — $8" in anon.get("/question-bank").data.decode("utf-8")
+    pricing_html = anon.get("/pricing").data.decode("utf-8")
+    assert "Разовая оплата · доступ навсегда" in pricing_html
+    assert "$8 — доступ навсегда" in pricing_html
+    terms_html = anon.get("/terms").data.decode("utf-8")
+    assert "разовая оплата $8 — доступ к банку вопросов навсегда" in terms_html
+    contact_html = anon.get("/contact").data.decode("utf-8")
+    assert "mp-contact-list" in contact_html and "+996 700 677 803" in contact_html and "+996 555 677 803" in contact_html
 
     r = anon.get("/")
     assert r.status_code == 200
@@ -771,8 +804,8 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             cta_btn_bg = cta_sec.locator(".mp-btn--soft").evaluate("el => getComputedStyle(el).backgroundColor")
             assert cta_btn_bg == "rgb(238, 244, 255)", f"Expected soft light-blue CTA button, got {cta_btn_bg}"
 
-            # Check /exams/ort, /question-bank, /login, /register in browser for zero CSP violations & zero horizontal overflow
-            for route in ("/exams/ort", "/question-bank", "/login", "/register"):
+            # Check /exams/ort, /question-bank, /pricing, /contact, /faq, /terms, /privacy, /refund, /login, /register for zero CSP issues & zero horizontal overflow
+            for route in ("/exams/ort", "/question-bank", "/pricing", "/contact", "/faq", "/terms", "/privacy", "/refund", "/login", "/register"):
                 resp_r = page.goto(f"{base_url}{route}", wait_until="networkidle")
                 assert resp_r.status == 200, f"{route} returned {resp_r.status}"
                 for vw, vh in ((1440, 900), (1024, 900), (390, 844)):

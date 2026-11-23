@@ -257,8 +257,10 @@ def test_site_preflight_blockers_happy_path_and_production_guard(tmp_path, capsy
     assert "Location" in cli_fail.output
     assert "AcademicCourse" in cli_fail.output
     assert "PUBLIC_LEGAL_REVIEWED" in cli_fail.output
-    assert "whatsapp" in cli_fail.output
     assert "[требует подтверждения" in cli_fail.output
+    with prod_app.app_context():
+        missing_wa = collect_site_preflight_blockers(contacts_override={"whatsapp": ""})
+        assert any("whatsapp" in b for b in missing_wa), missing_wa
 
     # 2. When all blockers are resolved (and using reviewed clean templates dir), preflight passes 0 blockers
     with prod_app.app_context():

@@ -4,7 +4,7 @@
   <div>
     <span class="mp-eyebrow-pill">{{ _("Тарифы") }}</span>
     <h1>{{ _("Выберите удобный способ подготовки") }}</h1>
-    <p class="mp-page-hero__lead" style="margin-bottom:0">{{ _("Подписка на банк вопросов даёт самостоятельный доступ ко всем тренажёрам. Абонемент на занятия с преподавателем оформляется через менеджера школы.") }}</p>
+    <p class="mp-page-hero__lead mp-m0">{{ _("Разовая оплата открывает самостоятельный доступ ко всем тренажёрам банка вопросов навсегда. Абонемент на занятия с преподавателем оформляется через менеджера школы.") }}</p>
   </div>
 </section>
 
@@ -12,30 +12,31 @@
   <article class="mp-subcard">
     <span class="mp-eyebrow-pill">{{ _("Старт") }}</span>
     <h3>{{ _("Бесплатный старт") }}</h3>
-    <p class="small text-2" style="margin:0">{{ _("Знакомство с платформой, открытые примеры задач и базовые ежедневные тренировки.") }}</p>
+    <p class="small text-2 mp-m0">{{ _("Знакомство с платформой, открытые примеры задач и базовые ежедневные тренировки.") }}</p>
     <ul class="mp-check-list">
       <li>{{ _("Публичные примеры задач по всем экзаменам") }}</li>
       <li>{{ _("Дневной лимит задач после входа в кабинет") }}</li>
       <li>{{ _("Диагностика и выбор целевого экзамена") }}</li>
     </ul>
-    <div style="margin-top:auto;padding-top:10px">
+    <div class="mp-mt-auto">
       <a class="mp-btn mp-btn--soft mp-btn--sm" href="{{ url_for('public_site.question_bank') }}">{{ _("Смотреть примеры") }}</a>
     </div>
   </article>
 
   <article class="mp-subcard mp-subcard--featured">
     <span class="mp-eyebrow-pill">{{ _("Рекомендуем для самоподготовки") }}</span>
-    <h3>{{ _("Подписка на банк вопросов") }}</h3>
-    <div style="font-family:var(--font-display, 'Unbounded', sans-serif);font-size:28px;font-weight:800;color:var(--pub-blue)">
-      {{ pricing.display_price }}<span class="small muted" style="font-size:14px;font-weight:600"> / {{ _("мес") }}</span>
+    <h3>{{ _("Доступ к банку вопросов") }}</h3>
+    <div class="mp-price-block">
+      <span class="mp-price-big num">{{ pricing.display_price }}</span>
+      <span class="mp-price-sub">{{ _("Разовая оплата · доступ навсегда") }}</span>
     </div>
-    <p class="small text-2" style="margin:0">{{ _("Для самостоятельной практики без учителя и расписания.") }}</p>
+    <p class="small text-2 mp-m0">{{ _("Для самостоятельной практики без учителя и расписания.") }}</p>
     <ul class="mp-check-list">
       <li>{{ _("Безлимитный доступ ко всем") }} <b class="num">{{ stats.published_questions }}</b> {{ _("задачам") }}</li>
       <li>{{ _("Симуляторы ОРТ и SAT с калькулятором Desmos") }}</li>
       <li>{{ _("5 режимов тренировочных сессий и шпаргалки формул") }}</li>
     </ul>
-    <div style="margin-top:auto;padding-top:10px">
+    <div class="mp-mt-auto">
       {% if config.get('SELF_STUDY_SIGNUP_ENABLED') %}
       <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ url_for('auth.register') }}">{{ _("Создать аккаунт") }}</a>
       {% else %}
@@ -47,13 +48,13 @@
   <article class="mp-subcard">
     <span class="mp-eyebrow-pill">{{ _("С преподавателем") }}</span>
     <h3>{{ _("Курсы с преподавателем") }}</h3>
-    <p class="small text-2" style="margin:0">{{ _("Групповые и индивидуальные занятия в аудиториях или онлайн — оставьте заявку на подбор группы.") }}</p>
+    <p class="small text-2 mp-m0">{{ _("Групповые и индивидуальные занятия в аудиториях или онлайн — оставьте заявку на подбор группы.") }}</p>
     <ul class="mp-check-list">
       <li>{{ _("Занятия офлайн в филиале или онлайн в мини-группе") }}</li>
       <li>{{ _("Проверка домашних заданий и письменных решений") }}</li>
       <li>{{ _("Полный доступ к банку вопросов Monday включён") }}</li>
     </ul>
-    <div style="margin-top:auto;padding-top:10px">
+    <div class="mp-mt-auto">
       <a class="mp-btn mp-btn--soft mp-btn--sm" href="{{ url_for('public_site.contact') }}#apply-form">{{ _("Оставить заявку") }}</a>
     </div>
   </article>
@@ -66,7 +67,7 @@
         <tr>
           <th>{{ _("Возможность") }}</th>
           <th>{{ _("Бесплатный старт") }}</th>
-          <th>{{ _("Подписка на банк вопросов") }} ({{ pricing.display_price }}/{{ _("мес") }})</th>
+          <th>{{ _("Банк вопросов") }} ({{ pricing.display_price }} — {{ _("доступ навсегда") }})</th>
           <th>{{ _("Занятия в Monday Academy") }}</th>
         </tr>
       </thead>
@@ -100,9 +101,9 @@
   </div>
 </section>
 
-<p class="small muted" style="margin:0">
+<p class="small muted mp-m0">
   <a href="{{ url_for('auth.terms') }}">{{ _("Условия использования") }}</a> ·
   <a href="{{ url_for('auth.privacy') }}">{{ _("Политика конфиденциальности") }}</a> ·
-  <a href="{{ url_for('auth.refund') }}">{{ _("Условия возврата и отмены подписки") }}</a>
+  <a href="{{ url_for('auth.refund') }}">{{ _("Условия возврата") }}</a>
 </p>
 {% endblock %}

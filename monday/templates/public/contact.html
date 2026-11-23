@@ -4,21 +4,75 @@
   <div>
     <span class="mp-eyebrow-pill">{{ _("Связаться с нами") }}</span>
     <h1>{{ _("Контакты и запись в Monday Academy") }}</h1>
-    <p class="mp-page-hero__lead" style="margin-bottom:0">{{ _("Оставьте заявку на консультацию или свяжитесь с нами напрямую через соцсети и службу поддержки.") }}</p>
+    <p class="mp-page-hero__lead mp-m0">{{ _("Оставьте заявку на консультацию или свяжитесь с нами напрямую через мессенджеры, соцсети и службу поддержки.") }}</p>
   </div>
 </section>
 
 <section class="pub-grid-2">
   <article class="mp-subcard mp-subcard--soft">
     <span class="mp-eyebrow-pill">{{ _("Прямая связь") }}</span>
-    <h2>{{ _("Мессенджеры и соцсети") }}</h2>
-    <div class="row" style="gap:10px;flex-wrap:wrap">
-      {% if CONTACTS.instagram %}<a class="mp-btn mp-btn--card mp-btn--sm" href="{{ CONTACTS.instagram }}" target="_blank" rel="noopener noreferrer">Instagram · @monday_edc</a>{% endif %}
-      {% if CONTACTS.telegram %}<a class="mp-btn mp-btn--card mp-btn--sm" href="{{ CONTACTS.telegram }}" target="_blank" rel="noopener noreferrer">Telegram</a>{% endif %}
-      {% if CONTACTS.whatsapp %}<a class="mp-btn mp-btn--card mp-btn--sm" href="{{ CONTACTS.whatsapp }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>{% endif %}
-      <a class="mp-btn mp-btn--card mp-btn--sm" href="mailto:temirlanmanasev@gmail.com">temirlanmanasev@gmail.com</a>
-    </div>
-    {% if CONTACTS.address %}<p class="small muted" style="margin:4px 0 0">{{ CONTACTS.address }}</p>{% endif %}
+    <h2>{{ _("Мессенджеры, соцсети и адрес") }}</h2>
+    <ul class="mp-contact-list">
+      <li class="mp-contact-item">
+        <span class="mp-contact-item__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 20.5l1.6-5.2A8.5 8.5 0 1 1 21 11.5Z"/><path d="M9.3 8.8c.2-.4.5-.5.8-.5h.5c.2 0 .5.1.6.4l.8 1.9c.1.3.1.6-.1.8l-.6.7c.5 1 1.4 1.9 2.4 2.4l.7-.6c.2-.2.5-.2.8-.1l1.9.8c.3.1.4.4.4.6v.5c0 .3-.1.6-.5.8-.6.4-1.5.5-2.6.1-1.9-.7-4.2-3-4.9-4.9-.4-1.1-.3-2 .1-2.6Z"/></svg>
+        </span>
+        <div class="mp-contact-item__body">
+          <span class="mp-contact-item__lbl">WhatsApp</span>
+          <div class="mp-contact-item__links">
+            <a href="https://wa.me/996700677803" target="_blank" rel="noopener noreferrer">+996 700 677 803</a>
+            <span class="muted" aria-hidden="true">/</span>
+            <a href="https://wa.me/996555677803" target="_blank" rel="noopener noreferrer">+996 555 677 803</a>
+          </div>
+        </div>
+      </li>
+      <li class="mp-contact-item">
+        <span class="mp-contact-item__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 3.5 2.5 11l7.2 2.6L19 6.5l-6.8 8.3v5.7l3.7-3.6 3.7 2.6 1.9-16Z"/></svg>
+        </span>
+        <div class="mp-contact-item__body">
+          <span class="mp-contact-item__lbl">Telegram</span>
+          <div class="mp-contact-item__links">
+            <a href="https://t.me/+996700677803" target="_blank" rel="noopener noreferrer">+996 700 677 803</a>
+            <span class="muted" aria-hidden="true">/</span>
+            <a href="https://t.me/+996555677803" target="_blank" rel="noopener noreferrer">+996 555 677 803</a>
+          </div>
+        </div>
+      </li>
+      <li class="mp-contact-item">
+        <span class="mp-contact-item__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </span>
+        <div class="mp-contact-item__body">
+          <span class="mp-contact-item__lbl">Instagram</span>
+          <div class="mp-contact-item__links">
+            <a href="https://instagram.com/monday_edc" target="_blank" rel="noopener noreferrer">@monday_edc</a>
+          </div>
+        </div>
+      </li>
+      <li class="mp-contact-item">
+        <span class="mp-contact-item__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>
+        </span>
+        <div class="mp-contact-item__body">
+          <span class="mp-contact-item__lbl">{{ _("Техподдержка") }}</span>
+          <div class="mp-contact-item__links">
+            <a href="mailto:temirlanmanasev@gmail.com">temirlanmanasev@gmail.com</a>
+          </div>
+        </div>
+      </li>
+      <li class="mp-contact-item">
+        <span class="mp-contact-item__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.3"/></svg>
+        </span>
+        <div class="mp-contact-item__body">
+          <span class="mp-contact-item__lbl">{{ _("Адрес") }}</span>
+          <div class="mp-contact-item__links">
+            <span>{{ _("ул. Токтогула, 77") }}</span>
+          </div>
+        </div>
+      </li>
+    </ul>
   </article>
 
   <article class="mp-subcard">
@@ -33,7 +87,7 @@
         </div>
       {% endfor %}
     {% else %}
-      <p class="text-2" style="margin:0">{{ _("Актуальные адреса и расписание групп уточняются при подтверждении заявки.") }}</p>
+      <p class="text-2 mp-m0">{{ _("Основной филиал: ул. Токтогула, 77. Актуальное расписание групп уточняется при подтверждении заявки.") }}</p>
     {% endif %}
   </article>
 </section>

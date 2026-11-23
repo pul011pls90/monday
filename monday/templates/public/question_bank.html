@@ -11,7 +11,7 @@
       {% else %}
       <a class="mp-btn mp-btn--blue" href="{{ url_for('auth.login') }}">{{ _("Войти в кабинет") }}</a>
       {% endif %}
-      <a class="mp-btn mp-btn--card" href="{{ url_for('public_site.pricing') }}">{{ _("Подписка от") }} {{ pricing.display_price }}/{{ _("мес") }}</a>
+      <a class="mp-btn mp-btn--card" href="{{ url_for('public_site.pricing') }}">{{ _("Доступ навсегда") }} — {{ pricing.display_price }}</a>
     </div>
   </div>
   <div class="pub-hero__card">
@@ -47,7 +47,7 @@
       {% for grp in sample_groups %}
       <div class="stack-sm">
         <div class="row row--between">
-          <h3 style="margin:0">{{ grp.label }}</h3>
+          <h3 class="mp-m0">{{ grp.label }}</h3>
           {% if grp.note %}<span class="small muted">{{ grp.note }}</span>{% endif %}
         </div>
         <div class="pub-grid-2">
@@ -79,7 +79,7 @@
             {% endif %}
             <div class="pub-sample-footer">
               <span class="small muted">{{ _("Проверка ответа и разбор решения открываются в личном кабинете.") }}</span>
-              <a class="small" href="{{ url_for('auth.login') }}" style="color:var(--pub-blue);font-weight:700">{{ _("Войти →") }}</a>
+              <a class="small mp-link-blue" href="{{ url_for('auth.login') }}">{{ _("Войти →") }}</a>
             </div>
           </article>
           {% endfor %}
@@ -90,8 +90,8 @@
   {% else %}
     <article class="mp-subcard mp-subcard--soft">
       <strong>{{ _("Примеры задач готовятся к публикации") }}</strong>
-      <p class="small text-2" style="margin:0">{{ _("Войдите в существующий аккаунт Monday Academy для работы с банком вопросов или оставьте заявку на консультацию.") }}</p>
-      <div class="row" style="gap:10px;flex-wrap:wrap">
+      <p class="small text-2 mp-m0">{{ _("Войдите в существующий аккаунт Monday Academy для работы с банком вопросов или оставьте заявку на консультацию.") }}</p>
+      <div class="row mp-row-wrap">
         <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ url_for('auth.login') }}">{{ _("Войти") }}</a>
         <a class="mp-btn mp-btn--card mp-btn--sm" href="{{ url_for('public_site.contact') }}#apply-form">{{ _("Оставить заявку") }}</a>
       </div>
@@ -122,20 +122,20 @@
 <section class="mp-subcard mp-subcard--soft">
   <div>
     <span class="mp-eyebrow-pill">{{ _("Режимы и инструменты") }}</span>
-    <h2 style="margin:10px 0 0">{{ _("Что открывается в банке вопросов") }}</h2>
+    <h2 class="mp-mt-10">{{ _("Что открывается в банке вопросов") }}</h2>
   </div>
   <div class="pub-grid-3">
     <div class="mp-subcard">
       <strong>{{ _("Короткие сессии") }}</strong>
-      <p class="small text-2" style="margin:0">{{ _("Режимы по слабым темам, работе над ошибками, сложным задачам и своя настройка времени.") }}</p>
+      <p class="small text-2 mp-m0">{{ _("Режимы по слабым темам, работе над ошибками, сложным задачам и своя настройка времени.") }}</p>
     </div>
     <div class="mp-subcard">
       <strong>{{ _("Таймер и калькулятор") }}</strong>
-      <p class="small text-2" style="margin:0">{{ _("Полная имитация формата экзамена: модульный SAT/CSCA с Desmos и страничный бланк ОРТ.") }}</p>
+      <p class="small text-2 mp-m0">{{ _("Полная имитация формата экзамена: модульный SAT/CSCA с Desmos и страничный бланк ОРТ.") }}</p>
     </div>
     <div class="mp-subcard">
-      <strong>{{ _("Подписка на банк вопросов") }}</strong>
-      <p class="small text-2" style="margin:0">{{ pricing.display_price }} {{ _("в месяц — без обязательного прикрепления к преподавателю или расписанию.") }}</p>
+      <strong>{{ _("Доступ к банку вопросов") }}</strong>
+      <p class="small text-2 mp-m0">{{ pricing.display_price }} — {{ _("доступ навсегда (разовая оплата), без обязательного прикрепления к преподавателю или расписанию.") }}</p>
     </div>
   </div>
 </section>

@@ -104,8 +104,8 @@ REPORT_KINDS = {
 CONTACTS = {
     "instagram": "https://www.instagram.com/monday_edc",
     "threads": "https://www.threads.net/@monday_edc",
-    "telegram": "https://t.me/mondayhelp",
-    "whatsapp": "",  # e.g. https://wa.me/996XXXXXXXXX
+    "telegram": "https://t.me/+996700677803",
+    "whatsapp": "https://wa.me/996700677803",
     "trial_lesson": "https://forms.gle/rsER8wVX9Lpg1P7R6",
-    "address": "Токтогула 77, Бишкек",
+    "address": "ул. Токтогула, 77",
 }

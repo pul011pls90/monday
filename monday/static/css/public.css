@@ -2395,6 +2395,124 @@ body.pub-body {
   gap: 8px;
 }
 
+.mp-footer__contacts {
+  display: grid;
+  gap: 10px;
+}
+.mp-footer__contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #FFFFFF;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.mp-footer__icon {
+  flex: none;
+  color: #9CA3AF;
+  transition: color 0.14s ease;
+}
+.mp-footer__contact:hover .mp-footer__icon {
+  color: #7FA3F3;
+}
+.mp-footer__links {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+.mp-footer__sep {
+  color: #6B7280;
+}
+.mp-footer__addr {
+  color: #E5E7EB;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Contact Page & Pricing Helpers (Zero Inline Styles) */
+.mp-m0 { margin: 0; }
+.mp-mt-4 { margin: 4px 0 0; }
+.mp-mt-10 { margin: 10px 0 0; }
+.mp-mt-auto { margin-top: auto; padding-top: 10px; }
+.mp-row-wrap { gap: 12px; flex-wrap: wrap; }
+.mp-link-blue { color: var(--pub-blue); font-weight: 700; }
+
+.mp-contact-list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.mp-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--pub-card);
+  border: 1px solid var(--pub-soft-border);
+}
+.mp-contact-item__icon {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--pub-soft);
+  border: 1px solid var(--pub-soft-border);
+  color: var(--pub-blue);
+  display: inline-grid;
+  place-items: center;
+}
+.mp-contact-item__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.mp-contact-item__lbl {
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pub-muted);
+}
+.mp-contact-item__links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 7px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--pub-navy);
+}
+.mp-contact-item__links a {
+  color: var(--pub-blue);
+  text-decoration: none;
+}
+.mp-contact-item__links a:hover {
+  text-decoration: underline;
+}
+
+.mp-price-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.mp-price-big {
+  font-family: var(--font-display, 'Unbounded', sans-serif);
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--pub-blue);
+}
+.mp-price-sub {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--pub-muted);
+}
+
 .mp-footer__bottom {
   padding-top: 22px;
   border-top: 1px solid #1F2937;
