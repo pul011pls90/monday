@@ -132,9 +132,10 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
             # When SELF_STUDY_SIGNUP_ENABLED is False (default), public pages must not link to /register
             assert 'href="/register"' not in body_txt, f"Unexpected /register link on {pub_url} when signup flag is off"
 
-    # Landing template must contain zero inline style="" attributes (strict CSP)
-    landing_tpl = (ROOT_DIR / "monday/templates/public/landing.html").read_text(encoding="utf-8")
-    assert "style=" not in landing_tpl.lower(), "Inline style= attribute found in landing.html"
+    # Landing & base templates must contain zero inline style="" attributes (strict CSP)
+    for tpl_rel in ("monday/templates/public/landing.html", "monday/templates/public/_base.html"):
+        tpl_raw = (ROOT_DIR / tpl_rel).read_text(encoding="utf-8")
+        assert "style=" not in tpl_raw.lower(), f"Inline style= attribute found in {tpl_rel}"
 
     r = anon.get("/")
     assert r.status_code == 200
@@ -143,9 +144,9 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
         "ОРТ · SAT · ЕГЭ · ЕНТ · ОГЭ · Школьная математика",
         "Персональный тренажёр по",
         "математике и экзаменам",
+        "Готовься к ОРТ, SAT, ЕГЭ, ЕНТ и школьной математике в одном месте.",
         "Я ученик",
         "Я преподаватель или родитель",
-        "У меня уже есть аккаунт",
         "mp-fan",
         "Закрасьте 1/2 фигуры",
         "(x + 2)(x + 1) = x² + [ ] + 2",
@@ -162,25 +163,34 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
         'data-exam="olymp"',
         'data-exam="calc1"',
         "Интерактивный тренажёр, а не просто ответы",
-        "Мини-тест ОРТ",
+        "Как устроена подготовка в Monday",
+        "Банк вопросов с фильтрами",
+        "Тренировочные сессии",
+        "Сборники и пробные тесты",
+        "Справочник и шпаргалки формул",
         "ОРТ · Математика",
         "Бланк ответов",
         "Колонка А",
         "Колонка Б",
         "Пройти полный вариант ОРТ →",
+        "mp-sky__wave-top",
+        "mp-sky__stars",
         "Desmos Graphing Calculator",
         "Digital SAT · Module 1",
         "Учись в любое время, с любого устройства",
+        "mp-aud-bg",
         "Для учеников",
         "Для преподавателей и родителей",
         "1. Диагностика уровня",
         "2. Интерактивная практика",
         "3. Контроль прогресса с преподавателем",
+        "data-cta-reveal",
+        "mp-cta-sky",
         "Начни подготовку с Monday сегодня",
-        "Прогноз ОРТ",
-        "Desmos встроен",
-        "Журнал ошибок",
+        "mp-btn--soft mp-btn--wide",
         "Начать бесплатно",
+        "mp-wave__layers",
+        "mp-wave-geom",
         "https://instagram.com/monday_edc",
         "mailto:temirlanmanasev@gmail.com",
         "© 2026 Monday Academy",
@@ -188,14 +198,16 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
     ):
         assert expected in html, f"Missing expected copy on /: {expected}"
 
-    # Verify restored hero view has no graph-paper grid, vertical step rail, or 6-tile chapter box
+    # Verify removed clutter: no center header nav links, no hero account/status lines, no 4-box metrics, no secondary tabs, no rectangular wave cards
+    assert 'class="mp-nav"' not in html
+    assert "У меня уже есть аккаунт" not in html
+    assert "Открытый доступ без подписки" not in html
+    assert 'class="mp-metrics"' not in html
+    assert 'data-mode-panel="exam"' not in html
+    assert 'class="mp-wave-card' not in html
     assert "data-math-bg" not in html
     assert "data-route-gutter" not in html
-    assert "data-hero-stage" not in html
-    assert "Каждая задача с разбором" not in html
     assert "static/js/dot-engine.js" not in html
-    assert "data-dot-canvas" not in html
-    assert "data-hero-question-card" not in html
     assert "data-strip-scroll" not in html
     assert "зад.</span>" not in html
     assert anon.get("/api/public/hero-question").status_code == 404
@@ -547,14 +559,15 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             assert actual_colors == expected_badge_colors, f"Marquee badge colors mismatch: {actual_colors}"
             assert len(set(actual_colors.values())) == 8
 
-            # Verify zero horizontal overflow, centered hero H1, and non-clipped sky-band cards at 1440px, 820px, and 390px viewports
-            for vw, vh in ((1440, 900), (820, 1024), (390, 844)):
+            # Verify zero horizontal overflow, centered hero H1, and non-clipped sky-band cards at 1440px, 1024px, and 390px viewports
+            for vw, vh in ((1440, 900), (1024, 900), (390, 844)):
                 page.set_viewport_size({"width": vw, "height": vh})
                 page.wait_for_timeout(100)
                 metrics = page.evaluate(
                     "() => {"
                     "  const r = document.querySelector('.mp-hero h1').getBoundingClientRect();"
                     "  const satFoot = document.querySelector('.mp-sat-card__foot').getBoundingClientRect();"
+                    "  const navPill = document.querySelector('.mp-header__pill').getBoundingClientRect();"
                     "  return {"
                     "    scrollW: document.documentElement.scrollWidth,"
                     "    innerW: window.innerWidth,"
@@ -562,7 +575,8 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
                     "    h1Right: r.right,"
                     "    h1Center: r.left + r.width / 2,"
                     "    satLeft: satFoot.left,"
-                    "    satRight: satFoot.right"
+                    "    satRight: satFoot.right,"
+                    "    navH: Math.round(navPill.height)"
                     "  };"
                     "}"
                 )
@@ -570,12 +584,16 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
                 assert metrics["h1Left"] >= 0 and metrics["h1Right"] <= metrics["innerW"] + 1, f"H1 clipped at {vw}px: {metrics}"
                 assert abs(metrics["h1Center"] - metrics["innerW"] / 2) <= 24, f"H1 not centered at {vw}px: {metrics}"
                 assert metrics["satLeft"] >= 0 and metrics["satRight"] <= metrics["innerW"] + 1, f"Mastery badge clipped at {vw}px: {metrics}"
+                assert metrics["navH"] <= 72, f"Minimal navbar wrapped at {vw}px: {metrics}"
 
             page.set_viewport_size({"width": 1280, "height": 840})
 
-            # Mode 1 (Мини-тест ОРТ): click bubble А on Q1 -> highlights right + reveals explanation -> advance to Q2 -> click В -> advance to Q3 -> click Б
+            # Unified ORT Mini-Test: click bubble А on Q1 -> highlights right + reveals explanation -> advance to Q2 -> click В -> advance to Q3 -> click Б
             ort = page.locator("[data-ort-minitest]")
             assert ort.is_visible()
+            assert page.locator(".mp-page-card").count() == 4
+            assert page.locator('[data-mode-panel="exam"]').count() == 0
+
             q0 = ort.locator('[data-ort-q="0"]')
             q0.locator('[data-ort-bubble][aria-label="А"]').click()
             q0.locator("[data-ort-explain]").wait_for(state="visible", timeout=5000)
@@ -594,14 +612,12 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             q2.locator("[data-ort-explain]").wait_for(state="visible", timeout=5000)
             assert q2.locator('a:has-text("Пройти полный вариант ОРТ")').is_visible()
 
-            # Switch to Mode 2 (По темам) -> switch subject tab -> Геометрия -> solve correctly
-            page.click('[data-mode-btn="exam"]')
-            page.click('[data-subject-tab="geometry"]')
-            geom = page.locator('[data-subject-panel="geometry"]')
-            geom.wait_for(state="visible", timeout=5000)
-            geom.locator('[data-challenge-opt]:has-text("24")').click()
-            assert "is-right" in (geom.locator('[data-challenge-opt]:has-text("24")').get_attribute("class") or "")
-            geom.locator("[data-challenge-explain]").wait_for(state="visible", timeout=5000)
+            # Pre-footer sun & clouds reveal on scroll into view + soft light-blue CTA button color
+            cta_sec = page.locator("[data-cta-reveal]")
+            cta_sec.scroll_into_view_if_needed()
+            page.wait_for_function("() => document.querySelector('[data-cta-reveal]').classList.contains('is-revealed')")
+            cta_btn_bg = cta_sec.locator(".mp-btn--soft").evaluate("el => getComputedStyle(el).backgroundColor")
+            assert cta_btn_bg == "rgb(238, 244, 255)", f"Expected soft light-blue CTA button, got {cta_btn_bg}"
 
             # Check /exams/ort in browser for zero CSP violations & live dot-engine still working there
             page.goto(f"{base_url}/exams/ort", wait_until="networkidle")

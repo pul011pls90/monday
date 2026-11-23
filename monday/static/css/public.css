@@ -856,43 +856,55 @@ body.pub-body {
   color: var(--pub-muted);
 }
 
-.mp-modes {
+.mp-pages-list {
   list-style: none;
-  margin: 4px 0 0;
+  margin: 6px 0 0;
   padding: 0;
   display: grid;
-  gap: 10px;
+  gap: 11px;
   flex: 1;
   align-content: space-between;
 }
-.mp-modes li {
+.mp-page-card {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 11px 13px;
-  border-radius: 14px;
+  padding: 13px 15px;
+  border-radius: 16px;
   background: var(--pub-soft);
   border: 1px solid var(--pub-soft-border);
+  transition: border-color 0.14s ease, background 0.14s ease;
 }
-.mp-modes__dot {
+.mp-page-card:hover {
+  border-color: var(--pub-blue);
+  background: var(--pub-soft-hover);
+}
+.mp-page-card__num {
   flex: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
   background: var(--pub-card);
   border: 1px solid var(--pub-soft-border);
   color: var(--pub-blue);
-  font: 800 13px/1 var(--font);
+  font: 800 13px/1 var(--font-display, 'Unbounded', sans-serif);
   display: grid;
   place-items: center;
+  margin-top: 1px;
 }
-.mp-modes__dot--green { background: #E7F6EE; color: #116A3F; border-color: #A7E3C5; }
-.mp-modes__dot--yellow { background: #FDF6DD; color: #7A5200; border-color: #F3D98B; }
-.mp-modes__dot--red { background: #FCE6E6; color: #A12323; border-color: #F5B5B5; }
-.mp-modes__dot--purple { background: #F1EAFE; color: #5B33B8; border-color: #D6C2FA; }
-.mp-modes__dot--blue { background: #FFFFFF; color: #1F4FE0; border-color: #C7DBFF; }
-.mp-modes__time { font-size: 12.5px; color: var(--pub-muted); }
-.mp-modes__desc { display: block; font-size: 13px; color: var(--pub-muted); margin-top: 2px; }
+.mp-page-card strong {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--pub-navy);
+  line-height: 1.3;
+}
+.mp-page-card p {
+  margin: 3px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--pub-muted);
+}
 
 .mp-stage {
   background: var(--pub-soft);
@@ -1149,19 +1161,97 @@ body.pub-body {
 }
 
 /* ==========================================================================
-   7. Sky-Blue Band with Desmos & Digital SAT/CSCA Mockups (.mp-sky)
+   7. Sky-Blue Band with Animated Top Wave, 4-Pointed Stars & Desmos/SAT Mockups (.mp-sky)
    ========================================================================== */
 .mp-sky {
   position: relative;
   width: 100%;
-  overflow-x: clip;
-  background: linear-gradient(180deg, var(--pub-soft) 0%, var(--pub-sky) 100%);
-  border-top: 1px solid var(--pub-soft-border);
+  overflow: hidden;
+  background: linear-gradient(180deg, #E6F2FF 0%, var(--pub-sky) 100%);
   border-bottom: 1px solid var(--pub-soft-border);
-  padding: 72px 24px;
+  padding: 108px 24px 76px;
+}
+[data-theme="dark"] .mp-sky {
+  background: linear-gradient(180deg, #13203A 0%, var(--pub-sky) 100%);
+}
+
+/* Smooth Animated Sky-Blue Top Wave (Zero Purple) */
+.mp-sky__wave-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 76px;
+  background: var(--pub-canvas);
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+.mp-sky__wave-svg {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 200%;
+  height: 72px;
+  display: block;
+}
+.mp-sky__wave-svg--back path {
+  fill: #C7DBFF;
+  opacity: 0.55;
+}
+.mp-sky__wave-svg--front path {
+  fill: #E6F2FF;
+}
+[data-theme="dark"] .mp-sky__wave-svg--back path {
+  fill: #1E3A8A;
+  opacity: 0.5;
+}
+[data-theme="dark"] .mp-sky__wave-svg--front path {
+  fill: #13203A;
+}
+.mp-sky__wave-svg--back {
+  animation: mpWaveDrift 18s linear infinite;
+}
+.mp-sky__wave-svg--front {
+  animation: mpWaveDrift 12s linear infinite reverse;
+}
+
+@keyframes mpWaveDrift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Crisp 4-Pointed Geometric Stars around Top Wave & Corners */
+.mp-sky__stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.mp-star {
+  position: absolute;
+  fill: #1F4FE0;
+  opacity: 0.32;
+  animation: mpStarTwinkle 4.2s ease-in-out infinite;
+}
+[data-theme="dark"] .mp-star {
+  fill: #7FA3F3;
+  opacity: 0.48;
+}
+.mp-star--1 { top: 72px; left: 5%; width: 18px; height: 18px; animation-delay: 0s; }
+.mp-star--2 { top: 58px; left: 26%; width: 12px; height: 12px; fill: #2B60E5; animation-delay: 1.1s; }
+.mp-star--3 { top: 64px; right: 24%; width: 14px; height: 14px; animation-delay: 0.6s; }
+.mp-star--4 { top: 78px; right: 5%; width: 20px; height: 20px; fill: #2B60E5; animation-delay: 1.8s; }
+.mp-star--5 { bottom: 26px; left: 4%; width: 14px; height: 14px; animation-delay: 2.3s; }
+
+@keyframes mpStarTwinkle {
+  0%, 100% { transform: scale(0.86) translateY(0); opacity: 0.24; }
+  50% { transform: scale(1.14) translateY(-4px); opacity: 0.62; }
 }
 
 .mp-sky__grid {
+  position: relative;
+  z-index: 2;
   max-width: 1180px;
   margin: 0 auto;
   display: grid;
@@ -1388,8 +1478,43 @@ body.pub-body {
 }
 
 /* ==========================================================================
-   8. Audience Split (#for-teachers / .mp-aud) & 3-Step Loop (.mp-loop)
+   8. Audience Split (#for-teachers / .mp-aud) + Subtle Math Background Line-Art
    ========================================================================== */
+.mp-audience {
+  position: relative;
+  overflow: hidden;
+}
+
+.mp-aud-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.mp-aud-bg__art {
+  position: absolute;
+  fill: none;
+  stroke: #1F4FE0;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.1;
+}
+[data-theme="dark"] .mp-aud-bg__art {
+  stroke: #5B8CFF;
+  opacity: 0.15;
+}
+.mp-aud-bg__art--tl { top: 24px; left: max(-24px, calc(50% - 700px)); width: 230px; height: auto; }
+.mp-aud-bg__art--tr { top: 28px; right: max(-24px, calc(50% - 700px)); width: 210px; height: auto; }
+.mp-aud-bg__art--bl { bottom: 18px; left: max(-18px, calc(50% - 690px)); width: 195px; height: auto; }
+.mp-aud-bg__art--br { bottom: 26px; right: max(-20px, calc(50% - 700px)); width: 230px; height: auto; }
+
+.mp-aud-wrap {
+  position: relative;
+  z-index: 1;
+}
+
 .mp-aud {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1506,14 +1631,14 @@ body.pub-body {
 }
 
 /* ==========================================================================
-   9. Pre-Footer CTA & Organic Monday Blue Wave (.mp-cta & .mp-wave)
+   9. Pre-Footer CTA with Interactive Sun & Clouds + Animated Blue Wave + Math Shapes
    ========================================================================== */
 .mp-cta {
   position: relative;
   width: 100%;
   background: var(--pub-card);
   border-top: 1px solid var(--pub-soft-border);
-  padding-top: 64px;
+  padding-top: 44px;
   overflow: hidden;
 }
 
@@ -1530,6 +1655,48 @@ body.pub-body {
   gap: 14px;
 }
 
+/* Interactive Sun & Soft Layered Clouds Reveal Above Headline */
+.mp-cta-sky {
+  width: min(300px, 84%);
+  height: 104px;
+  margin-bottom: -4px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(18px) scale(0.96);
+  transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.mp-cta:hover .mp-cta-sky,
+.mp-cta:focus-within .mp-cta-sky,
+.mp-cta.is-revealed .mp-cta-sky {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.mp-cta-sky__svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+.mp-cta-sun {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mpSunPulse 4.6s ease-in-out infinite;
+}
+.mp-cta-cloud--back {
+  animation: mpCloudDrift 7.5s ease-in-out infinite;
+}
+.mp-cta-cloud--front {
+  animation: mpCloudDrift 6.2s ease-in-out 0.8s infinite reverse;
+}
+@keyframes mpSunPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+@keyframes mpCloudDrift {
+  0%, 100% { transform: translateX(-5px); }
+  50% { transform: translateX(6px); }
+}
+
 .mp-cta__lead {
   margin: 0 0 6px;
   font-size: 16.5px;
@@ -1544,14 +1711,34 @@ body.pub-body {
   display: flex;
   justify-content: center;
   align-items: flex-end;
+  overflow: hidden;
 }
 
-.mp-wave__svg {
+.mp-wave__layers {
   position: absolute;
   inset: 0;
-  width: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+.mp-wave__layer {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 200%;
   height: 100%;
   display: block;
+}
+.mp-wave__layer--pale {
+  opacity: 0.52;
+  animation: mpWaveDrift 22s linear infinite;
+}
+.mp-wave__layer--mid {
+  opacity: 0.72;
+  animation: mpWaveDrift 16s linear infinite reverse;
+}
+.mp-wave__layer--deep {
+  opacity: 1;
+  animation: mpWaveDrift 13s linear infinite;
 }
 
 .mp-wave__stage {
@@ -1580,118 +1767,59 @@ body.pub-body {
   filter: drop-shadow(0 14px 28px rgba(2, 11, 41, 0.35));
 }
 
-/* Purposeful Information-Carrying Pre-Footer Floating Micro-Cards */
-.mp-wave-card {
+/* Geometric Math Shapes & Symbols Floating Over Animated Blue Wave */
+.mp-wave-geom {
   position: absolute;
-  z-index: 3;
-  background: var(--pub-card);
-  border: 1px solid var(--pub-soft-border);
-  border-radius: 16px;
-  padding: 11px 14px;
-  box-shadow: 0 10px 26px rgba(2, 11, 41, 0.22);
-  color: var(--pub-ink);
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  max-width: 230px;
+  z-index: 2;
+  pointer-events: none;
 }
-.mp-wave-card--left {
-  left: 32px;
-  bottom: 34px;
-  min-width: 176px;
-}
-.mp-wave-card--top-left {
-  left: 110px;
-  top: 22px;
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-}
-.mp-wave-card--top-right {
-  right: 110px;
-  top: 22px;
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-}
-.mp-wave-card--right {
-  right: 32px;
-  bottom: 38px;
-}
-
-.mp-wave-card__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-.mp-wave-card__eyebrow {
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--pub-blue);
-}
-.mp-wave-card__delta {
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: #E7F6EE;
-  color: #116A3F;
-  font-size: 11px;
-  font-weight: 800;
-}
-.mp-wave-card__val {
-  font-family: var(--font-display, 'Unbounded', sans-serif);
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--pub-navy);
-}
-.mp-wave-card__val small {
-  font-size: 12px;
-  color: var(--pub-muted);
-  font-weight: 600;
-}
-.mp-wave-card__bar {
-  height: 6px;
-  border-radius: 999px;
-  background: var(--pub-soft);
-  overflow: hidden;
-}
-.mp-wave-card__bar span {
-  display: block;
+.mp-wave-geom svg {
+  width: 100%;
   height: 100%;
-  border-radius: 999px;
-  background: var(--pub-blue);
-}
-.mp-wave-card__icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  background: var(--pub-soft);
-  border: 1px solid var(--pub-soft-border);
-  color: var(--pub-blue);
-  font-weight: 800;
-  font-size: 14px;
-  display: inline-grid;
-  place-items: center;
-  flex: none;
-}
-.mp-wave-card strong {
   display: block;
-  font-size: 12.5px;
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.86);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 4px 12px rgba(10, 26, 92, 0.22));
+}
+.mp-wave-geom--tri { width: 74px; height: 74px; left: 7%; bottom: 44px; }
+.mp-wave-geom--arc { width: 68px; height: 68px; left: 22%; top: 30px; }
+.mp-wave-geom--arc svg { stroke: rgba(31, 79, 224, 0.72); }
+[data-theme="dark"] .mp-wave-geom--arc svg { stroke: rgba(187, 207, 244, 0.88); }
+.mp-wave-geom--axes { width: 82px; height: 70px; right: 8%; bottom: 46px; }
+
+.mp-wave-sym {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  font-family: var(--font-display, 'Unbounded', sans-serif);
   font-weight: 800;
-  color: var(--pub-navy);
-  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 6px 18px rgba(10, 26, 92, 0.25);
+  line-height: 1;
 }
-.mp-wave-card span {
-  font-size: 11.5px;
-  color: var(--pub-muted);
+.mp-wave-sym--pi { font-size: 36px; left: 16%; bottom: 108px; }
+.mp-wave-sym--sqrt { font-size: 32px; left: 30%; bottom: 52px; color: #DBEAFE; }
+.mp-wave-sym--sum { font-size: 34px; right: 24%; top: 34px; color: #1F4FE0; text-shadow: none; opacity: 0.72; }
+[data-theme="dark"] .mp-wave-sym--sum { color: #BBCFF4; opacity: 0.88; }
+.mp-wave-sym--inf { font-size: 38px; right: 20%; bottom: 104px; }
+
+.mp-wave-star {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  width: 22px;
+  height: 22px;
+  fill: #FFFFFF;
+  opacity: 0.88;
+  animation: mpStarTwinkle 3.8s ease-in-out infinite;
 }
-.mp-wave-card__langs {
-  font-size: 12.5px;
-  font-weight: 800;
-  color: var(--pub-navy);
-}
+.mp-wave-star--l { left: 11%; top: 54px; fill: #2B60E5; }
+.mp-wave-star--r { right: 13%; top: 58px; fill: #2B60E5; animation-delay: 1.4s; }
+[data-theme="dark"] .mp-wave-star--l,
+[data-theme="dark"] .mp-wave-star--r { fill: #93C5FD; }
 
 /* ==========================================================================
    10. Strictly Jet-Black 4-Column Footer (.mp-footer)
@@ -2463,13 +2591,6 @@ body.pub-body {
 }
 
 @media (max-width: 960px) {
-  .mp-nav,
-  .mp-hide-md {
-    display: none;
-  }
-  .mp-nav-toggle {
-    display: inline-flex;
-  }
   .mp-split,
   .mp-aud,
   .pub-hero,
@@ -2479,7 +2600,6 @@ body.pub-body {
   .br-problem {
     grid-template-columns: 1fr;
   }
-  .mp-metrics,
   .pub-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2492,12 +2612,39 @@ body.pub-body {
   .mp-footer__cols {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .mp-wave-card {
+  .mp-wave-geom,
+  .mp-wave-sym,
+  .mp-wave-star {
     display: none;
   }
 }
 
 @media (max-width: 560px) {
+  .mp-header__pill {
+    padding: 7px 10px 7px 14px;
+    gap: 8px;
+  }
+  .mp-brand {
+    font-size: 15.5px;
+    gap: 7px;
+  }
+  .mp-brand__mark {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+  .mp-header__actions {
+    gap: 6px;
+  }
+  .mp-icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+  .mp-pill {
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 12.5px;
+  }
   .pub-main {
     padding: 16px 14px 48px;
     gap: 28px;
@@ -2508,6 +2655,9 @@ body.pub-body {
   }
   .mp-section {
     padding: 48px 0;
+  }
+  .mp-sky {
+    padding: 96px 16px 56px;
   }
   .pub-hero,
   .mp-page-hero {
@@ -2547,11 +2697,22 @@ body.pub-body {
   .mp-float,
   .mp-fan__card,
   .mp-marquee__track,
-  .mp-desmos-hand {
+  .mp-desmos-hand,
+  .mp-sky__wave-svg,
+  .mp-star,
+  .mp-wave__layer,
+  .mp-wave-star,
+  .mp-cta-sun,
+  .mp-cta-cloud {
     animation: none !important;
   }
-  .mp-fan__item {
+  .mp-fan__item,
+  .mp-cta-sky {
     transition: none !important;
+  }
+  .mp-cta-sky {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 

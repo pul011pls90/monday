@@ -50,7 +50,7 @@
 {% endif %}
 
 <div class="pub-shell">
-  {# ------------------------------------------------------------------ floating pill navbar #}
+  {# ------------------------------------------------------------------ minimal floating pill navbar #}
   <header class="mp-header">
     <div class="mp-header__pill">
       <a class="mp-brand" href="{{ url_for('auth.index') }}" aria-label="Monday Academy">
@@ -58,41 +58,14 @@
         <span>MONDAY</span>
       </a>
 
-      <nav class="mp-nav" aria-label="{{ _('Навигация по сайту') }}">
-        <a class="mp-nav__link {{ 'is-active' if ep == 'public_site.question_bank' }}" href="{{ url_for('public_site.question_bank') }}">{{ _("Банк вопросов") }}</a>
-        <a class="mp-nav__link {{ 'is-active' if ep == 'public_site.offline_courses' }}" href="{{ url_for('public_site.offline_courses') }}">{{ _("Офлайн") }}</a>
-        <a class="mp-nav__link {{ 'is-active' if ep == 'public_site.online_courses' }}" href="{{ url_for('public_site.online_courses') }}">{{ _("Онлайн") }}</a>
-        <a class="mp-nav__link {{ 'is-active' if ep == 'public_site.pricing' }}" href="{{ url_for('public_site.pricing') }}">{{ _("Тарифы") }}</a>
-        <a class="mp-nav__link {{ 'is-active' if ep == 'public_site.faq' }}" href="{{ url_for('public_site.faq') }}">{{ _("FAQ") }}</a>
-        <a class="mp-nav__link {{ 'is-active' if ep == 'public_site.contact' }}" href="{{ url_for('public_site.contact') }}">{{ _("Контакты") }}</a>
-      </nav>
-
       <div class="mp-header__actions">
         <form method="post" action="{{ url_for('auth.toggle_theme') }}" class="mp-theme-form">
           {{ ui.csrf() }}
           <input type="hidden" name="next" value="{{ request.full_path }}">
           <button class="mp-icon-btn" type="submit" aria-label="{{ _('Сменить тему') }}">{{ ui.icon('moon' if THEME == 'light' else 'sun', 16) }}</button>
         </form>
-        <a class="mp-pill mp-pill--ghost mp-hide-md" href="{{ url_for('auth.login') }}">{{ _("Войти") }}</a>
-        <a class="mp-pill mp-pill--blue mp-hide-md" href="{{ start_url }}">{{ _("Начать") }}</a>
-        <button class="mp-nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="mp-nav-panel" aria-label="{{ _('Меню') }}">
-          <span class="mp-nav-toggle__bar" aria-hidden="true"></span>
-          <span class="mp-nav-toggle__bar" aria-hidden="true"></span>
-          <span class="mp-nav-toggle__bar" aria-hidden="true"></span>
-        </button>
-      </div>
-
-      <div class="mp-nav-panel" id="mp-nav-panel" data-nav-panel hidden>
-        <a class="mp-nav-panel__link" href="{{ url_for('public_site.question_bank') }}">{{ _("Банк вопросов") }}</a>
-        <a class="mp-nav-panel__link" href="{{ url_for('public_site.offline_courses') }}">{{ _("Офлайн-курсы") }}</a>
-        <a class="mp-nav-panel__link" href="{{ url_for('public_site.online_courses') }}">{{ _("Онлайн-курсы") }}</a>
-        <a class="mp-nav-panel__link" href="{{ url_for('public_site.pricing') }}">{{ _("Тарифы") }}</a>
-        <a class="mp-nav-panel__link" href="{{ url_for('public_site.faq') }}">{{ _("FAQ") }}</a>
-        <a class="mp-nav-panel__link" href="{{ url_for('public_site.contact') }}">{{ _("Контакты") }}</a>
-        <div class="mp-nav-panel__ctas">
-          <a class="mp-pill mp-pill--ghost" href="{{ url_for('auth.login') }}">{{ _("Войти") }}</a>
-          <a class="mp-pill mp-pill--blue" href="{{ start_url }}">{{ _("Начать") }}</a>
-        </div>
+        <a class="mp-pill mp-pill--ghost" href="{{ url_for('auth.login') }}">{{ _("Войти") }}</a>
+        <a class="mp-pill mp-pill--blue" href="{{ start_url }}">{{ _("Начать") }}</a>
       </div>
     </div>
   </header>
