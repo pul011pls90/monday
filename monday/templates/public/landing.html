@@ -154,54 +154,169 @@
   </div>
 </section>
 
-{# =========================================================================== 3. Interactive Sandbox: Real Monday Platform Pages + Unified ORT Test Template #}
+{# =========================================================================== 3. Interactive Sandbox: 4 Interactive Monday Platform Tabs + Live Mini-Demos #}
 <section id="try-challenge" class="mp-section mp-sandbox" data-landing-challenge aria-labelledby="mp-try-h">
   <div class="mp-wrap">
     <div class="mp-head">
       <span class="mp-badge-glow">{{ _("Интерактивный тренажёр") }}</span>
       <h2 id="mp-try-h" class="mp-h2">{{ _("Интерактивный тренажёр, а не просто ответы") }}</h2>
-      <p class="mp-head__lead">{{ _("Отметьте кружок на бланке ответов ОРТ — проверка и пошаговое решение откроются мгновенно.") }}</p>
+      <p class="mp-head__lead">{{ _("Выберите любой инструмент слева — попробуйте фильтр банка вопросов, мини-сессию, бланк ОРТ или справочник формул прямо здесь.") }}</p>
     </div>
 
     <div class="mp-split">
       <div class="mp-copy">
         <h3>{{ _("Как устроена подготовка в Monday") }}</h3>
         <p>{{ _("Всё для системной подготовки собрано в одном кабинете: фильтры задач, адаптивные сессии, реальные пробные варианты и справочник формул.") }}</p>
-        <ul class="mp-pages-list">
-          <li class="mp-page-card">
+        <div class="mp-pages-list" role="tablist" aria-label="{{ _('Инструменты платформы Monday') }}">
+          <button type="button" role="tab" id="mp-tab-bank" class="mp-page-card" data-demo-tab="bank" aria-selected="false" aria-controls="mp-demo-panel-bank">
             <span class="mp-page-card__num num" aria-hidden="true">1</span>
-            <div>
+            <span class="mp-page-card__body">
               <strong>{{ _("Банк вопросов с фильтрами") }}</strong>
-              <p>{{ _("Поиск задач по экзамену, теме, навыку и сложности с мгновенной проверкой и разбором.") }}</p>
-            </div>
-          </li>
-          <li class="mp-page-card">
+              <span class="mp-page-card__desc">{{ _("Поиск задач по экзамену, теме, навыку и сложности с мгновенной проверкой и разбором.") }}</span>
+            </span>
+            <span class="mp-page-card__arrow" aria-hidden="true">→</span>
+          </button>
+          <button type="button" role="tab" id="mp-tab-session" class="mp-page-card" data-demo-tab="session" aria-selected="false" aria-controls="mp-demo-panel-session">
             <span class="mp-page-card__num num" aria-hidden="true">2</span>
-            <div>
+            <span class="mp-page-card__body">
               <strong>{{ _("Тренировочные сессии") }}</strong>
-              <p>{{ _("Короткие и настраиваемые сессии по слабым темам и журналу ошибок.") }}</p>
-            </div>
-          </li>
-          <li class="mp-page-card">
+              <span class="mp-page-card__desc">{{ _("Короткие и настраиваемые сессии по слабым темам и журналу ошибок.") }}</span>
+            </span>
+            <span class="mp-page-card__arrow" aria-hidden="true">→</span>
+          </button>
+          <button type="button" role="tab" id="mp-tab-tests" class="mp-page-card is-active" data-demo-tab="tests" aria-selected="true" aria-controls="mp-demo-panel-tests">
             <span class="mp-page-card__num num" aria-hidden="true">3</span>
-            <div>
+            <span class="mp-page-card__body">
               <strong>{{ _("Сборники и пробные тесты") }}</strong>
-              <p>{{ _("Полноценные варианты ОРТ, SAT, ЕГЭ, ЕНТ, ОГЭ, CSCA и еженедельный Monday Test.") }}</p>
-            </div>
-          </li>
-          <li class="mp-page-card">
+              <span class="mp-page-card__desc">{{ _("Полноценные варианты ОРТ, SAT, ЕГЭ, ЕНТ, ОГЭ, CSCA и еженедельный Monday Test.") }}</span>
+            </span>
+            <span class="mp-page-card__arrow" aria-hidden="true">→</span>
+          </button>
+          <button type="button" role="tab" id="mp-tab-formulas" class="mp-page-card" data-demo-tab="formulas" aria-selected="false" aria-controls="mp-demo-panel-formulas">
             <span class="mp-page-card__num num" aria-hidden="true">4</span>
-            <div>
+            <span class="mp-page-card__body">
               <strong>{{ _("Справочник и шпаргалки формул") }}</strong>
-              <p>{{ _("Личные подборки формул и интерактивный справочник по тригонометрии.") }}</p>
-            </div>
-          </li>
-        </ul>
+              <span class="mp-page-card__desc">{{ _("Личные подборки формул и интерактивный справочник по тригонометрии.") }}</span>
+            </span>
+            <span class="mp-page-card__arrow" aria-hidden="true">→</span>
+          </button>
+        </div>
       </div>
 
       <div class="mp-stage">
-        {# Unified Authentic Paper-Style Monday ORT Test Card + Bubble Sheet #}
-        <div class="mp-stage__card">
+        {# ==================== TAB 1: Question Bank Mini-Filter & Runner ==================== #}
+        <div class="mp-stage__card" id="mp-demo-panel-bank" role="tabpanel" aria-labelledby="mp-tab-bank" data-demo-panel="bank" hidden>
+          <div class="mp-demo-pane" data-bank-demo>
+            <header class="mp-ort__top">
+              <span class="mp-eyebrow-pill">{{ _("Банк вопросов · Фильтр") }}</span>
+              <span class="mp-ort__timer">{{ _("Мгновенный разбор") }}</span>
+            </header>
+
+            <div class="mp-bank-filters">
+              <div class="mp-bank-row">
+                <span class="mp-bank-row__lbl">{{ _("Экзамен") }}</span>
+                <div class="mp-pill-group" role="group" aria-label="{{ _('Фильтр экзамена') }}">
+                  <button type="button" class="mp-chip is-active" data-bank-filter="exam" data-value="ORT" aria-pressed="true">ОРТ</button>
+                  <button type="button" class="mp-chip" data-bank-filter="exam" data-value="SAT" aria-pressed="false">SAT</button>
+                  <button type="button" class="mp-chip" data-bank-filter="exam" data-value="EGE" aria-pressed="false">ЕГЭ</button>
+                </div>
+              </div>
+              <div class="mp-bank-row">
+                <span class="mp-bank-row__lbl">{{ _("Тема") }}</span>
+                <div class="mp-pill-group" role="group" aria-label="{{ _('Фильтр темы') }}">
+                  <button type="button" class="mp-chip is-active" data-bank-filter="topic" data-value="alg" aria-pressed="true">{{ _("Алгебра") }}</button>
+                  <button type="button" class="mp-chip" data-bank-filter="topic" data-value="geo" aria-pressed="false">{{ _("Геометрия") }}</button>
+                </div>
+              </div>
+              <div class="mp-bank-row mp-bank-row--action">
+                <span class="mp-bank-row__lbl">{{ _("Сложность") }}</span>
+                <div class="mp-pill-group" role="group" aria-label="{{ _('Фильтр сложности') }}">
+                  <button type="button" class="mp-chip is-active" data-bank-filter="diff" data-value="easy" aria-pressed="true">{{ _("Базовая") }}</button>
+                  <button type="button" class="mp-chip" data-bank-filter="diff" data-value="medium" aria-pressed="false">{{ _("Средняя") }}</button>
+                </div>
+                <button type="button" class="mp-btn mp-btn--blue mp-btn--sm mp-bank-show" data-bank-show>{{ _("Показать задачу") }}</button>
+              </div>
+            </div>
+
+            <article class="mp-bank-qcard" data-bank-card>
+              <div class="mp-bank-qcard__meta" data-bank-meta>ОРТ · Алгебра · Базовая</div>
+              <div class="mp-bank-qcard__prompt math" data-bank-prompt></div>
+              <div class="br-options mp-bank-opts" data-bank-opts></div>
+              <div class="br-explain" data-bank-explain hidden aria-live="polite">
+                <div class="br-explain__status" data-bank-status></div>
+                <ol class="br-explain__steps" data-bank-steps></ol>
+              </div>
+            </article>
+
+            <div class="mp-demo-foot">
+              <a class="mp-btn mp-btn--soft mp-btn--sm" href="{{ url_for('public_site.question_bank') }}">{{ _("Открыть полный банк →") }}</a>
+            </div>
+          </div>
+        </div>
+
+        {# ==================== TAB 2: Mini Training Session Launcher & 3-Question Drill ==================== #}
+        <div class="mp-stage__card" id="mp-demo-panel-session" role="tabpanel" aria-labelledby="mp-tab-session" data-demo-panel="session" hidden>
+          <div class="mp-demo-pane" data-session-demo>
+            <header class="mp-ort__top">
+              <span class="mp-eyebrow-pill">{{ _("Тренировочная сессия") }}</span>
+              <span class="mp-ort__timer num" data-session-badge>{{ _("3 задачи · 5 мин") }}</span>
+            </header>
+
+            <div class="mp-session-launcher" data-session-launcher>
+              <h4 class="mp-demo-title">{{ _("Выберите режим мини-тренировки") }}</h4>
+              <div class="mp-session-modes" role="group" aria-label="{{ _('Режим тренировочной сессии') }}">
+                <button type="button" class="mp-mode-pill is-active" data-session-mode="weak" aria-pressed="true">
+                  <strong>{{ _("Слабые темы · 5 мин") }}</strong>
+                  <span>{{ _("Линейные уравнения, проценты и площади") }}</span>
+                </button>
+                <button type="button" class="mp-mode-pill" data-session-mode="mistakes" aria-pressed="false">
+                  <strong>{{ _("Работа над ошибками") }}</strong>
+                  <span>{{ _("Типичные ловушки со знаками и корнями") }}</span>
+                </button>
+                <button type="button" class="mp-mode-pill" data-session-mode="hard" aria-pressed="false">
+                  <strong>{{ _("Сложные задачи") }}</strong>
+                  <span>{{ _("Параметры, логарифмы и стереометрия") }}</span>
+                </button>
+              </div>
+              <div class="mp-session-launcher__cta">
+                <button type="button" class="mp-btn mp-btn--blue" data-session-start>{{ _("Запустить мини-сессию") }}</button>
+                <span class="mp-session-hint">{{ _("3 вопроса с живым прогресс-баром и разбором") }}</span>
+              </div>
+            </div>
+
+            <div class="mp-session-drill" data-session-drill hidden>
+              <div class="mp-drill-head">
+                <span class="mp-drill-head__mode" data-drill-mode-name></span>
+                <span class="mp-drill-head__step num" data-drill-step-label>1 / 3</span>
+              </div>
+              <div class="mp-drill-bar" aria-hidden="true">
+                <span class="mp-drill-bar__fill" data-drill-progress="1"></span>
+              </div>
+              <div class="mp-bank-qcard__prompt math" data-drill-prompt></div>
+              <div class="br-options mp-bank-opts" data-drill-opts></div>
+              <div class="br-explain" data-drill-explain hidden aria-live="polite">
+                <div class="br-explain__status" data-drill-status></div>
+                <p class="mp-drill-note" data-drill-note></p>
+                <div class="mp-ort__actions">
+                  <button type="button" class="mp-btn mp-btn--blue mp-btn--sm" data-drill-next>{{ _("Следующий вопрос →") }}</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mp-session-summary" data-session-summary hidden aria-live="polite">
+              <span class="mp-summary-badge">{{ _("Мини-сессия завершена") }}</span>
+              <div class="mp-summary-score num" data-drill-score>Результат: 3 / 3</div>
+              <p class="mp-summary-msg" data-drill-summary-msg></p>
+              <div class="mp-ort__actions">
+                <a class="mp-btn mp-btn--blue mp-btn--sm" href="{{ auth_cta_url }}">{{ _("Создать аккаунт и продолжить →") if signup_enabled else _("Войти и сохранить прогресс →") }}</a>
+                <button type="button" class="mp-btn mp-btn--soft mp-btn--sm" data-session-restart>{{ _("Выбрать другой режим") }}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# ==================== TAB 3 (Default Active): Unified Paper-Style ORT Mini-Test ==================== #}
+        <div class="mp-stage__card" id="mp-demo-panel-tests" role="tabpanel" aria-labelledby="mp-tab-tests" data-demo-panel="tests">
           <div class="mp-ort" data-ort-minitest>
             <header class="mp-ort__top">
               <span class="mp-eyebrow-pill">{{ _("ОРТ · Математика") }}</span>
@@ -369,30 +484,137 @@
             </article>
           </div>
         </div>
+
+        {# ==================== TAB 4: Formula Reference & Interactive Trig Angle Switcher ==================== #}
+        <div class="mp-stage__card" id="mp-demo-panel-formulas" role="tabpanel" aria-labelledby="mp-tab-formulas" data-demo-panel="formulas" hidden>
+          <div class="mp-demo-pane" data-formulas-demo>
+            <header class="mp-ort__top">
+              <span class="mp-eyebrow-pill">{{ _("Справочник формул") }}</span>
+              <div class="mp-pill-group" role="tablist" aria-label="{{ _('Разделы формул') }}">
+                <button type="button" role="tab" class="mp-chip is-active" data-formula-cat="alg" aria-selected="true">{{ _("Алгебра") }}</button>
+                <button type="button" role="tab" class="mp-chip" data-formula-cat="geo" aria-selected="false">{{ _("Геометрия") }}</button>
+                <button type="button" role="tab" class="mp-chip" data-formula-cat="trig" aria-selected="false">{{ _("Тригонометрия") }}</button>
+              </div>
+            </header>
+
+            <div class="mp-formula-grid" data-formula-panel="alg">
+              <div class="mp-formula-card">
+                <span class="mp-formula-card__lbl">{{ _("Разность квадратов") }}</span>
+                <div class="mp-formula-card__eq math">$a^2 - b^2 = (a - b)(a + b)$</div>
+              </div>
+              <div class="mp-formula-card">
+                <span class="mp-formula-card__lbl">{{ _("Корни квадратного уравнения") }}</span>
+                <div class="mp-formula-card__eq math">$x_{1,2} = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$</div>
+              </div>
+              <div class="mp-formula-card">
+                <span class="mp-formula-card__lbl">{{ _("Теорема Виета") }}</span>
+                <div class="mp-formula-card__eq math">$x_1 + x_2 = -\frac{b}{a},\;\; x_1 x_2 = \frac{c}{a}$</div>
+              </div>
+              <div class="mp-formula-card">
+                <span class="mp-formula-card__lbl">{{ _("Логарифм произведения") }}</span>
+                <div class="mp-formula-card__eq math">$\log_a(xy) = \log_a x + \log_a y$</div>
+              </div>
+            </div>
+
+            <div class="mp-formula-grid" data-formula-panel="geo" hidden>
+              <div class="mp-formula-card">
+                <span class="mp-formula-card__lbl">{{ _("Теорема Пифагора") }}</span>
+                <div class="mp-formula-card__eq math">$a^2 + b^2 = c^2$</div>
+              </div>
+              <div class="mp-formula-card">
+                <span class="mp-formula-card__lbl">{{ _("Площадь треугольника") }}</span>
+                <div class="mp-formula-card__eq math">$S = \frac{1}{2}ah = \frac{1}{2}ab\sin\gamma$</div>
+              </div>
+              <div class="mp-formula-card">
+                <span class="mp-formula-card__lbl">{{ _("Окружность и круг") }}</span>
+                <div class="mp-formula-card__eq math">$C = 2\pi r,\;\; S = \pi r^2$</div>
+              </div>
+              <div class="mp-formula-card">
+                <span class="mp-formula-card__lbl">{{ _("Теорема косинусов") }}</span>
+                <div class="mp-formula-card__eq math">$c^2 = a^2 + b^2 - 2ab\cos\gamma$</div>
+              </div>
+            </div>
+
+            <div class="mp-formula-grid" data-formula-panel="trig" hidden>
+              <div class="mp-formula-card">
+                <span class="mp-formula-card__lbl">{{ _("Основное тождество") }}</span>
+                <div class="mp-formula-card__eq math">$\sin^2\alpha + \cos^2\alpha = 1$</div>
+              </div>
+              <div class="mp-formula-card">
+                <span class="mp-formula-card__lbl">{{ _("Синус двойного угла") }}</span>
+                <div class="mp-formula-card__eq math">$\sin 2\alpha = 2\sin\alpha\cos\alpha$</div>
+              </div>
+              <div class="mp-formula-card">
+                <span class="mp-formula-card__lbl">{{ _("Косинус двойного угла") }}</span>
+                <div class="mp-formula-card__eq math">$\cos 2\alpha = \cos^2\alpha - \sin^2\alpha$</div>
+              </div>
+              <div class="mp-formula-card">
+                <span class="mp-formula-card__lbl">{{ _("Тангенс угла") }}</span>
+                <div class="mp-formula-card__eq math">$\tan\alpha = \frac{\sin\alpha}{\cos\alpha}$</div>
+              </div>
+            </div>
+
+            <div class="mp-trig-box" data-trig-widget>
+              <div class="mp-trig-box__head">
+                <span class="mp-trig-box__title">{{ _("Интерактивные значения углов") }}</span>
+                <div class="mp-pill-group" role="group" aria-label="{{ _('Выберите угол') }}">
+                  <button type="button" class="mp-chip is-active" data-trig-angle="30" aria-pressed="true">30°</button>
+                  <button type="button" class="mp-chip" data-trig-angle="45" aria-pressed="false">45°</button>
+                  <button type="button" class="mp-chip" data-trig-angle="60" aria-pressed="false">60°</button>
+                  <button type="button" class="mp-chip" data-trig-angle="90" aria-pressed="false">90°</button>
+                </div>
+              </div>
+              <div class="mp-trig-grid" aria-live="polite">
+                <div class="mp-trig-cell">
+                  <span class="mp-trig-cell__lbl">sin α</span>
+                  <div class="mp-trig-cell__val math" data-trig-sin>$\frac{1}{2}$</div>
+                </div>
+                <div class="mp-trig-cell">
+                  <span class="mp-trig-cell__lbl">cos α</span>
+                  <div class="mp-trig-cell__val math" data-trig-cos>$\frac{\sqrt{3}}{2}$</div>
+                </div>
+                <div class="mp-trig-cell">
+                  <span class="mp-trig-cell__lbl">tan α</span>
+                  <div class="mp-trig-cell__val math" data-trig-tan>$\frac{\sqrt{3}}{3}$</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-{# =========================================================================== 4. Sky-blue "anywhere" band with Animated Top Wave, 4-Pointed Stars & Desmos/SAT Mockups #}
+{# =========================================================================== 4. Jet-Black Starry Night "anywhere" band with Shallow Animated Top Wave & Desmos/SAT Mockups #}
 <section class="mp-sky" aria-labelledby="mp-sky-h">
-  {# Smooth Animated Sky-Blue Top Wave (Zero Purple) #}
+  {# Shallow, Sleek Animated Top Wave transitioning into Jet-Black Starry Night #}
   <div class="mp-sky__wave-top" aria-hidden="true">
-    <svg class="mp-sky__wave-svg mp-sky__wave-svg--back" viewBox="0 0 2880 120" preserveAspectRatio="none">
-      <path d="M0,58 C240,18 480,18 720,58 C960,98 1200,98 1440,58 C1680,18 1920,18 2160,58 C2400,98 2640,98 2880,58 L2880,120 L0,120 Z"/>
+    <svg class="mp-sky__wave-svg mp-sky__wave-svg--back" viewBox="0 0 2880 64" preserveAspectRatio="none">
+      <path d="M0,30 C240,12 480,12 720,30 C960,48 1200,48 1440,30 C1680,12 1920,12 2160,30 C2400,48 2640,48 2880,30 L2880,64 L0,64 Z"/>
     </svg>
-    <svg class="mp-sky__wave-svg mp-sky__wave-svg--front" viewBox="0 0 2880 120" preserveAspectRatio="none">
-      <path d="M0,74 C240,34 480,108 720,74 C960,40 1200,36 1440,74 C1680,34 1920,108 2160,74 C2400,40 2640,36 2880,74 L2880,120 L0,120 Z"/>
+    <svg class="mp-sky__wave-svg mp-sky__wave-svg--front" viewBox="0 0 2880 64" preserveAspectRatio="none">
+      <path d="M0,38 C240,20 480,54 720,38 C960,22 1200,20 1440,38 C1680,20 1920,54 2160,38 C2400,22 2640,20 2880,38 L2880,64 L0,64 Z"/>
     </svg>
   </div>
 
-  {# Crisp 4-Pointed Geometric Stars twinkling near top wave & corners #}
+  {# Delicate 4-Pointed Geometric Stars scattered across the Jet-Black Night Sky #}
   <div class="mp-sky__stars" aria-hidden="true">
-    <svg class="mp-star mp-star--1" viewBox="0 0 24 24"><path d="M12 1.5L14.5 9.5L22.5 12L14.5 14.5L12 22.5L9.5 14.5L1.5 12L9.5 9.5Z"/></svg>
-    <svg class="mp-star mp-star--2" viewBox="0 0 24 24"><path d="M12 1.5L14.5 9.5L22.5 12L14.5 14.5L12 22.5L9.5 14.5L1.5 12L9.5 9.5Z"/></svg>
-    <svg class="mp-star mp-star--3" viewBox="0 0 24 24"><path d="M12 1.5L14.5 9.5L22.5 12L14.5 14.5L12 22.5L9.5 14.5L1.5 12L9.5 9.5Z"/></svg>
-    <svg class="mp-star mp-star--4" viewBox="0 0 24 24"><path d="M12 1.5L14.5 9.5L22.5 12L14.5 14.5L12 22.5L9.5 14.5L1.5 12L9.5 9.5Z"/></svg>
-    <svg class="mp-star mp-star--5" viewBox="0 0 24 24"><path d="M12 1.5L14.5 9.5L22.5 12L14.5 14.5L12 22.5L9.5 14.5L1.5 12L9.5 9.5Z"/></svg>
+    <svg class="mp-star mp-star--1" viewBox="0 0 24 24"><path d="M12 1.5L14.3 9.7L22.5 12L14.3 14.3L12 22.5L9.7 14.3L1.5 12L9.7 9.7Z"/></svg>
+    <svg class="mp-star mp-star--2" viewBox="0 0 24 24"><path d="M12 1.5L14.3 9.7L22.5 12L14.3 14.3L12 22.5L9.7 14.3L1.5 12L9.7 9.7Z"/></svg>
+    <svg class="mp-star mp-star--3" viewBox="0 0 24 24"><path d="M12 1.5L14.3 9.7L22.5 12L14.3 14.3L12 22.5L9.7 14.3L1.5 12L9.7 9.7Z"/></svg>
+    <svg class="mp-star mp-star--4" viewBox="0 0 24 24"><path d="M12 1.5L14.3 9.7L22.5 12L14.3 14.3L12 22.5L9.7 14.3L1.5 12L9.7 9.7Z"/></svg>
+    <svg class="mp-star mp-star--5" viewBox="0 0 24 24"><path d="M12 1.5L14.3 9.7L22.5 12L14.3 14.3L12 22.5L9.7 14.3L1.5 12L9.7 9.7Z"/></svg>
+    <svg class="mp-star mp-star--6" viewBox="0 0 24 24"><path d="M12 1.5L14.3 9.7L22.5 12L14.3 14.3L12 22.5L9.7 14.3L1.5 12L9.7 9.7Z"/></svg>
+    <svg class="mp-star mp-star--7" viewBox="0 0 24 24"><path d="M12 1.5L14.3 9.7L22.5 12L14.3 14.3L12 22.5L9.7 14.3L1.5 12L9.7 9.7Z"/></svg>
+    <svg class="mp-star mp-star--8" viewBox="0 0 24 24"><path d="M12 1.5L14.3 9.7L22.5 12L14.3 14.3L12 22.5L9.7 14.3L1.5 12L9.7 9.7Z"/></svg>
+    <svg class="mp-star mp-star--9" viewBox="0 0 24 24"><path d="M12 1.5L14.3 9.7L22.5 12L14.3 14.3L12 22.5L9.7 14.3L1.5 12L9.7 9.7Z"/></svg>
+    <svg class="mp-star mp-star--10" viewBox="0 0 24 24"><path d="M12 1.5L14.3 9.7L22.5 12L14.3 14.3L12 22.5L9.7 14.3L1.5 12L9.7 9.7Z"/></svg>
+    <svg class="mp-star mp-star--11" viewBox="0 0 24 24"><path d="M12 1.5L14.3 9.7L22.5 12L14.3 14.3L12 22.5L9.7 14.3L1.5 12L9.7 9.7Z"/></svg>
+    <svg class="mp-star mp-star--12" viewBox="0 0 24 24"><path d="M12 1.5L14.3 9.7L22.5 12L14.3 14.3L12 22.5L9.7 14.3L1.5 12L9.7 9.7Z"/></svg>
+    <svg class="mp-star mp-star--13" viewBox="0 0 24 24"><path d="M12 1.5L14.3 9.7L22.5 12L14.3 14.3L12 22.5L9.7 14.3L1.5 12L9.7 9.7Z"/></svg>
+    <svg class="mp-star mp-star--14" viewBox="0 0 24 24"><path d="M12 1.5L14.3 9.7L22.5 12L14.3 14.3L12 22.5L9.7 14.3L1.5 12L9.7 9.7Z"/></svg>
+    <svg class="mp-star mp-star--15" viewBox="0 0 24 24"><path d="M12 1.5L14.3 9.7L22.5 12L14.3 14.3L12 22.5L9.7 14.3L1.5 12L9.7 9.7Z"/></svg>
   </div>
 
   <div class="mp-sky__grid">
@@ -437,14 +659,14 @@
 
     {# Center: Headline & Dual Tactile CTAs #}
     <div class="mp-sky__inner">
-      <span class="mp-eyebrow-pill">{{ _("SAT · CSCA · ОРТ · PWA") }}</span>
+      <span class="mp-eyebrow-pill mp-sky__pill">{{ _("SAT · CSCA · ОРТ · PWA") }}</span>
       <h2 id="mp-sky-h" class="mp-h2 mp-sky__h">{{ _("Учись в любое время, с любого устройства") }}</h2>
       <p class="mp-sky__lead">
         {{ _("Встроенный калькулятор Desmos для SAT и CSCA, бланк ответов в формате ОРТ, еженедельный Monday Test, личные шпаргалки формул и установка Monday как приложения (PWA) на телефон и ноутбук.") }}
       </p>
       <div class="mp-sky__ctas">
         <a class="mp-btn mp-btn--blue" href="{{ url_for('public_site.question_bank') }}">{{ _("Открыть банк вопросов") }}</a>
-        <a class="mp-btn mp-btn--card" href="{{ auth_cta_url }}">{{ _("Создать аккаунт") if signup_enabled else _("Войти в кабинет") }}</a>
+        <a class="mp-btn mp-btn--dark-outline" href="{{ auth_cta_url }}">{{ _("Создать аккаунт") if signup_enabled else _("Войти в кабинет") }}</a>
       </div>
     </div>
 
@@ -454,7 +676,7 @@
         <div class="mp-sat-card__top">
           <span class="mp-sat-card__mod">Digital SAT · Module 1</span>
           <span class="mp-sat-card__timer num">⏱ 31:42</span>
-          <span class="mp-sat-card__calc">🖩 Desmos</span>
+          <span class="mp-sat-card__calc"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="1.5" width="11" height="13" rx="2"/><line x1="5" y1="5" x2="11" y2="5"/><circle cx="5.5" cy="8.5" r="0.7" fill="currentColor"/><circle cx="8" cy="8.5" r="0.7" fill="currentColor"/><circle cx="10.5" cy="8.5" r="0.7" fill="currentColor"/><circle cx="5.5" cy="11.5" r="0.7" fill="currentColor"/><circle cx="8" cy="11.5" r="0.7" fill="currentColor"/><circle cx="10.5" cy="11.5" r="0.7" fill="currentColor"/></svg>Desmos</span>
         </div>
         <div class="mp-sat-card__q">
           <div class="mp-sat-card__qnum">Question 14 of 22</div>
@@ -475,34 +697,120 @@
   </div>
 </section>
 
-{# =========================================================================== 5. Audience split + 3-step loop + Subtle Background Math Line-Art #}
+{# =========================================================================== 5. Audience split + 3-step loop + Soft 3D Duolingo-Style Math Margin Shapes #}
 <section id="for-teachers" class="mp-section mp-audience" aria-labelledby="mp-aud-h">
   <div class="mp-aud-bg" aria-hidden="true">
-    {# Top-Left: Coordinate axes + parabola arc #}
-    <svg class="mp-aud-bg__art mp-aud-bg__art--tl" viewBox="0 0 240 200">
-      <path d="M18 166H224M68 18V186"/>
-      <path d="M26 42 Q122 232 218 42"/>
-      <circle cx="122" cy="137" r="4"/>
-      <path d="M68 137H122M122 137V166" stroke-dasharray="4 5"/>
+    {# Top-Left: Soft Sky-to-Royal Blue 3D Rounded Cube with white π #}
+    <svg class="mp-aud-3d mp-aud-3d--pi" viewBox="0 0 110 116">
+      <defs>
+        <linearGradient id="mp3d-blue-top" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#BAE6FD"/>
+          <stop offset="100%" stop-color="#60A5FA"/>
+        </linearGradient>
+        <linearGradient id="mp3d-blue-left" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#3B82F6"/>
+          <stop offset="100%" stop-color="#1F4FE0"/>
+        </linearGradient>
+        <linearGradient id="mp3d-blue-right" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1D4ED8"/>
+          <stop offset="100%" stop-color="#153893"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="55" cy="105" rx="34" ry="8" fill="#1F4FE0" opacity="0.14"/>
+      <path d="M55 12 C57 11 59 11 61 12 L94 30 C96 31 96 34 94 35 L61 53 C57 55 53 55 49 53 L16 35 C14 34 14 31 16 30 L49 12 C51 11 53 11 55 12 Z" fill="url(#mp3d-blue-top)"/>
+      <path d="M15 35 L51 54 C53 55 54 57 54 59 L54 94 C54 96 52 98 49 96 L18 79 C16 78 15 76 15 73 Z" fill="url(#mp3d-blue-left)"/>
+      <path d="M95 35 L59 54 C57 55 56 57 56 59 L56 94 C56 96 58 98 61 96 L92 79 C94 78 95 76 95 73 Z" fill="url(#mp3d-blue-right)"/>
+      <text x="35" y="79" text-anchor="middle" font-size="25" font-weight="800" fill="#FFFFFF" opacity="0.96">π</text>
     </svg>
-    {# Top-Right: Right triangle + right-angle square + angle arc #}
-    <svg class="mp-aud-bg__art mp-aud-bg__art--tr" viewBox="0 0 220 190">
-      <polygon points="34,158 190,158 34,34"/>
-      <rect x="34" y="138" width="20" height="20"/>
-      <path d="M150 158 A40 40 0 0 0 160 134"/>
+
+    {# Bottom-Left: Gentle Lavender 3D Rounded Cube with white x² #}
+    <svg class="mp-aud-3d mp-aud-3d--x2" viewBox="0 0 110 116">
+      <defs>
+        <linearGradient id="mp3d-lav-top" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#EDE9FE"/>
+          <stop offset="100%" stop-color="#C4B5FD"/>
+        </linearGradient>
+        <linearGradient id="mp3d-lav-left" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#A78BFA"/>
+          <stop offset="100%" stop-color="#7C3AED"/>
+        </linearGradient>
+        <linearGradient id="mp3d-lav-right" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#8B5CF6"/>
+          <stop offset="100%" stop-color="#5B21B6"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="55" cy="105" rx="34" ry="8" fill="#7C3AED" opacity="0.14"/>
+      <path d="M55 12 C57 11 59 11 61 12 L94 30 C96 31 96 34 94 35 L61 53 C57 55 53 55 49 53 L16 35 C14 34 14 31 16 30 L49 12 C51 11 53 11 55 12 Z" fill="url(#mp3d-lav-top)"/>
+      <path d="M15 35 L51 54 C53 55 54 57 54 59 L54 94 C54 96 52 98 49 96 L18 79 C16 78 15 76 15 73 Z" fill="url(#mp3d-lav-left)"/>
+      <path d="M95 35 L59 54 C57 55 56 57 56 59 L56 94 C56 96 58 98 61 96 L92 79 C94 78 95 76 95 73 Z" fill="url(#mp3d-lav-right)"/>
+      <text x="35" y="78" text-anchor="middle" font-size="21" font-weight="800" fill="#FFFFFF" opacity="0.96">x²</text>
     </svg>
-    {# Bottom-Left: Unit circle + angle radius & sine projection #}
-    <svg class="mp-aud-bg__art mp-aud-bg__art--bl" viewBox="0 0 200 200">
-      <circle cx="100" cy="100" r="68"/>
-      <path d="M16 100H184M100 16V184"/>
-      <path d="M100 100L148 52"/>
-      <path d="M148 52V100" stroke-dasharray="4 5"/>
+
+    {# Top-Right: Warm Soft-Apricot / Amber 3D Triangular Prism #}
+    <svg class="mp-aud-3d mp-aud-3d--prism" viewBox="0 0 114 114">
+      <defs>
+        <linearGradient id="mp3d-amb-front" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FDE68A"/>
+          <stop offset="100%" stop-color="#F59E0B"/>
+        </linearGradient>
+        <linearGradient id="mp3d-amb-side" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#FBBF24"/>
+          <stop offset="100%" stop-color="#D97706"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="58" cy="102" rx="36" ry="8" fill="#D97706" opacity="0.14"/>
+      <path d="M50 15 C53 11 58 11 61 15 L97 76 C99 80 97 85 92 86 L68 92 L55 16 Z" fill="url(#mp3d-amb-side)"/>
+      <path d="M51 15 C53 11 57 11 59 15 L84 85 C86 89 83 93 78 93 L22 93 C17 93 14 89 16 85 Z" fill="url(#mp3d-amb-front)"/>
+      <path d="M53 26 L71 81 H34 Z" fill="#FFFFFF" opacity="0.22"/>
     </svg>
-    {# Bottom-Right: Sine wave & axes #}
-    <svg class="mp-aud-bg__art mp-aud-bg__art--br" viewBox="0 0 240 160">
-      <path d="M12 80H228"/>
-      <path d="M18 80 C48 16 78 16 108 80 C138 144 168 144 198 80 C210 56 220 48 228 48"/>
+
+    {# Middle-Right: Fresh Mint-Emerald 3D Rounded Cube with white ∑ #}
+    <svg class="mp-aud-3d mp-aud-3d--sum" viewBox="0 0 110 116">
+      <defs>
+        <linearGradient id="mp3d-mint-top" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#D1FAE5"/>
+          <stop offset="100%" stop-color="#6EE7B7"/>
+        </linearGradient>
+        <linearGradient id="mp3d-mint-left" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#34D399"/>
+          <stop offset="100%" stop-color="#059669"/>
+        </linearGradient>
+        <linearGradient id="mp3d-mint-right" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#10B981"/>
+          <stop offset="100%" stop-color="#047857"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="55" cy="105" rx="34" ry="8" fill="#059669" opacity="0.14"/>
+      <path d="M55 12 C57 11 59 11 61 12 L94 30 C96 31 96 34 94 35 L61 53 C57 55 53 55 49 53 L16 35 C14 34 14 31 16 30 L49 12 C51 11 53 11 55 12 Z" fill="url(#mp3d-mint-top)"/>
+      <path d="M15 35 L51 54 C53 55 54 57 54 59 L54 94 C54 96 52 98 49 96 L18 79 C16 78 15 76 15 73 Z" fill="url(#mp3d-mint-left)"/>
+      <path d="M95 35 L59 54 C57 55 56 57 56 59 L56 94 C56 96 58 98 61 96 L92 79 C94 78 95 76 95 73 Z" fill="url(#mp3d-mint-right)"/>
+      <text x="75" y="79" text-anchor="middle" font-size="23" font-weight="800" fill="#FFFFFF" opacity="0.96">∑</text>
     </svg>
+
+    {# Bottom-Right: Soft Coral-Peach 3D Torus / Ring #}
+    <svg class="mp-aud-3d mp-aud-3d--torus" viewBox="0 0 112 112">
+      <defs>
+        <linearGradient id="mp3d-coral-outer" x1="0.15" y1="0.1" x2="0.88" y2="0.92">
+          <stop offset="0%" stop-color="#FED7AA"/>
+          <stop offset="48%" stop-color="#FB923C"/>
+          <stop offset="100%" stop-color="#E11D48"/>
+        </linearGradient>
+        <linearGradient id="mp3d-coral-rim" x1="0.85" y1="0.1" x2="0.15" y2="0.9">
+          <stop offset="0%" stop-color="#F43F5E"/>
+          <stop offset="100%" stop-color="#FDBA74"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="56" cy="100" rx="34" ry="8" fill="#E11D48" opacity="0.13"/>
+      <circle cx="56" cy="52" r="34" fill="none" stroke="url(#mp3d-coral-outer)" stroke-width="19"/>
+      <circle cx="56" cy="52" r="24.5" fill="none" stroke="url(#mp3d-coral-rim)" stroke-width="3.5" opacity="0.7"/>
+      <path d="M32 34 A31 31 0 0 1 73 25" fill="none" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" opacity="0.58"/>
+    </svg>
+
+    {# 4 Tiny Light-Blue 4-Pointed Sparkles balancing the outer corners #}
+    <svg class="mp-aud-spark mp-aud-spark--1" viewBox="0 0 24 24"><path d="M12 1.5L14.4 9.6L22.5 12L14.4 14.4L12 22.5L9.6 14.4L1.5 12L9.6 9.6Z"/></svg>
+    <svg class="mp-aud-spark mp-aud-spark--2" viewBox="0 0 24 24"><path d="M12 1.5L14.4 9.6L22.5 12L14.4 14.4L12 22.5L9.6 14.4L1.5 12L9.6 9.6Z"/></svg>
+    <svg class="mp-aud-spark mp-aud-spark--3" viewBox="0 0 24 24"><path d="M12 1.5L14.4 9.6L22.5 12L14.4 14.4L12 22.5L9.6 14.4L1.5 12L9.6 9.6Z"/></svg>
+    <svg class="mp-aud-spark mp-aud-spark--4" viewBox="0 0 24 24"><path d="M12 1.5L14.4 9.6L22.5 12L14.4 14.4L12 22.5L9.6 14.4L1.5 12L9.6 9.6Z"/></svg>
   </div>
 
   <div class="mp-wrap mp-aud-wrap">

@@ -400,6 +400,18 @@ body.pub-body {
   border-color: var(--pub-blue);
 }
 
+.mp-btn--dark-outline {
+  background: rgba(255, 255, 255, 0.06);
+  color: #FFFFFF;
+  border: 1.5px solid rgba(203, 213, 225, 0.36);
+  border-bottom: 4px solid rgba(148, 163, 184, 0.42);
+}
+.mp-btn--dark-outline:hover {
+  background: rgba(127, 163, 243, 0.16);
+  border-color: #7FA3F3;
+  color: #FFFFFF;
+}
+
 /* ==========================================================================
    4. Centered Hero + Fanned Arc of Tilted Math Cards (.mp-hero & .mp-fan)
    ========================================================================== */
@@ -866,18 +878,33 @@ body.pub-body {
   align-content: space-between;
 }
 .mp-page-card {
+  width: 100%;
   display: flex;
   align-items: flex-start;
   gap: 12px;
   padding: 13px 15px;
   border-radius: 16px;
   background: var(--pub-soft);
-  border: 1px solid var(--pub-soft-border);
-  transition: border-color 0.14s ease, background 0.14s ease;
+  border: 1.5px solid var(--pub-soft-border);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease, transform 0.12s ease;
 }
 .mp-page-card:hover {
   border-color: var(--pub-blue);
   background: var(--pub-soft-hover);
+}
+.mp-page-card:focus-visible {
+  outline: none;
+  border-color: var(--pub-blue);
+  box-shadow: 0 0 0 3px rgba(31, 79, 224, 0.22);
+}
+.mp-page-card.is-active {
+  background: var(--pub-card);
+  border-color: var(--pub-blue);
+  box-shadow: 0 0 0 3px rgba(31, 79, 224, 0.14), 0 8px 20px rgba(31, 79, 224, 0.08);
 }
 .mp-page-card__num {
   flex: none;
@@ -891,6 +918,17 @@ body.pub-body {
   display: grid;
   place-items: center;
   margin-top: 1px;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+}
+.mp-page-card.is-active .mp-page-card__num {
+  background: var(--pub-blue);
+  border-color: var(--pub-blue);
+  color: #FFFFFF;
+}
+.mp-page-card__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: block;
 }
 .mp-page-card strong {
   display: block;
@@ -899,11 +937,26 @@ body.pub-body {
   color: var(--pub-navy);
   line-height: 1.3;
 }
-.mp-page-card p {
+.mp-page-card__desc {
+  display: block;
   margin: 3px 0 0;
   font-size: 13px;
   line-height: 1.45;
   color: var(--pub-muted);
+}
+.mp-page-card__arrow {
+  flex: none;
+  align-self: center;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--pub-blue);
+  opacity: 0.45;
+  transition: transform 0.16s ease, opacity 0.16s ease;
+}
+.mp-page-card:hover .mp-page-card__arrow,
+.mp-page-card.is-active .mp-page-card__arrow {
+  opacity: 1;
+  transform: translateX(2px);
 }
 
 .mp-stage {
@@ -924,8 +977,347 @@ body.pub-body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  animation: mpPanelIn 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .mp-stage__card[hidden] { display: none; }
+
+@keyframes mpPanelIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Shared Interactive Demo Panel Styles (Tabs 1, 2, 4) */
+.mp-demo-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+}
+.mp-demo-title {
+  margin: 0;
+  font-family: var(--font-display, 'Unbounded', 'Onest', sans-serif);
+  font-size: 16.5px;
+  color: var(--pub-navy);
+}
+.mp-demo-foot {
+  margin-top: auto;
+  padding-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.mp-pill-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.mp-chip {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--pub-soft-border);
+  background: var(--pub-card);
+  color: var(--pub-ink);
+  font: 700 12.5px/1 var(--font);
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+.mp-chip:hover {
+  border-color: var(--pub-blue);
+  background: var(--pub-soft-hover);
+  color: var(--pub-blue);
+}
+.mp-chip.is-active {
+  background: var(--pub-blue);
+  border-color: var(--pub-blue);
+  color: #FFFFFF;
+}
+
+/* Tab 1: Question Bank Mini Filter & Runner */
+.mp-bank-filters {
+  display: grid;
+  gap: 9px;
+  padding: 13px 15px;
+  border-radius: 16px;
+  background: var(--pub-soft);
+  border: 1px solid var(--pub-soft-border);
+}
+.mp-bank-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+.mp-bank-row__lbl {
+  min-width: 78px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pub-muted);
+}
+.mp-bank-show {
+  margin-left: auto;
+}
+.mp-bank-qcard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--pub-card);
+  border: 1px solid var(--pub-soft-border);
+}
+.mp-bank-qcard.is-pulse {
+  border-color: var(--pub-blue);
+  box-shadow: 0 0 0 3px rgba(31, 79, 224, 0.14);
+}
+.mp-bank-qcard__meta {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--pub-blue);
+  letter-spacing: 0.02em;
+}
+.mp-bank-qcard__prompt {
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--pub-ink);
+  font-weight: 600;
+}
+.mp-bank-opts {
+  gap: 8px;
+}
+
+/* Tab 2: Training Session Launcher & 3-Question Drill */
+.mp-session-launcher {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+}
+.mp-session-launcher[hidden],
+.mp-session-drill[hidden],
+.mp-session-summary[hidden] {
+  display: none;
+}
+.mp-session-modes {
+  display: grid;
+  gap: 10px;
+}
+.mp-mode-pill {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 15px;
+  background: var(--pub-soft);
+  border: 1.5px solid var(--pub-soft-border);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
+}
+.mp-mode-pill strong {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--pub-navy);
+}
+.mp-mode-pill span {
+  font-size: 12.5px;
+  color: var(--pub-muted);
+}
+.mp-mode-pill:hover {
+  border-color: var(--pub-blue);
+  background: var(--pub-soft-hover);
+}
+.mp-mode-pill.is-active {
+  background: var(--pub-card);
+  border-color: var(--pub-blue);
+  box-shadow: 0 0 0 3px rgba(31, 79, 224, 0.13);
+}
+.mp-session-launcher__cta {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 6px;
+}
+.mp-session-hint {
+  font-size: 13px;
+  color: var(--pub-muted);
+}
+
+.mp-session-drill {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+.mp-drill-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.mp-drill-head__mode {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--pub-blue);
+}
+.mp-drill-head__step {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--pub-muted);
+}
+.mp-drill-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--pub-soft);
+  border: 1px solid var(--pub-soft-border);
+  overflow: hidden;
+}
+.mp-drill-bar__fill {
+  display: block;
+  height: 100%;
+  width: 33.333%;
+  border-radius: 999px;
+  background: var(--pub-blue);
+  transition: width 0.25s ease;
+}
+.mp-drill-bar__fill[data-drill-progress="1"] { width: 33.333%; }
+.mp-drill-bar__fill[data-drill-progress="2"] { width: 66.666%; }
+.mp-drill-bar__fill[data-drill-progress="3"] { width: 100%; }
+.mp-drill-note {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--pub-muted);
+}
+
+.mp-session-summary {
+  margin: auto 0;
+  padding: 24px 20px;
+  border-radius: 18px;
+  background: var(--pub-soft);
+  border: 1px solid var(--pub-soft-border);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.mp-summary-badge {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--pub-card);
+  border: 1px solid var(--pub-soft-border);
+  color: var(--pub-blue);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.mp-summary-score {
+  font-family: var(--font-display, 'Unbounded', 'Onest', sans-serif);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--pub-navy);
+}
+.mp-summary-msg {
+  margin: 0;
+  max-width: 44ch;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--pub-muted);
+}
+.mp-session-summary .mp-ort__actions {
+  justify-content: center;
+}
+
+/* Tab 4: Formula Cards + Interactive Trig Angle Switcher */
+.mp-formula-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.mp-formula-grid[hidden] { display: none; }
+.mp-formula-card {
+  padding: 13px 14px;
+  border-radius: 15px;
+  background: var(--pub-soft);
+  border: 1px solid var(--pub-soft-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mp-formula-card__lbl {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--pub-blue);
+}
+.mp-formula-card__eq {
+  font-size: 15px;
+  color: var(--pub-navy);
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.mp-trig-box {
+  margin-top: auto;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--pub-soft);
+  border: 1px solid var(--pub-soft-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mp-trig-box__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.mp-trig-box__title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--pub-navy);
+}
+.mp-trig-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.mp-trig-cell {
+  padding: 10px 12px;
+  border-radius: 13px;
+  background: var(--pub-card);
+  border: 1px solid var(--pub-soft-border);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mp-trig-cell__lbl {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--pub-muted);
+  letter-spacing: 0.01em;
+}
+.mp-trig-cell__val {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--pub-blue);
+  min-height: 28px;
+  display: grid;
+  place-items: center;
+}
 
 /* Mode 1: Authentic Monday ORT Mini-Test + Bubble Sheet (.mp-ort) */
 .mp-ort {
@@ -1161,27 +1553,28 @@ body.pub-body {
 }
 
 /* ==========================================================================
-   7. Sky-Blue Band with Animated Top Wave, 4-Pointed Stars & Desmos/SAT Mockups (.mp-sky)
+   7. Jet-Black Starry Night Band with Shallow Animated Wave & Desmos/SAT Cards (.mp-sky)
    ========================================================================== */
 .mp-sky {
   position: relative;
   width: 100%;
   overflow: hidden;
-  background: linear-gradient(180deg, #E6F2FF 0%, var(--pub-sky) 100%);
-  border-bottom: 1px solid var(--pub-soft-border);
-  padding: 108px 24px 76px;
+  background: linear-gradient(180deg, #070A12 0%, #000000 100%);
+  border-bottom: 1px solid #162038;
+  padding: 84px 24px 72px;
+  color: #FFFFFF;
 }
 [data-theme="dark"] .mp-sky {
-  background: linear-gradient(180deg, #13203A 0%, var(--pub-sky) 100%);
+  background: linear-gradient(180deg, #070A12 0%, #000000 100%);
 }
 
-/* Smooth Animated Sky-Blue Top Wave (Zero Purple) */
+/* Shallow, Sleek Animated Top Wave transitioning into #070A12 */
 .mp-sky__wave-top {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 76px;
+  height: 42px;
   background: var(--pub-canvas);
   overflow: hidden;
   pointer-events: none;
@@ -1192,28 +1585,28 @@ body.pub-body {
   bottom: -1px;
   left: 0;
   width: 200%;
-  height: 72px;
+  height: 40px;
   display: block;
 }
 .mp-sky__wave-svg--back path {
-  fill: #C7DBFF;
-  opacity: 0.55;
+  fill: #15254A;
+  opacity: 0.58;
 }
 .mp-sky__wave-svg--front path {
-  fill: #E6F2FF;
+  fill: #070A12;
 }
 [data-theme="dark"] .mp-sky__wave-svg--back path {
-  fill: #1E3A8A;
-  opacity: 0.5;
+  fill: #1A2D5C;
+  opacity: 0.55;
 }
 [data-theme="dark"] .mp-sky__wave-svg--front path {
-  fill: #13203A;
+  fill: #070A12;
 }
 .mp-sky__wave-svg--back {
-  animation: mpWaveDrift 18s linear infinite;
+  animation: mpWaveDrift 20s linear infinite;
 }
 .mp-sky__wave-svg--front {
-  animation: mpWaveDrift 12s linear infinite reverse;
+  animation: mpWaveDrift 13s linear infinite reverse;
 }
 
 @keyframes mpWaveDrift {
@@ -1221,7 +1614,7 @@ body.pub-body {
   100% { transform: translateX(-50%); }
 }
 
-/* Crisp 4-Pointed Geometric Stars around Top Wave & Corners */
+/* Delicate 4-Pointed Geometric Stars twinkling across the Jet-Black Sky */
 .mp-sky__stars {
   position: absolute;
   inset: 0;
@@ -1230,23 +1623,29 @@ body.pub-body {
 }
 .mp-star {
   position: absolute;
-  fill: #1F4FE0;
-  opacity: 0.32;
-  animation: mpStarTwinkle 4.2s ease-in-out infinite;
+  fill: #FFFFFF;
+  opacity: 0.52;
+  animation: mpStarTwinkle 4.4s ease-in-out infinite;
 }
-[data-theme="dark"] .mp-star {
-  fill: #7FA3F3;
-  opacity: 0.48;
-}
-.mp-star--1 { top: 72px; left: 5%; width: 18px; height: 18px; animation-delay: 0s; }
-.mp-star--2 { top: 58px; left: 26%; width: 12px; height: 12px; fill: #2B60E5; animation-delay: 1.1s; }
-.mp-star--3 { top: 64px; right: 24%; width: 14px; height: 14px; animation-delay: 0.6s; }
-.mp-star--4 { top: 78px; right: 5%; width: 20px; height: 20px; fill: #2B60E5; animation-delay: 1.8s; }
-.mp-star--5 { bottom: 26px; left: 4%; width: 14px; height: 14px; animation-delay: 2.3s; }
+.mp-star--1  { top: 54px;  left: 4%;   width: 17px; height: 17px; fill: #FFFFFF; animation-duration: 3.8s; animation-delay: 0s; }
+.mp-star--2  { top: 48px;  left: 17%;  width: 11px; height: 11px; fill: #7FA3F3; animation-duration: 4.6s; animation-delay: 0.9s; }
+.mp-star--3  { top: 64px;  left: 31%;  width: 14px; height: 14px; fill: #BAE6FD; animation-duration: 3.5s; animation-delay: 1.7s; }
+.mp-star--4  { top: 52px;  left: 47%;  width: 9px;  height: 9px;  fill: #FFFFFF; animation-duration: 5.0s; animation-delay: 0.4s; }
+.mp-star--5  { top: 60px;  right: 33%; width: 15px; height: 15px; fill: #7FA3F3; animation-duration: 4.1s; animation-delay: 2.1s; }
+.mp-star--6  { top: 48px;  right: 18%; width: 10px; height: 10px; fill: #FFFFFF; animation-duration: 3.6s; animation-delay: 1.2s; }
+.mp-star--7  { top: 58px;  right: 5%;  width: 18px; height: 18px; fill: #BAE6FD; animation-duration: 4.8s; animation-delay: 0.6s; }
+.mp-star--8  { top: 42%;   left: 2.5%; width: 12px; height: 12px; fill: #7FA3F3; animation-duration: 4.3s; animation-delay: 1.5s; }
+.mp-star--9  { top: 46%;   right: 3%;  width: 13px; height: 13px; fill: #FFFFFF; animation-duration: 3.9s; animation-delay: 2.4s; }
+.mp-star--10 { bottom: 36px; left: 6%;   width: 15px; height: 15px; fill: #BAE6FD; animation-duration: 4.7s; animation-delay: 0.8s; }
+.mp-star--11 { bottom: 24px; left: 26%;  width: 10px; height: 10px; fill: #FFFFFF; animation-duration: 3.4s; animation-delay: 1.9s; }
+.mp-star--12 { bottom: 44px; left: 41%;  width: 9px;  height: 9px;  fill: #7FA3F3; animation-duration: 5.2s; animation-delay: 0.3s; }
+.mp-star--13 { bottom: 30px; right: 39%; width: 12px; height: 12px; fill: #FFFFFF; animation-duration: 4.0s; animation-delay: 1.4s; }
+.mp-star--14 { bottom: 26px; right: 21%; width: 14px; height: 14px; fill: #7FA3F3; animation-duration: 4.5s; animation-delay: 2.6s; }
+.mp-star--15 { bottom: 42px; right: 6%;  width: 16px; height: 16px; fill: #FFFFFF; animation-duration: 3.7s; animation-delay: 1.1s; }
 
 @keyframes mpStarTwinkle {
-  0%, 100% { transform: scale(0.86) translateY(0); opacity: 0.24; }
-  50% { transform: scale(1.14) translateY(-4px); opacity: 0.62; }
+  0%, 100% { transform: scale(0.84) translateY(0); opacity: 0.28; }
+  50% { transform: scale(1.18) translateY(-3px); opacity: 0.92; }
 }
 
 .mp-sky__grid {
@@ -1270,15 +1669,21 @@ body.pub-body {
   gap: 16px;
 }
 
+.mp-sky .mp-sky__pill {
+  background: rgba(127, 163, 243, 0.14);
+  border: 1px solid rgba(127, 163, 243, 0.34);
+  color: #BAE6FD;
+}
+
 .mp-sky__h {
-  color: var(--pub-navy);
+  color: #FFFFFF;
 }
 
 .mp-sky__lead {
   margin: 0;
   font-size: 16px;
   line-height: 1.55;
-  color: var(--pub-muted);
+  color: #CBD5E1;
 }
 
 .mp-sky__ctas {
@@ -1294,14 +1699,15 @@ body.pub-body {
   width: 100%;
 }
 
-/* Left Card: Desmos Animated Graphing Calculator */
+/* Crisp White Desmos & Digital SAT Cards popping against the Jet-Black Night Sky */
 .mp-desmos-card,
 .mp-sat-card {
-  background: var(--pub-card);
-  border: 1px solid var(--pub-soft-border);
+  background: #FFFFFF;
+  color: #0F172A;
+  border: 1px solid rgba(127, 163, 243, 0.38);
   border-radius: 22px;
   padding: 16px;
-  box-shadow: 0 12px 30px rgba(31, 79, 224, 0.08);
+  box-shadow: 0 0 0 1px rgba(127, 163, 243, 0.24), 0 18px 44px rgba(31, 79, 224, 0.26);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1314,25 +1720,33 @@ body.pub-body {
   justify-content: space-between;
   gap: 8px;
   padding-bottom: 10px;
-  border-bottom: 1px solid var(--pub-line);
+  border-bottom: 1px solid #E2E8F0;
 }
 
 .mp-desmos-card__title,
 .mp-sat-card__mod {
   font-size: 12.5px;
   font-weight: 800;
-  color: var(--pub-navy);
+  color: #0F172A;
 }
 
 .mp-desmos-card__tag,
 .mp-sat-card__calc {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 3px 9px;
   border-radius: 999px;
-  background: var(--pub-soft);
-  border: 1px solid var(--pub-soft-border);
-  color: var(--pub-blue);
+  background: #EEF4FF;
+  border: 1px solid #C7DBFF;
+  color: #1F4FE0;
   font-size: 11px;
   font-weight: 800;
+}
+.mp-sat-card__calc svg {
+  width: 12px;
+  height: 12px;
+  flex: none;
 }
 
 .mp-desmos-card__exprs {
@@ -1347,11 +1761,11 @@ body.pub-body {
   gap: 7px;
   padding: 6px 10px;
   border-radius: 10px;
-  background: var(--pub-soft);
-  border: 1px solid var(--pub-soft-border);
+  background: #EEF4FF;
+  border: 1px solid #C7DBFF;
   font-size: 12.5px;
   font-weight: 700;
-  color: var(--pub-ink);
+  color: #0F172A;
 }
 
 .mp-desmos-card__dot {
@@ -1368,7 +1782,7 @@ body.pub-body {
   height: auto;
   display: block;
   border-radius: 12px;
-  border: 1px solid var(--pub-line);
+  border: 1px solid #E2E8F0;
 }
 
 .mp-desmos-hand {
@@ -1384,7 +1798,7 @@ body.pub-body {
 .mp-sat-card__timer {
   font-size: 12px;
   font-weight: 800;
-  color: var(--pub-muted);
+  color: #475569;
 }
 
 .mp-sat-card__q {
@@ -1397,7 +1811,7 @@ body.pub-body {
 .mp-sat-card__qnum {
   font-size: 11.5px;
   font-weight: 800;
-  color: var(--pub-blue);
+  color: #1F4FE0;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -1406,7 +1820,7 @@ body.pub-body {
   margin: 0;
   font-size: 13px;
   line-height: 1.45;
-  color: var(--pub-ink);
+  color: #0F172A;
 }
 
 .mp-sat-card__opts {
@@ -1421,19 +1835,19 @@ body.pub-body {
   gap: 7px;
   padding: 6px 10px;
   border-radius: 10px;
-  background: var(--pub-soft);
-  border: 1px solid var(--pub-soft-border);
+  background: #EEF4FF;
+  border: 1px solid #C7DBFF;
   font-size: 12px;
   font-weight: 700;
-  color: var(--pub-ink);
+  color: #0F172A;
 }
 .mp-sat-card__opt span {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--pub-card);
-  border: 1px solid var(--pub-soft-border);
-  color: var(--pub-blue);
+  background: #FFFFFF;
+  border: 1px solid #C7DBFF;
+  color: #1F4FE0;
   font-size: 11px;
   font-weight: 800;
   display: inline-grid;
@@ -1457,11 +1871,11 @@ body.pub-body {
   gap: 8px;
   padding: 8px 12px;
   border-radius: 12px;
-  background: var(--pub-soft);
-  border: 1px solid var(--pub-soft-border);
+  background: #EEF4FF;
+  border: 1px solid #C7DBFF;
   font-size: 12px;
   font-weight: 800;
-  color: var(--pub-navy);
+  color: #0F172A;
 }
 
 .mp-sat-card__check {
@@ -1478,7 +1892,7 @@ body.pub-body {
 }
 
 /* ==========================================================================
-   8. Audience Split (#for-teachers / .mp-aud) + Subtle Math Background Line-Art
+   8. Audience Split (#for-teachers / .mp-aud) + Soft 3D Duolingo-Style Math Margin Shapes
    ========================================================================== */
 .mp-audience {
   position: relative;
@@ -1492,23 +1906,37 @@ body.pub-body {
   pointer-events: none;
   overflow: hidden;
 }
-.mp-aud-bg__art {
+.mp-aud-3d {
   position: absolute;
-  fill: none;
-  stroke: #1F4FE0;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0.1;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 12px 20px rgba(15, 23, 42, 0.1));
+  animation: mpAudFloat 6.2s ease-in-out infinite;
 }
-[data-theme="dark"] .mp-aud-bg__art {
-  stroke: #5B8CFF;
-  opacity: 0.15;
+[data-theme="dark"] .mp-aud-3d {
+  filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.45));
 }
-.mp-aud-bg__art--tl { top: 24px; left: max(-24px, calc(50% - 700px)); width: 230px; height: auto; }
-.mp-aud-bg__art--tr { top: 28px; right: max(-24px, calc(50% - 700px)); width: 210px; height: auto; }
-.mp-aud-bg__art--bl { bottom: 18px; left: max(-18px, calc(50% - 690px)); width: 195px; height: auto; }
-.mp-aud-bg__art--br { bottom: 26px; right: max(-20px, calc(50% - 700px)); width: 230px; height: auto; }
+.mp-aud-3d--pi    { width: 82px; top: 68px;    left: max(18px, calc(50% - 684px));  animation-delay: 0s; }
+.mp-aud-3d--x2    { width: 76px; bottom: 72px; left: max(22px, calc(50% - 678px));  animation-delay: 1.4s; animation-duration: 6.8s; }
+.mp-aud-3d--prism { width: 82px; top: 62px;    right: max(18px, calc(50% - 684px)); animation-delay: 0.7s; animation-duration: 5.9s; }
+.mp-aud-3d--sum   { width: 72px; top: 45%;     right: max(16px, calc(50% - 682px)); animation-delay: 2.1s; animation-duration: 6.6s; }
+.mp-aud-3d--torus { width: 76px; bottom: 60px; right: max(22px, calc(50% - 678px)); animation-delay: 1.1s; animation-duration: 7.1s; }
+
+@keyframes mpAudFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-9px) rotate(2deg); }
+}
+
+.mp-aud-spark {
+  position: absolute;
+  fill: #7FA3F3;
+  opacity: 0.65;
+  animation: mpStarTwinkle 4.4s ease-in-out infinite;
+}
+.mp-aud-spark--1 { width: 15px; height: 15px; top: 176px;   left: max(46px, calc(50% - 650px));  animation-delay: 0.4s; }
+.mp-aud-spark--2 { width: 13px; height: 13px; bottom: 172px; left: max(30px, calc(50% - 664px)); fill: #93C5FD; animation-delay: 1.6s; }
+.mp-aud-spark--3 { width: 14px; height: 14px; top: 172px;   right: max(44px, calc(50% - 652px)); fill: #93C5FD; animation-delay: 0.9s; }
+.mp-aud-spark--4 { width: 13px; height: 13px; bottom: 160px; right: max(36px, calc(50% - 660px)); animation-delay: 2.2s; }
 
 .mp-aud-wrap {
   position: relative;
@@ -2567,6 +2995,32 @@ body.pub-body {
 /* ==========================================================================
    13. Responsive Breakpoints & Reduced Motion
    ========================================================================== */
+@media (max-width: 1360px) {
+  .mp-aud-3d {
+    width: 56px;
+    opacity: 0.88;
+  }
+  .mp-aud-3d--pi,
+  .mp-aud-3d--x2 {
+    left: 10px;
+  }
+  .mp-aud-3d--prism,
+  .mp-aud-3d--sum,
+  .mp-aud-3d--torus {
+    right: 10px;
+  }
+  .mp-aud-spark--1,
+  .mp-aud-spark--2 { left: 26px; }
+  .mp-aud-spark--3,
+  .mp-aud-spark--4 { right: 26px; }
+}
+
+@media (max-width: 1200px) {
+  .mp-aud-bg {
+    display: none;
+  }
+}
+
 @media (max-width: 1080px) {
   .mp-fan {
     justify-content: flex-start;
@@ -2657,7 +3111,17 @@ body.pub-body {
     padding: 48px 0;
   }
   .mp-sky {
-    padding: 96px 16px 56px;
+    padding: 72px 16px 56px;
+  }
+  .mp-bank-show {
+    margin-left: 0;
+    width: 100%;
+  }
+  .mp-formula-grid {
+    grid-template-columns: 1fr;
+  }
+  .mp-trig-grid {
+    grid-template-columns: 1fr;
   }
   .pub-hero,
   .mp-page-hero {
@@ -2700,6 +3164,9 @@ body.pub-body {
   .mp-desmos-hand,
   .mp-sky__wave-svg,
   .mp-star,
+  .mp-aud-3d,
+  .mp-aud-spark,
+  .mp-stage__card,
   .mp-wave__layer,
   .mp-wave-star,
   .mp-cta-sun,
@@ -2707,7 +3174,8 @@ body.pub-body {
     animation: none !important;
   }
   .mp-fan__item,
-  .mp-cta-sky {
+  .mp-cta-sky,
+  .mp-drill-bar__fill {
     transition: none !important;
   }
   .mp-cta-sky {

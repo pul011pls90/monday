@@ -168,6 +168,13 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
         "Тренировочные сессии",
         "Сборники и пробные тесты",
         "Справочник и шпаргалки формул",
+        'data-demo-tab="bank"',
+        'data-demo-tab="session"',
+        'data-demo-tab="tests"',
+        'data-demo-tab="formulas"',
+        "Показать задачу",
+        "Запустить мини-сессию",
+        "Интерактивные значения углов",
         "ОРТ · Математика",
         "Бланк ответов",
         "Колонка А",
@@ -179,6 +186,11 @@ def test_landing_csp_static_audit_and_auth_redirects(tmp_path):
         "Digital SAT · Module 1",
         "Учись в любое время, с любого устройства",
         "mp-aud-bg",
+        "mp-aud-3d--pi",
+        "mp-aud-3d--x2",
+        "mp-aud-3d--prism",
+        "mp-aud-3d--sum",
+        "mp-aud-3d--torus",
         "Для учеников",
         "Для преподавателей и родителей",
         "1. Диагностика уровня",
@@ -559,8 +571,8 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             assert actual_colors == expected_badge_colors, f"Marquee badge colors mismatch: {actual_colors}"
             assert len(set(actual_colors.values())) == 8
 
-            # Verify zero horizontal overflow, centered hero H1, and non-clipped sky-band cards at 1440px, 1024px, and 390px viewports
-            for vw, vh in ((1440, 900), (1024, 900), (390, 844)):
+            # Verify zero horizontal overflow, centered hero H1, and non-clipped sky-band cards at 1440px, 1280px, 1024px, and 390px viewports
+            for vw, vh in ((1440, 900), (1280, 840), (1024, 900), (390, 844)):
                 page.set_viewport_size({"width": vw, "height": vh})
                 page.wait_for_timeout(100)
                 metrics = page.evaluate(
@@ -568,6 +580,7 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
                     "  const r = document.querySelector('.mp-hero h1').getBoundingClientRect();"
                     "  const satFoot = document.querySelector('.mp-sat-card__foot').getBoundingClientRect();"
                     "  const navPill = document.querySelector('.mp-header__pill').getBoundingClientRect();"
+                    "  const audBg = document.querySelector('.mp-aud-bg');"
                     "  return {"
                     "    scrollW: document.documentElement.scrollWidth,"
                     "    innerW: window.innerWidth,"
@@ -576,7 +589,8 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
                     "    h1Center: r.left + r.width / 2,"
                     "    satLeft: satFoot.left,"
                     "    satRight: satFoot.right,"
-                    "    navH: Math.round(navPill.height)"
+                    "    navH: Math.round(navPill.height),"
+                    "    audBgDisplay: audBg ? getComputedStyle(audBg).display : ''"
                     "  };"
                     "}"
                 )
@@ -585,14 +599,59 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
                 assert abs(metrics["h1Center"] - metrics["innerW"] / 2) <= 24, f"H1 not centered at {vw}px: {metrics}"
                 assert metrics["satLeft"] >= 0 and metrics["satRight"] <= metrics["innerW"] + 1, f"Mastery badge clipped at {vw}px: {metrics}"
                 assert metrics["navH"] <= 72, f"Minimal navbar wrapped at {vw}px: {metrics}"
+                if vw <= 1200:
+                    assert metrics["audBgDisplay"] == "none", f"3D margin shapes must hide at {vw}px"
+                else:
+                    assert metrics["audBgDisplay"] != "none", f"3D margin shapes should show at {vw}px"
+
+            # Verify Jet-Black Starry Night .mp-sky band (shallow wave, 15 stars, crisp white Desmos/SAT cards) and 3D margin shapes at 1440px
+            page.set_viewport_size({"width": 1440, "height": 900})
+            sky_checks = page.evaluate("""() => {
+                const sky = document.querySelector('.mp-sky');
+                const skyH = document.querySelector('.mp-sky__h');
+                const wave = document.querySelector('.mp-sky__wave-top');
+                const desmos = document.querySelector('.mp-desmos-card');
+                const sat = document.querySelector('.mp-sat-card');
+                const stars = document.querySelectorAll('.mp-sky__stars .mp-star').length;
+                const shapes3d = document.querySelectorAll('.mp-aud-bg .mp-aud-3d').length;
+                const sparkles = document.querySelectorAll('.mp-aud-bg .mp-aud-spark').length;
+                const audCards = Array.from(document.querySelectorAll('.mp-aud__card, .mp-loop__step')).map(el => el.getBoundingClientRect());
+                const shapeRects = Array.from(document.querySelectorAll('.mp-aud-bg .mp-aud-3d')).map(el => el.getBoundingClientRect());
+                let overlaps = 0;
+                for (const sr of shapeRects) {
+                    for (const cr of audCards) {
+                        const horiz = sr.right > cr.left + 2 && sr.left < cr.right - 2;
+                        const vert = sr.bottom > cr.top + 2 && sr.top < cr.bottom - 2;
+                        if (horiz && vert) overlaps++;
+                    }
+                }
+                return {
+                    skyBgImg: getComputedStyle(sky).backgroundImage,
+                    skyHColor: getComputedStyle(skyH).color,
+                    waveH: Math.round(wave.getBoundingClientRect().height),
+                    desmosBg: getComputedStyle(desmos).backgroundColor,
+                    satBg: getComputedStyle(sat).backgroundColor,
+                    stars,
+                    shapes3d,
+                    sparkles,
+                    overlaps,
+                };
+            }""")
+            assert "rgb(7, 10, 18)" in sky_checks["skyBgImg"] and "rgb(0, 0, 0)" in sky_checks["skyBgImg"], sky_checks
+            assert sky_checks["skyHColor"] == "rgb(255, 255, 255)", sky_checks
+            assert sky_checks["waveH"] <= 46, sky_checks
+            assert sky_checks["desmosBg"] == "rgb(255, 255, 255)" and sky_checks["satBg"] == "rgb(255, 255, 255)", sky_checks
+            assert sky_checks["stars"] >= 15, sky_checks
+            assert sky_checks["shapes3d"] == 5 and sky_checks["sparkles"] == 4, sky_checks
+            assert sky_checks["overlaps"] == 0, f"3D margin shapes overlapped audience cards: {sky_checks}"
 
             page.set_viewport_size({"width": 1280, "height": 840})
 
-            # Unified ORT Mini-Test: click bubble А on Q1 -> highlights right + reveals explanation -> advance to Q2 -> click В -> advance to Q3 -> click Б
+            # Interactive 4-Tab Sandbox: Tab 3 (ORT Mini-Test) is default active
             ort = page.locator("[data-ort-minitest]")
             assert ort.is_visible()
-            assert page.locator(".mp-page-card").count() == 4
-            assert page.locator('[data-mode-panel="exam"]').count() == 0
+            assert page.locator('button[role="tab"].mp-page-card').count() == 4
+            assert page.locator('[data-demo-tab="tests"]').get_attribute("aria-selected") == "true"
 
             q0 = ort.locator('[data-ort-q="0"]')
             q0.locator('[data-ort-bubble][aria-label="А"]').click()
@@ -611,6 +670,44 @@ def test_playwright_landing_interactive_challenge_and_csp(tmp_path):
             q2.locator('[data-ort-bubble][aria-label="Б"]').click()
             q2.locator("[data-ort-explain]").wait_for(state="visible", timeout=5000)
             assert q2.locator('a:has-text("Пройти полный вариант ОРТ")').is_visible()
+
+            # Switch to Tab 1 (Question Bank with Filters): choose SAT + Геометрия + Средняя -> click Показать задачу -> answer -> see 2-step explanation
+            page.locator('[data-demo-tab="bank"]').click()
+            bank = page.locator("[data-bank-demo]")
+            bank.wait_for(state="visible", timeout=5000)
+            assert page.locator('[data-demo-tab="bank"]').get_attribute("aria-selected") == "true"
+            bank.locator('[data-bank-filter="exam"][data-value="SAT"]').click()
+            bank.locator('[data-bank-filter="topic"][data-value="geo"]').click()
+            bank.locator('[data-bank-filter="diff"][data-value="medium"]').click()
+            bank.locator("[data-bank-show]").click()
+            assert "SAT · Геометрия · Средняя" in (bank.locator("[data-bank-meta]").text_content() or "")
+            bank.locator('[data-bank-opt="1"]').click()
+            bank.locator("[data-bank-explain]").wait_for(state="visible", timeout=5000)
+            assert bank.locator("[data-bank-steps] li").count() == 2
+            assert bank.locator('a[href="/question-bank"]').is_visible()
+
+            # Switch to Tab 2 (Training Sessions): pick mode -> start 3-question drill -> finish -> see "Результат: 3 / 3"
+            page.locator('[data-demo-tab="session"]').click()
+            sess = page.locator("[data-session-demo]")
+            sess.wait_for(state="visible", timeout=5000)
+            sess.locator('[data-session-mode="mistakes"]').click()
+            sess.locator("[data-session-start]").click()
+            sess.locator("[data-session-drill]").wait_for(state="visible", timeout=5000)
+            for correct_idx in ("1", "0", "2"):
+                sess.locator(f'[data-drill-opt="{correct_idx}"]').click()
+                sess.locator("[data-drill-explain]").wait_for(state="visible", timeout=5000)
+                sess.locator("[data-drill-next]").click()
+            sess.locator("[data-session-summary]").wait_for(state="visible", timeout=5000)
+            assert "Результат: 3 / 3" in (sess.locator("[data-drill-score]").text_content() or "")
+
+            # Switch to Tab 4 (Formula Reference + Interactive Trig Angle Switcher)
+            page.locator('[data-demo-tab="formulas"]').click()
+            f_pane = page.locator("[data-formulas-demo]")
+            f_pane.wait_for(state="visible", timeout=5000)
+            f_pane.locator('[data-formula-cat="trig"]').click()
+            assert f_pane.locator('[data-formula-panel="trig"]').is_visible()
+            f_pane.locator('[data-trig-angle="90"]').click()
+            assert "не опр." in (f_pane.locator("[data-trig-tan]").text_content() or "")
 
             # Pre-footer sun & clouds reveal on scroll into view + soft light-blue CTA button color
             cta_sec = page.locator("[data-cta-reveal]")
