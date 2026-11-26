@@ -8,6 +8,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 
 from config import Config
 
+from .access import min_password_length
 from .extensions import db
 from .models import utcnow
 from .models import StudentProfile, StudentRecord, User
@@ -193,8 +194,9 @@ def register():
             errors.append(_("Напиши имя."))
         if "@" not in email or "." not in email.split("@")[-1]:
             errors.append(_("Проверь email: в нём ошибка."))
-        if len(password) < 8:
-            errors.append(_("Пароль должен быть не короче 8 символов."))
+        min_len = min_password_length(role)
+        if len(password) < min_len:
+            errors.append(_("Пароль должен быть не короче %(n)s символов.", n=min_len))
         if User.query.filter_by(email=email).first():
             errors.append(_("Этот email уже зарегистрирован."))
         if errors:
@@ -328,3 +330,37 @@ def set_avatar():
     db.session.commit()
     flash(_("Фото обновлено."), "success")
     return redirect(nxt)
+
+
+@bp.route("/change-password", methods=["POST"])
+@login_required
+def change_password():
+    """Hardened password rotation endpoint: CSRF-protected, rate-limited, 12-char staff policy, audit-logged."""
+    from flask import current_app
+    from .access import min_password_length
+    from .rate_limit import rate_limit
+
+    @rate_limit("change_password", max_requests=10, window_seconds=300)
+    def _handle():
+        current_pw = request.form.get("current", "")
+        new_pw = request.form.get("new", "")
+        min_len = min_password_length(current_user.role)
+        if not current_user.check_password(current_pw):
+            current_app.logger.warning("AUDIT password_change_failed user_id=%s role=%s ip=%s", current_user.id, current_user.role, request.remote_addr)
+            flash(_("Текущий пароль неверный."), "error")
+            return {"ok": False, "error": "invalid_current"}, 400
+        if len(new_pw) < min_len:
+            flash(_("Новый пароль должен быть не короче %(n)s символов.", n=min_len), "error")
+            return {"ok": False, "error": "too_short", "min_length": min_len}, 400
+        current_user.set_password(new_pw)
+        db.session.commit()
+        current_app.logger.info("AUDIT password_changed user_id=%s role=%s ip=%s", current_user.id, current_user.role, request.remote_addr)
+        flash(_("Пароль изменён."), "success")
+        if request.accept_mimetypes.best == "application/json" or request.is_json:
+            return {"ok": True}, 200
+        nxt = _safe_next(request.form.get("next"))
+        if nxt:
+            return redirect(nxt)
+        return redirect(url_for("teacher.account") if current_user.is_staff_account else url_for("student.profile") + "#security")
+
+    return _handle()

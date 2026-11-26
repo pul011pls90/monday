@@ -1441,13 +1441,17 @@ def account():
             db.session.commit()
             flash(_("Сохранено."), "success")
         elif action == "password":
+            from .access import min_password_length
+            min_len = min_password_length(current_user.role)
             if not current_user.check_password(request.form.get("current", "")):
+                current_app.logger.warning("AUDIT password_change_failed user_id=%s role=%s ip=%s", current_user.id, current_user.role, request.remote_addr)
                 flash(_("Текущий пароль неверный."), "error")
-            elif len(request.form.get("new", "")) < 8:
-                flash(_("Новый пароль должен быть не короче 8 символов."), "error")
+            elif len(request.form.get("new", "")) < min_len:
+                flash(_("Новый пароль должен быть не короче %(n)s символов.", n=min_len), "error")
             else:
                 current_user.set_password(request.form["new"])
                 db.session.commit()
+                current_app.logger.info("AUDIT password_changed user_id=%s role=%s ip=%s", current_user.id, current_user.role, request.remote_addr)
                 flash(_("Пароль изменён."), "success")
         return redirect(url_for("teacher.account"))
     stats = {

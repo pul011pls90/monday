@@ -51,7 +51,7 @@
 .sp-level.is-mastered .sp-dot { background: var(--pulse); border-color: var(--pulse); color: #fff; }
 .sp-level.is-progress .sp-dot { border-color: var(--accent); color: var(--accent);
   background: conic-gradient(color-mix(in srgb, var(--accent) 22%, var(--surface)) calc(var(--a) * 1%), var(--surface) 0); }
-.sp-level.is-current .sp-dot { --s: 54px; border: 0; border-radius: 17px; color: #fff; background: linear-gradient(135deg, #7FA3F3, #2456D9 55%, #153893);
+.sp-level.is-current .sp-dot { --s: 54px; border: 0; border-radius: 17px; color: var(--btn-text); background: var(--btn-bg);
   box-shadow: 0 10px 22px rgba(36, 86, 217, .32); }
 .sp-level.is-current .sp-dot svg { fill: currentColor; }
 
@@ -318,7 +318,7 @@
 }
 .kc-lesson__kind { color: var(--text-2); border: var(--bw, 1px) solid var(--line); background: var(--surface); }
 .kc-kind--quiz { background: #FFF3E0; color: #B45309; border-color: #FCD9A8; }
-.kc-kind--practice { background: #EEF3FF; color: #1D4ED8; border-color: #D4E2FF; }
+.kc-kind--practice { background: var(--accent-soft); color: var(--accent-ink); border-color: var(--line); }
 .kc-kind--article { background: #F4EEFF; color: #6D28D9; border-color: #E4D7FF; }
 .kc-lesson__go { cursor: pointer; }
 .kc-lesson__go:hover { filter: brightness(0.96); }
@@ -329,7 +329,7 @@
 .kc-lvl--mastered { background: #ECFDF5; color: #047857; border: var(--bw, 1px) solid #A7F3D0; }
 
 [data-theme="dark"] .kc-kind--quiz { background: color-mix(in srgb, #F59E0B 18%, var(--surface)); color: #FBBF24; border-color: color-mix(in srgb, #F59E0B 35%, transparent); }
-[data-theme="dark"] .kc-kind--practice { background: color-mix(in srgb, #3B82F6 18%, var(--surface)); color: #93C5FD; border-color: color-mix(in srgb, #3B82F6 35%, transparent); }
+[data-theme="dark"] .kc-kind--practice { background: var(--accent-soft); color: var(--accent-ink); border-color: var(--line); }
 [data-theme="dark"] .kc-kind--article { background: color-mix(in srgb, #8B5CF6 18%, var(--surface)); color: #C4B5FD; border-color: color-mix(in srgb, #8B5CF6 35%, transparent); }
 [data-theme="dark"] .kc-lvl--not_started { background: var(--surface); color: var(--text-2); border-color: var(--line); }
 [data-theme="dark"] .kc-lvl--familiar { background: color-mix(in srgb, #0EA5E9 18%, var(--surface)); color: #7DD3FC; border-color: color-mix(in srgb, #0EA5E9 35%, transparent); }

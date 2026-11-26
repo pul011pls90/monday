@@ -1,8 +1,46 @@
-"""Role checks used as route decorators."""
+"""Role checks and password policy helpers used as route decorators."""
 from functools import wraps
 
 from flask import abort, redirect, url_for
 from flask_login import current_user
+
+STAFF_ROLES = ("admin", "manager", "teacher")
+STUDENT_MIN_PASSWORD_LEN = 8
+STAFF_MIN_PASSWORD_LEN = 12
+
+
+def min_password_length(role: str | None) -> int:
+    """Staff accounts (admin, manager, teacher) require at least 12 characters; students require 8."""
+    return STAFF_MIN_PASSWORD_LEN if role in STAFF_ROLES else STUDENT_MIN_PASSWORD_LEN
+
+
+def role_required(*roles):
+    """Generic RBAC guard for attaching Stage 2/3 routes to specific roles."""
+    allowed = set(roles)
+    def decorator(view):
+        @wraps(view)
+        def wrapped(*args, **kwargs):
+            if not current_user.is_authenticated:
+                return redirect(url_for("auth.login"))
+            if current_user.role not in allowed:
+                abort(403)
+            if current_user.role == "teacher" and not current_user.is_approved:
+                return redirect(url_for("auth.pending"))
+            return view(*args, **kwargs)
+        return wrapped
+    return decorator
+
+
+def manager_required(view):
+    """Managers and admins (Stage 3 CRM / Kanban / attendance / finance)."""
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for("auth.login"))
+        if current_user.role not in ("manager", "admin"):
+            abort(403)
+        return view(*args, **kwargs)
+    return wrapped
 
 
 def student_required(view):

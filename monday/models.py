@@ -89,12 +89,20 @@ class User(UserMixin, db.Model):
         return self.role in ("teacher", "admin")
 
     @property
+    def is_manager(self):
+        return self.role in ("manager", "admin")
+
+    @property
     def is_admin(self):
         return self.role == "admin"
 
     @property
     def is_assistant(self):
         return self.role == "assistant"
+
+    @property
+    def is_staff_account(self):
+        return self.role in ("admin", "manager", "teacher")
 
     @property
     def can_review(self):

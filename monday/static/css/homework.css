@@ -17,7 +17,7 @@
 .hwrow__main small { font-size: 12.5px; color: var(--text-2); }
 .hwrow__state { font-size: 12px; font-weight: 700; white-space: nowrap; color: var(--text-2); }
 .hwrow__state.is-new { color: #1E9E6A; }
-.hwrow__state.is-going { color: #2B60E5; }
+.hwrow__state.is-going { color: var(--accent); }
 .hwrow__state.is-late { color: #E5383B; }
 .hwpanel__empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; flex: 1; padding: 24px 0;
   color: var(--text-2); text-align: center; }
@@ -45,7 +45,7 @@
 
 .hwcal__dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none; background: #9AA6BF; }
 .hwcal__dot.is-new { background: #1E9E6A; }
-.hwcal__dot.is-going { background: #2B60E5; }
+.hwcal__dot.is-going { background: var(--accent); }
 .hwcal__dot.is-late { background: #E5383B; }
 .hwcal__dot.is-done { background: #9AA6BF; }
 .hwcal__legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 4px 0 0; padding: 12px 0 0; list-style: none; border-top: 1px solid var(--line);
@@ -139,8 +139,8 @@
   color: #1E9E6A;
 }
 .hw-card .hwrow__state.is-going {
-  background: color-mix(in srgb, #2B60E5 12%, var(--surface));
-  color: #2B60E5;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  color: var(--accent);
 }
 .hw-card .hwrow__state.is-late {
   background: color-mix(in srgb, #E5383B 12%, var(--surface));
